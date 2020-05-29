@@ -53,14 +53,6 @@ def main(sysargs = sys.argv[1:]):
     else:
         print("Found the snakefile")
 
-    # find the data files
-    cog_metadata = os.path.join(thisdir, "data", "cog_gisaid.csv")
-    cog_seqs = os.path.join(thisdir, "data", "cog_gisaid.fasta")
-    cog_lineage_trees = os.path.join(thisdir, "data", "lineage_trees")
-    if not os.path.exists(cog_metadata) or not os.path.exists(cog_seqs) or not os.path.exists(cog_lineage_trees):
-        sys.stderr.write('Error: cannot find data at {}/data\n'.format(thisdir))
-        sys.exit(-1)
-
     # find the query csv
     query = os.path.join(cwd, args.query)
     if not os.path.exists(query):
@@ -113,10 +105,18 @@ def main(sysargs = sys.argv[1:]):
         for row in reader:
             queries.append(row["name"])
 
+    # how many threads to pass
+    if args.threads:
+        threads = args.threads
+    else:
+        threads = 1
+    print("Number of threads is", threads)
+
     config = {
+        "query":query,
         "fields":",".join(fields),
         "outdir":outdir,
-        "tempdir":tempdir
+        "tempdir":tempdir,
         }
 
     if args.fasta:
@@ -143,15 +143,9 @@ def main(sysargs = sys.argv[1:]):
         qc_fail = os.path.join(tempdir,'query.failed_qc.fasta')
         with open(qc_fail,"w") as fw:
             SeqIO.write(do_not_run, fw, "fasta")
+
         config["post_qc_query"]:post_qc_query
         config["qc_fail"]:qc_fail
-
-    # how many threads to pass
-    if args.threads:
-        threads = args.threads
-    else:
-        threads = 1
-    print("Number of threads is", threads)
 
     if args.force:
         config["force"]="forceall"
@@ -160,48 +154,20 @@ def main(sysargs = sys.argv[1:]):
     if args.data:
         data_dir = os.path.join(cwd, args.data)
     else:
-        lineages_dir = lineages.__path__[0]
-        data_dir = os.path.join(lineages_dir,"data")
+        data_dir = os.path.join(thisdir,"data")
 
-    print(f"Looking in {data_dir} for data files...")
-    representative_aln = ""
-    guide_tree = ""
-    lineages_csv = ""
-    for r,d,f in os.walk(data_dir):
-        for fn in f:
-            if args.include_putative:
-                if fn.endswith("putative.fasta"):
-                    representative_aln = os.path.join(r, fn)
-                elif fn.endswith("putative.fasta.treefile"):
-                    guide_tree = os.path.join(r, fn)
-                elif fn.endswith(".csv") and fn.startswith("lineages"):
-                    lineages_csv = os.path.join(r, fn)
-            else:
-                if fn.endswith("safe.fasta"):
-                    representative_aln = os.path.join(r, fn)
-                elif fn.endswith("safe.fasta.treefile"):
-                    guide_tree = os.path.join(r, fn)
-                elif fn.endswith(".csv") and fn.startswith("lineages"):
-                    lineages_csv = os.path.join(r, fn)
+    # find the data files
+    cog_metadata = os.path.join(data_dir, "cog_gisaid.csv")
+    cog_seqs = os.path.join(data_dir, "cog_gisaid.fasta")
+    cog_lineage_trees = os.path.join(data_dir, "lineage_trees")
 
-    print("\nData files found")
-    print(f"Sequence alignment:\t{representative_aln}")
-    print(f"Guide tree:\t\t{guide_tree}")
-    print(f"Lineages csv:\t\t{lineages_csv}")
-    if representative_aln=="" or guide_tree=="" or lineages_csv=="":
-        print("""Didn't find appropriate files.\nTreefile must end with `.treefile`.\nAlignment must be in `.fasta` format.\n \
-If you've specified --include-putative \n 
-you must have files ending in putative.fasta.treefile\nExiting.""")
-        exit(1)
+    if not os.path.exists(cog_metadata) or not os.path.exists(cog_seqs) or not os.path.exists(cog_lineage_trees):
+        sys.stderr.write('Error: cannot find data at {}\n'.format(data_dir))
+        sys.exit(-1)
     else:
-        config["representative_aln"]=representative_aln
-        config["guide_tree"]=guide_tree
-
-    if args.write_tree:
-        config["write_tree"]="True"
-
-    if args.panGUIlin:
-        config["lineages_csv"]=lineages_csv
+        config["cog_metadata"] = cog_metadata
+        config["cog_seqs"] = cog_seqs
+        config["cog_lineage_trees"] = cog_lineage_trees
 
     if args.verbose:
         quiet_mode = False
