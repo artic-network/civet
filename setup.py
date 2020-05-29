@@ -9,10 +9,7 @@ from civet import __version__, _program
 setup(name='civet',
       version=__version__,
       packages=find_packages(),
-      scripts=[
-                "scripts/Snakemake",
-                "scripts/parse_paf.py"
-                ],
+      scripts=["civet/scripts/Snakefile","civet/scripts/parse_paf.py"],
       install_requires=[
             "biopython>=1.70",
             "dendropy>=4.4.0",
@@ -20,7 +17,7 @@ setup(name='civet',
             'pandas>=1.0.1',
             'pysam>=0.15.4'
         ],
-      description='Cluster Investivations Viral Epidemiology Tool',
+      description='Cluster Investivations for Viral Epidemiology Tool',
       url='https://github.com/aineniamh/civet',
       author='Aine OToole, Verity Hill & Stefan Rooke',
       author_email='aine.otoole@ed.ac.uk',

@@ -25,11 +25,11 @@ cwd = os.getcwd()
 def main(sysargs = sys.argv[1:]):
 
     parser = argparse.ArgumentParser(prog = _program, 
-    description='civet: Cluster Investivations Viral Epidemiology Tool', 
+    description='civet: Cluster Investivations for Viral Epidemiology Tool', 
     usage='''civet <query> [options]''')
 
     parser.add_argument('query')
-    parser.add_argument('-f','--fasta', action="store",help="Optional fasta query.")
+    parser.add_argument('-s','--fasta', action="store",help="Optional fasta query.")
     parser.add_argument('-o','--outdir', action="store",help="Output directory. Default: current working directory")
     parser.add_argument('-n', '--dry-run', action='store_true',help="Go through the motions but don't actually run")
     parser.add_argument('-f', '--force', action='store_true',help="Overwrite all output",dest="force")
