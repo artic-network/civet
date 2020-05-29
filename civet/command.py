@@ -118,6 +118,8 @@ def main(sysargs = sys.argv[1:]):
         "fields":",".join(fields),
         "outdir":outdir,
         "tempdir":tempdir,
+        "trim_start":,
+        "trim_end":,
         "fasta":fasta
         }
 
@@ -162,7 +164,8 @@ def main(sysargs = sys.argv[1:]):
     cog_metadata = os.path.join(data_dir, "cog_gisaid.csv")
     cog_seqs = os.path.join(data_dir, "cog_gisaid.fasta")
     cog_lineage_trees = os.path.join(data_dir, "lineage_trees")
-
+    reference_fasta = os.path.join(data_dir, "reference.fasta")
+    
     if not os.path.exists(cog_metadata) or not os.path.exists(cog_seqs) or not os.path.exists(cog_lineage_trees):
         sys.stderr.write('Error: cannot find data at {}\n'.format(data_dir))
         sys.exit(-1)
@@ -170,6 +173,7 @@ def main(sysargs = sys.argv[1:]):
         config["cog_metadata"] = cog_metadata
         config["cog_seqs"] = cog_seqs
         config["cog_lineage_trees"] = cog_lineage_trees
+        config["reference_fasta"] = reference_fasta
 
     if args.verbose:
         quiet_mode = False
