@@ -115,14 +115,19 @@ rule minimap2_against_cog:
         minimap2 -x asm5 --secondary=no --paf-no-hit {input.reference} {input.fasta} > {output.paf}
         """
 
-rule find_top_hit_in_cog:
+rule parse_paf:
     input:
         paf = rules.minimap2_against_cog.output.paf,
         metadata = config["cog_metadata"]
     output:
         csv = 
-    run:
-
+    shell:
+        """
+        parse_paf.py \
+        --paf {input.paf:q} \
+        --metadata {input.metadata:q} \
+        --csv-out {output.csv:q} 
+        """
 
 rule mafft_sequences:
     input:
@@ -145,55 +150,5 @@ rule iqtree_representative_sequences:
         config["outdir"] + "/seqs_of_interest.aln.fasta.treefile"
     shell:
         "iqtree -s {input[0]:q} -nt AUTO -bb 10000 -m HKY -redo -au -alrt 1000"
-
-rule interpret_cog_metadata:
-    input:
-        pangolin = rules.pangolin_sequences.output.report,
-        metadata = config["outdir"] +"/in_cog_metadata.csv"
-    output:
-        config["outdir"] +"/lineage_report.md"
-    run:
-        with open(output[0],"w") as fw:
-            fw.write("## Cluster investigation report\n\n")
-            fw.write("""This report summarises the information provided by whole genome sequencing of SARS-COV-2 as part of COG-UK. \
-The information presented in this report is intended to provide an additional level of information to aid infection control efforts. \
-The information we provide is not in any way able to infer direct transmission between two samples. \
-Even identical sequences may be unrelated as SARS-COV2 is relatively slow evolving for an RNA virus.\n\n\n""")
-            fw.write("""If sequences have different lineage designations, we can rule out transmission. \
-If sequences have different phylotypes it's very unlikely that they are direct transmissions. \
-If sequences share the same lineage and the same phylotype, it does not imply transmission \
-it just means we cannot immediately rule it out.\n""")
-            fw.write("## pangolin lineage assignments\n\n")
-
-            fw.write("Confidence values:\nSHalrt= likelihood, UFbootstrap= approximate bootrap for phylogenetic tree.\n")
-            with open(input.pangolin, "r") as f:
-                for l in f:
-                    if l.startswith("taxon"):
-                        fw.write("| taxon | lineage | SHalrt | UFbootstrap | lineages_version | status | note |\n|:-----|:-----:|:-----:|:-----:|:-----:|:-----:|:-----|\n")
-                    else:
-                        l = l.rstrip("\n")
-                        write_str = " | ".join(l.split(","))
-                        fw.write("| "+write_str + " |\n")
-            fw.write("\n********\n")
-
-            fw.write("### Sequences analysed as part of COG\n")
-            
-            phylotype_dict = collections.defaultdict(list)
-            lineage_dict = collections.defaultdict(list)
-            with open(input.metadata,newline="") as f:
-                reader = csv.DictReader(f)
-                for row in reader:
-                    fw.write(row["sequence_name"] + '\n')
-                    # phylotype_dict[row["phylotype"]].append(row["name"])
-                    lineage_dict[row["lineage"]].append(row["sequence_name"])
-            fw.write("\n********\n")
-            fw.write("| Lineage | Queries |\n|:-----:|:-----|\n")
-            for lineage in lineage_dict:
-                fw.write(f"| {lineage} | ")
-                for sequence in lineage_dict[lineage]:
-                    fw.write(f" {sequence}<br>")
-            fw.write(" |\n\n")
-            
-            fw.close()
 
 
