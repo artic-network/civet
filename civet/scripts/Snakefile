@@ -6,16 +6,18 @@ import collections
 if config["fasta"] != "":
     rule all:
         input:
-            os.path.join(config["outdir"],"seqs_of_interest.aln.fasta.treefile"),
-            os.path.join(config["outdir"],"lineage_report.md"),
-            os.path.join(config["outdir"],"pangolin_seqs_of_interest.csv"),
-            os.path.join(config["outdir"],"non_cog.fasta")
+            # os.path.join(config["outdir"],"seqs_of_interest.aln.fasta.treefile"),
+            # os.path.join(config["outdir"],"lineage_report.md"),
+            # os.path.join(config["outdir"],"pangolin_seqs_of_interest.csv"),
+            os.path.join(config["outdir"],"non_cog.fasta"),
+            os.path.join(config["output_path"],"combined_metadata.csv")
 else:
     rule all:
         input:
-            os.path.join(config["outdir"],"seqs_of_interest.aln.fasta.treefile"),
-            os.path.join(config["outdir"],"lineage_report.md"),
-            os.path.join(config["outdir"],"pangolin_seqs_of_interest.csv")
+            # os.path.join(config["outdir"],"seqs_of_interest.aln.fasta.treefile"),
+            # os.path.join(config["outdir"],"lineage_report.md"),
+            # os.path.join(config["outdir"],"pangolin_seqs_of_interest.csv"),
+            os.path.join(config["output_path"],"combined_metadata.csv")
 
 rule check_cog_db:
     input:
@@ -97,17 +99,6 @@ rule non_cog_remove_insertions_and_trim_and_pad:
         mv insertions.txt {params.insertions}
         """
 
-# rule pangolin_sequences:
-#     input:
-#         config["post_qc_query"]
-#     threads: workflow.cores
-#     params:
-#         cores = workflow.cores
-#     output:
-#         report = os.path.join(config["outdir"],"/pangolin_query_seqs.csv")
-#     shell:
-#         "pangolin {input[0]:q} -t {params.cores} --outfile {output.report:q}"
-
 rule minimap2_against_cog:
     input:
         config["post_qc_query"],
@@ -143,8 +134,18 @@ rule combine_metadata:
         in_cog = rules.check_cog_db.output.cog
     output:
         combined_csv = os.path.join(config["output_path"],"combined_metadata.csv")
-    shell:
-        
+    run:
+        with open(output.combined_csv,"w") as fw:
+            with open(input.in_cog, "r") as f:
+                for l in f:
+                    l = l.rstrip("\n")
+                    fw.write(l + '\n')
+            with open(input.closest_cog, "r") as f:
+                for l in f:
+                    if "sequence_name" in l:
+                        pass
+                    else:
+                        fw.write(l + '\n')
 
 # rule mafft_sequences:
 #     input:
@@ -156,6 +157,17 @@ rule combine_metadata:
 #         fasta = config["outdir"] + "/seqs_of_interest.aln.fasta"
 #     shell:
 #         "mafft --thread {params.cores} {input[0]:q} > {output[0]:q}"
+
+# rule pangolin_sequences:
+#     input:
+#         config["post_qc_query"]
+#     threads: workflow.cores
+#     params:
+#         cores = workflow.cores
+#     output:
+#         report = os.path.join(config["outdir"],"/pangolin_query_seqs.csv")
+#     shell:
+#         "pangolin {input[0]:q} -t {params.cores} --outfile {output.report:q}"
 
 # rule iqtree_representative_sequences:
 #     input:
