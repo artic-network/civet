@@ -6,18 +6,11 @@ import collections
 if config["fasta"] != "":
     rule all:
         input:
-            # os.path.join(config["outdir"],"seqs_of_interest.aln.fasta.treefile"),
-            # os.path.join(config["outdir"],"lineage_report.md"),
-            # os.path.join(config["outdir"],"pangolin_seqs_of_interest.csv"),
-            os.path.join(config["outdir"],"non_cog.fasta"),
-            os.path.join(config["output_path"],"combined_metadata.csv")
+            os.path.join(config["outdir"],"combined_metadata.csv")
 else:
     rule all:
         input:
-            # os.path.join(config["outdir"],"seqs_of_interest.aln.fasta.treefile"),
-            # os.path.join(config["outdir"],"lineage_report.md"),
-            # os.path.join(config["outdir"],"pangolin_seqs_of_interest.csv"),
-            os.path.join(config["output_path"],"combined_metadata.csv")
+            os.path.join(config["outdir"],"combined_metadata.csv")
 
 rule check_cog_db:
     input:
@@ -43,6 +36,7 @@ rule check_cog_db:
             for row in reader:
                 for seq in query_names:
                     if seq in row["sequence_name"]:
+                        print(seq)
                         row["query"]=row["sequence_name"]
                         row["closest"]=row["sequence_name"]
                         in_cog_metadata.append(row)
@@ -58,12 +52,17 @@ rule check_cog_db:
 
         fw = open(output.cog_seqs, "w")
         for record in SeqIO.parse(input.cog_seqs, "fasta"):
-            if record.id in query_names:
-                fw.write(f">{record.id}\n{record.seq}\n")
-
+            for name in query_names:
+                if name in record.id:
+                    fw.write(f">{record.id}\n{record.seq}\n")
+        
         with open(output.not_cog, "w") as fw:
-            for query in query_seqs:
-                if not query in in_cog_names:
+            for query in query_names:
+                in_cog = False
+                for name in in_cog_names:
+                    if query in name:
+                        in_cog = True
+                if not in_cog:
                     fw.write(query + '\n')
 
 rule non_cog_minimap2_to_reference:
@@ -71,7 +70,7 @@ rule non_cog_minimap2_to_reference:
         fasta = config["post_qc_query"],
         reference = config["reference_fasta"]
     output:
-        sam = os.path.join(config["output_path"],"post_qc_query.reference_mapped.sam")
+        sam = os.path.join(config["outdir"],"post_qc_query.reference_mapped.sam")
     shell:
         """
         minimap2 -a -x asm5 {input.reference} {input.fasta} > {output.sam}
@@ -84,9 +83,9 @@ rule non_cog_remove_insertions_and_trim_and_pad:
     params:
         trim_start = config["trim_start"],
         trim_end = config["trim_end"],
-        insertions = os.path.join(config["output_path"],"post_qc_query.insertions.txt")
+        insertions = os.path.join(config["outdir"],"post_qc_query.insertions.txt")
     output:
-        fasta = os.path.join(config["output_path"],"post_qc_query.alignment.trimmed.fasta")
+        fasta = os.path.join(config["outdir"],"post_qc_query.alignment.trimmed.fasta")
     shell:
         """
         datafunk sam_2_fasta \
@@ -101,13 +100,13 @@ rule non_cog_remove_insertions_and_trim_and_pad:
 
 rule minimap2_against_cog:
     input:
-        config["post_qc_query"],
+        query_seqs = config["post_qc_query"],
         cog_seqs = config["cog_seqs"]
     output:
-        paf = os.path.join(config["output_path"],"post_qc_query.cog_mapped.paf")
+        paf = os.path.join(config["outdir"],"post_qc_query.cog_mapped.paf")
     shell:
         """
-        minimap2 -x asm5 --secondary=no --paf-no-hit {input.reference} {input.fasta} > {output.paf}
+        minimap2 -x asm5 --secondary=no --paf-no-hit {input.cog_seqs} {input.query_seqs} > {output.paf}
         """
 
 rule parse_paf:
@@ -116,8 +115,8 @@ rule parse_paf:
         metadata = config["cog_metadata"],
         fasta = config["cog_seqs"]
     output:
-        fasta = os.path.join(config["output_path"],"closest_cog.fasta"),
-        csv = os.path.join(config["output_path"],"closest_cog.csv")
+        fasta = os.path.join(config["outdir"],"closest_cog.fasta"),
+        csv = os.path.join(config["outdir"],"closest_cog.csv")
     shell:
         """
         parse_paf.py \
@@ -133,7 +132,7 @@ rule combine_metadata:
         closest_cog = rules.parse_paf.output.csv,
         in_cog = rules.check_cog_db.output.cog
     output:
-        combined_csv = os.path.join(config["output_path"],"combined_metadata.csv")
+        combined_csv = os.path.join(config["outdir"],"combined_metadata.csv")
     run:
         with open(output.combined_csv,"w") as fw:
             with open(input.in_cog, "r") as f:
@@ -142,42 +141,8 @@ rule combine_metadata:
                     fw.write(l + '\n')
             with open(input.closest_cog, "r") as f:
                 for l in f:
+                    l = l.rstrip("\n")
                     if "sequence_name" in l:
                         pass
                     else:
                         fw.write(l + '\n')
-
-# rule mafft_sequences:
-#     input:
-#         rules.grab_seqs.output.fasta
-#     threads: workflow.cores
-#     params:
-#         cores = workflow.cores
-#     output:
-#         fasta = config["outdir"] + "/seqs_of_interest.aln.fasta"
-#     shell:
-#         "mafft --thread {params.cores} {input[0]:q} > {output[0]:q}"
-
-# rule pangolin_sequences:
-#     input:
-#         config["post_qc_query"]
-#     threads: workflow.cores
-#     params:
-#         cores = workflow.cores
-#     output:
-#         report = os.path.join(config["outdir"],"/pangolin_query_seqs.csv")
-#     shell:
-#         "pangolin {input[0]:q} -t {params.cores} --outfile {output.report:q}"
-
-# rule iqtree_representative_sequences:
-#     input:
-#         rules.mafft_sequences.output.fasta
-#     threads: workflow.cores
-#     params:
-#         cores = workflow.cores
-#     output:
-#         config["outdir"] + "/seqs_of_interest.aln.fasta.treefile"
-#     shell:
-#         "iqtree -s {input[0]:q} -nt AUTO -bb 10000 -m HKY -redo -au -alrt 1000"
-
-
