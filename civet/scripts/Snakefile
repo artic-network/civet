@@ -65,7 +65,7 @@ rule non_cog_minimap2_to_reference:
         fasta = config["post_qc_query"],
         reference = config["reference_fasta"]
     output:
-        sam = os.path.join(config["output_path"],"post_qc_query.mapped.sam")
+        sam = os.path.join(config["output_path"],"post_qc_query.reference_mapped.sam")
     shell:
         """
         minimap2 -a -x asm5 {input.reference} {input.fasta} > {output.sam}
@@ -89,20 +89,40 @@ rule non_cog_remove_insertions_and_trim_and_pad:
           -o {output.fasta} \
           -t [{params.trim_start}:{params.trim_end}] \
           --pad \
-          --log-inserts &> {log}
+          --log-inserts &
         mv insertions.txt {params.insertions}
         """
 
 rule pangolin_sequences:
     input:
-        rules.grab_seqs.output.fasta
+        config["post_qc_query"]
     threads: workflow.cores
     params:
         cores = workflow.cores
     output:
-        report = config["outdir"] + "/pangolin_seqs_of_interest.csv"
+        report = os.path.join(config["outdir"],"/pangolin_query_seqs.csv")
     shell:
         "pangolin {input[0]:q} -t {params.cores} --outfile {output.report:q}"
+
+rule minimap2_against_cog:
+    input:
+        config["post_qc_query"],
+        cog_seqs = config["cog_seqs"]
+    output:
+        paf = os.path.join(config["output_path"],"post_qc_query.cog_mapped.paf")
+    shell:
+        """
+        minimap2 -x asm5 --secondary=no --paf-no-hit {input.reference} {input.fasta} > {output.paf}
+        """
+
+rule find_top_hit_in_cog:
+    input:
+        paf = rules.minimap2_against_cog.output.paf,
+        metadata = config["cog_metadata"]
+    output:
+        csv = 
+    run:
+
 
 rule mafft_sequences:
     input:
