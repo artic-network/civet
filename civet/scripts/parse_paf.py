@@ -32,7 +32,7 @@ def parse_line(line):
 def get_closest_cog_sequences(paf):
 
     closest_cog_sequences = []
-
+    closest_to_query = {}
     with open(paf,"r") as f:
         last_mapping = None
         for line in f:
@@ -43,38 +43,44 @@ def get_closest_cog_sequences(paf):
                 if mapping["name"] == last_mapping["name"]:
                     last_mapping['ref_hit'] = '?'
                 else:
-                    closest_cog_sequences.append(last_mapping)
+                    closest_cog_sequences.append(last_mapping["ref_hit"])
+                    closest_to_query[last_mapping["ref_hit"]]=last_mapping["name"]
                     last_mapping = mapping
             else:
                 last_mapping = mapping
 
-        closest_cog_sequences.append(last_mapping)
+        closest_cog_sequences.append(last_mapping["ref_hit"])
+        closest_to_query[last_mapping["ref_hit"]]=last_mapping["name"]
 
-    return closest_cog_sequences
+    return closest_cog_sequences, closest_to_query
 
 
 def parse_paf_and_get_metadata():
     args = parse_args()
 
-    closest_cog = get_closest_cog_sequences(args.paf)
-
+    closest_cog, closest_to_query = get_closest_cog_sequences(args.paf)
     with open(args.metadata, newline="") as f:
         rows_to_write = []
         reader = csv.DictReader(f)
         header_names = reader.fieldnames
         for row in reader:
             if row["sequence_name"] in closest_cog:
+                row["query"]=closest_to_query[row["sequence_name"]]
+                row["closest"]=row["sequence_name"]
                 rows_to_write.append(row)
     
         with open(args.outfile, "w") as fw:
+            header_names.append("query")
+            header_names.append("closest")
             writer = csv.DictWriter(fw, fieldnames=header_names)
             writer.writeheader()
+            
             writer.writerows(rows_to_write)
 
     with open(args.seqs_out, "w") as fw:
         for record in SeqIO.parse(args.seqs,"fasta"):
             if record.id in closest_cog:
-                fw.write(f">{record.id}\n{record.seq}\n")
+                fw.write(f">{record.id} query={closest_to_query[record.id]}\n{record.seq}\n")
 
 if __name__ == '__main__':
 

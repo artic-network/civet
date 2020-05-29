@@ -93,16 +93,16 @@ rule non_cog_remove_insertions_and_trim_and_pad:
         mv insertions.txt {params.insertions}
         """
 
-rule pangolin_sequences:
-    input:
-        config["post_qc_query"]
-    threads: workflow.cores
-    params:
-        cores = workflow.cores
-    output:
-        report = os.path.join(config["outdir"],"/pangolin_query_seqs.csv")
-    shell:
-        "pangolin {input[0]:q} -t {params.cores} --outfile {output.report:q}"
+# rule pangolin_sequences:
+#     input:
+#         config["post_qc_query"]
+#     threads: workflow.cores
+#     params:
+#         cores = workflow.cores
+#     output:
+#         report = os.path.join(config["outdir"],"/pangolin_query_seqs.csv")
+#     shell:
+#         "pangolin {input[0]:q} -t {params.cores} --outfile {output.report:q}"
 
 rule minimap2_against_cog:
     input:
@@ -121,36 +121,47 @@ rule parse_paf:
         metadata = config["cog_metadata"],
         fasta = config["cog_seqs"]
     output:
-        csv = os.path.join(config["output_path"],"closest_cog_metadata.csv")
+        fasta = os.path.join(config["output_path"],"closest_cog.fasta"),
+        csv = os.path.join(config["output_path"],"closest_cog.csv")
     shell:
         """
         parse_paf.py \
         --paf {input.paf:q} \
         --metadata {input.metadata:q} \
         --seqs {input.fasta} \
-        --csv-out {output.csv:q} 
+        --csv-out {output.csv:q} \
+        --seqs-out {output.fasta:q}
         """
 
-rule mafft_sequences:
+rule combine_metadata:
     input:
-        rules.grab_seqs.output.fasta
-    threads: workflow.cores
-    params:
-        cores = workflow.cores
+        closest_cog = rules.parse_paf.output.csv,
+        in_cog = rules.check_cog_db.output.cog
     output:
-        fasta = config["outdir"] + "/seqs_of_interest.aln.fasta"
+        combined_csv = os.path.join(config["output_path"],"combined_metadata.csv")
     shell:
-        "mafft --thread {params.cores} {input[0]:q} > {output[0]:q}"
+        
 
-rule iqtree_representative_sequences:
-    input:
-        rules.mafft_sequences.output.fasta
-    threads: workflow.cores
-    params:
-        cores = workflow.cores
-    output:
-        config["outdir"] + "/seqs_of_interest.aln.fasta.treefile"
-    shell:
-        "iqtree -s {input[0]:q} -nt AUTO -bb 10000 -m HKY -redo -au -alrt 1000"
+# rule mafft_sequences:
+#     input:
+#         rules.grab_seqs.output.fasta
+#     threads: workflow.cores
+#     params:
+#         cores = workflow.cores
+#     output:
+#         fasta = config["outdir"] + "/seqs_of_interest.aln.fasta"
+#     shell:
+#         "mafft --thread {params.cores} {input[0]:q} > {output[0]:q}"
+
+# rule iqtree_representative_sequences:
+#     input:
+#         rules.mafft_sequences.output.fasta
+#     threads: workflow.cores
+#     params:
+#         cores = workflow.cores
+#     output:
+#         config["outdir"] + "/seqs_of_interest.aln.fasta.treefile"
+#     shell:
+#         "iqtree -s {input[0]:q} -nt AUTO -bb 10000 -m HKY -redo -au -alrt 1000"
 
 
