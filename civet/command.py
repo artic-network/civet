@@ -25,7 +25,7 @@ cwd = os.getcwd()
 def main(sysargs = sys.argv[1:]):
 
     parser = argparse.ArgumentParser(prog = _program, 
-    description='civet: CoV Introduction & Variant Evaluation Tool', 
+    description='civet: CoV Introduction & Variant Epi Tool', 
     usage='''civet <query> [options]''')
 
     parser.add_argument('query')
@@ -71,6 +71,7 @@ def main(sysargs = sys.argv[1:]):
             print(f"The fasta file is {fasta}")
     else:
         print("No fasta loaded")
+        fasta = ""
 
     # default output dir
     outdir = ''
@@ -117,6 +118,7 @@ def main(sysargs = sys.argv[1:]):
         "fields":",".join(fields),
         "outdir":outdir,
         "tempdir":tempdir,
+        "fasta":fasta
         }
 
     if args.fasta:
