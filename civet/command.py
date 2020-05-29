@@ -118,8 +118,8 @@ def main(sysargs = sys.argv[1:]):
         "fields":",".join(fields),
         "outdir":outdir,
         "tempdir":tempdir,
-        "trim_start":,
-        "trim_end":,
+        "trim_start":265,
+        "trim_end":29674,
         "fasta":fasta
         }
 
