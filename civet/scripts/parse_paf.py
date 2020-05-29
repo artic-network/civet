@@ -10,9 +10,10 @@ from Bio import SeqIO
 def parse_args():
     parser = argparse.ArgumentParser(description='Parse barcode info and minimap paf file, create report.')
 
-    parser.add_argument("--paf", action="store", type=str, dest="paf_file")
+    parser.add_argument("--paf", action="store", type=str, dest="paf")
     parser.add_argument("--metadata", action="store", type=str, dest="metadata")
     parser.add_argument("--csv-out", action="store", type=str, dest="outfile")
+    parser.add_argument("--seqs", action="store", type=str, dest="seqs")
     parser.add_argument("--seqs-out", action="store", type=str, dest="seqs_out")
     return parser.parse_args()
 
