@@ -13,7 +13,7 @@ def parse_args():
     parser.add_argument("--paf", action="store", type=str, dest="paf_file")
     parser.add_argument("--metadata", action="store", type=str, dest="metadata")
     parser.add_argument("--csv-out", action="store", type=str, dest="outfile")
-
+    parser.add_argument("--seqs-out", action="store", type=str, dest="seqs_out")
     return parser.parse_args()
 
 
@@ -71,8 +71,10 @@ def parse_paf_and_get_metadata():
             writer.writeheader()
             writer.writerows(rows_to_write)
 
-
-
+    with open(args.seqs_out, "w") as fw:
+        for record in SeqIO.parse(args.seqs,"fasta"):
+            if record.id in closest_cog:
+                fw.write(f">{record.id}\n{record.seq}\n")
 
 if __name__ == '__main__':
 
