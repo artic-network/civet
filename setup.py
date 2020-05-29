@@ -20,7 +20,7 @@ setup(name='civet',
         ],
       description='CoV Introductions & Variant Evaluation Tool',
       url='https://github.com/aineniamh/civet',
-      author='Aine OToole & Verity Hill',
+      author='Aine OToole, Verity Hill & Stefan Rooke',
       author_email='aine.otoole@ed.ac.uk',
       entry_points="""
       [console_scripts]
