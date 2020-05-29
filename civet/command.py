@@ -25,7 +25,7 @@ cwd = os.getcwd()
 def main(sysargs = sys.argv[1:]):
 
     parser = argparse.ArgumentParser(prog = _program, 
-    description='civet: CoV Introduction & Variant Epi Tool', 
+    description='civet: Cluster Investivations Viral Epidemiology Tool', 
     usage='''civet <query> [options]''')
 
     parser.add_argument('query')
