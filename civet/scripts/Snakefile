@@ -118,14 +118,16 @@ rule minimap2_against_cog:
 rule parse_paf:
     input:
         paf = rules.minimap2_against_cog.output.paf,
-        metadata = config["cog_metadata"]
+        metadata = config["cog_metadata"],
+        fasta = config["cog_seqs"]
     output:
-        csv = 
+        csv = os.path.join(config["output_path"],"closest_cog_metadata.csv")
     shell:
         """
         parse_paf.py \
         --paf {input.paf:q} \
         --metadata {input.metadata:q} \
+        --seqs {input.fasta} \
         --csv-out {output.csv:q} 
         """
 
