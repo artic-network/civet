@@ -5,65 +5,52 @@ import collections
 
 rule all:
     input:
-        config["outdir"] + "/seqs_of_interest.aln.fasta.treefile",
-        config["outdir"] +"/lineage_report.md",
-        config["outdir"] + "/pangolin_seqs_of_interest.csv"
+        os.path.join(config["outdir"],"seqs_of_interest.aln.fasta.treefile"),
+        os.path.join(config["outdir"],"lineage_report.md"),
+        os.path.join(config["outdir"],"pangolin_seqs_of_interest.csv")
 
-
-rule uploaded_seqs:
+rule check_cog_db:
     input:
-        query = config["query_csv"],
-        metadata = config["metadata"]
+        query = config["query"],
+        cog_seqs = config["cog_seqs"],
+        metadata = config["cog_metadata"]
     output:
-        cog = config["outdir"] +"/in_cog_metadata.csv",
-        not_cog = config["outdir"] +"/not_in_cog.csv"
+        cog = os.path.join(config["outdir"],"query_in_cog.csv"),
+        cog_seqs = os.path.join(config["outdir"],"query_in_cog.fasta"),
+        not_cog = os.path.join(config["outdir"],"not_in_cog.csv")
     run:
-        query_seqs = []
-        in_cog_names = []
-        in_cog_rows = []
+        query_names = []
+        in_cog_metadata = []
+        in_cog_names = set()
         with open(input.query,newline="") as f:
             reader = csv.DictReader(f)
             for row in reader:
-                query_seqs.append(row["name"])
+                query_names.append(row["name"])
 
-        f_metadata = open
         with open(input.metadata,newline="") as f:
             reader = csv.DictReader(f)
             header_names = reader.fieldnames
             for row in reader:
-                for seq in query_seqs:
+                for seq in query_names:
                     if seq in row["sequence_name"]:
-                        in_cog_names.append(row["sequence_name"])
-                        in_cog_rows.append(row)
-            print(f"Number of seqs found in metadata: {len(in_cog_rows)}")
+                        in_cog_metadata.append(row)
+                        in_cog_names.add(row["sequence_name"])
+
+            print(f"Number of seqs found in metadata: {len(in_cog_metadata)}")
             with open(output.cog, "w") as fw:
                 writer = csv.DictWriter(fw, fieldnames=header_names)
                 writer.writeheader()
-                writer.writerows(in_cog_rows)
+                writer.writerows(in_cog_metadata)
+
+        fw = open(output.cog_seqs, "w")
+        for record in SeqIO.parse(input.cog_seqs, "fasta"):
+            if record.id in query_names:
+                fw.write(f">{record.id}\n{record.seq}\n")
 
         with open(output.not_cog, "w") as fw:
             for query in query_seqs:
                 if not query in in_cog_names:
                     fw.write(query + '\n')
-
-rule grab_seqs:
-    input:
-        query = config["query_csv"],
-        fasta = config["fasta"]
-    output:
-        fasta = config["outdir"] + '/seqs_of_interest.fasta'
-    run:
-        query_seqs = []
-        fw = open(output.fasta,"w")
-        with open(input.query,newline="") as f:
-            reader = csv.DictReader(f)
-            for row in reader:
-                query_seqs.append(row["name"])
-        print(query_seqs)
-        for record in SeqIO.parse(input.fasta, "fasta"):
-            if record.id in query_seqs:
-                fw.write(f">{record.description}\n{record.seq}\n")
-        fw.close()
 
 
 rule pangolin_sequences:
