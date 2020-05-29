@@ -10,6 +10,7 @@ setup(name='civet',
       version=__version__,
       packages=find_packages(),
       scripts=["civet/scripts/Snakefile","civet/scripts/parse_paf.py"],
+      data=["civet/data/*"],
       install_requires=[
             "biopython>=1.70",
             "dendropy>=4.4.0",
