@@ -18,7 +18,7 @@ setup(name='civet',
             'pandas>=1.0.1',
             'pysam>=0.15.4'
         ],
-      description='CoV Introductions & Variant Evaluation Tool',
+      description='CoV Introductions & Variant Epi Tool',
       url='https://github.com/aineniamh/civet',
       author='Aine OToole, Verity Hill & Stefan Rooke',
       author_email='aine.otoole@ed.ac.uk',
