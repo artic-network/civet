@@ -29,13 +29,16 @@ def main(sysargs = sys.argv[1:]):
     usage='''civet <query> [options]''')
 
     parser.add_argument('query')
-    parser.add_argument('-s','--fasta', action="store",help="Optional fasta query.")
+    parser.add_argument('--fasta', action="store",help="Optional fasta query.", dest="fasta")
     parser.add_argument('-o','--outdir', action="store",help="Output directory. Default: current working directory")
+    parser.add_argument('--datadir', action="store",help="Output directory. Default: current working directory")
     parser.add_argument('-n', '--dry-run', action='store_true',help="Go through the motions but don't actually run")
     parser.add_argument('-f', '--force', action='store_true',help="Overwrite all output",dest="force")
     parser.add_argument('--tempdir',action="store",help="Specify where you want the temp stuff to go. Default: $TMPDIR")
     parser.add_argument('-t', '--threads', action='store',type=int,help="Number of threads")
     parser.add_argument("--verbose",action="store_true",help="Print lots of stuff to screen")
+    parser.add_argument('--max-ambig', action="store", default=0.5, type=float,help="Maximum proportion of Ns allowed for pangolin to attempt analysis. Default: 0.5",dest="maxambig")
+    parser.add_argument('--min-length', action="store", default=10000, type=int,help="Minimum query length allowed for pangolin to attempt analysis. Default: 10000",dest="minlen")
     parser.add_argument("-v","--version", action='version', version=f"civet {__version__}")
     # parser.add_argument("-lv","--lineages-version", action='version', version=f"lineages {lineages.__version__}",help="show lineages's version number and exit")
 
@@ -80,17 +83,16 @@ def main(sysargs = sys.argv[1:]):
     else:
         outdir = cwd
 
-    tempdir = ''
-    if args.tempdir:
-        to_be_dir = os.path.join(cwd, args.tempdir)
-        if not os.path.exists(to_be_dir):
-            os.mkdir(to_be_dir)
-        temporary_directory = tempfile.TemporaryDirectory(suffix=None, prefix=None, dir=to_be_dir)
-        tempdir = temporary_directory.name
-    else:
-        temporary_directory = tempfile.TemporaryDirectory(suffix=None, prefix=None, dir=None)
-        tempdir = temporary_directory.name
-
+    # tempdir = ''
+    # if args.tempdir:
+    #     to_be_dir = os.path.join(cwd, args.tempdir)
+    #     if not os.path.exists(to_be_dir):
+    #         os.mkdir(to_be_dir)
+    #     temporary_directory = tempfile.TemporaryDirectory(suffix=None, prefix=None, dir=to_be_dir)
+    #     tempdir = temporary_directory.name
+    # else:
+    #     temporary_directory = tempfile.TemporaryDirectory(suffix=None, prefix=None, dir=None)
+    #     tempdir = temporary_directory.name
     """ 
     QC steps:
     1) check csv header
@@ -117,7 +119,7 @@ def main(sysargs = sys.argv[1:]):
         "query":query,
         "fields":",".join(fields),
         "outdir":outdir,
-        "tempdir":tempdir,
+        # "tempdir":tempdir,
         "trim_start":265,
         "trim_end":29674,
         "fasta":fasta
@@ -126,7 +128,7 @@ def main(sysargs = sys.argv[1:]):
     if args.fasta:
         do_not_run = []
         run = []
-        for record in SeqIO.parse(query, "fasta"):
+        for record in SeqIO.parse(args.fasta, "fasta"):
             if len(record) <args.minlen:
                 record.description = record.description + f" fail=seq_len:{len(record)}"
                 do_not_run.append(record)
@@ -141,22 +143,25 @@ def main(sysargs = sys.argv[1:]):
                 else:
                     run.append(record)
 
-        post_qc_query = os.path.join(tempdir, 'query.post_qc.fasta')
+        post_qc_query = os.path.join(outdir, 'query.post_qc.fasta')
         with open(post_qc_query,"w") as fw:
             SeqIO.write(run, fw, "fasta")
-        qc_fail = os.path.join(tempdir,'query.failed_qc.fasta')
+        qc_fail = os.path.join(outdir,'query.failed_qc.fasta')
         with open(qc_fail,"w") as fw:
             SeqIO.write(do_not_run, fw, "fasta")
 
-        config["post_qc_query"]:post_qc_query
-        config["qc_fail"]:qc_fail
+        config["post_qc_query"] = post_qc_query
+        config["qc_fail"] = qc_fail
+    else:
+        config["post_qc_query"] = ""
+        config["qc_fail"] = ""
 
     if args.force:
         config["force"]="forceall"
     # find the data
     data_dir = ""
-    if args.data:
-        data_dir = os.path.join(cwd, args.data)
+    if args.datadir:
+        data_dir = os.path.join(cwd, args.datadir)
     else:
         data_dir = os.path.join(thisdir,"data")
 
@@ -183,7 +188,7 @@ def main(sysargs = sys.argv[1:]):
     # run subtyping
     status = snakemake.snakemake(snakefile, printshellcmds=True,
                                  dryrun=args.dry_run, forceall=args.force,force_incomplete=True,
-                                 config=config, cores=threads,lock=False,quiet=quiet_mode,workdir=tempdir
+                                 config=config, cores=threads,lock=False,quiet=quiet_mode
                                  )
 
     if status: # translate "success" into shell exit code of 0
