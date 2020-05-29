@@ -10,6 +10,8 @@ setup(name='civet',
       version=__version__,
       packages=find_packages(),
       scripts=[
+                "scripts/Snakemake",
+                "scripts/parse_paf.py"
                 ],
       install_requires=[
             "biopython>=1.70",
