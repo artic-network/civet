@@ -190,12 +190,15 @@ if config["remote"]==True:
                 reader = csv.DictReader(f)
                 for row in reader:
                     lineages.add(row["uk_lineage"])
+            fw = open(output.lineage_trees, "w")
             for lineage in lineages:
-                shell("""
+                shell(f"""
                 scp {params.uun}@bham.covid19.climb.ac.uk:\
-                /cephfs/covid/bham/raccoon-dog/2020-05-29/publish\
-                /phylogenetics/trees/uk_lineages/{lineage}.tree"""
+/cephfs/covid/bham/raccoon-dog/2020-05-29/publish\
+/phylogenetics/trees/uk_lineages/{lineage}.tree"""
                 )
+                fw.write(lineage+ '\n')
+            fw.close()
 else:
     rule get_lineage_trees:
         input:
@@ -212,4 +215,11 @@ else:
                 reader = csv.DictReader(f)
                 for row in reader:
                     lineages.add(row["uk_lineage"])
+            fw = open(output.lineage_trees, "w")
             for lineage in lineages:
+                shell(f"""
+                scp /cephfs/covid/bham/raccoon-dog/2020-05-29/publish\
+/phylogenetics/trees/uk_lineages/{lineage}.tree"""
+                )
+                fw.write(lineage + '\n')
+            fw.close()
