@@ -57,6 +57,7 @@ rule check_cog_db:
                     fw.write(f">{record.id}\n{record.seq}\n")
         
         with open(output.not_cog, "w") as fw:
+            print("The following sequences were not found in the cog database:\n")
             for query in query_names:
                 in_cog = False
                 for name in in_cog_names:
@@ -64,10 +65,36 @@ rule check_cog_db:
                         in_cog = True
                 if not in_cog:
                     fw.write(query + '\n')
+                    print(f"{query}")
 
-rule non_cog_minimap2_to_reference:
+rule non_cog_match_fasta:
     input:
         fasta = config["post_qc_query"],
+        not_cog = rules.check_cog_db.output.not_cog
+    output:
+        fasta = os.path.join(config["outdir"],"not_in_cog.fasta")
+    run:
+        not_cog = []
+        with open(input.not_cog, "r") as f:
+            for l in f:
+                l = l.rstrip("\n")
+                not_cog.append(l)
+        in_fasta = []
+        with open(output.fasta, "w") as fw:
+            for record in SeqIO.parse(input.fasta, "fasta"):
+                if record.id in not_cog:
+                    fw.write(f">{record.id}\n{record.seq}\n")
+                    in_fasta.append(record.id)
+                else:
+                    in_fasta.append(record.id)
+        print("The following sequences queried not in COG \nand not in fasta file so cannot be analysed\n")
+        for record in not_cog:
+            if record not in in_fasta: 
+                print(record)
+                
+rule non_cog_minimap2_to_reference:
+    input:
+        fasta = rules.non_cog_match_fasta.output.fasta,
         reference = config["reference_fasta"]
     output:
         sam = os.path.join(config["outdir"],"post_qc_query.reference_mapped.sam")
@@ -127,6 +154,7 @@ rule parse_paf:
         --seqs-out {output.fasta:q}
         """
 
+
 rule combine_metadata:
     input:
         closest_cog = rules.parse_paf.output.csv,
@@ -146,3 +174,42 @@ rule combine_metadata:
                         pass
                     else:
                         fw.write(l + '\n')
+
+if config["remote"]==True:
+    rule get_lineage_trees:
+        input:
+            combined_csv = os.path.join(config["outdir"],"combined_metadata.csv")
+        params:
+            outdir = os.path.join(config["outdir"],"lineage_trees"),
+            uun = config["username"]
+        output:
+            lineage_trees = os.path.join(config["outdir"],"lineage_trees","lineage_tree_summary.txt")
+        run:
+            lineages = set()
+            with open(input.combined_csv, newline="") as f:
+                reader = csv.DictReader(f)
+                for row in reader:
+                    lineages.add(row["uk_lineage"])
+            for lineage in lineages:
+                shell("""
+                scp {params.uun}@bham.covid19.climb.ac.uk:\
+                /cephfs/covid/bham/raccoon-dog/2020-05-29/publish\
+                /phylogenetics/trees/uk_lineages/{lineage}.tree"""
+                )
+else:
+    rule get_lineage_trees:
+        input:
+            combined_csv = os.path.join(config["outdir"],"combined_metadata.csv")
+        params:
+            outdir = os.path.join(config["outdir"],"lineage_trees"),
+            uun = config["username"],
+            lineage_dir = config["lineage_dir"]
+        output:
+            lineage_trees = os.path.join(config["outdir"],"lineage_trees","lineage_tree_summary.txt")
+        run:
+            lineages = set()
+            with open(input.combined_csv, newline="") as f:
+                reader = csv.DictReader(f)
+                for row in reader:
+                    lineages.add(row["uk_lineage"])
+            for lineage in lineages:
