@@ -6,11 +6,13 @@ import collections
 if config["fasta"] != "":
     rule all:
         input:
-            os.path.join(config["outdir"],"combined_metadata.csv")
+            os.path.join(config["outdir"],"combined_metadata.csv"),
+            os.path.join(config["outdir"],"lineage_trees","lineage_tree_summary.txt")
 else:
     rule all:
         input:
-            os.path.join(config["outdir"],"combined_metadata.csv")
+            os.path.join(config["outdir"],"query_in_cog.csv"),
+            os.path.join(config["outdir"],"lineage_trees","lineage_tree_summary.txt")
 
 rule check_cog_db:
     input:
@@ -223,3 +225,5 @@ else:
                 )
                 fw.write(lineage + '\n')
             fw.close()
+
+
