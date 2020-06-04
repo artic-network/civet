@@ -40,9 +40,9 @@ def make_report(big_metadata, input_metadata, name_stem, output_directory, input
 
 def main():
     parser = argparse.ArgumentParser(description="Report generator script")
-    parser.add_argument("--i", required=False, default="", help="path to tree and annotations inputs as a string")
+    parser.add_argument("--i", required=False, default="", help="path to tree inputs as a string")
     parser.add_argument("--bm", required=True, help="path to full COG metadata file")
-    parser.add_argument("--im", required=False, help="path to their metadata file")
+    parser.add_argument("--im", required=False, default="", help="path to their metadata file")
     parser.add_argument("--s", default="civet_report", help="output name stem as a string")
     parser.add_argument("--od", default="./", help="output directory, default is working directory")
     parser.add_argument("--df", default=[], help="desired fields that you want to be in the analysis, otherwise will just have date and UK country")

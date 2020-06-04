@@ -21,6 +21,8 @@ def parse_big_metadata(metadata_file):
     query_dict = {}
     full_tax_dict = {}
 
+    contract_dict = {"SCT":"Scotland", "WLS": "Wales", "ENG":"England", "NIRE": "Northern_Ireland"}
+
     with open(metadata_file, "r") as f:
         reader = csv.DictReader(f)
         in_data = [r for r in reader]
@@ -29,7 +31,9 @@ def parse_big_metadata(metadata_file):
 
                 glob_lin = sequence['lineage']
                 uk_lineage = sequence['uk_lineage']
-                adm1 = sequence["adm1"]
+                
+                adm1_prep = sequence["adm1"].split("-")[1]
+                adm1 = contract_dict[adm1_prep]
 
                 seq_name = sequence['sequence_name']
                 closest_name = sequence["closest"]
@@ -40,7 +44,7 @@ def parse_big_metadata(metadata_file):
                 if query_name != "":
 
                     new_taxon = taxon(query_name, glob_lin, uk_lineage, phylotype)
-
+                    
                     if query_name == closest_name:
                         new_taxon.in_cog = True
 
@@ -58,6 +62,9 @@ def parse_big_metadata(metadata_file):
 
 def parse_their_metadata(input_metadata, query_dict, desired_fields):
 
+    new_query_dict = {}
+    contract_dict = {"SCT":"Scotland", "WLS": "Wales", "ENG":"England", "NIRE": "Northern_Ireland"}
+
     with open(input_metadata, 'r') as f:
         reader = csv.DictReader(f)
         col_name_prep = next(reader)
@@ -65,19 +72,29 @@ def parse_their_metadata(input_metadata, query_dict, desired_fields):
         in_data = [r for r in reader]
         for sequence in in_data:
 
-            name = sequence["name"]
+            name = sequence["sequence_name"]
             sample_date = sequence["sample_date"]
 
             taxon = query_dict[name]
+
+            taxon.sample_date = sample_date
 
             for col in col_names:
                 if desired_fields != []:
                     if col != "sequence_name" and col != "sample_date" and col in desired_fields:
                         taxon.attribute_dict[col] = sequence[col]
                 if col == "adm1":
-                    taxon.adm1 == sequence[col]
+                    if "UK" in sequence[col]:
+                        adm1_prep = sequence[col].split("-")[1]
+                        adm1 = contract_dict[adm1_prep]
+                    else:
+                        adm1 = sequence[col]
+
+                    taxon.adm1 = adm1
+
+            new_query_dict[name] = taxon
                 
-    return query_dict
+    return new_query_dict
 
 
 def make_initial_table(query_dict):
