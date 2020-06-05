@@ -2,7 +2,7 @@ import csv
 from Bio import SeqIO
 import os
 import collections
-
+print(config)
 if config["fasta"] != "":
     rule all:
         input:
@@ -197,7 +197,7 @@ if config["remote"]==True:
                 shell(f"""
                 scp {params.uun}@bham.covid19.climb.ac.uk:\
 /cephfs/covid/bham/raccoon-dog/2020-05-29/publish\
-/phylogenetics/trees/uk_lineages/{lineage}.tree"""
+/phylogenetics/trees/uk_lineages/{lineage}.tree {params.outdir}"""
                 )
                 fw.write(lineage+ '\n')
             fw.close()
@@ -206,9 +206,8 @@ else:
         input:
             combined_csv = os.path.join(config["outdir"],"combined_metadata.csv")
         params:
-            outdir = os.path.join(config["outdir"],"lineage_trees"),
-            uun = config["username"],
-            lineage_dir = config["lineage_dir"]
+            outdir = os.path.join(config["outdir"],"lineage_trees")
+            # lineage_dir = config["lineage_dir"]
         output:
             lineage_trees = os.path.join(config["outdir"],"lineage_trees","lineage_tree_summary.txt")
         run:
@@ -221,7 +220,7 @@ else:
             for lineage in lineages:
                 shell(f"""
                 scp /cephfs/covid/bham/raccoon-dog/2020-05-29/publish\
-/phylogenetics/trees/uk_lineages/{lineage}.tree"""
+/phylogenetics/trees/uk_lineages/{lineage}.tree {params.outdir}"""
                 )
                 fw.write(lineage + '\n')
             fw.close()

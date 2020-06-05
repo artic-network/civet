@@ -30,7 +30,7 @@ def main(sysargs = sys.argv[1:]):
 
     parser.add_argument('query')
     parser.add_argument('--fasta', action="store",help="Optional fasta query.", dest="fasta")
-    parser.add_argument('--remote', action="store_true",help="Remotely access lineage trees from CLIMB (note read access required)")
+    parser.add_argument('--remote', action="store_true",dest="remote",help="Remotely access lineage trees from CLIMB (note read access required)")
     parser.add_argument("-uun","--your-user-name", action="store", help="Your CLIMB COG-UK username. Required if running with --remote flag", dest="uun")
     parser.add_argument('-o','--outdir', action="store",help="Output directory. Default: current working directory")
     parser.add_argument('--datadir', action="store",help="Output directory. Default: current working directory")
@@ -129,14 +129,15 @@ def main(sysargs = sys.argv[1:]):
         }
 
     if args.remote:
+        config["remote"]= "True"
         if args.uun:
-            config["remote"]= "True"
             config["username"] = args.uun
         else:
-            sys.stderr.write('Error: Username (-uun) required with --remote flag')
+            sys.stderr.write('Error: Username (-uun) required with --remote flag\n')
             sys.exit(-1)
     else:
         config["remote"] = "False"
+        config["username"] = ""
 
     if args.fasta:
         do_not_run = []
