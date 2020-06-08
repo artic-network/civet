@@ -122,10 +122,10 @@ rule get_remote_lineage_trees:
     input:
         combined_csv = os.path.join(config["outdir"],"combined_metadata.csv")
     params:
-        outdir = os.path.join(config["outdir"],"lineage_trees_remote"),
+        outdir = os.path.join(config["outdir"],"lineage_trees"),
         uun = config["username"]
     output:
-        lineage_trees = os.path.join(config["outdir"],"lineage_trees_remote","lineage_tree_summary.txt")
+        lineage_trees = os.path.join(config["outdir"],"lineage_trees","lineage_tree_summary.remote.txt")
     run:
         lineages = set()
         with open(input.combined_csv, newline="") as f:
@@ -160,3 +160,22 @@ rule get_lineage_trees:
             fw.write(lineage + '\n')
         fw.close()
 
+rule make_report:
+    input:
+        cog_metadata = os.path.join(config["outdir"],"combined_metadata.csv"),
+        query_metadata = config["query"]
+    params:
+        tree_dir = os.path.join(config["outdir"],"lineage_trees"),
+        outdir = config["outdir"],
+        fields = config["fields"]
+    output:
+        outfile = os.path.join(config["outdir"], "civet_report.pmd")
+    shell:
+        """
+        make_report.py \
+        --input-path {params.tree_dir:q} \
+        --cog-metadata {input.cog_metadata:q} \
+        --input-metadata {input.query_metadata:q} \
+        --outdir {params.outdir:q} \
+        --desired-fields {params.fields:q} 
+        """

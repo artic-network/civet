@@ -23,11 +23,12 @@ setup(name='civet',
             "dendropy>=4.4.0",
             "pytools>=2020.1",
             'pandas>=1.0.1',
-            'pysam>=0.15.4'
+            'pysam>=0.15.4',
+            "pweave"
         ],
       description='Cluster Investivations for Viral Epidemiology Tool',
       url='https://github.com/aineniamh/civet',
-      author='Aine OToole, Verity Hill, JT McCrone & Stefan Rooke',
+      author='Aine OToole, Verity Hill, Stefan Rooke & JT McCrone',
       author_email='aine.otoole@ed.ac.uk',
       entry_points="""
       [console_scripts]
