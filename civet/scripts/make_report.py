@@ -3,6 +3,9 @@ import os
 from pweave import *
 import argparse
 
+
+thisdir = os.path.abspath(os.path.dirname(__file__))
+
 def make_report(big_metadata, input_metadata, name_stem, output_directory, input_directory, desired_fields):
     fd = os.path.join(output_directory, "figures")
 
@@ -11,23 +14,23 @@ def make_report(big_metadata, input_metadata, name_stem, output_directory, input
     
         pmd_string = name_stem + ".pmd"
 
-        md_template = 'civet_template.pmd'
+        md_template = os.path.join(thisdir,'utils','civet_template.pmd')
         
         with open(md_template) as f:
             for l in f:
                 if "##CHANGE" in l:
                     if "output_directory" in l:
-                        new_l = 'output_directory = "' + str(output_directory) + '"\n'
+                        new_l = f'output_directory = "{output_directory}"\n'
                     elif "name_stem" in l:
-                        new_l = 'name_stem = "' + str(name_stem) + '"\n'
+                        new_l = f'name_stem = "{name_stem}"\n'
                     elif "big_metadata" in l:
-                        new_l = 'big_metadata = "' + str(big_metadata) + '"\n'
+                        new_l = f'big_metadata = "{big_metadata}"\n'
                     elif "their_metadata" in l:
-                        new_l = 'their_metadata = "' + str(input_metadata) + '"\n'
+                        new_l = f'their_metadata = "{input_metadata}"\n'
                     elif "input_directory" in l:
-                        new_l = 'input_directory = "' + str(input_directory) + '"\n'
+                        new_l = f'input_directory = "{input_directory}"\n'
                     elif "desired_fields" in l:
-                        new_l = 'desired_fields = "' + str(desired_fields) + '"\n'
+                        new_l = f'desired_fields = "{desired_fields}"\n'
 
                 else:
                     new_l = l
@@ -43,7 +46,7 @@ def main():
     parser.add_argument("-im","--input-metadata", required=False, help="path to their metadata file",dest="input_metadata")
     parser.add_argument("-s","--stem", default="civet_report", help="output name stem as a string",dest="stem")
     parser.add_argument("-od","--outdir", help="output directory",dest="outdir")
-    parser.add_argument("-df", "--desired-fields",default=[], help="desired fields for report. Default=date and UK country",dest="desired_fields")
+    parser.add_argument("-df", "--desired-fields",default="", help="desired fields for report. Default=date and UK country",dest="desired_fields")
 
 
     args = parser.parse_args()
