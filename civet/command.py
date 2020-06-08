@@ -83,6 +83,8 @@ def main(sysargs = sys.argv[1:]):
     outdir = ''
     if args.outdir:
         outdir = os.path.join(cwd, args.outdir)
+        if not os.path.exists(outdir):
+            os.mkdir(outdir)
     else:
         outdir = cwd
 
