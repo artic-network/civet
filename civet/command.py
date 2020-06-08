@@ -30,20 +30,19 @@ def main(sysargs = sys.argv[1:]):
 
     parser.add_argument('query')
     parser.add_argument('--fasta', action="store",help="Optional fasta query.", dest="fasta")
-    parser.add_argument('--remote', action="store_true",help="Remotely access lineage trees from CLIMB (note read access required)")
+    parser.add_argument('--remote', action="store_true",dest="remote",help="Remotely access lineage trees from CLIMB (note read access required)")
     parser.add_argument("-uun","--your-user-name", action="store", help="Your CLIMB COG-UK username. Required if running with --remote flag", dest="uun")
     parser.add_argument('-o','--outdir', action="store",help="Output directory. Default: current working directory")
     parser.add_argument('--datadir', action="store",help="Output directory. Default: current working directory")
 
     parser.add_argument('-n', '--dry-run', action='store_true',help="Go through the motions but don't actually run")
     parser.add_argument('-f', '--force', action='store_true',help="Overwrite all output",dest="force")
-    parser.add_argument('--tempdir',action="store",help="Specify where you want the temp stuff to go. Default: $TMPDIR")
+    # parser.add_argument('--tempdir',action="store",help="Specify where you want the temp stuff to go. Default: $TMPDIR")
     parser.add_argument('-t', '--threads', action='store',type=int,help="Number of threads")
     parser.add_argument("--verbose",action="store_true",help="Print lots of stuff to screen")
     parser.add_argument('--max-ambig', action="store", default=0.5, type=float,help="Maximum proportion of Ns allowed for pangolin to attempt analysis. Default: 0.5",dest="maxambig")
     parser.add_argument('--min-length', action="store", default=10000, type=int,help="Minimum query length allowed for pangolin to attempt analysis. Default: 10000",dest="minlen")
     parser.add_argument("-v","--version", action='version', version=f"civet {__version__}")
-    # parser.add_argument("-lv","--lineages-version", action='version', version=f"lineages {lineages.__version__}",help="show lineages's version number and exit")
 
     if len(sysargs)<1:
         parser.print_help()
@@ -83,6 +82,8 @@ def main(sysargs = sys.argv[1:]):
     outdir = ''
     if args.outdir:
         outdir = os.path.join(cwd, args.outdir)
+        if not os.path.exists(outdir):
+            os.mkdir(outdir)
     else:
         outdir = cwd
 
@@ -129,14 +130,15 @@ def main(sysargs = sys.argv[1:]):
         }
 
     if args.remote:
+        config["remote"]= "True"
         if args.uun:
-            config["remote"]= "True"
             config["username"] = args.uun
         else:
-            sys.stderr.write('Error: Username (-uun) required with --remote flag')
+            sys.stderr.write('Error: Username (-uun) required with --remote flag\n')
             sys.exit(-1)
     else:
         config["remote"] = "False"
+        config["username"] = ""
 
     if args.fasta:
         do_not_run = []
