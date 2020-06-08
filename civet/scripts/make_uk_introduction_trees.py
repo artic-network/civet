@@ -27,8 +27,9 @@ from collections import defaultdict
 import matplotlib.font_manager as font_manager
 
 
-
-font_list = font_manager.fontManager.addfont("./helveticaneue/HelveticaNeue.ttf")
+thisdir = os.path.abspath(os.path.dirname(__file__))
+font_file = os.path.join(thisdir, "utils/HelveticaNeue.ttf")
+font_list = font_manager.fontManager.addfont(font_file)
 
 mpl.rcParams['font.family'] = 'helveticaneue'
 mpl.rcParams['font.weight']=300
