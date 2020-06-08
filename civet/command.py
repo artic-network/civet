@@ -12,6 +12,7 @@ import csv
 import setuptools
 from Bio import SeqIO
 
+import pkg_resources
 from . import _program
 
 """
@@ -78,6 +79,7 @@ def main(sysargs = sys.argv[1:]):
         print("No fasta loaded")
         fasta = ""
 
+    
     # default output dir
     outdir = ''
     if args.outdir:
@@ -174,6 +176,15 @@ def main(sysargs = sys.argv[1:]):
     if args.force:
         config["force"]="forceall"
     # find the data
+
+    reference_fasta = pkg_resources.resource_filename('civet', 'data/reference.fasta')
+    font_file = pkg_resources.resource_filename('civet', 'data/HelveticaNeue.ttf')
+    print("The reference genome is found", reference_fasta)
+    print("The font file is", font_file)
+
+    config["reference_fasta"] = reference_fasta
+    config["font_file"] = font_file
+
     data_dir = ""
     if args.datadir:
         data_dir = os.path.join(cwd, args.datadir)
@@ -183,17 +194,16 @@ def main(sysargs = sys.argv[1:]):
     # find the data files
     cog_metadata = os.path.join(data_dir, "cog_gisaid.csv")
     cog_seqs = os.path.join(data_dir, "cog_gisaid.fasta")
-    cog_lineage_trees = os.path.join(data_dir, "lineage_trees")
-    reference_fasta = os.path.join(data_dir, "reference.fasta")
-    
-    if not os.path.exists(cog_metadata) or not os.path.exists(cog_seqs) or not os.path.exists(cog_lineage_trees):
+
+    if not os.path.exists(cog_metadata) or not os.path.exists(cog_seqs):
         sys.stderr.write('Error: cannot find data at {}\n'.format(data_dir))
         sys.exit(-1)
     else:
         config["cog_metadata"] = cog_metadata
         config["cog_seqs"] = cog_seqs
-        config["cog_lineage_trees"] = cog_lineage_trees
-        config["reference_fasta"] = reference_fasta
+        print("Found cog data:")
+        print(cog_metadata)
+        print(cog_seqs)
 
     if args.verbose:
         quiet_mode = False
