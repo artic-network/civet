@@ -184,11 +184,20 @@ You will also need to specify your CLIMB username e.g. `-uun climb-covid19-uun`"
 
     reference_fasta = pkg_resources.resource_filename('civet', 'data/reference.fasta')
     font_file = pkg_resources.resource_filename('civet', 'data/HelveticaNeue.ttf')
+
     print("The reference genome is found", reference_fasta)
     print("The font file is", font_file)
 
+    report_template = os.path.join(thisdir, 'scripts','civet_template.pmd')
+    if not os.path.exists(report_template):
+        sys.stderr.write('Error: cannot find report_template at {}\n'.format(report_template))
+        sys.exit(-1)
+    else:
+        print("Found the report_template", report_template)
+
     config["reference_fasta"] = reference_fasta
     config["font_file"] = font_file
+    config["report_template"] = report_template
 
     data_dir = ""
     if args.datadir:
