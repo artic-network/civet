@@ -34,7 +34,6 @@ font_list = font_manager.fontManager.addfont(font_file)
 mpl.rcParams['font.family'] = 'helveticaneue'
 mpl.rcParams['font.weight']=300
 mpl.rcParams['axes.labelweight']=300
-# mpl.rcParams['font.size']=20
 
 
 def find_tallest_tree(input_dir):
@@ -263,12 +262,7 @@ def make_all_of_the_trees(input_dir, taxon_dict, query_dict, min_uk_taxa=3):
                     make_scaled_tree_without_legend(tree,len(tips),colour_dict, tallest_height, lineage, taxon_dict, query_dict)     
                 except ValueError:
                     pass
-
-
     return lst
-
-
-
 
 def sort_fig(fig_dir):
     b_list = []
