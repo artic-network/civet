@@ -209,7 +209,7 @@ rule remote_report:
         outdir = config["outdir"],
         fields = config["fields"]
     output:
-        outfile = os.path.join(config["outdir"], "civet_report.remote.pmd")
+        outfile = os.path.join(config["outdir"], "civet_report.remote.md")
     shell:
         """
         make_report.py \

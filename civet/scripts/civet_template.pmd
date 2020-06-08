@@ -21,13 +21,15 @@ import pandas as pd
 import os
 
 import data_parsing as dp
-import make_uk_introduction_trees as tree_viz
-
+import make_tree_figures as tree_viz
+import matplotlib.font_manager as font_manager
 
 cut_metadata = "" ##CHANGE
 their_metadata = "" ##CHANGE
 full_metadata_file = "" ##CHANGE
 desired_fields = "" ##CHANGE
+
+font_file = "" ##CHANGE
 
 input_directory = "" ##CHANGE
 
@@ -44,9 +46,15 @@ desired_fields = "" ##CHANGE
 if desired_fields != "":
     desired_fields = list(desired_fields)
 
+font_list = font_manager.fontManager.addfont(font_file)
 
+mpl.rcParams['font.family'] = 'helveticaneue'
+mpl.rcParams['font.weight']=300
+mpl.rcParams['axes.labelweight']=300
 
 ```
+
+
 
 ```python, name="parse metadata", echo=False
 

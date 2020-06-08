@@ -2,7 +2,6 @@ import os
 from matplotlib import font_manager as fm, rcParams
 import baltic as bt
 
-# from IPython.display import HTML
 import re
 import copy
 
@@ -24,18 +23,9 @@ from io import StringIO as sio
 from io import BytesIO as csio
 from Bio import Phylo
 from collections import defaultdict
-import matplotlib.font_manager as font_manager
 
 
 thisdir = os.path.abspath(os.path.dirname(__file__))
-font_file = os.path.join(thisdir, "..","data/HelveticaNeue.ttf")
-print(font_file)
-font_list = font_manager.fontManager.addfont(font_file)
-
-mpl.rcParams['font.family'] = 'helveticaneue'
-mpl.rcParams['font.weight']=300
-mpl.rcParams['axes.labelweight']=300
-
 
 def find_tallest_tree(input_dir):
     tree_heights = []
@@ -221,8 +211,6 @@ def sort_trees_index(tree_dir):
         
     return d_list
 
-    
- 
 def make_all_of_the_trees(input_dir, taxon_dict, query_dict, min_uk_taxa=3):
     
     tallest_height = find_tallest_tree(input_dir)
