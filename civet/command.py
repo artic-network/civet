@@ -139,8 +139,13 @@ def main(sysargs = sys.argv[1:]):
             sys.stderr.write('Error: Username (-uun) required with --remote flag\n')
             sys.exit(-1)
     else:
-        config["remote"] = "False"
-        config["username"] = ""
+        if os.path.exists("/cephfs/covid/bham/artifacts/published/latest/phylogenetics/trees/uk_lineages/"):
+            config["remote"] = "False"
+            config["username"] = ""
+        else:
+            sys.stderr.write("""Error: please either ssh into CLIMB or run using `--remote` flag.\n
+You will also need to specify your CLIMB username e.g. `-uun climb-covid19-uun`""")
+            sys.exit(-1)
 
     if args.fasta:
         do_not_run = []
