@@ -6,7 +6,7 @@ import argparse
 
 thisdir = os.path.abspath(os.path.dirname(__file__))
 
-def make_report(cog_metadata, input_csv, outfile, outdir, tree_dir, fields, report_template):
+def make_report(cog_metadata, input_csv, outfile, outdir, tree_dir, fields, report_template, font_file):
 
     fd = os.path.join(outdir, "figures")
     name_stem = ".".join(outfile.split(".")[:-1])
@@ -30,7 +30,8 @@ def make_report(cog_metadata, input_csv, outfile, outdir, tree_dir, fields, repo
                         new_l = f'input_directory = "{tree_dir}"\n'
                     elif "desired_fields" in l:
                         new_l = f'desired_fields = "{fields}"\n'
-
+                    elif "font_file" in l:
+                        new_l = f'font_file = "{font_file}"\n'
                 else:
                     new_l = l
 
@@ -48,13 +49,14 @@ def main():
     
     parser.add_argument("-t","--tree-dir", required=False, default="", help="path to tree directory",dest="tree_dir")
     parser.add_argument("--report-template", help="report template file",dest="report_template")
-
+    parser.add_argument("--font-file", help="custom font",dest="font_file")
+    
     parser.add_argument("-o","--outfile", default="civet_report.pmd", help="output name stem as a string",dest="outfile")
     parser.add_argument("--outdir", help="output directory",dest="outdir")
 
     args = parser.parse_args()
 
-    make_report(args.cog_metadata, args.input_csv, args.outfile, args.outdir, args.tree_dir, args.fields, args.report_template)
+    make_report(args.cog_metadata, args.input_csv, args.outfile, args.outdir, args.tree_dir, args.fields, args.report_template, args.font_file)
 
 
 if __name__ == "__main__":
