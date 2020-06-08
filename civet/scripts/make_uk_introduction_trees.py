@@ -1,6 +1,6 @@
 import os
 from matplotlib import font_manager as fm, rcParams
-import utils.baltic as bt
+import baltic as bt
 
 # from IPython.display import HTML
 import re
