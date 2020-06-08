@@ -41,8 +41,8 @@ def main(sysargs = sys.argv[1:]):
     # parser.add_argument('--tempdir',action="store",help="Specify where you want the temp stuff to go. Default: $TMPDIR")
     parser.add_argument('-t', '--threads', action='store',type=int,help="Number of threads")
     parser.add_argument("--verbose",action="store_true",help="Print lots of stuff to screen")
-    parser.add_argument('--max-ambig', action="store", default=0.5, type=float,help="Maximum proportion of Ns allowed for pangolin to attempt analysis. Default: 0.5",dest="maxambig")
-    parser.add_argument('--min-length', action="store", default=10000, type=int,help="Minimum query length allowed for pangolin to attempt analysis. Default: 10000",dest="minlen")
+    parser.add_argument('--max-ambig', action="store", default=0.5, type=float,help="Maximum proportion of Ns allowed to attempt analysis. Default: 0.5",dest="maxambig")
+    parser.add_argument('--min-length', action="store", default=10000, type=int,help="Minimum query length allowed to attempt analysis. Default: 10000",dest="minlen")
     parser.add_argument("-v","--version", action='version', version=f"civet {__version__}")
 
     if len(sysargs)<1:
