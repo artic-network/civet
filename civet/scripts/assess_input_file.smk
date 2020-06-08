@@ -2,7 +2,6 @@ import csv
 from Bio import SeqIO
 import os
 import collections
-print(config)
 
 rule check_cog_db:
     input:
@@ -27,7 +26,8 @@ rule check_cog_db:
             header_names = reader.fieldnames
             for row in reader:
                 for seq in query_names:
-                    if seq in row["sequence_name"]:
+                    seq_name = row["sequence_name"].split("/")
+                    if seq in seq_name:
                         print(seq)
                         row["query"]=row["sequence_name"]
                         row["closest"]=row["sequence_name"]
@@ -45,11 +45,13 @@ rule check_cog_db:
         fw = open(output.cog_seqs, "w")
         for record in SeqIO.parse(input.cog_seqs, "fasta"):
             for name in query_names:
-                if name in record.id:
+                seq_name = record.id.split("/")
+                if name in seq_name:
                     fw.write(f">{record.id}\n{record.seq}\n")
         
         with open(output.not_cog, "w") as fw:
             print("The following sequences were not found in the cog database:\n")
+
             for query in query_names:
                 in_cog = False
                 for name in in_cog_names:
@@ -58,6 +60,7 @@ rule check_cog_db:
                 if not in_cog:
                     fw.write(query + '\n')
                     print(f"{query}")
+            print("If you wish to access sequences in the cog database\nwith your query, ensure you have the correct sequence id.")
 
 rule get_closest_cog:
     input:
@@ -125,23 +128,24 @@ rule get_remote_lineage_trees:
         outdir = os.path.join(config["outdir"],"lineage_trees"),
         uun = config["username"]
     output:
-        lineage_trees = os.path.join(config["outdir"],"lineage_trees","lineage_tree_summary.remote.txt")
+        lineage_trees_remote = os.path.join(config["outdir"],"lineage_trees","lineage_tree_summary.remote.txt")
     run:
         lineages = set()
         with open(input.combined_csv, newline="") as f:
             reader = csv.DictReader(f)
             for row in reader:
                 lineages.add(row["uk_lineage"])
-        fw = open(output.lineage_trees, "w")
+        fw = open(output.lineage_trees_remote, "w")
         for lineage in lineages:
             try:
                 shell(f"""scp {params.uun}@bham.covid19.climb.ac.uk:\
-    /cephfs/covid/bham/artifacts/published/latest/phylogenetics/trees/uk_lineages/uk_lineage_{lineage}.tree {params.outdir}"""
+/cephfs/covid/bham/artifacts/published/latest/phylogenetics/trees/uk_lineages/uk_lineage_{lineage}.tree {params.outdir}"""
                 )
                 fw.write(lineage+ ',pass\n')
             except:
                 fw.write(lineage+ ',fail\n')
         fw.close()
+
 
 rule get_lineage_trees:
     input:
@@ -168,8 +172,11 @@ rule get_lineage_trees:
 
 rule make_report:
     input:
-        cog_metadata = os.path.join(config["outdir"],"combined_metadata.csv"),
-        query_metadata = config["query"]
+        lineage_trees = os.path.join(config["outdir"],"lineage_trees","lineage_tree_summary.txt"),
+        query = config["query"],
+        combined_metadata = os.path.join(config["outdir"],"combined_metadata.csv"),
+        full_cog_metadata = config["cog_metadata"],
+        report_template = config["report_template"] 
     params:
         tree_dir = os.path.join(config["outdir"],"lineage_trees"),
         outdir = config["outdir"],
@@ -179,9 +186,40 @@ rule make_report:
     shell:
         """
         make_report.py \
-        --input-path {params.tree_dir:q} \
-        --cog-metadata {input.cog_metadata:q} \
-        --input-metadata {input.query_metadata:q} \
+        --input-csv {input.query:q} \
+        -f {params.fields:q} \
+        -t {params.tree_dir:q} \
+        --report-template {input.report_template} \
+        --filtered-cog-metadata {input.combined_metadata:q} \
+        --cog-metadata {input.full_cog_metadata:q} \
+        --outfile {output.outfile:q} \
         --outdir {params.outdir:q} \
-        --desired-fields {params.fields:q} 
         """
+
+
+rule remote_report:
+    input:
+        lineage_trees = os.path.join(config["outdir"],"lineage_trees","lineage_tree_summary.remote.txt"),
+        query = config["query"],
+        combined_metadata = os.path.join(config["outdir"],"combined_metadata.csv"),
+        full_cog_metadata = config["cog_metadata"],
+        report_template = config["report_template"] 
+    params:
+        tree_dir = os.path.join(config["outdir"],"lineage_trees"),
+        outdir = config["outdir"],
+        fields = config["fields"]
+    output:
+        outfile = os.path.join(config["outdir"], "civet_report.remote.pmd")
+    shell:
+        """
+        make_report.py \
+        --input-csv {input.query:q} \
+        -f {params.fields:q} \
+        -t {params.tree_dir:q} \
+        --report-template {input.report_template} \
+        --filtered-cog-metadata {input.combined_metadata:q} \
+        --cog-metadata {input.full_cog_metadata:q} \
+        --outfile {output.outfile:q} \
+        --outdir {params.outdir:q} \
+        """
+
