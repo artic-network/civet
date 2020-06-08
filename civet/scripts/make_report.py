@@ -38,7 +38,7 @@ def make_report(big_metadata, input_metadata, name_stem, output_directory, input
 
 def main():
     parser = argparse.ArgumentParser(description="Report generator script")
-    parser.add_argument("-i","--input-path", required=False, default="", help="path to tree and annotations inputs as a string",dest="input_path")
+    parser.add_argument("-i","--input-path", required=False, default="", help="path to tree directory",dest="input_path")
     parser.add_argument("-bm","--cog-metadata", required=True, help="path to full COG metadata file",dest="cog_metadata")
     parser.add_argument("-im","--input-metadata", required=False, help="path to their metadata file",dest="input_metadata")
     parser.add_argument("-s","--stem", default="civet_report", help="output name stem as a string",dest="stem")
