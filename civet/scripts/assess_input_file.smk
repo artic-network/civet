@@ -134,10 +134,13 @@ rule get_remote_lineage_trees:
                 lineages.add(row["uk_lineage"])
         fw = open(output.lineage_trees, "w")
         for lineage in lineages:
-            shell(f"""scp {params.uun}@bham.covid19.climb.ac.uk:\
-/cephfs/covid/bham/artifacts/published/latest/phylogenetics/trees/uk_lineages/uk_lineage_{lineage}.tree {params.outdir}"""
-            )
-            fw.write(lineage+ '\n')
+            try:
+                shell(f"""scp {params.uun}@bham.covid19.climb.ac.uk:\
+    /cephfs/covid/bham/artifacts/published/latest/phylogenetics/trees/uk_lineages/uk_lineage_{lineage}.tree {params.outdir}"""
+                )
+                fw.write(lineage+ ',pass\n')
+            except:
+                fw.write(lineage+ ',fail\n')
         fw.close()
 
 rule get_lineage_trees:
@@ -155,9 +158,12 @@ rule get_lineage_trees:
                 lineages.add(row["uk_lineage"])
         fw = open(output.lineage_trees, "w")
         for lineage in lineages:
-            shell(f"""scp /cephfs/covid/bham/artifacts/published/latest/phylogenetics/trees/uk_lineages/uk_lineage_{lineage}.tree \
-                {params.outdir}""")
-            fw.write(lineage + '\n')
+            try:
+                shell(f"""scp /cephfs/covid/bham/artifacts/published/latest/phylogenetics/trees/uk_lineages/uk_lineage_{lineage}.tree \
+                    {params.outdir}""")
+                fw.write(lineage + 'pass\n')
+            except:
+                fw.write(lineage+ ',fail\n')
         fw.close()
 
 rule make_report:
