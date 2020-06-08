@@ -17,7 +17,7 @@ setup(name='civet',
       "civet/scripts/data_parsing.py",
       "civet/scripts/utils/baltic.py",
       "civet/scripts/civet_template.pmd",
-      "civet/scripts/make_uk_introduction_trees.py"],
+      "civet/scripts/make_tree_figures.py"],
       package_data={"civet":["data/HelveticaNeue.ttf","data/reference.fasta"]},
       install_requires=[
             "biopython>=1.70",
