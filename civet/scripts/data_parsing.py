@@ -16,10 +16,11 @@ class taxon():
 
         self.attribute_dict = {}
 
-def parse_big_metadata(metadata_file):
+
+def parse_reduced_metadata(metadata_file):
     
     query_dict = {}
-    full_tax_dict = {}
+    present_lins = set()
 
     contract_dict = {"SCT":"Scotland", "WLS": "Wales", "ENG":"England", "NIRE": "Northern_Ireland"}
 
@@ -41,24 +42,14 @@ def parse_big_metadata(metadata_file):
 
                 phylotype = sequence["phylotype"]
 
-                if query_name != "":
-
-                    new_taxon = taxon(query_name, glob_lin, uk_lineage, phylotype)
-                    
-                    if query_name == closest_name:
-                        new_taxon.in_cog = True
-
-                    query_dict[query_name] = new_taxon
-                    full_tax_dict[query_name] = new_taxon
+                new_taxon = taxon(query_name, glob_lin, uk_lineage, phylotype)
                 
-                else:
+                if query_name == closest_name:
+                    new_taxon.in_cog = True
 
-                    new_taxon = taxon(seq_name, glob_lin, uk_lineage)
-                    new_taxon.sample_date = sequence["sample_date"]
-                    full_tax_dict[seq_name] = new_taxon
-
-
-    return query_dict, full_tax_dict
+                query_dict[query_name] = new_taxon
+            
+    return query_dict
 
 def parse_their_metadata(input_metadata, query_dict, desired_fields):
 
@@ -96,6 +87,18 @@ def parse_their_metadata(input_metadata, query_dict, desired_fields):
                 
     return new_query_dict
 
+
+def parse_big_metadata(query_dict, full_metadata):
+
+#if in the same lineage:
+#add to dict 
+# get info about lineage: adm2 regions, timing and size probably
+#possibly move this all into another script
+
+    new_taxon = taxon(seq_name, glob_lin, uk_lineage)
+    new_taxon.sample_date = sequence["sample_date"]
+    full_tax_dict[seq_name] = new_taxon
+    #need to add in the query dict seqs here as well
 
 def make_initial_table(query_dict):
 

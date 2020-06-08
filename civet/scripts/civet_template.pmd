@@ -11,7 +11,7 @@ Please note:
 
  - If sequences have different lineage designations, we can rule out transmission.
  - If sequences have different phylotypes it’s very unlikely that they are direct transmissions. 
- - If sequences share the same lineage and the same phylotype, it does not imply transmission it just means we cannot immediately rule it out.
+ - If sequences share the same lineage and the same phylotype, it does not imply transmission, it means that it cannot immediately be ruled out.
 
 
 
@@ -24,8 +24,9 @@ import data_parsing as dp
 import make_uk_introduction_trees as tree_viz
 
 
-big_metadata = "" ##CHANGE
+cut_metadata = "" ##CHANGE
 their_metadata = "" ##CHANGE
+full_metadata_file = "" ##CHANGE
 desired_fields = "" ##CHANGE
 
 input_directory = "" ##CHANGE
@@ -49,10 +50,13 @@ if desired_fields != "":
 
 ```python, name="parse metadata", echo=False
 
-query_dict, full_tax_dict = dp.parse_big_metadata(big_metadata)
+query_dict = dp.parse_reduced_metadata(big_metadata)
 
 if their_metadata != '':
     query_dict = dp.parse_their_metadata(their_metadata, query_dict, desired_fields)
+
+#function not written yet
+#lineage_info, full_tax_dict = dp.parse_big_metadata(query_dict, full_metadata_file)
 
 ```
 
@@ -88,7 +92,9 @@ for lin in relevant_lins:
 ```python, name="tree_hack", echo=False, results='raw'
 
 for i in range(1,len(relevant_lins)+1):
+
     print("![](" + fig_dir + "/" + name_stem + "_tree_viz_" + str(i) + ".png)\\")
+
 
 ```
 

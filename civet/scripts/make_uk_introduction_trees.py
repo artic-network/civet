@@ -226,10 +226,10 @@ def make_all_of_the_trees(input_dir, taxon_dict, query_dict, min_uk_taxa=3):
     
     tallest_height = find_tallest_tree(input_dir)
     
-    colour_dict = {"Wales":"darkseagreen",
-               "England":"indianred",
-               "Scotland":"steelblue",
-               "Northern_Ireland":"skyblue"}
+    # colour_dict = {"Wales":"darkseagreen",
+    #            "England":"indianred",
+    #            "Scotland":"steelblue",
+    #            "Northern_Ireland":"skyblue"}
 
     lst = sort_trees_index(input_dir)
 
@@ -246,7 +246,7 @@ def make_all_of_the_trees(input_dir, taxon_dict, query_dict, min_uk_taxa=3):
                     num_taxa = int(l.rstrip(";").split("=")[1])
                     intro_name = fn.rstrip(".tree")
 
-        if num_taxa > 1:
+        if num_taxa > 1: 
             tree = bt.loadNewick(input_dir + "/" + treename, absoluteTime=False)
             tips = []
             uk_tips = []
