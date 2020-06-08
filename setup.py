@@ -16,7 +16,7 @@ setup(name='civet',
       "civet/scripts/make_report.py",
       "civet/scripts/data_parsing.py",
       "civet/scripts/utils/baltic.py",
-      "civet/scripts/utils/civet_template.pmd",
+      "civet/scripts/civet_template.pmd",
       "civet/scripts/make_uk_introduction_trees.py"],
       package_data={"civet":["data/HelveticaNeue.ttf","data/reference.fasta"]},
       install_requires=[
