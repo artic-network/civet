@@ -18,7 +18,7 @@ if config["remote"] == "True":
     rule all:
         input:
             os.path.join(config["outdir"],"combined_metadata.csv"),
-            os.path.join(config["outdir"],"lineage_trees_remote","lineage_tree_summary.remote.txt")
+            os.path.join(config["outdir"],"lineage_trees","lineage_tree_summary.remote.txt")
 else:
     rule all:
         input:
