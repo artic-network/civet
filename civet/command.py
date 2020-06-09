@@ -29,12 +29,12 @@ def main(sysargs = sys.argv[1:]):
     description='civet: Cluster Investivations for Viral Epidemiology Tool', 
     usage='''civet <query> [options]''')
 
-    parser.add_argument('query')
+    parser.add_argument('query',help="Input csv file with minimally `name` as a column header. Can include additional fields to be incorporated into the analysis, e.g. `sample_date`",)
     parser.add_argument('--fasta', action="store",help="Optional fasta query.", dest="fasta")
     parser.add_argument('--remote', action="store_true",dest="remote",help="Remotely access lineage trees from CLIMB (note read access required)")
     parser.add_argument("-uun","--your-user-name", action="store", help="Your CLIMB COG-UK username. Required if running with --remote flag", dest="uun")
     parser.add_argument('-o','--outdir', action="store",help="Output directory. Default: current working directory")
-    parser.add_argument('--datadir', action="store",help="Output directory. Default: current working directory")
+    parser.add_argument('--datadir', action="store",help="Data directory. Default with --remote flag will rsync COG_UK data from CLIMB.")
 
     parser.add_argument('-n', '--dry-run', action='store_true',help="Go through the motions but don't actually run")
     parser.add_argument('-f', '--force', action='store_true',help="Overwrite all output",dest="force")
