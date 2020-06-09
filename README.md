@@ -42,7 +42,7 @@ Type (in the civet environment):
 ```
 civet -v
 ```
-and you should see the versions of civet printed.
+and you should see the version of civet printed.
 
 
 ### Updating civet
