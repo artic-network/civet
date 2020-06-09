@@ -176,7 +176,8 @@ rule make_report:
         query = config["query"],
         combined_metadata = os.path.join(config["outdir"],"combined_metadata.csv"),
         full_cog_metadata = config["cog_metadata"],
-        report_template = config["report_template"] 
+        report_template = config["report_template"],
+        font = config["font_file"] 
     params:
         tree_dir = os.path.join(config["outdir"],"lineage_trees"),
         outdir = config["outdir"],
@@ -194,6 +195,7 @@ rule make_report:
         --cog-metadata {input.full_cog_metadata:q} \
         --outfile {output.outfile:q} \
         --outdir {params.outdir:q} \
+        --font-file {input.font}
         """
 
 
@@ -203,7 +205,8 @@ rule remote_report:
         query = config["query"],
         combined_metadata = os.path.join(config["outdir"],"combined_metadata.csv"),
         full_cog_metadata = config["cog_metadata"],
-        report_template = config["report_template"] 
+        report_template = config["report_template"],
+        font = config["font_file"] 
     params:
         tree_dir = os.path.join(config["outdir"],"lineage_trees"),
         outdir = config["outdir"],
@@ -221,5 +224,6 @@ rule remote_report:
         --cog-metadata {input.full_cog_metadata:q} \
         --outfile {output.outfile:q} \
         --outdir {params.outdir:q} \
+        --font-file {input.font}
         """
 
