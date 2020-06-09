@@ -66,11 +66,13 @@ def parse_paf_and_get_metadata():
         header_names = reader.fieldnames
         for row in reader:
             if row["sequence_name"] in closest_cog:
+                row["query_id"]=closest_to_query[row["sequence_name"]]
                 row["query"]=closest_to_query[row["sequence_name"]]
                 row["closest"]=row["sequence_name"]
                 rows_to_write.append(row)
     
         with open(args.outfile, "w") as fw:
+            header_names.append("query_id")
             header_names.append("query")
             header_names.append("closest")
             writer = csv.DictWriter(fw, fieldnames=header_names)

@@ -29,6 +29,7 @@ rule check_cog_db:
                     seq_name = row["sequence_name"].split("/")
                     if seq in seq_name:
                         print(seq)
+                        row["query_id"]=seq
                         row["query"]=row["sequence_name"]
                         row["closest"]=row["sequence_name"]
                         in_cog_metadata.append(row)
@@ -36,6 +37,7 @@ rule check_cog_db:
 
             print(f"Number of seqs found in metadata: {len(in_cog_metadata)}")
             with open(output.cog, "w") as fw:
+                header_names.append("query_id")
                 header_names.append("query")
                 header_names.append("closest")
                 writer = csv.DictWriter(fw, fieldnames=header_names)
