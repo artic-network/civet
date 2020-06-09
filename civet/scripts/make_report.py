@@ -6,7 +6,7 @@ import argparse
 
 thisdir = os.path.abspath(os.path.dirname(__file__))
 
-def make_report(cog_metadata, input_csv, outfile, outdir, tree_dir, fields, report_template, font_file):
+def make_report(cog_metadata, input_csv, filtered_cog_metadata, outfile, outdir, tree_dir, fields, report_template, font_file):
 
     fd = os.path.join(outdir, "figures")
     name_stem = ".".join(outfile.split(".")[:-1])
@@ -22,10 +22,12 @@ def make_report(cog_metadata, input_csv, outfile, outdir, tree_dir, fields, repo
                         new_l = f'output_directory = "{outdir}"\n'
                     elif "name_stem" in l:
                         new_l = f'name_stem = "{name_stem}"\n'
-                    elif "big_metadata" in l:
-                        new_l = f'big_metadata = "{cog_metadata}"\n'
-                    elif "their_metadata" in l:
-                        new_l = f'their_metadata = "{input_csv}"\n'
+                    elif "full_metadata_file" in l:
+                        new_l = f'full_metadata_file = "{cog_metadata}"\n'
+                    elif "cut_metadata" in l:
+                        new_l = f'cut_metadata = "{filtered_cog_metadata}"\n'
+                    elif "input_csv" in l:
+                        new_l = f'input_csv = "{input_csv}"\n'
                     elif "input_directory" in l:
                         new_l = f'input_directory = "{tree_dir}"\n'
                     elif "desired_fields" in l:
@@ -56,7 +58,7 @@ def main():
 
     args = parser.parse_args()
 
-    make_report(args.cog_metadata, args.input_csv, args.outfile, args.outdir, args.tree_dir, args.fields, args.report_template, args.font_file)
+    make_report(args.cog_metadata, args.input_csv, args.filtered_cog_metadata, args.outfile, args.outdir, args.tree_dir, args.fields, args.report_template, args.font_file)
 
 
 if __name__ == "__main__":
