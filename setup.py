@@ -32,7 +32,7 @@ setup(name='civet',
         ],
       description='Cluster Investivations for Viral Epidemiology Tool',
       url='https://github.com/aineniamh/civet',
-      author='Aine OToole, Verity Hill, Stefan Rooke & JT McCrone',
+      author='Aine OToole, Verity Hill, Stefan Rooke',
       author_email='aine.otoole@ed.ac.uk',
       entry_points="""
       [console_scripts]
