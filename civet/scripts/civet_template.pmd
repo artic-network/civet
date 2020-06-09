@@ -62,7 +62,7 @@ mpl.rcParams['axes.labelweight']=300
 
 ```python, name="parse metadata", echo=False
 
-query_dict = dp.parse_reduced_metadata(full_metadata_file)
+query_dict = dp.parse_reduced_metadata(cut_metadata)
 
 if their_metadata != '':
     query_dict = dp.parse_their_metadata(their_metadata, query_dict, desired_fields)
