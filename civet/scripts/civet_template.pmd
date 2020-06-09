@@ -6,18 +6,16 @@ This report provides information about your samples of interest, either finding 
 
 The table below is a summary of the sequences provided with your metadata, along with their associated UK lineage and global lineage.
 
-It analyses the viruses in your sample, either finds them in the COG database or matches them as closely as possible to a sequence in the COG database, and puts them into a UK lineage.
+For each query sequence, this generator either finds them in the COG database or matches them as closely as possible to a sequence in the COG database, and puts them into a UK lineage.
 This report provides information on the sequences you've put in, and the lineages they've been assigned to.
 
 Please note:
 
- - The information presented in this report is intended to provide an additional level of information to aid infection control efforts. 
- - This not in any way able to infer direct transmission between two samples. Even identical sequences may be unrelated as SARS-COV2 is relatively slow evolving for an RNA virus.
-
+ - The information presented in this report is intended to provide an additional level of information to aid infection control efforts 
+ - This not in any way able to infer direct transmission between two samples. Even identical sequences may be unrelated as SARS-COV2 is relatively slow evolving for an RNA virus. Our analysis has shown that samples taken over 100 days apart can be identical. This is rare, but possibile. 
  - If sequences have different lineage designations, we can rule out transmission.
  - If sequences have different phylotypes it’s very unlikely that they are direct transmissions. 
  - If sequences share the same lineage and the same phylotype, it does not imply transmission, it means that it cannot immediately be ruled out.
-
 
 
 ```python, name="import dependencies", echo=False
@@ -28,6 +26,7 @@ import os
 import data_parsing as dp
 import make_tree_figures as tree_viz
 import matplotlib.font_manager as font_manager
+import matplotlib as mpl
 
 cut_metadata = "" ##CHANGE
 their_metadata = "" ##CHANGE
@@ -63,7 +62,7 @@ mpl.rcParams['axes.labelweight']=300
 
 ```python, name="parse metadata", echo=False
 
-query_dict = dp.parse_reduced_metadata(big_metadata)
+query_dict = dp.parse_reduced_metadata(full_metadata_file)
 
 if their_metadata != '':
     query_dict = dp.parse_their_metadata(their_metadata, query_dict, desired_fields)
