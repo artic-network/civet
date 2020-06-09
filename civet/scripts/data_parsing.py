@@ -41,38 +41,38 @@ def parse_reduced_metadata(metadata_file):
                 query_name = sequence['query']
 
                 phylotype = sequence["phylotype"]
+                sample_date = sequence["sample_date"]
 
                 new_taxon = taxon(query_name, glob_lin, uk_lineage, phylotype)
                 
+
                 if query_name == closest_name:
                     new_taxon.in_cog = True
+                    new_taxon.attribute_dict["sample_date"] = sample_date
 
                 query_dict[query_name] = new_taxon
             
     return query_dict
 
-def parse_their_metadata(input_metadata, query_dict, desired_fields):
+def parse_input_csv(input_csv, query_dict, desired_fields):
 
     new_query_dict = {}
     contract_dict = {"SCT":"Scotland", "WLS": "Wales", "ENG":"England", "NIRE": "Northern_Ireland"}
 
-    with open(input_metadata, 'r') as f:
+    with open(input_csv, 'r') as f:
         reader = csv.DictReader(f)
         col_name_prep = next(reader)
         col_names = list(col_name_prep.keys())
         in_data = [r for r in reader]
         for sequence in in_data:
 
-            name = sequence["sequence_name"]
-            sample_date = sequence["sample_date"]
+            name = sequence["name"]
 
             taxon = query_dict[name]
 
-            taxon.sample_date = sample_date
-
             for col in col_names:
                 if desired_fields != []:
-                    if col != "sequence_name" and col != "sample_date" and col in desired_fields:
+                    if col != "name" and col in desired_fields:
                         taxon.attribute_dict[col] = sequence[col]
                 if col == "adm1":
                     if "UK" in sequence[col]:
@@ -96,7 +96,7 @@ def parse_big_metadata(query_dict, full_metadata):
 #possibly move this all into another script
 
     new_taxon = taxon(seq_name, glob_lin, uk_lineage)
-    new_taxon.sample_date = sequence["sample_date"]
+    new_taxon.attribute_dict["sample_date"] = sequence["sample_date"]
     full_tax_dict[seq_name] = new_taxon
     #need to add in the query dict seqs here as well
 
@@ -120,29 +120,4 @@ def make_initial_table(query_dict):
     df.set_index("Sequence name", inplace=True)
 
     return df
-
-    
-
-
-
-            
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-                
-
-        
-
 

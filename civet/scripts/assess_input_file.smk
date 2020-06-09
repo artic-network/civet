@@ -198,7 +198,6 @@ rule make_report:
         --font-file {input.font}
         """
 
-
 rule remote_report:
     input:
         lineage_trees = os.path.join(config["outdir"],"lineage_trees","lineage_tree_summary.remote.txt"),

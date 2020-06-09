@@ -29,7 +29,7 @@ import matplotlib.font_manager as font_manager
 import matplotlib as mpl
 
 cut_metadata = "" ##CHANGE
-their_metadata = "" ##CHANGE
+input_csv = "" ##CHANGE
 full_metadata_file = "" ##CHANGE
 desired_fields = "" ##CHANGE
 
@@ -64,8 +64,8 @@ mpl.rcParams['axes.labelweight']=300
 
 query_dict = dp.parse_reduced_metadata(cut_metadata)
 
-if their_metadata != '':
-    query_dict = dp.parse_their_metadata(their_metadata, query_dict, desired_fields)
+if input_csv != '':
+    query_dict = dp.parse_input_csv(input_csv, query_dict, desired_fields)
 
 #function not written yet
 #lineage_info, full_tax_dict = dp.parse_big_metadata(query_dict, full_metadata_file)
