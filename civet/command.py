@@ -10,6 +10,7 @@ import pprint
 import json
 import csv
 import setuptools
+import os.system
 from Bio import SeqIO
 
 import pkg_resources
@@ -31,7 +32,7 @@ def main(sysargs = sys.argv[1:]):
 
     parser.add_argument('query',help="Input csv file with minimally `name` as a column header. Can include additional fields to be incorporated into the analysis, e.g. `sample_date`",)
     parser.add_argument('--fasta', action="store",help="Optional fasta query.", dest="fasta")
-    parser.add_argument('--remote', action="store_true",dest="remote",help="Remotely access lineage trees from CLIMB (note read access required)")
+    parser.add_argument('--remote', action="store_true",dest="remote",help="Remotely access lineage trees from CLIMB, need to supply --your-user-name")
     parser.add_argument("-uun","--your-user-name", action="store", help="Your CLIMB COG-UK username. Required if running with --remote flag", dest="uun")
     parser.add_argument('-o','--outdir', action="store",help="Output directory. Default: current working directory")
     parser.add_argument('--datadir', action="store",help="Data directory. Default with --remote flag will rsync COG_UK data from CLIMB.")
@@ -131,15 +132,61 @@ def main(sysargs = sys.argv[1:]):
         "fasta":fasta
         }
 
+    data_dir = ""
+    if args.datadir:
+        data_dir = os.path.join(cwd, args.datadir)
+        # find the data files
+        for r,d,f in os.walk(data_dir):
+            for fn in f:
+                if fn.endswith(".csv"):
+                    cog_metadata = os.path.join(data_dir, fn)
+                elif fn.endswith(".fasta"):
+                    cog_seqs = os.path.join(data_dir, fn)
+                elif:
+                    fn.endswith(".tree") or fn.endswith(".treefile") or fn.endswith(".nexus") or (fn.endswith(".newick"):
+                    cog_tree = os.path.join(data_dir, fn)
+
+        if not os.path.exists(cog_metadata) or not os.path.exists(cog_seqs) or not os.path.exists(cog_tree):
+            sys.stderr.write('Error: cannot find data at {}\nTry running with --remote flag and -uun specified'.format(data_dir))
+            sys.exit(-1)
+        else:
+            config["cog_metadata"] = cog_metadata
+            config["cog_seqs"] = cog_seqs
+            config["cog_tree"] = cog_tree
+            print("Found cog data:")
+            print(cog_metadata)
+            print(cog_seqs)
+            print(cog_tree)
+    else:
+        data_dir = os.path.join(thisdir,"data")
+        if not os.path.exists(data_dir):
+            od.mkdir(data_dir)
+
     if args.remote:
         config["remote"]= "True"
         if args.uun:
             config["username"] = args.uun
+            if not args.datadir:
+                rsync_command1 = f"rsync -avzh {args.uun}@bham.covid19.climb.ac.uk:/cephfs/covid/bham/artifacts/published/latest/phylogenetics/alignments/cog_2020-06-05_metadata.csv {data_dir}/cog_gisaid.csv"
+                rsync_command2 = f"rsync -avzh {args.uun}@bham.covid19.climb.ac.uk:/cephfs/covid/bham/artifacts/published/latest/phylogenetics/alignments/cog_2020-06-05_alignment.fasta {data_dir}/cog.fasta"
+                rsync_command3 = f"rsync -avzh {args.uun}@bham.covid19.climb.ac.uk:/cephfs/covid/bham/artifacts/published/latest/phylogenetics/trees/cog_global_2020-06-05_tree.nexus {data_dir}/cog_gisaid.tree"
+                print(f"Syncing metadata file to {data_dir}")
+                os.system(rsync_command1)
+                print(f"Syncing alignment file to {data_dir}")
+                os.system(rsync_command2)
+                print(f"Syncing tree file to {data_dir}")
+                os.system(rsync_command3)
+                cog_seqs = os.path.join(data_dir,"cog.fasta")
+                cog_metadata = os.path.join(data_dir,"cog_gisaid.csv")
+                cog_tree = os.path.join(data_dir,"cog_gisaid.tree")
+                config["cog_metadata"] = cog_metadata
+                config["cog_seqs"] = cog_seqs
+                config["cog_tree"] = cog_tree
         else:
             sys.stderr.write('Error: Username (-uun) required with --remote flag\n')
             sys.exit(-1)
     else:
-        if os.path.exists("/cephfs/covid/bham/artifacts/published/latest/phylogenetics/trees/uk_lineages/"):
+        if os.path.exists("/cephfs/covid/bham/artifacts/published/latest/phylogenetics/alignments/"):
             config["remote"] = "False"
             config["username"] = ""
         else:
@@ -199,25 +246,6 @@ You will also need to specify your CLIMB username e.g. `-uun climb-covid19-uun`"
     config["font_file"] = font_file
     config["report_template"] = report_template
 
-    data_dir = ""
-    if args.datadir:
-        data_dir = os.path.join(cwd, args.datadir)
-    else:
-        data_dir = os.path.join(thisdir,"data")
-
-    # find the data files
-    cog_metadata = os.path.join(data_dir, "cog_gisaid.csv")
-    cog_seqs = os.path.join(data_dir, "cog_gisaid.fasta")
-
-    if not os.path.exists(cog_metadata) or not os.path.exists(cog_seqs):
-        sys.stderr.write('Error: cannot find data at {}\n'.format(data_dir))
-        sys.exit(-1)
-    else:
-        config["cog_metadata"] = cog_metadata
-        config["cog_seqs"] = cog_seqs
-        print("Found cog data:")
-        print(cog_metadata)
-        print(cog_seqs)
 
     if args.verbose:
         quiet_mode = False
