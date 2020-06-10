@@ -33,7 +33,7 @@ rule check_cog_db:
                         row["query"]=row["sequence_name"]
                         row["closest"]=row["sequence_name"]
                         in_cog_metadata.append(row)
-                        in_cog_names.add(row["sequence_name"])
+                        in_cog_names.add(seq)
 
             print(f"Number of seqs found in metadata: {len(in_cog_metadata)}")
             with open(output.cog, "w") as fw:
@@ -57,7 +57,7 @@ rule check_cog_db:
             for query in query_names:
                 in_cog = False
                 for name in in_cog_names:
-                    if query in name:
+                    if query == name:
                         in_cog = True
                 if not in_cog:
                     fw.write(query + '\n')
@@ -122,6 +122,22 @@ rule combine_metadata:
                         pass
                     else:
                         fw.write(l + '\n')
+
+rule prune_out_catchments:
+    input:
+        tree = config["cog_tree"],
+        metadata = rules.combine_metadata.output.combined_csv
+    params:
+        outdir = os.path.join(config["outdir"],"catchment_trees")
+    output:
+        os.path.join(config["outdir"],"catchment_trees","catchments.txt")
+    shell:
+        """
+        clusterfunk find_catchments -i {input.tree:q} \
+        -o {params.outdir:q} \
+        --metadata {input.metadata} \
+        --index-column closest
+        """
 
 rule get_remote_lineage_trees:
     input:

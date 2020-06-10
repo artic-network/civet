@@ -36,21 +36,21 @@ def parse_reduced_metadata(metadata_file):
                 adm1_prep = sequence["adm1"].split("-")[1]
                 adm1 = contract_dict[adm1_prep]
 
-                seq_name = sequence['sequence_name']
+                seq_name = sequence['query_id']
                 closest_name = sequence["closest"]
                 query_name = sequence['query']
 
                 phylotype = sequence["phylotype"]
                 sample_date = sequence["sample_date"]
 
-                new_taxon = taxon(query_name, glob_lin, uk_lineage, phylotype)
+                new_taxon = taxon(seq_name, glob_lin, uk_lineage, phylotype)
                 
 
                 if query_name == closest_name:
                     new_taxon.in_cog = True
                     new_taxon.attribute_dict["sample_date"] = sample_date
 
-                query_dict[query_name] = new_taxon
+                query_dict[seq_name] = new_taxon
             
     return query_dict
 
@@ -65,11 +65,14 @@ def parse_input_csv(input_csv, query_dict, desired_fields):
         col_names = list(col_name_prep.keys())
         in_data = [r for r in reader]
         for sequence in in_data:
-
+            
             name = sequence["name"]
 
             taxon = query_dict[name]
-
+            if "sample_date" in col_names:
+                taxon.attribute_dict["sample_date"] = sequence["sample_date"]
+            else:
+                
             for col in col_names:
                 if desired_fields != []:
                     if col != "name" and col in desired_fields:
