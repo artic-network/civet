@@ -15,6 +15,7 @@ dependencies:
     - pandas==1.0.1
     - pytools==2020.1
     - dendropy>=4.4.0
+    - tabulate>=0.8.7
     - git+https://github.com/cov-ert/datafunk.git
     - git+https://github.com/cov-ert/clusterfunk.git
 
