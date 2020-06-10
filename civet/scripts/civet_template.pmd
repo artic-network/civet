@@ -27,6 +27,7 @@ import data_parsing as dp
 import make_tree_figures as tree_viz
 import matplotlib.font_manager as font_manager
 import matplotlib as mpl
+from tabulate import tabulate
 
 cut_metadata = "" ##CHANGE
 input_csv = "" ##CHANGE

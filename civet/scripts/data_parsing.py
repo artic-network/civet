@@ -1,16 +1,25 @@
 from collections import defaultdict
 import pandas as pd
 import csv
-
+from tabulate import tabulate
 
 class taxon():
 
     def __init__(self, name, global_lin, uk_lin, phylotype):
 
         self.name = name
-        self.global_lin = global_lin
-        self.uk_lin = uk_lin
-        self.phylotype = phylotype
+        if global_lin == "":
+            self.global_lin = "NA"
+        else:
+            self.global_lin = global_lin
+        if uk_lin == "":
+            self.uk_lin = "NA"
+        else:
+            self.uk_lin = uk_lin
+        if phylotype == "":
+            self.phylotype = "NA"
+        else:
+            self.phylotype = phylotype
        
         self.in_cog = False
 
@@ -36,21 +45,21 @@ def parse_reduced_metadata(metadata_file):
                 adm1_prep = sequence["adm1"].split("-")[1]
                 adm1 = contract_dict[adm1_prep]
 
-                seq_name = sequence['query_id']
-                closest_name = sequence["closest"]
+                query_id = sequence['query_id']
                 query_name = sequence['query']
+                closest_name = sequence["closest"]
 
                 phylotype = sequence["phylotype"]
                 sample_date = sequence["sample_date"]
 
-                new_taxon = taxon(seq_name, glob_lin, uk_lineage, phylotype)
+                new_taxon = taxon(query_name, glob_lin, uk_lineage, phylotype)
                 
 
                 if query_name == closest_name:
                     new_taxon.in_cog = True
                     new_taxon.attribute_dict["sample_date"] = sample_date
 
-                query_dict[seq_name] = new_taxon
+                query_dict[query_id] = new_taxon
             
     return query_dict
 
@@ -72,11 +81,15 @@ def parse_input_csv(input_csv, query_dict, desired_fields):
             if "sample_date" in col_names:
                 taxon.attribute_dict["sample_date"] = sequence["sample_date"]
             else:
-                
+                taxon.attribute_dict["sample_date"] = "NA"
+
             for col in col_names:
                 if desired_fields != []:
                     if col != "name" and col in desired_fields:
-                        taxon.attribute_dict[col] = sequence[col]
+                        if sequence[col] == "":
+                            taxon.attribute_dict[col] = "NA"
+                        else:
+                            taxon.attribute_dict[col] = sequence[col]
                 if col == "adm1":
                     if "UK" in sequence[col]:
                         adm1_prep = sequence[col].split("-")[1]
@@ -98,7 +111,7 @@ def parse_big_metadata(query_dict, full_metadata):
 # get info about lineage: adm2 regions, timing and size probably
 #possibly move this all into another script
 
-    new_taxon = taxon(seq_name, glob_lin, uk_lineage)
+    new_taxon = taxon(seq_name, glob_lin, uk_lineage, phylotype)
     new_taxon.attribute_dict["sample_date"] = sequence["sample_date"]
     full_tax_dict[seq_name] = new_taxon
     #need to add in the query dict seqs here as well
@@ -108,7 +121,6 @@ def make_initial_table(query_dict):
     df_dict = defaultdict(list)
 
     for query in query_dict.values():
-
         df_dict["Sequence name"].append(query.name)
         df_dict["Part of COG"].append(query.in_cog)
         df_dict["UK lineage"].append(query.uk_lin)
