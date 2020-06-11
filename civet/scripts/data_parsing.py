@@ -110,10 +110,11 @@ def parse_big_metadata(query_dict, full_metadata):
 #add to dict 
 # get info about lineage: adm2 regions, timing and size probably
 #possibly move this all into another script
-
+    full_tax_dict = {}
     new_taxon = taxon(seq_name, glob_lin, uk_lineage, phylotype)
     new_taxon.attribute_dict["sample_date"] = sequence["sample_date"]
     full_tax_dict[seq_name] = new_taxon
+    return full_tax_dict
     #need to add in the query dict seqs here as well
 
 def make_initial_table(query_dict):
