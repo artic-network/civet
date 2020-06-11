@@ -66,7 +66,7 @@ updates the conda environment
 2. Run ``civet <query> [options]``
 
 Example usage:
-> ``civet civet/tests/test.csv --fasta civet/tests/test.fasta --datadir path/to/data --remote -uun <your-user-name>``, where `<your-user-name>` represents your unique climb identifier.
+> ``civet civet/tests/test.csv --fasta civet/tests/test.fasta --remote -uun <your-user-name>``, where `<your-user-name>` represents your unique climb identifier.
 
 Full usage:
 ```

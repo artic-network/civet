@@ -29,7 +29,7 @@ import matplotlib.font_manager as font_manager
 import matplotlib as mpl
 from tabulate import tabulate
 
-cut_metadata = "" ##CHANGE
+filtered_cog_metadata = "" ##CHANGE
 input_csv = "" ##CHANGE
 full_metadata_file = "" ##CHANGE
 desired_fields = "" ##CHANGE
@@ -39,11 +39,17 @@ font_file = "" ##CHANGE
 input_directory = "" ##CHANGE
 
 output_directory = "" ##CHANGE
-name_stem = "" ##CHANGE
+name_stem_input = "" ##CHANGE
 
+if "/" in name_stem_input:
+    name_stem = name_stem_input.split("/")[-1]
+else:
+    name_stem = name_stem_input
+
+tree_dir = "" ##CHANGE
 fig_dir = os.path.join(output_directory, "figures")
 summary_dir =  os.path.join(output_directory, "summary_files")
-tree_dir = os.path.join(output_directory, "trees")
+
 
 desired_fields = "" ##CHANGE
 
@@ -63,14 +69,15 @@ mpl.rcParams['axes.labelweight']=300
 
 ```python, name="parse metadata", echo=False
 
-query_dict = dp.parse_reduced_metadata(cut_metadata)
+query_dict, query_id_dict, present_lins = dp.parse_reduced_metadata(filtered_cog_metadata) #Just the lines with their queries plus the closest match in COG
 
 if input_csv != '':
-    query_dict = dp.parse_input_csv(input_csv, query_dict, desired_fields)
+    query_dict = dp.parse_input_csv(input_csv, query_id_dict, desired_fields) #Any query information they have provided
 
-#function not written yet
-#lineage_info, full_tax_dict = dp.parse_big_metadata(query_dict, full_metadata_file)
+present_in_tree = dp.parse_tree_tips(tree_dir)
 
+full_tax_dict = dp.parse_full_metadata(query_dict, full_metadata_file, present_lins, present_in_tree)
+#lineage info was there? Not sure where I was going with that
 ```
 
 The table below is a summary of the sequences provided with your metadata, along with their associated UK lineage and global lineage.
@@ -90,26 +97,17 @@ Sequences identical to lots of other sequences so can't rule out transmission
 Sequences that very different to others in the same dataset, so are unlikely to be linked
 ###
 
+The nearest neighbours of each of the query sequences are shown below in order to show their phylogenetic context.
 
-Each of the relevant UK lineages is shown below as a phylogeny. This investigations sequences are highlighted in pink.
+This investigation's sequences are highlighted in pink.
 
-```python, name="tree_viz", echo=False, include=False, results='raw'
 
-relevant_lins = tree_viz.make_all_of_the_trees(tree_dir, full_tax_dict, query_dict)
 
-print("The relevant UK lineages are: ")
+```python, name="tree_viz", echo=False, include=True, figure=True, caption="Local phylogenetic context of query sequences"
 
-for lin in relevant_lins:
-    print(" - " + lin)
+list_of_trees = tree_viz.make_all_of_the_trees(tree_dir, full_tax_dict, query_id_dict, query_dict)
 ```
-```python, name="tree_hack", echo=False, results='raw'
 
-for i in range(1,len(relevant_lins)+1):
-
-    print("![](" + fig_dir + "/" + name_stem + "_tree_viz_" + str(i) + ".png)\\")
-
-
-```
 
 ## Appendix
 

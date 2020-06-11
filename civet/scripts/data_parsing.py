@@ -2,20 +2,25 @@ from collections import defaultdict
 import pandas as pd
 import csv
 from tabulate import tabulate
+import baltic as bt
+import os
 
 class taxon():
 
     def __init__(self, name, global_lin, uk_lin, phylotype):
 
         self.name = name
+        
         if global_lin == "":
             self.global_lin = "NA"
         else:
             self.global_lin = global_lin
+        
         if uk_lin == "":
             self.uk_lin = "NA"
         else:
             self.uk_lin = uk_lin
+       
         if phylotype == "":
             self.phylotype = "NA"
         else:
@@ -29,6 +34,7 @@ class taxon():
 def parse_reduced_metadata(metadata_file):
     
     query_dict = {}
+    query_id_dict = {}
     present_lins = set()
 
     contract_dict = {"SCT":"Scotland", "WLS": "Wales", "ENG":"England", "NIRE": "Northern_Ireland"}
@@ -37,33 +43,36 @@ def parse_reduced_metadata(metadata_file):
         reader = csv.DictReader(f)
         in_data = [r for r in reader]
         for sequence in in_data:
-            if sequence['country'] == "UK":
-
-                glob_lin = sequence['lineage']
-                uk_lineage = sequence['uk_lineage']
-                
-                adm1_prep = sequence["adm1"].split("-")[1]
-                adm1 = contract_dict[adm1_prep]
-
-                query_id = sequence['query_id']
-                query_name = sequence['query']
-                closest_name = sequence["closest"]
-
-                phylotype = sequence["phylotype"]
-                sample_date = sequence["sample_date"]
-
-                new_taxon = taxon(query_name, glob_lin, uk_lineage, phylotype)
-                
-
-                if query_name == closest_name:
-                    new_taxon.in_cog = True
-                    new_taxon.attribute_dict["sample_date"] = sample_date
-
-                query_dict[query_id] = new_taxon
+            glob_lin = sequence['lineage']
+            uk_lineage = sequence['uk_lineage']
             
-    return query_dict
+            adm1_prep = sequence["adm1"].split("-")[1]
+            adm1 = contract_dict[adm1_prep]
 
-def parse_input_csv(input_csv, query_dict, desired_fields):
+            query_id = sequence['query_id']
+            query_name = sequence['query']
+            closest_name = sequence["closest"]
+
+            phylotype = sequence["phylotype"]
+            sample_date = sequence["sample_date"]
+
+            new_taxon = taxon(query_name, glob_lin, uk_lineage, phylotype)
+
+            new_taxon.query_id = query_id
+
+            present_lins.add(uk_lineage)
+            
+
+            if query_name == closest_name:
+                new_taxon.in_cog = True
+                new_taxon.attribute_dict["sample_date"] = sample_date
+
+            query_dict[query_name] = new_taxon
+            query_id_dict[query_id] = new_taxon
+            
+    return query_dict, query_id_dict, present_lins
+
+def parse_input_csv(input_csv, query_id_dict, desired_fields):
 
     new_query_dict = {}
     contract_dict = {"SCT":"Scotland", "WLS": "Wales", "ENG":"England", "NIRE": "Northern_Ireland"}
@@ -77,7 +86,8 @@ def parse_input_csv(input_csv, query_dict, desired_fields):
             
             name = sequence["name"]
 
-            taxon = query_dict[name]
+            taxon = query_id_dict[name]
+
             if "sample_date" in col_names:
                 taxon.attribute_dict["sample_date"] = sequence["sample_date"]
             else:
@@ -99,29 +109,50 @@ def parse_input_csv(input_csv, query_dict, desired_fields):
 
                     taxon.adm1 = adm1
 
-            new_query_dict[name] = taxon
+            new_query_dict[taxon.name] = taxon
                 
     return new_query_dict
 
 
-def parse_big_metadata(query_dict, full_metadata):
+def parse_tree_tips(tree_dir):
 
-#if in the same lineage:
-#add to dict 
-# get info about lineage: adm2 regions, timing and size probably
-#possibly move this all into another script
-    full_tax_dict = {}
-    new_taxon = taxon(seq_name, glob_lin, uk_lineage, phylotype)
-    new_taxon.attribute_dict["sample_date"] = sequence["sample_date"]
-    full_tax_dict[seq_name] = new_taxon
+    tips = []
+
+    for fn in os.listdir(tree_dir):
+        if fn.endswith("tree"):
+            tree = bt.loadNewick(tree_dir + "/" + fn, absoluteTime=False)
+            for k in tree.Objects:
+                if k.branchType == 'leaf':
+                    tips.append(k.name)
+
+    return tips
+
+def parse_full_metadata(query_dict, full_metadata, present_lins, present_in_tree):
+
+    full_tax_dict = query_dict.copy()
+
+    with open(full_metadata, 'r') as f:
+        reader = csv.DictReader(f)
+        in_data = [r for r in reader]
+        for sequence in in_data:
+            uk_lin = sequence["uk_lineage"]
+            seq_name = sequence["sequence_name"]
+
+            glob_lin = sequence["lineage"]
+            phylotype = sequence["phylotype"]
+
+            if (uk_lin in present_lins or seq_name in present_in_tree) and seq_name not in query_dict.keys():
+                new_taxon = taxon(seq_name, glob_lin, uk_lin, phylotype)
+                full_tax_dict[seq_name] = new_taxon
+
     return full_tax_dict
-    #need to add in the query dict seqs here as well
 
 def make_initial_table(query_dict):
 
     df_dict = defaultdict(list)
 
     for query in query_dict.values():
+        df_dict["Query ID"].append(query.query_id)
         df_dict["Sequence name"].append(query.name)
         df_dict["Part of COG"].append(query.in_cog)
         df_dict["UK lineage"].append(query.uk_lin)
@@ -133,7 +164,7 @@ def make_initial_table(query_dict):
 
     df = pd.DataFrame(df_dict)
 
-    df.set_index("Sequence name", inplace=True)
+    df.set_index("Query ID", inplace=True)
 
     return df
 

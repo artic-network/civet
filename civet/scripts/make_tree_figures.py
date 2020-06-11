@@ -65,6 +65,7 @@ def display_name(tree, taxon_dict):
     for k in tree.Objects:
         if k.branchType == 'leaf':
             name = k.name
+            k.traits["display"] = name
             
             if name in taxon_dict.keys():
                 taxon_obj = taxon_dict[name]
@@ -78,41 +79,20 @@ def display_name(tree, taxon_dict):
                 # else:
                 #     county = country
                 
-                if "country" in k.traits: 
-                    if k.traits["country"] in ["Wales","Scotland","England","Northern_Ireland"]:
-                        #county = county.capitalize()
-                        k.traits["display"]= f"{name}|{date}"
-                    else:
-                        k.traits["display"]=""
-                else:
-                    k.traits["display"]=""
+            #     if "country" in k.traits: 
+            #             k.traits["display"]= f"{name}|{date}"
+            #         else:
+            #             k.traits["display"]=""
+            #     else:
+            #         k.traits["display"]=""
 
-            else:
-                k.traits["display"]=name
+            # else:
+                
 
-def annotate_country(tree, taxon_dict):
-    for k in tree.Objects:
-        if k.branchType == 'leaf':
-            name = k.name
-            
-            country = name.split("/")[0]
 
-            # tax_object = taxon_dict[name]
-            # country = tax_object.adm1
-            
-            if k.traits["country_uk"] == "True":
-                k.traits["country"]=country
-                if country == "WALES":
-                    k.traits["country"]="Wales"
-                else:
-                    k.traits["country"]=country
-        else:
-            k.traits["country"]= ""
-
-def make_scaled_tree_without_legend(My_Tree, num_tips, colour_dict, tallest_height,lineage, taxon_dict, query_dict):
+def make_scaled_tree_without_legend(My_Tree, num_tips, colour_dict, tallest_height,lineage, taxon_dict, query_id_dict, query_dict):
     
-    annotate_country(My_Tree, taxon_dict)
-    display_name(My_Tree, query_dict)
+    display_name(My_Tree, query_id_dict)
     My_Tree.uncollapseSubtree()
 
     if num_tips < 10:
@@ -130,22 +110,22 @@ def make_scaled_tree_without_legend(My_Tree, num_tips, colour_dict, tallest_heig
     c_func=lambda k: 'dimgrey' ## colour of branches
     l_func=lambda k: 'lightgrey' ## colour of branches
     # cn_func=lambda k: colour_dict[k.traits["country"]] if k.traits["country"] in colour_dict else 'dimgrey'
-    cn_func = lambda k: 'fuchsia' if k.name in query_dict.keys() else 'dimgrey'
+    cn_func = lambda k: 'fuchsia' if k.name in query_id_dict.keys() or k.name in query_dict.keys() else 'dimgrey'
     #s_func=lambda k: tipsize*5 if k.traits["country"] in colour_dict else tipsize
-    s_func = lambda k: tipsize*5 if k.name in query_dict.keys()  else tipsize
+    s_func = lambda k: tipsize*5 if k.name in query_id_dict.keys() or k.name in query_dict.keys() else tipsize
     z_func=lambda k: 100
     b_func=lambda k: 0.5 #branch width
     #co_func=lambda k: colour_dict[k.traits["country"]] if k.traits["country"] in colour_dict else 'dimgrey' ## for plotting a black outline of tip circles
-    co_func=lambda k: 'fuchsia' if k.name in query_dict.keys() else 'dimgrey' 
+    co_func=lambda k: 'fuchsia' if k.name in query_id_dict.keys() or k.name in query_dict.keys() else 'dimgrey' 
     #so_func=lambda k: tipsize*5 if k.traits["country"] in colour_dict else 0 #plots the uk tips over the grey ones
-    so_func=lambda k: tipsize*5 if k.name in query_dict.keys() else 0
+    so_func=lambda k: tipsize*5 if k.name in query_id_dict.keys() or k.name in query_dict.keys() else 0
     zo_func=lambda k: 99
     # outline_func = lambda k: None
     #outline_colour_func = lambda k: colour_dict[k.traits["country"]] if k.traits["country"] in colour_dict else 'dimgrey'
-    outline_colour_func = lambda k: "fuchsia" if k.name in query_dict.keys() else 'dimgrey'
+    outline_colour_func = lambda k: "fuchsia" if k.name in query_id_dict.keys()or k.name in query_dict.keys()  else 'dimgrey'
     zb_func=lambda k: 98
     zt_func=lambda k: 97
-    font_size_func = lambda k: 25 if k.name in query_dict.keys() else 15
+    font_size_func = lambda k: 25 if k.name in query_id_dict.keys() or k.name in query_dict.keys() else 15
     kwargs={'ha':'left','va':'center','size':12}
     
     x_attr=lambda k: k.height + offset
@@ -166,10 +146,14 @@ def make_scaled_tree_without_legend(My_Tree, num_tips, colour_dict, tallest_heig
     My_Tree.plotPoints(ax2, x_attr=x_attr, colour_function=co_func, y_attr=y_attr, size_function=so_func, outline_colour=outline_colour_func)
 
     for k in My_Tree.Objects:
+        
+        # if k.branchType == 'leaf': 
+        #     if k.name in query_dict.keys():
+        #         print(k.name)
         # if "country" in k.traits: #don't need these for now because we're only doing UK trees
         #     if k.traits["country"] in colour_dict:
         if "display" in k.traits:
-            name=k.traits["display"] 
+            name=k.traits["display"]
 
             x=x_attr(k)
             y=y_attr(k)
@@ -198,34 +182,30 @@ def sort_trees_index(tree_dir):
     d_list = []
     for r,d,f in os.walk(tree_dir):
         for thing in f:
-            if "tree" in thing:
+            if thing.endswith("tree"):
                 a = thing.split(".")[0]
-                b = a.split("_")[2]
-                b2 = b.strip("UK")
-                b_list.append(b2)
+                b = a.split("_")[1]
+                b_list.append(int(b))
         
     c = sorted(b_list, key=int)
-    for i in c:
-        d = "UK" + i
-        d_list.append(d)
         
-    return d_list
+    return c
 
-def make_all_of_the_trees(input_dir, taxon_dict, query_dict, min_uk_taxa=3):
+def make_all_of_the_trees(input_dir, taxon_dict, query_id_dict, query_dict, min_uk_taxa=3):
     
     tallest_height = find_tallest_tree(input_dir)
     
-    # colour_dict = {"Wales":"darkseagreen",
-    #            "England":"indianred",
-    #            "Scotland":"steelblue",
-    #            "Northern_Ireland":"skyblue"}
+    colour_dict = {"Wales":"darkseagreen",
+               "England":"indianred",
+               "Scotland":"steelblue",
+               "Northern_Ireland":"skyblue"}
 
     lst = sort_trees_index(input_dir)
 
     for fn in lst:
         lineage = fn
-        treename = "uk_lineage_" + lineage + ".tree"
-        
+        #treename = "uk_lineage_" + lineage + ".tree"
+        treename = "tree_" + str(fn) + ".tree"
         num_taxa = 0
         intro_name = ""
         with open(input_dir + "/" + treename,"r") as f:
@@ -233,7 +213,7 @@ def make_all_of_the_trees(input_dir, taxon_dict, query_dict, min_uk_taxa=3):
                 l = l.rstrip("\n")
                 if l.startswith("    DIMENSIONS NTAX"):
                     num_taxa = int(l.rstrip(";").split("=")[1])
-                    intro_name = fn.rstrip(".tree")
+                    intro_name = fn
 
         if num_taxa > 1: 
             tree = bt.loadNewick(input_dir + "/" + treename, absoluteTime=False)
@@ -248,7 +228,7 @@ def make_all_of_the_trees(input_dir, taxon_dict, query_dict, min_uk_taxa=3):
                 #outfile = f'{outdir}/{treename}.pdf'
                 #make_scaled_tree_without_legend(tree, outfile,len(tips),colour_dict, tallest_height)
                 try:
-                    make_scaled_tree_without_legend(tree,len(tips),colour_dict, tallest_height, lineage, taxon_dict, query_dict)     
+                    make_scaled_tree_without_legend(tree,len(tips),colour_dict, tallest_height, lineage, taxon_dict, query_id_dict, query_dict)     
                 except ValueError:
                     pass
     return lst

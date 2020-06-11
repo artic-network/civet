@@ -20,12 +20,12 @@ def make_report(cog_metadata, input_csv, filtered_cog_metadata, outfile, outdir,
                 if "##CHANGE" in l:
                     if "output_directory" in l:
                         new_l = f'output_directory = "{outdir}"\n'
-                    elif "name_stem" in l:
-                        new_l = f'name_stem = "{name_stem}"\n'
+                    elif "name_stem_input" in l:
+                        new_l = f'name_stem_input = "{name_stem}"\n'
                     elif "full_metadata_file" in l:
                         new_l = f'full_metadata_file = "{cog_metadata}"\n'
-                    elif "cut_metadata" in l:
-                        new_l = f'cut_metadata = "{filtered_cog_metadata}"\n'
+                    elif "filtered_cog_metadata" in l:
+                        new_l = f'filtered_cog_metadata = "{filtered_cog_metadata}"\n'
                     elif "input_csv" in l:
                         new_l = f'input_csv = "{input_csv}"\n'
                     elif "input_directory" in l:
@@ -34,6 +34,8 @@ def make_report(cog_metadata, input_csv, filtered_cog_metadata, outfile, outdir,
                         new_l = f'desired_fields = "{fields}"\n'
                     elif "font_file" in l:
                         new_l = f'font_file = "{font_file}"\n'
+                    elif "tree_dir" in l:
+                        new_l = f'tree_dir = "{tree_dir}"\n'
                 else:
                     new_l = l
 
