@@ -139,21 +139,19 @@ def main(sysargs = sys.argv[1:]):
         cog_metadata = ""
         cog_seqs = ""
         cog_tree = ""
-        for r,d,f in os.walk(data_dir):
-            for fn in f:
-                if fn.endswith(".csv"):
-                    cog_metadata = os.path.join(data_dir, fn)
-                elif fn.endswith(".fasta"):
-                    cog_seqs = os.path.join(data_dir, fn)
-                elif fn.endswith(".tree") or fn.endswith(".treefile") or fn.endswith(".nexus") or fn.endswith(".newick"):
-                    cog_tree = os.path.join(data_dir, fn)
+        cog_seqs = os.path.join(data_dir,"cog.alignment.fasta")
+        all_cog_seqs = os.path.join(data_dir,"cog_all.alignment.fasta")
+        cog_metadata = os.path.join(data_dir,"cog_metadata.csv")
+        cog_tree = os.path.join(data_dir,"cog_global.tree")
 
-        if not os.path.isfile(cog_metadata) or not os.path.isfile(cog_seqs) or not os.path.isfile(cog_tree):
-            sys.stderr.write('Error: cannot find correct data files at {}\nTry running with --remote flag and -uun specified to rsync them from climb\n'.format(data_dir))
+        if not os.path.isfile(cog_metadata) or not os.path.isfile(all_cog_seqs) or not os.path.isfile(cog_seqs) or not os.path.isfile(cog_tree):
+            sys.stderr.write('Error: cannot find correct data files at {}\nThe directory should contain the following files:\n\
+- cog.alignment.fasta\n- cog_all.alignment.fasta\n- cog_metadata.csv\n- cog_global.tree\nWe recommend you try running with --remote flag and -uun specified to rsync them from CLIMB\n'.format(data_dir))
             sys.exit(-1)
         else:
             config["cog_metadata"] = cog_metadata
             config["cog_seqs"] = cog_seqs
+            config["all_cog_seqs"] = all_cog_seqs
             config["cog_tree"] = cog_tree
             print("Found cog data:")
             print(cog_metadata)
@@ -169,42 +167,31 @@ def main(sysargs = sys.argv[1:]):
         if args.uun:
             config["username"] = args.uun
             if not args.datadir:
-                rsync_command1 = f"rsync -avzh {args.uun}@bham.covid19.climb.ac.uk:/cephfs/covid/bham/artifacts/published/latest/phylogenetics/alignments/cog_2020-06-05_metadata.csv {data_dir}/cog_gisaid.csv"
-                rsync_command2 = f"rsync -avzh {args.uun}@bham.covid19.climb.ac.uk:/cephfs/covid/bham/artifacts/published/latest/phylogenetics/alignments/cog_2020-06-05_alignment.fasta {data_dir}/cog.fasta"
-                rsync_command3 = f"rsync -avzh {args.uun}@bham.covid19.climb.ac.uk:/cephfs/covid/bham/artifacts/published/latest/phylogenetics/trees/cog_global_2020-06-05_tree.nexus {data_dir}/cog_gisaid.tree"
-                print(f"Syncing metadata file to {data_dir}")
-                os.system(rsync_command1)
-                print(f"Syncing alignment file to {data_dir}")
-                os.system(rsync_command2)
-                print(f"Syncing tree file to {data_dir}")
-                os.system(rsync_command3)
-                cog_seqs = os.path.join(data_dir,"cog.fasta")
-                cog_metadata = os.path.join(data_dir,"cog_gisaid.csv")
-                cog_tree = os.path.join(data_dir,"cog_gisaid.tree")
+                rsync_command = f"rsync -avzh {args.uun}@bham.covid19.climb.ac.uk:/cephfs/covid/bham/raccoon-dog/civet-data {data_dir}"
+                print(f"Syncing civet data to {data_dir}")
+                os.system(rsync_command)
+                cog_seqs = os.path.join(data_dir,"cog.alignment.fasta")
+                all_cog_seqs = os.path.join(data_dir,"cog_all.alignment.fasta")
+                cog_metadata = os.path.join(data_dir,"cog_metadata.csv")
+                cog_tree = os.path.join(data_dir,"cog_global.tree")
                 config["cog_metadata"] = cog_metadata
                 config["cog_seqs"] = cog_seqs
+                config["all_cog_seqs"] = all_cog_seqs
                 config["cog_tree"] = cog_tree
         else:
             sys.stderr.write('Error: Username (-uun) required with --remote flag\n')
             sys.exit(-1)
     else:
-        if os.path.exists("/cephfs/covid/bham/artifacts/published/latest/phylogenetics/alignments/"):
+        if os.path.exists("/cephfs/covid/bham/raccoon-dog/civet-data"):
             config["remote"] = "False"
             config["username"] = ""
-            rsync_command1 = f"rsync -avzh /cephfs/covid/bham/artifacts/published/latest/phylogenetics/alignments/cog_2020-06-05_metadata.csv {data_dir}/cog_gisaid.csv"
-            rsync_command2 = f"rsync -avzh /cephfs/covid/bham/artifacts/published/latest/phylogenetics/alignments/cog_2020-06-05_alignment.fasta {data_dir}/cog.fasta"
-            rsync_command3 = f"rsync -avzh /cephfs/covid/bham/artifacts/published/latest/phylogenetics/trees/cog_global_2020-06-05_tree.nexus {data_dir}/cog_gisaid.tree"
-            print(f"Syncing metadata file to {data_dir}")
-            os.system(rsync_command1)
-            print(f"Syncing alignment file to {data_dir}")
-            os.system(rsync_command2)
-            print(f"Syncing tree file to {data_dir}")
-            os.system(rsync_command3)
-            cog_seqs = os.path.join(data_dir,"cog.fasta")
-            cog_metadata = os.path.join(data_dir,"cog_gisaid.csv")
-            cog_tree = os.path.join(data_dir,"cog_gisaid.tree")
+            cog_seqs = os.path.join(data_dir,"cog.alignment.fasta")
+            all_cog_seqs = os.path.join(data_dir,"cog_all.alignment.fasta")
+            cog_metadata = os.path.join(data_dir,"cog_metadata.csv")
+            cog_tree = os.path.join(data_dir,"cog_global.tree")
             config["cog_metadata"] = cog_metadata
             config["cog_seqs"] = cog_seqs
+            config["all_cog_seqs"] = all_cog_seqs
             config["cog_tree"] = cog_tree
         else:
             sys.stderr.write("""Error: please either ssh into CLIMB or run using `--remote` flag.\n
