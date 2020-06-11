@@ -153,7 +153,7 @@ rule make_report:
         font = config["font_file"] 
     params:
         tree_dir = os.path.join(config["outdir"],"catchment_trees"),
-        outdir = config["outdir"],
+        outdir = config["rel_outdir"],
         fields = config["fields"]
     output:
         outfile = os.path.join(config["outdir"], "civet_report.md")

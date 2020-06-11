@@ -84,7 +84,9 @@ def main(sysargs = sys.argv[1:]):
     # default output dir
     outdir = ''
     if args.outdir:
+        rel_outdir = args.outdir
         outdir = os.path.join(cwd, args.outdir)
+        
         if not os.path.exists(outdir):
             os.mkdir(outdir)
     else:
@@ -129,7 +131,8 @@ def main(sysargs = sys.argv[1:]):
         # "tempdir":tempdir,
         "trim_start":265,
         "trim_end":29674,
-        "fasta":fasta
+        "fasta":fasta,
+        "rel_outdir":rel_outdir
         }
 
     data_dir = ""
@@ -158,7 +161,7 @@ def main(sysargs = sys.argv[1:]):
             print(cog_seqs)
             print(cog_tree)
     else:
-        data_dir = os.path.join(cwd,"data")
+        data_dir = os.path.join(cwd,"civet-data")
         if not os.path.exists(data_dir):
             os.mkdir(data_dir)
 
