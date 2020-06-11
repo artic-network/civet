@@ -30,9 +30,9 @@ setup(name='civet',
             "scipy>=1.4.1",
             "numpy>=1.13.3"
         ],
-      description='Cluster Investivations for Viral Epidemiology Tool',
+      description='Cluster Investivation & Virus Epidemiology Tool',
       url='https://github.com/aineniamh/civet',
-      author='Aine OToole, Verity Hill, Stefan Rooke',
+      author='Aine OToole, Verity Hill',
       author_email='aine.otoole@ed.ac.uk',
       entry_points="""
       [console_scripts]

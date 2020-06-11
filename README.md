@@ -1,5 +1,6 @@
 # civet
 
+Cluster Investigation & Virus Epidemiology Tool
 
 ## Quick links
 

@@ -27,7 +27,7 @@ cwd = os.getcwd()
 def main(sysargs = sys.argv[1:]):
 
     parser = argparse.ArgumentParser(prog = _program, 
-    description='civet: Cluster Investivations for Viral Epidemiology Tool', 
+    description='civet: Cluster Investivation & Virus Epidemiology Tool', 
     usage='''civet <query> [options]''')
 
     parser.add_argument('query',help="Input csv file with minimally `name` as a column header. Can include additional fields to be incorporated into the analysis, e.g. `sample_date`",)
