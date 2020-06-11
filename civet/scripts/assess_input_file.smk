@@ -132,78 +132,31 @@ rule prune_out_catchments:
     params:
         outdir = os.path.join(config["outdir"],"catchment_trees")
     output:
-        os.path.join(config["outdir"],"catchment_trees","catchments.txt")
+        txt = os.path.join(config["outdir"],"catchment_trees","catchment_tree_summary.txt")
     shell:
         """
         clusterfunk find_catchments -i {input.tree:q} \
         -o {params.outdir:q} \
         --metadata {input.metadata} \
-        --index-column closest
+        --index-column closest \
+        --threshold 2 \
+        --branch-count && touch {output.txt}
         """
-
-rule get_remote_lineage_trees:
-    input:
-        combined_csv = os.path.join(config["outdir"],"combined_metadata.csv")
-    params:
-        outdir = os.path.join(config["outdir"],"lineage_trees"),
-        uun = config["username"]
-    output:
-        lineage_trees_remote = os.path.join(config["outdir"],"lineage_trees","lineage_tree_summary.remote.txt")
-    run:
-        lineages = set()
-        with open(input.combined_csv, newline="") as f:
-            reader = csv.DictReader(f)
-            for row in reader:
-                lineages.add(row["uk_lineage"])
-        fw = open(output.lineage_trees_remote, "w")
-        for lineage in lineages:
-            try:
-                shell(f"""scp {params.uun}@bham.covid19.climb.ac.uk:\
-/cephfs/covid/bham/artifacts/published/latest/phylogenetics/trees/uk_lineages/uk_lineage_{lineage}.tree {params.outdir}"""
-                )
-                fw.write(lineage+ ',pass\n')
-            except:
-                fw.write(lineage+ ',fail\n')
-        fw.close()
-
-
-rule get_lineage_trees:
-    input:
-        combined_csv = os.path.join(config["outdir"],"combined_metadata.csv")
-    params:
-        outdir = os.path.join(config["outdir"],"lineage_trees")
-    output:
-        lineage_trees = os.path.join(config["outdir"],"lineage_trees","lineage_tree_summary.txt")
-    run:
-        lineages = set()
-        with open(input.combined_csv, newline="") as f:
-            reader = csv.DictReader(f)
-            for row in reader:
-                lineages.add(row["uk_lineage"])
-        fw = open(output.lineage_trees, "w")
-        for lineage in lineages:
-            try:
-                shell(f"""scp /cephfs/covid/bham/artifacts/published/latest/phylogenetics/trees/uk_lineages/uk_lineage_{lineage}.tree \
-                    {params.outdir}""")
-                fw.write(lineage + 'pass\n')
-            except:
-                fw.write(lineage+ ',fail\n')
-        fw.close()
 
 rule make_report:
     input:
-        lineage_trees = os.path.join(config["outdir"],"lineage_trees","lineage_tree_summary.txt"),
+        lineage_trees = os.path.join(config["outdir"],"catchment_trees","catchment_tree_summary.txt"),
         query = config["query"],
         combined_metadata = os.path.join(config["outdir"],"combined_metadata.csv"),
         full_cog_metadata = config["cog_metadata"],
         report_template = config["report_template"],
         font = config["font_file"] 
     params:
-        tree_dir = os.path.join(config["outdir"],"lineage_trees"),
+        tree_dir = os.path.join(config["outdir"],"catchment_trees"),
         outdir = config["outdir"],
         fields = config["fields"]
     output:
-        outfile = os.path.join(config["outdir"], "civet_report.pmd")
+        outfile = os.path.join(config["outdir"], "civet_report.md")
     shell:
         """
         make_report.py \
@@ -217,32 +170,3 @@ rule make_report:
         --outdir {params.outdir:q} \
         --font-file {input.font}
         """
-
-rule remote_report:
-    input:
-        lineage_trees = os.path.join(config["outdir"],"lineage_trees","lineage_tree_summary.remote.txt"),
-        query = config["query"],
-        combined_metadata = os.path.join(config["outdir"],"combined_metadata.csv"),
-        full_cog_metadata = config["cog_metadata"],
-        report_template = config["report_template"],
-        font = config["font_file"] 
-    params:
-        tree_dir = os.path.join(config["outdir"],"lineage_trees"),
-        outdir = config["outdir"],
-        fields = config["fields"]
-    output:
-        outfile = os.path.join(config["outdir"], "civet_report.remote.md")
-    shell:
-        """
-        make_report.py \
-        --input-csv {input.query:q} \
-        -f {params.fields:q} \
-        -t {params.tree_dir:q} \
-        --report-template {input.report_template} \
-        --filtered-cog-metadata {input.combined_metadata:q} \
-        --cog-metadata {input.full_cog_metadata:q} \
-        --outfile {output.outfile:q} \
-        --outdir {params.outdir:q} \
-        --font-file {input.font}
-        """
-
