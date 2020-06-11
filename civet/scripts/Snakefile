@@ -11,6 +11,10 @@ if config.get("force"):
 else:
     config["force"] = ""
 
+if config["quiet_mode"]=="True":
+    config["quiet_mode"] = "--quiet"
+else:
+    config["quiet_mode"] = ""
 
 ##### Target rules #####
 

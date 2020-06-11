@@ -79,6 +79,7 @@ rule get_closest_cog:
         cores = workflow.cores,
         force = config["force"],
         fasta = config["fasta"],
+        quiet_mode = config["quiet_mode"],
         trim_start = config["trim_start"],
         trim_end = config["trim_end"]
     output:
@@ -88,6 +89,7 @@ rule get_closest_cog:
             print(f"Passing {input.query} into processing pipeline.")
             shell("snakemake --nolock --snakefile {input.snakefile:q} "
                         "{params.force} "
+                        "{params.quiet_mode} "
                         # "--directory {params.tempdir:q} "
                         "--config "
                         "outdir={params.outdir:q} "

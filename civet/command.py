@@ -266,8 +266,10 @@ You will also need to specify your CLIMB username e.g. `-uun climb-covid19-uun`"
 
     if args.verbose:
         quiet_mode = False
+        config["quiet_mode"]="False"
     else:
         quiet_mode = True
+        config["quiet_mode"]="True"
 
     # run subtyping
     status = snakemake.snakemake(snakefile, printshellcmds=True,
