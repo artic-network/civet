@@ -161,7 +161,7 @@ def main(sysargs = sys.argv[1:]):
             print(cog_seqs)
             print(cog_tree)
     else:
-        data_dir = os.path.join(cwd,"civet-data")
+        data_dir = os.path.join(cwd)
         if not os.path.exists(data_dir):
             os.mkdir(data_dir)
 
@@ -173,10 +173,10 @@ def main(sysargs = sys.argv[1:]):
                 rsync_command = f"rsync -avzh {args.uun}@bham.covid19.climb.ac.uk:/cephfs/covid/bham/raccoon-dog/civet-data {data_dir}"
                 print(f"Syncing civet data to {data_dir}")
                 os.system(rsync_command)
-                cog_seqs = os.path.join(data_dir,"cog.alignment.fasta")
-                all_cog_seqs = os.path.join(data_dir,"cog_all.alignment.fasta")
-                cog_metadata = os.path.join(data_dir,"cog_metadata.csv")
-                cog_tree = os.path.join(data_dir,"cog_global.tree")
+                cog_seqs = os.path.join(data_dir,"civet-data","cog.alignment.fasta")
+                all_cog_seqs = os.path.join(data_dir,"civet-data","cog_all.alignment.fasta")
+                cog_metadata = os.path.join(data_dir,"civet-data","cog_metadata.csv")
+                cog_tree = os.path.join(data_dir,"civet-data","cog_global.tree")
                 config["cog_metadata"] = cog_metadata
                 config["cog_seqs"] = cog_seqs
                 config["all_cog_seqs"] = all_cog_seqs
@@ -185,7 +185,8 @@ def main(sysargs = sys.argv[1:]):
             sys.stderr.write('Error: Username (-uun) required with --remote flag\n')
             sys.exit(-1)
     else:
-        if os.path.exists("/cephfs/covid/bham/raccoon-dog/civet-data"):
+        data_dir = "/cephfs/covid/bham/raccoon-dog/civet-data"
+        if os.path.exists(data_dir):
             config["remote"] = "False"
             config["username"] = ""
             cog_seqs = os.path.join(data_dir,"cog.alignment.fasta")
