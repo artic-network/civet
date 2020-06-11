@@ -64,6 +64,40 @@ rule check_cog_db:
                     print(f"{query}")
             print("If you wish to access sequences in the cog database\nwith your query, ensure you have the correct sequence id.")
 
+rule check_cog_all:
+    input:
+        not_in_cog = os.path.join(config["outdir"],"not_in_cog.csv"),
+        all_cog_seqs = config["all_cog_seqs"]
+    output:
+        not_in_cog = os.path.join(config["outdir"],"not_in_all_cog.csv"),
+        in_all_cog = os.path.join(config["outdir"],"in_all_cog.csv"),
+        in_all_cog_fasta = os.path.join(config["outdir"],"in_all_cog.fasta")
+    run:
+        not_cog.append(l)
+        with open(input.not_in_cog, "r") as f:
+            for l in f:
+                l = l.rstrip("\n")
+                not_cog.append(l)
+        in_all_cog = []
+        with open(output.in_all_cog_fasta, "w") as fw:
+            for record in SeqIO.parse(input.all_cog_seqs, "fasta"):
+                record_name = record.id.split("/")
+                for query in not_cog:
+                    if query in record_name:
+                        in_all_cog.append(query)
+                        fw.write(f">{record.id}\n{record.seq}\n")
+        with open(output.not_in_cog, "w") as fw:
+            print("The following sequences were found in COG-UK put hadn't passed the QC.\nLowering QC and adding them in to analysis now.")
+            c = 0
+            for query in not_cog:
+                if query in in_all_cog:
+                    print(query)
+                else:
+                    c+=1
+                    fw.write(query +'\n')
+        print(f"{c} sequences remaining not in COG, will find nearest COG sequence.")
+
+
 rule get_closest_cog:
     input:
         snakefile = os.path.join(workflow.current_basedir,"find_closest_cog.smk"),
@@ -71,7 +105,7 @@ rule get_closest_cog:
         cog_seqs = config["cog_seqs"],
         cog_metadata = config["cog_metadata"],
         query = config["post_qc_query"],
-        not_cog_csv = os.path.join(config["outdir"],"not_in_cog.csv")
+        not_cog_csv = os.path.join(config["outdir"],"not_in_all_cog.csv")
     params:
         outdir= config["outdir"],
         # tempdir= config["tempdir"],
