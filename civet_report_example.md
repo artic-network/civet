@@ -46,7 +46,7 @@ This investigation's sequences are highlighted in pink.
 ![](./figures/civet_report_tree_viz_1.png)\
 ![](./figures/civet_report_tree_viz_2.png)\
 ![](./figures/civet_report_tree_viz_3.png)\
-![](./figures/civet_report_tree_viz_4.png)\
+![](./figures/civet_report_tree_viz_4.png)
 
 
 
