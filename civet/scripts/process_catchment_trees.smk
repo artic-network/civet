@@ -81,13 +81,20 @@ rule iqtree_catchment:
     shell:
         "iqtree -s {input.aln:q} -bb 1000 -au -alrt 1000 -g {input.guide_tree:q} -m HKY -quiet -nt 1 -redo"
 
-rule to_nexus:
+rule rename:
     input:
-        rules.iqtree_catchment.output
+        tree=rules.iqtree_catchment.output
     output:
         os.path.join(config["outdir"],"combined_trees","{tree}.tree")
-    run:
-        Phylo.convert(input[0], 'newick', output[0], 'nexus')
+    shell:
+        """
+        clusterfunk relabel_tips -i {input.tree} \
+        -o {output[0]} \
+         --from-label \
+        --parse-taxon-key "_(.+)_(.+)_(.+)_" \
+        --separator "/" \
+         --in-format newick 
+        """
 
 rule summarise_polytomies:
     input:
