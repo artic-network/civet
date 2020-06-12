@@ -90,8 +90,9 @@ def parse_input_csv(input_csv, query_id_dict, desired_fields):
 
             if "sample_date" in col_names:
                 taxon.attribute_dict["sample_date"] = sequence["sample_date"]
-            else:
+            elif "sample_date" not in taxon.attribute_dict.keys():
                 taxon.attribute_dict["sample_date"] = "NA"
+                
 
             for col in col_names:
                 if desired_fields != []:
