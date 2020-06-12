@@ -172,7 +172,7 @@ rule prune_out_catchments:
         -o {params.outdir:q} \
         --metadata {input.metadata} \
         --index-column closest \
-        --threshold 2 \
+        --threshold 1 \
         --branch-count && touch {output.txt}
         """
 
