@@ -102,7 +102,7 @@ optional arguments:
 
 ### Analysis pipeline
 
-<img src="https://github.com/COG-UK/civet/blob/master/workflow_diagram.pdf" width="300">
+<img src="https://github.com/COG-UK/civet/blob/master/workflow_diagram.png" width="300">
 
 - From the input csv (`<query>`), `civet` attempts to match the ids with COG-UK ids in the up-to-date metadata database.
 
