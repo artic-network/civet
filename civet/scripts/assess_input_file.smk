@@ -173,19 +173,74 @@ rule prune_out_catchments:
         --metadata {input.metadata} \
         --index-column closest \
         --threshold 1 \
-        --branch-count && touch {output.txt}
+        --branch-count \
+        --out-format newick \
+        && touch {output.txt} 
+
         """
+
+rule process_catchments:
+    input:
+        snakefile = os.path.join(workflow.current_basedir,"process_catchment_trees.smk"),
+        combined_metadata = os.path.join(config["outdir"],"combined_metadata.csv"),
+        catchment_placeholder = os.path.join(config["outdir"],"catchment_trees","catchment_tree_summary.txt"),
+        query = config["post_qc_query"],
+        cog_seqs = config["cog_seqs"],
+        in_all_cog_fasta = os.path.join(config["outdir"],"in_all_cog.fasta"),
+        not_cog_csv = os.path.join(config["outdir"],"not_in_all_cog.csv")
+    params:
+        outdir= config["outdir"],
+        # tempdir= config["tempdir"],
+        path = workflow.current_basedir,
+        cores = workflow.cores,
+        force = config["force"],
+        fasta = config["fasta"],
+        tree_dir = os.path.join(config["outdir"],"catchment_trees"),
+        quiet_mode = config["quiet_mode"]
+    output:
+        tree_summary = os.path.join(config["outdir"],"collapsed_trees","collapse_report.txt")
+    run:
+        catchment_trees = []
+        for r,d,f in os.walk(params.tree_dir):
+            for fn in f:
+                if fn.endswith(".tree"):
+                    file_stem = ".".join(fn.split(".")[:-1])
+                    catchment_trees.append(file_stem)
+        catchment_str = ",".join(catchment_trees)
+
+        num_in_all_cog = 0
+        for record in SeqIO.parse(input.in_all_cog_fasta,"fasta"):
+            num_in_all_cog +=1
+
+        if params.fasta != "" or num_in_all_cog !=0:
+            print(f"Passing {input.query} into processing pipeline.")
+            shell("snakemake --nolock --snakefile {input.snakefile:q} "
+                        "{params.force} "
+                        "{params.quiet_mode} "
+                        # "--directory {params.tempdir:q} "
+                        "--config "
+                        f"catchment_str={catchment_str} "
+                        "outdir={params.outdir:q} "
+                        # "tempdir={params.tempdir:q} "
+                        "not_cog_csv={input.not_cog_csv:q} "
+                        "in_all_cog_fasta={input.in_all_cog_fasta:q} "
+                        "post_qc_query={input.query:q} "
+                        "cog_seqs={input.cog_seqs:q} "
+                        "combined_metadata={input.combined_metadata:q} "
+                        "--cores {params.cores}")
+        else:
+            shell("touch {output.tree_summary:q}")
 
 rule make_report:
     input:
-        lineage_trees = os.path.join(config["outdir"],"catchment_trees","catchment_tree_summary.txt"),
+        lineage_trees = os.path.join(config["outdir"],"collapsed_trees","collapse_report.txt"),
         query = config["query"],
         combined_metadata = os.path.join(config["outdir"],"combined_metadata.csv"),
         full_cog_metadata = config["cog_metadata"],
         report_template = config["report_template"],
         font = config["font_file"] 
     params:
-        tree_dir = os.path.join(config["outdir"],"catchment_trees"),
+        tree_dir = os.path.join(config["outdir"],"trees_with_querys"),
         outdir = config["rel_outdir"],
         fields = config["fields"]
     output:
