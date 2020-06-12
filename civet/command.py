@@ -91,6 +91,7 @@ def main(sysargs = sys.argv[1:]):
             os.mkdir(outdir)
     else:
         outdir = cwd
+        rel_outdir = "."
 
     # tempdir = ''
     # if args.tempdir:
