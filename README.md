@@ -134,7 +134,7 @@ Data files:
 
 ### Authors
 
-`civet` was created by Áine O'Toole, Verity Hill & Stefan Rooke, on behalf of the COG_UK consortium.
+`civet` was created by Áine O'Toole & Verity Hill, on behalf of the COG_UK consortium.
 
 ### Acknowledgements
 
