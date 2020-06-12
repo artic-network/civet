@@ -175,7 +175,7 @@ def main(sysargs = sys.argv[1:]):
                 print(f"Syncing civet data to {data_dir}")
                 os.system(rsync_command)
                 cog_seqs = os.path.join(data_dir,"civet-data","cog.alignment.fasta")
-                all_cog_seqs = os.path.join(data_dir,"civet-data","cog_all.alignment.fasta")
+                all_cog_seqs = os.path.join(data_dir,"civet-data","cog_gisaid_all.fasta")
                 cog_metadata = os.path.join(data_dir,"civet-data","cog_metadata.csv")
                 cog_tree = os.path.join(data_dir,"civet-data","cog_global.tree")
                 config["cog_metadata"] = cog_metadata
@@ -191,7 +191,7 @@ def main(sysargs = sys.argv[1:]):
             config["remote"] = "False"
             config["username"] = ""
             cog_seqs = os.path.join(data_dir,"cog.alignment.fasta")
-            all_cog_seqs = os.path.join(data_dir,"cog_all.alignment.fasta")
+            all_cog_seqs = os.path.join(data_dir,"cog_gisaid_all.fasta")
             cog_metadata = os.path.join(data_dir,"cog_metadata.csv")
             cog_tree = os.path.join(data_dir,"cog_global.tree")
             config["cog_metadata"] = cog_metadata
