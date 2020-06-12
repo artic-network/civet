@@ -101,7 +101,7 @@ rule get_closest_cog:
     input:
         snakefile = os.path.join(workflow.current_basedir,"find_closest_cog.smk"),
         reference_fasta = config["reference_fasta"],
-        cog_seqs = config["cog_seqs"],
+        all_cog_seqs = config["all_cog_seqs"],
         cog_metadata = config["cog_metadata"],
         query = config["post_qc_query"],
         not_cog_csv = os.path.join(config["outdir"],"not_in_all_cog.csv")
@@ -129,7 +129,7 @@ rule get_closest_cog:
                         # "tempdir={params.tempdir:q} "
                         "not_cog_csv={input.not_cog_csv:q} "
                         "post_qc_query={input.query:q} "
-                        "cog_seqs={input.cog_seqs:q} "
+                        "all_cog_seqs={input.all_cog_seqs:q} "
                         "trim_start={params.trim_start} "
                         "trim_end={params.trim_end} "
                         "reference_fasta={input.reference_fasta:q} "
