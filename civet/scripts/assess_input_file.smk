@@ -173,7 +173,10 @@ rule prune_out_catchments:
         --metadata {input.metadata} \
         --index-column closest \
         --threshold 1 \
-        --branch-count && touch {output.txt}
+        --branch-count \
+        --out-format newick \
+        && touch {output.txt} 
+
         """
 
 rule process_catchments:
@@ -230,7 +233,7 @@ rule process_catchments:
 
 rule make_report:
     input:
-        lineage_trees = os.path.join(config["outdir"],"trees_with_querys","tree_summary.txt"),
+        lineage_trees = os.path.join(config["outdir"],"collapsed_trees","collapse_report.txt"),
         query = config["query"],
         combined_metadata = os.path.join(config["outdir"],"combined_metadata.csv"),
         full_cog_metadata = config["cog_metadata"],
