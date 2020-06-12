@@ -57,12 +57,12 @@ rule gather_fasta_seqs:
             for record in SeqIO.parse(input.post_qc_query, "fasta"):
                 if record.id in queries.values() or record.id in queries.keys():
                     iqtree_friendly = record.id.replace("/","_")
-                    fw.write(f">_{iqtree_friendly}_\n{record.seq}\n")
+                    fw.write(f">{iqtree_friendly}\n{record.seq}\n")
 
             for record in SeqIO.parse(input.in_all_cog_fasta, "fasta"):
                 if record.id in queries.values() or record.id in queries.keys():
                     iqtree_friendly = record.id.replace("/","_")
-                    fw.write(f">_{iqtree_friendly}_\n{record.seq}\n")
+                    fw.write(f">{iqtree_friendly}\n{record.seq}\n")
 
             for record in SeqIO.parse(input.cog_seqs,"fasta"):
                 if record.id in taxa:
@@ -82,7 +82,7 @@ rule iqtree_catchment:
         os.path.join(config["outdir"], "catchment_aln","{tree}.aln.fasta.ckp.gz"),
         os.path.join(config["outdir"], "catchment_aln","{tree}.aln.fasta.iqtree")
     shell:
-        "iqtree -s {input.aln:q} -bb 1000 -au -alrt 1000 -g {input.guide_tree:q} -m HKY -quiet -nt 1 -redo"
+        "iqtree -s {input.aln:q} -bb 1000 -au -alrt 1000 -g {input.guide_tree:q} -m HKY -nt 1 -redo"
 
 rule rename:
     input:
