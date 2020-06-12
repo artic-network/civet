@@ -32,7 +32,7 @@ rule gather_fasta_seqs:
     input:
         post_qc_query = config["post_qc_query"],
         in_all_cog_fasta = config["in_all_cog_fasta"],
-        cog_seqs = config["cog_seqs"],
+        cog_seqs = config["all_cog_seqs"],
         combined_metadata = config["combined_metadata"],
         tree_taxa = os.path.join(config["outdir"], "catchment_trees","{tree}.txt")
     output:
