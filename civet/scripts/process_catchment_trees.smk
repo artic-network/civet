@@ -64,7 +64,7 @@ rule gather_fasta_seqs:
 
             for record in SeqIO.parse(input.cog_seqs,"fasta"):
                 if record.id in taxa:
-                    fw.write(f">{record.id}\n{record.seq}\n")
+                    fw.write(f">'{record.id}'\n{record.seq}\n")
 
 rule iqtree_catchment:
     input:
@@ -79,7 +79,7 @@ rule iqtree_catchment:
         os.path.join(config["outdir"], "catchment_aln","{tree}.aln.fasta.ckp.gz"),
         os.path.join(config["outdir"], "catchment_aln","{tree}.aln.fasta.iqtree")
     shell:
-        "iqtree -s {input.aln:q} -bb 1000 -au -alrt 1000 -m HKY -g {input.guide_tree:q} -quiet -nt 1 -redo"
+        "iqtree -s {input.aln:q} -bb 1000 -au -alrt 1000 -g {input.guide_tree:q} -m HKY -quiet -nt 1 -redo"
 
 rule to_nexus:
     input:
