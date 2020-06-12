@@ -2,6 +2,7 @@
 import os
 from pweave import *
 import argparse
+import shutil
 
 
 thisdir = os.path.abspath(os.path.dirname(__file__))
@@ -11,6 +12,14 @@ def make_report(cog_metadata, input_csv, filtered_cog_metadata, outfile, outdir,
     fd = os.path.join(outdir, "figures")
     name_stem = ".".join(outfile.split(".")[:-1])
 
+    to_data_dir = font_file.rstrip("HelveticaNeue.ttf") #this will need making more robust
+    source = os.path.join(to_data_dir, "polytomies.png")
+    destination = fd
+    try:
+        shutil.move(source, destination) 
+    except shutil.Error:
+        pass 
+    
     with open(outfile, 'w') as pmd_file:
     
         md_template = report_template

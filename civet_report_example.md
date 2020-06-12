@@ -16,73 +16,24 @@ The table below is a summary of the sequences provided with your metadata, along
 If you have provided additional information in the input csv, and specified that you would like it included in the analysis, it will also be displayed here.
 
 
-```python, name="import dependencies", echo=False
-import matplotlib.pyplot as pyplot
-import pandas as pd 
-import os
-
-import data_parsing as dp
-import make_tree_figures as tree_viz
-import matplotlib.font_manager as font_manager
-import matplotlib as mpl
-from tabulate import tabulate
-
-filtered_cog_metadata = "" ##CHANGE
-input_csv = "" ##CHANGE
-full_metadata_file = "" ##CHANGE
-desired_fields = "" ##CHANGE
-
-font_file = "" ##CHANGE
-
-input_directory = "" ##CHANGE
-
-output_directory = "" ##CHANGE
-name_stem_input = "" ##CHANGE
-
-if "/" in name_stem_input:
-    name_stem = name_stem_input.split("/")[-1]
-else:
-    name_stem = name_stem_input
-
-tree_dir = "" ##CHANGE
-fig_dir = os.path.join(output_directory, "figures")
-summary_dir =  os.path.join(output_directory, "summary_files")
-
-
-desired_fields = "" ##CHANGE
-
-
-if desired_fields != "":
-    desired_fields = list(desired_fields)
-
-font_list = font_manager.fontManager.addfont(font_file)
-
-mpl.rcParams['font.family'] = 'helveticaneue'
-mpl.rcParams['font.weight']=300
-mpl.rcParams['axes.labelweight']=300
-
-```
 
 
 
-```python, name="parse metadata", echo=False
 
-query_dict, query_id_dict, present_lins = dp.parse_reduced_metadata(filtered_cog_metadata) #Just the lines with their queries plus the closest match in COG
 
-if input_csv != '':
-    query_dict = dp.parse_input_csv(input_csv, query_id_dict, desired_fields) #Any query information they have provided
 
-present_in_tree = dp.parse_tree_tips(tree_dir)
 
-full_tax_dict = dp.parse_full_metadata(query_dict, full_metadata_file, present_lins, present_in_tree)
-```
 
-```python, name="first_table", echo=False, results="tex"
 
-df = dp.make_initial_table(query_dict)
 
-print(df.to_markdown())
-```
+| Query ID            | Part of COG   | Sequence name in COG   | Closest sequence in COG   | UK lineage   | Global lineage   | Phylotype   | sample_date   |
+|:--------------------|:--------------|:-----------------------|:--------------------------|:-------------|:-----------------|:------------|:--------------|
+| EDB129_closestb     | False         | NA                     | Wales/PHWC-2A0F1/2020     | UK156        | B.1.71           | UK156_1     | NA            |
+| 20144000304_closest | False         | NA                     | England/LOND-D521D/2020   | UK63         | B.1.1            | UK63_1      | NA            |
+| BRIS-12174F_closest | False         | NA                     | England/BRIS-12174F/2020  | UK611        | B.1.1            | UK611_1     | NA            |
+| EDB3588             | True          | Scotland/EDB3588/2020  | NA                        | UK36         | B.1              | UK36_1.1.1  | 2020-04-27    |
+| EDB2533             | True          | Scotland/EDB2533/2020  | NA                        | UK845        | B.1.1            | UK845_1     | 2020-04-23    |
+
 
 
 The nearest neighbours of each of the query sequences are shown below in order to show their phylogenetic context.
@@ -91,16 +42,16 @@ This investigation's sequences are highlighted in pink.
 
 
 
-```python, name="tree_viz", echo=False, include=True, figure=True
-too_tall_trees = tree_viz.make_all_of_the_trees(tree_dir, full_tax_dict, query_id_dict, query_dict)
 
-```
+![](./figures/civet_report_tree_viz_1.png)\
+![](./figures/civet_report_tree_viz_2.png)\
+![](./figures/civet_report_tree_viz_3.png)\
+![](./figures/civet_report_tree_viz_4.png)
 
-```python, name="print any trees that are too big", echo=False, results='raw'
-if too_tall_trees != []:
-    for tree in too_tall_trees:
-        print("Tree" + str(tree) + " is too large to be rendered here.")
-```
+
+
+
+
 
 
 
@@ -109,9 +60,10 @@ if too_tall_trees != []:
 The figure below shows the distribution of time differences that two sequences can be sampled and still be identical. 
 It is to illustrate that identical sequences does not confirm linked cases.
 
-```python, name="Identity figure", results='raw', echo=False, fig=True, caption="Distribution of time between identical sequences"
-print("![](" + fig_dir + "/polytomies.png)\\")
-```
+
+
+![](./figures/polytomies.png)\
+
 
 ### Useful definitions
 

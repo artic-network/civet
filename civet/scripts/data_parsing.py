@@ -4,6 +4,8 @@ import csv
 from tabulate import tabulate
 import baltic as bt
 import os
+import datetime as dt
+
 
 class taxon():
 
@@ -63,9 +65,13 @@ def parse_reduced_metadata(metadata_file):
             present_lins.add(uk_lineage)
             
 
-            if query_name == closest_name:
+            if query_name == closest_name: #if it's in COG, get it's sample date
                 new_taxon.in_cog = True
                 new_taxon.attribute_dict["sample_date"] = sample_date
+                new_taxon.closest = "NA"
+            else:
+                new_taxon.closest = closest_name
+
 
             query_dict[query_name] = new_taxon
             query_id_dict[query_id] = new_taxon
@@ -89,9 +95,11 @@ def parse_input_csv(input_csv, query_id_dict, desired_fields):
             taxon = query_id_dict[name]
 
             if "sample_date" in col_names:
-                taxon.attribute_dict["sample_date"] = sequence["sample_date"]
-            else:
-                taxon.attribute_dict["sample_date"] = "NA"
+                taxon.attribute_dict["sample_date"] = sequence["sample_date"] #if it's not in COG but date is provided
+            elif "sample_date" not in taxon.attribute_dict.keys(): #if it's not in cog and no data is provided
+                taxon.attribute_dict["sample_date"] = "NA" 
+            #if it's in COG, it will already have been assigned a sample date.
+                
 
             for col in col_names:
                 if desired_fields != []:
@@ -122,8 +130,15 @@ def parse_tree_tips(tree_dir):
         if fn.endswith("tree"):
             tree = bt.loadNewick(tree_dir + "/" + fn, absoluteTime=False)
             for k in tree.Objects:
-                if k.branchType == 'leaf':
+                if k.branchType == 'leaf' and "inserted" not in k.name:
                     tips.append(k.name)
+
+        elif fn.endswith(".txt"):
+            with open(tree_dir + "/" + fn) as f:
+                for l in f:
+                    tip_string = l.strip("\n").split("\t")[1]
+                    tip_list = tip_string.split(",")
+                    tips.extend(tip_list)
 
     return tips
 
@@ -138,11 +153,23 @@ def parse_full_metadata(query_dict, full_metadata, present_lins, present_in_tree
             uk_lin = sequence["uk_lineage"]
             seq_name = sequence["sequence_name"]
 
+            date = sequence["sample_date"]
+            adm2 = sequence["adm2"]
+            country = sequence["country"]
+
             glob_lin = sequence["lineage"]
             phylotype = sequence["phylotype"]
 
             if (uk_lin in present_lins or seq_name in present_in_tree) and seq_name not in query_dict.keys():
                 new_taxon = taxon(seq_name, glob_lin, uk_lin, phylotype)
+                if date == "":
+                    date = "NA"
+                
+                new_taxon.attribute_dict["sample_date"] = date
+                
+                new_taxon.attribute_dict["adm2"] = adm2
+                new_taxon.attribute_dict["country"] = country
+
                 full_tax_dict[seq_name] = new_taxon
 
     return full_tax_dict
@@ -152,9 +179,17 @@ def make_initial_table(query_dict):
     df_dict = defaultdict(list)
 
     for query in query_dict.values():
+        
         df_dict["Query ID"].append(query.query_id)
-        df_dict["Sequence name"].append(query.name)
         df_dict["Part of COG"].append(query.in_cog)
+        
+        if query.in_cog: 
+            df_dict["Sequence name in COG"].append(query.name)
+        else:
+            df_dict["Sequence name in COG"].append("NA")
+
+        df_dict["Closest sequence in COG"].append(query.closest)
+        
         df_dict["UK lineage"].append(query.uk_lin)
         df_dict["Global lineage"].append(query.global_lin)
         df_dict["Phylotype"].append(query.phylotype)

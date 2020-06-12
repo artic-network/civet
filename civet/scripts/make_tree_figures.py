@@ -24,6 +24,9 @@ from io import BytesIO as csio
 from Bio import Phylo
 from collections import defaultdict
 
+import datetime as dt
+from collections import Counter
+
 
 thisdir = os.path.abspath(os.path.dirname(__file__))
 
@@ -32,8 +35,7 @@ def find_tallest_tree(input_dir):
     
     for r,d,f in os.walk(input_dir):
         for fn in f:
-            if fn.endswith("tree"):
-                treename = fn
+            if fn.endswith(".tree"):
                 num_taxa = 0
                 intro_name = ""
                 with open(r + '/' + fn,"r") as f:
@@ -47,30 +49,33 @@ def find_tallest_tree(input_dir):
                 if num_taxa > 1:
                     tree = bt.loadNewick(r + '/' + fn,absoluteTime=False)
                     tips = []
-                    uk_tips = []
                     
                     for k in tree.Objects:
                         if k.branchType == 'leaf':
-                            if k.traits["country_uk"]=="True": #this may change
-                                uk_tips.append(k.name)
                             tips.append(k.name)
-                    if len(uk_tips)>3:
-                        tree_heights.append(tree.treeHeight)
+                  
+                    tree_heights.append(tree.treeHeight)
     
     max_height = sorted(tree_heights, reverse=True)[0]
 
     return max_height
 
-def display_name(tree, taxon_dict):
+def display_name(tree, tree_name, tree_dir, query_id_dict, full_taxon_dict):
     for k in tree.Objects:
         if k.branchType == 'leaf':
             name = k.name
-            k.traits["display"] = name
             
-            if name in taxon_dict.keys():
-                taxon_obj = taxon_dict[name]
-                date = taxon_obj.sample_date
-                country = taxon_obj.adm1
+            if "inserted" in name:
+                collapsed_node_info = summarise_collapsed_node(tree_dir, name, tree_name, full_taxon_dict)
+                k.traits["display"] = collapsed_node_info
+            else:
+                # taxon_obj = query_id_dict[name] #I think this isn't needed because the ones in COG will just have the full name in the tree
+                taxon_obj = full_taxon_dict[name]
+                if "sample_date" in taxon_obj.attribute_dict.keys():
+                    date = taxon_obj.attribute_dict["sample_date"]
+                    k.traits["display"] = f"{name}|{date}"
+                else:
+                    k.traits["display"] = name
                 
                 # if "county" in taxon_obj.attribute_dict.keys(): 
                 #     county = taxon_obj.attribute_dict["county"]
@@ -90,10 +95,15 @@ def display_name(tree, taxon_dict):
                 
 
 
-def make_scaled_tree_without_legend(My_Tree, num_tips, colour_dict, tallest_height,lineage, taxon_dict, query_id_dict, query_dict):
+def make_scaled_tree_without_legend(My_Tree, tree_name, tree_dir, num_tips, colour_dict, tallest_height,lineage, taxon_dict, query_id_dict, query_dict):
     
-    display_name(My_Tree, query_id_dict)
+    display_name(My_Tree, tree_name, tree_dir, query_id_dict, taxon_dict) #this is id dict for when the ids are in the tree.
     My_Tree.uncollapseSubtree()
+
+    closest_names = []
+
+    for query in query_id_dict.values():
+        closest_names.append(query.closest)
 
     if num_tips < 10:
         #page_height = num_tips/2
@@ -110,22 +120,22 @@ def make_scaled_tree_without_legend(My_Tree, num_tips, colour_dict, tallest_heig
     c_func=lambda k: 'dimgrey' ## colour of branches
     l_func=lambda k: 'lightgrey' ## colour of branches
     # cn_func=lambda k: colour_dict[k.traits["country"]] if k.traits["country"] in colour_dict else 'dimgrey'
-    cn_func = lambda k: 'fuchsia' if k.name in query_id_dict.keys() or k.name in query_dict.keys() else 'dimgrey'
+    cn_func = lambda k: 'fuchsia' if k.name in query_id_dict.keys() or k.name in query_dict.keys() or k.name in closest_names else 'dimgrey'
     #s_func=lambda k: tipsize*5 if k.traits["country"] in colour_dict else tipsize
-    s_func = lambda k: tipsize*5 if k.name in query_id_dict.keys() or k.name in query_dict.keys() else tipsize
+    s_func = lambda k: tipsize*5 if k.name in query_id_dict.keys() or k.name in query_dict.keys() or k.name in closest_names else tipsize
     z_func=lambda k: 100
     b_func=lambda k: 0.5 #branch width
     #co_func=lambda k: colour_dict[k.traits["country"]] if k.traits["country"] in colour_dict else 'dimgrey' ## for plotting a black outline of tip circles
-    co_func=lambda k: 'fuchsia' if k.name in query_id_dict.keys() or k.name in query_dict.keys() else 'dimgrey' 
+    co_func=lambda k: 'fuchsia' if k.name in query_id_dict.keys() or k.name in query_dict.keys() or k.name in closest_names else 'dimgrey' 
     #so_func=lambda k: tipsize*5 if k.traits["country"] in colour_dict else 0 #plots the uk tips over the grey ones
-    so_func=lambda k: tipsize*5 if k.name in query_id_dict.keys() or k.name in query_dict.keys() else 0
+    so_func=lambda k: tipsize*5 if k.name in query_id_dict.keys() or k.name in query_dict.keys() or k.name in closest_names else 0
     zo_func=lambda k: 99
     # outline_func = lambda k: None
     #outline_colour_func = lambda k: colour_dict[k.traits["country"]] if k.traits["country"] in colour_dict else 'dimgrey'
-    outline_colour_func = lambda k: "fuchsia" if k.name in query_id_dict.keys()or k.name in query_dict.keys()  else 'dimgrey'
+    outline_colour_func = lambda k: "fuchsia" if k.name in query_id_dict.keys()or k.name in query_dict.keys()  or k.name in closest_names else 'dimgrey'
     zb_func=lambda k: 98
     zt_func=lambda k: 97
-    font_size_func = lambda k: 25 if k.name in query_id_dict.keys() or k.name in query_dict.keys() else 15
+    font_size_func = lambda k: 25 if k.name in query_id_dict.keys() or k.name in query_dict.keys() or k.name in closest_names else 15
     kwargs={'ha':'left','va':'center','size':12}
     
     x_attr=lambda k: k.height + offset
@@ -139,11 +149,14 @@ def make_scaled_tree_without_legend(My_Tree, num_tips, colour_dict, tallest_heig
     full_page = page_height + vertical_spacer + vertical_spacer
     min_y,max_y = y_values[0]-vertical_spacer,y_values[-1]+vertical_spacer
     
-    fig2,ax2 = plt.subplots(figsize=(20,page_height),facecolor='w',frameon=False)
+    
+    fig2,ax2 = plt.subplots(figsize=(20,page_height),facecolor='w',frameon=False, dpi=100)
+    
 
     My_Tree.plotTree(ax2, colour_function=c_func, x_attr=x_attr, y_attr=y_attr, branchWidth=b_func)
     My_Tree.plotPoints(ax2, x_attr=x_attr, colour_function=cn_func,y_attr=y_attr, size_function=s_func, outline_colour=outline_colour_func)
     My_Tree.plotPoints(ax2, x_attr=x_attr, colour_function=co_func, y_attr=y_attr, size_function=so_func, outline_colour=outline_colour_func)
+
 
     for k in My_Tree.Objects:
         
@@ -194,6 +207,8 @@ def sort_trees_index(tree_dir):
 def make_all_of_the_trees(input_dir, taxon_dict, query_id_dict, query_dict, min_uk_taxa=3):
     
     tallest_height = find_tallest_tree(input_dir)
+
+    too_tall_trees = []
     
     colour_dict = {"Wales":"darkseagreen",
                "England":"indianred",
@@ -204,11 +219,11 @@ def make_all_of_the_trees(input_dir, taxon_dict, query_id_dict, query_dict, min_
 
     for fn in lst:
         lineage = fn
-        #treename = "uk_lineage_" + lineage + ".tree"
-        treename = "tree_" + str(fn) + ".tree"
+        treename = "tree_" + str(fn)
+        treefile = "tree_" + str(fn) + ".tree"
         num_taxa = 0
         intro_name = ""
-        with open(input_dir + "/" + treename,"r") as f:
+        with open(input_dir + "/" + treefile,"r") as f:
             for l in f:
                 l = l.rstrip("\n")
                 if l.startswith("    DIMENSIONS NTAX"):
@@ -216,39 +231,83 @@ def make_all_of_the_trees(input_dir, taxon_dict, query_id_dict, query_dict, min_
                     intro_name = fn
 
         if num_taxa > 1: 
-            tree = bt.loadNewick(input_dir + "/" + treename, absoluteTime=False)
+            tree = bt.loadNewick(input_dir + "/" + treefile, absoluteTime=False)
             tips = []
-            uk_tips = []
+            
             for k in tree.Objects:
                 if k.branchType == 'leaf':
-                    if k.traits["country_uk"]=="True":
-                        uk_tips.append(k.name)
                     tips.append(k.name)
-            if len(uk_tips)>min_uk_taxa:
-                #outfile = f'{outdir}/{treename}.pdf'
-                #make_scaled_tree_without_legend(tree, outfile,len(tips),colour_dict, tallest_height)
-                try:
-                    make_scaled_tree_without_legend(tree,len(tips),colour_dict, tallest_height, lineage, taxon_dict, query_id_dict, query_dict)     
-                except ValueError:
-                    pass
-    return lst
+            if len(tips) < 1000:
+                make_scaled_tree_without_legend(tree, treename, input_dir, len(tips),colour_dict, tallest_height, lineage, taxon_dict, query_id_dict, query_dict)     
+            else:
+                too_tall_trees.append(lineage)
+                continue
 
-def sort_fig(fig_dir):
-    b_list = []
-    d_list = []
-    for fig_file in os.listdir(fig_dir):
-        if "trees" in fig_file:
-            a = fig_file.split(".")
-            b = a[0].split("_")
-            b_list.append(b[-1])
-            stem = b[:len(b)-1]
-            stem = "_".join(b[:len(b)-1])
+    return too_tall_trees
 
-    c = sorted(b_list, key=int)
-    
-    for i in c:
-        d = stem + "_" + i + ".png"
-        d_list.append(d)
+def summarise_collapsed_node(tree_dir, focal_node, focal_tree, full_tax_dict):
 
-    return d_list
+    focal_tree_file = focal_tree + ".txt"
+
+    with open(tree_dir + "/" + focal_tree_file) as f:
+        next(f)
+        for l in f:
+            toks = l.strip("\n").split("\t")
+            node_name = toks[0]
+            members = toks[1]
+        
+            if node_name == focal_node:
+                dates = []
+                countries = []
                 
+                member_list = members.split(",")
+                number_nodes = str(len(member_list)) + " nodes"
+
+                for tax in member_list:
+                    if tax in full_tax_dict.keys():
+                        taxon_obj = full_tax_dict[tax]
+                    
+                        if taxon_obj.attribute_dict["sample_date"] != "NA":
+                            date_string = taxon_obj.attribute_dict["sample_date"]
+                            date = dt.datetime.strptime(date_string, "%Y-%m-%d").date()
+                            dates.append(date)
+                        
+                        countries.append(taxon_obj.attribute_dict["country"])
+                    
+                    else:
+                        country = tax.split("/")[0]
+                        countries.append(country)
+
+                country_counts = Counter(countries)
+
+                most_common_countries = []
+
+                if len(country_counts) > 5:
+                    
+                    remaining = len(country_counts) - 5
+                    
+                    most_common_tups = country_counts.most_common(5)
+                    for i in most_common_tups:
+                        most_common_countries.append(i[0])
+
+                    pretty_countries_prep = str(most_common_countries).lstrip("[").rstrip("]").replace("'", "")
+                    
+                    if remaining == 1:
+                        pretty_countries = pretty_countries_prep + " and " + str(remaining) + " other"
+                    else:
+                        pretty_countries = pretty_countries_prep + " and " + str(remaining) + " others"
+                
+                else:
+                    pretty_countries = str(list(country_counts.keys())).lstrip("[").rstrip("]").replace("'", "")
+
+
+                #taken out for now until we can get dates for all the tips
+                # min_date = str(min(dates))
+                # max_date = str(max(dates))
+                #info = number_nodes + ", ranging from " + min_date + " to " + max_date + " in " + pretty_countries
+
+                info = number_nodes + " in " + pretty_countries
+
+
+
+    return info
