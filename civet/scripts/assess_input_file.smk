@@ -70,10 +70,9 @@ rule check_cog_all:
         all_cog_seqs = config["all_cog_seqs"]
     output:
         not_in_cog = os.path.join(config["outdir"],"not_in_all_cog.csv"),
-        in_all_cog = os.path.join(config["outdir"],"in_all_cog.csv"),
         in_all_cog_fasta = os.path.join(config["outdir"],"in_all_cog.fasta")
     run:
-        not_cog.append(l)
+        not_cog = []
         with open(input.not_in_cog, "r") as f:
             for l in f:
                 l = l.rstrip("\n")
@@ -85,7 +84,7 @@ rule check_cog_all:
                 for query in not_cog:
                     if query in record_name:
                         in_all_cog.append(query)
-                        fw.write(f">{record.id}\n{record.seq}\n")
+                        fw.write(f">{record.id} query={query}\n{record.seq}\n")
         with open(output.not_in_cog, "w") as fw:
             print("The following sequences were found in COG-UK put hadn't passed the QC.\nLowering QC and adding them in to analysis now.")
             c = 0
@@ -173,7 +172,7 @@ rule prune_out_catchments:
         -o {params.outdir:q} \
         --metadata {input.metadata} \
         --index-column closest \
-        --threshold 2 \
+        --threshold 1 \
         --branch-count && touch {output.txt}
         """
 
