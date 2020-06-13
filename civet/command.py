@@ -171,7 +171,7 @@ def main(sysargs = sys.argv[1:]):
         if args.uun:
             config["username"] = args.uun
             if not args.datadir:
-                rsync_command = f"rsync -avzh {args.uun}@bham.covid19.climb.ac.uk:/cephfs/covid/bham/raccoon-dog/civet-data {data_dir}"
+                rsync_command = f"rsync -avzh {args.uun}@bham.covid19.climb.ac.uk:/cephfs/covid/bham/civet-cat {data_dir}"
                 print(f"Syncing civet data to {data_dir}")
                 os.system(rsync_command)
                 cog_seqs = os.path.join(data_dir,"civet-data","cog.alignment.fasta")
