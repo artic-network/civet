@@ -258,23 +258,27 @@ rule make_report:
         combined_metadata = os.path.join(config["outdir"],"combined_metadata.csv"),
         full_cog_metadata = config["cog_metadata"],
         report_template = config["report_template"],
-        font = config["font_file"] 
+        font = config["font_file"],
+        polytomy_figure = config["polytomy_figure"]
     params:
-        tree_dir = os.path.join(config["outdir"],"restored_trees"),
+        treedir = os.path.join(config["outdir"],"restored_trees"),
         outdir = config["rel_outdir"],
-        fields = config["fields"]
+        fields = config["fields"],
+        figdir = os.path.join(config["rel_outdir"],"figures")
     output:
         outfile = os.path.join(config["outdir"], "civet_report.md")
     shell:
         """
+        cp {input.polytomy_figure:q} {params.figdir} &&
         make_report.py \
         --input-csv {input.query:q} \
         -f {params.fields:q} \
-        -t {params.tree_dir:q} \
-        --report-template {input.report_template} \
+        --figdir {params.figdir:q} \
+        --treedir {params.treedir:q} \
+        --report-template {input.report_template:q} \
         --filtered-cog-metadata {input.combined_metadata:q} \
         --cog-metadata {input.full_cog_metadata:q} \
         --outfile {output.outfile:q} \
         --outdir {params.outdir:q} \
-        --font-file {input.font}
+        --font-file {input.font:q}
         """
