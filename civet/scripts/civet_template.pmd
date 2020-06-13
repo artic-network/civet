@@ -31,7 +31,8 @@ filtered_cog_metadata = "" ##CHANGE
 input_csv = "" ##CHANGE
 full_metadata_file = "" ##CHANGE
 desired_fields = "" ##CHANGE
-
+figdir = "" ##CHANGE
+tree_dir = "" ##CHANGE
 font_file = "" ##CHANGE
 
 input_directory = "" ##CHANGE
@@ -44,13 +45,8 @@ if "/" in name_stem_input:
 else:
     name_stem = name_stem_input
 
-tree_dir = "" ##CHANGE
-fig_dir = os.path.join(output_directory, "figures")
-summary_dir =  os.path.join(output_directory, "summary_files")
-
-
 desired_fields = "" ##CHANGE
-
+summary_dir = "" ##CHANGE
 
 if desired_fields != "":
     desired_fields = list(desired_fields)
@@ -110,7 +106,7 @@ The figure below shows the distribution of time differences that two sequences c
 It is to illustrate that identical sequences does not confirm linked cases.
 
 ```python, name="Identity figure", results='raw', echo=False, fig=True, caption="Distribution of time between identical sequences"
-print("![](" + fig_dir + "/polytomies.png)\\")
+print("![](" + figdir + "/polytomies.png)\\")
 ```
 
 ### Useful definitions

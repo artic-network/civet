@@ -7,13 +7,13 @@ import shutil
 
 thisdir = os.path.abspath(os.path.dirname(__file__))
 
-def make_report(cog_metadata, input_csv, filtered_cog_metadata, outfile, outdir, treedir, fd, fields, report_template, font_file):
+def make_report(cog_metadata, input_csv, filtered_cog_metadata, outfile, outdir, treedir, figdir, fields, report_template, font_file):
 
     name_stem = ".".join(outfile.split(".")[:-1])
     with open(outfile, 'w') as pmd_file:
     
         md_template = report_template
-        
+        summary_dir = os.path.join(outdir, "summary_files")
         with open(md_template) as f:
             for l in f:
                 if "##CHANGE" in l:
@@ -33,14 +33,19 @@ def make_report(cog_metadata, input_csv, filtered_cog_metadata, outfile, outdir,
                         new_l = f'desired_fields = "{fields}"\n'
                     elif "font_file" in l:
                         new_l = f'font_file = "{font_file}"\n'
+                    elif "figdir" in l:
+                        new_l = f'figdir = "{figdir}"\n'
                     elif "tree_dir" in l:
                         new_l = f'tree_dir = "{treedir}"\n'
+                    elif "summary_dir" in l:
+                        new_l = f'summary_dir = "{summary_dir}"\n'
+                    
                 else:
                     new_l = l
 
                 pmd_file.write(new_l)
 
-    weave(outfile, doctype = "pandoc", figdir=fd)
+    weave(outfile, doctype = "pandoc", figdir=figdir)
 
 def main():
     parser = argparse.ArgumentParser(description="Report generator script")
