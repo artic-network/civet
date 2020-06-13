@@ -42,12 +42,13 @@ def find_tallest_tree(input_dir):
                     for l in f:
                         l = l.rstrip("\n")
 
-                        if l.startswith("    DIMENSIONS NTAX"):
+                        if l.startswith(" Dimensions NTax="):
 
                             num_taxa = int(l.rstrip(";").split("=")[1])
                             intro_name = fn.rstrip(".tree")
                 if num_taxa > 1:
-                    tree = bt.loadNewick(r + '/' + fn,absoluteTime=False)
+                    tree_file = os.path.join(r, fn)
+                    tree = bt.loadNewick(tree_file,absoluteTime=False)
                     tips = []
                     
                     for k in tree.Objects:
@@ -57,7 +58,7 @@ def find_tallest_tree(input_dir):
                     tree_heights.append(tree.treeHeight)
     
     max_height = sorted(tree_heights, reverse=True)[0]
-
+    print("max height", max_height)
     return max_height
 
 def display_name(tree, tree_name, tree_dir, query_id_dict, full_taxon_dict):
