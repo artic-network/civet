@@ -109,7 +109,7 @@ rule summarise_polytomies:
         tree = os.path.join(config["outdir"], "combined_trees","{tree}.tree"),
         metadata = os.path.join(config["outdir"],"combined_metadata.csv")
     params:
-        tree_dir = os.path.join(config["outdir"],"catchment_trees")
+        tree_dir = os.path.join(config["outdir"],"combined_trees")
     output:
         collapsed_tree = os.path.join(config["outdir"],"collapsed_trees","{tree}.tree"),
         collapsed_information = os.path.join(config["outdir"],"collapsed_trees","{tree}.txt")
