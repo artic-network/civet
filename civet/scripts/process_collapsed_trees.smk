@@ -18,7 +18,7 @@ config["tree_stems"] = config["catchment_str"].split(",")
 rule all:
     input:
         expand(os.path.join(config["outdir"], "collapsed_trees","{tree}.tree"), tree = config["tree_stems"]),
-        os.path.join(config["outdir"],"collapsed_trees","collapse_report.txt")
+        os.path.join(config["outdir"],"combined_trees","collapse_report.txt")
 
 rule summarise_polytomies:
     input:
@@ -28,7 +28,7 @@ rule summarise_polytomies:
         tree_dir = os.path.join(config["outdir"],"catchment_trees")
     output:
         collapsed_tree = os.path.join(config["outdir"],"collapsed_trees","{tree}.tree"),
-        collapsed_information = os.path.join(config["outdir"],"collapsed_trees","{tree}.txt")
+        collapsed_information = os.path.join(config["outdir"],"collapsed_trees","{tree}.collapsed_info.txt")
     shell:
         """
         clusterfunk focus -i {input.tree:q} \
@@ -41,7 +41,7 @@ rule summarise_polytomies:
 rule get_collapsed_representative:
     input:
         cog_seqs = config["all_cog_seqs"],
-        collapsed_information = os.path.join(config["outdir"],"collapsed_trees","{tree}.txt")
+        collapsed_information = rules.summarise_polytomies.output.collapsed_information
     params:
         tree_dir = os.path.join(config["outdir"],"catchment_trees")
     output:
@@ -78,13 +78,13 @@ rule extract_taxa:
     input:
         collapsed_tree = os.path.join(config["outdir"],"collapsed_trees","{tree}.tree")
     output:
-        tree_taxa = os.path.join(config["outdir"], "collapsed_trees","{tree}.txt")
+        tree_taxa = os.path.join(config["outdir"], "collapsed_trees","{tree}_taxon_names.txt")
     shell:
         "clusterfunk get_taxa -i {input.tree} --in-format newick -o {output.tree_taxa} --out-format newick"
 
 rule gather_fasta_seqs:
     input:
-        collapsed_nodes = os.path.join(config["outdir"],"collapsed_trees","{tree}_representatives.fasta")
+        collapsed_nodes = os.path.join(config["outdir"],"collapsed_trees","{tree}_representatives.fasta"),
         post_qc_query = config["post_qc_query"],
         in_all_cog_fasta = config["in_all_cog_fasta"],
         cog_seqs = config["all_cog_seqs"],
@@ -162,7 +162,7 @@ rule iqtree_catchment:
             shell("iqtree -s {input.aln:q} -bb 1000 -au -alrt 1000 -g {input.guide_tree:q} -m HKY -nt 1 -redo")
         else:
             shell("cp {input.guide_tree} {output.tree}")
-            
+
 rule rename:
     input:
         tree=rules.iqtree_catchment.output
@@ -180,9 +180,9 @@ rule rename:
 
 rule summarise_processing:
     input:
-        collapse_reports = expand(os.path.join(config["outdir"],"collapsed_trees","{tree}.txt"), tree=config["tree_stems"])
+        collapse_reports = expand(os.path.join(config["outdir"],"combined_trees","{tree}.txt"), tree=config["tree_stems"])
     output:
-        report = os.path.join(config["outdir"],"collapsed_trees","collapse_report.txt")
+        report = os.path.join(config["outdir"],"combined_trees","collapse_report.txt")
     run:
         with open(output.report, "w") as fw:
             for report in input.collapse_reports:

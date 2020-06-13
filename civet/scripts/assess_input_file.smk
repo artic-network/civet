@@ -199,7 +199,7 @@ rule process_catchments:
         tree_dir = os.path.join(config["outdir"],"catchment_trees"),
         quiet_mode = config["quiet_mode"]
     output:
-        tree_summary = os.path.join(config["outdir"],"collapsed_trees","collapse_report.txt")
+        tree_summary = os.path.join(config["outdir"],"combined_trees","collapse_report.txt")
     run:
         catchment_trees = []
         for r,d,f in os.walk(params.tree_dir):
