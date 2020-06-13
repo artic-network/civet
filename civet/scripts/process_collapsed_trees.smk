@@ -76,19 +76,20 @@ rule get_collapsed_representative:
         
 rule extract_taxa:
     input:
-        tree = os.path.join(config["outdir"], "catchment_trees","{tree}.tree")
+        collapsed_tree = os.path.join(config["outdir"],"collapsed_trees","{tree}.tree")
     output:
-        tree_taxa = os.path.join(config["outdir"], "catchment_trees","{tree}.txt")
+        tree_taxa = os.path.join(config["outdir"], "collapsed_trees","{tree}.txt")
     shell:
         "clusterfunk get_taxa -i {input.tree} --in-format newick -o {output.tree_taxa} --out-format newick"
 
 rule gather_fasta_seqs:
     input:
+        collapsed_nodes = os.path.join(config["outdir"],"collapsed_trees","{tree}_representatives.fasta")
         post_qc_query = config["post_qc_query"],
         in_all_cog_fasta = config["in_all_cog_fasta"],
         cog_seqs = config["all_cog_seqs"],
         combined_metadata = config["combined_metadata"],
-        tree_taxa = os.path.join(config["outdir"], "catchment_trees","{tree}.txt")
+        tree_taxa = os.path.join(config["outdir"], "collapsed_trees","{tree}.txt")
     output:
         aln = os.path.join(config["outdir"], "catchment_aln","{tree}.query.aln.fasta")
     run:
@@ -106,28 +107,46 @@ rule gather_fasta_seqs:
                     if row["closest"] != row["query"]:
                         queries[row["query"]] = row["query_id"]
 
+        added_seqs = []
         with open(output.aln, "w") as fw:
 
             for record in SeqIO.parse(input.post_qc_query, "fasta"):
                 if record.id in queries.values() or record.id in queries.keys():
                     iqtree_friendly = record.id.replace("/","_")
                     fw.write(f">{iqtree_friendly}\n{record.seq}\n")
+                    added_seqs.append(record.id)
 
             for record in SeqIO.parse(input.in_all_cog_fasta, "fasta"):
                 if record.id in queries.values() or record.id in queries.keys():
                     iqtree_friendly = record.id.replace("/","_")
                     fw.write(f">{iqtree_friendly}\n{record.seq}\n")
+                    added_seqs.append(record.id)
+
+            for record in SeqIO.parse(input.collapsed_nodes, "fasta"):
+                iqtree_friendly = record.id.replace("/","_")
+                fw.write(f">{iqtree_friendly}\n{record.seq}\n")
+                added_seqs.append(record.id)
 
             for record in SeqIO.parse(input.cog_seqs,"fasta"):
                 if record.id in taxa:
                     iqtree_friendly = record.id.replace("/","_")
                     fw.write(f">_{iqtree_friendly}_\n{record.seq}\n")
+                    added_seqs.append(record.id)
+        not_added = []
+        for seq in taxa:
+            if seq not in added_seqs:
+                not_added.append(seq)
+        print(f"Seqs not added are:")
+        for seq in not_added:
+            print(f"- {seq}")
+
+
 
 rule iqtree_catchment:
     input:
         aln = os.path.join(config["outdir"], "catchment_aln","{tree}.query.aln.fasta"),
-        guide_tree = os.path.join(config["outdir"], "catchment_trees","{tree}.tree"),
-        taxa = os.path.join(config["outdir"], "catchment_trees","{tree}.txt")
+        guide_tree = os.path.join(config["outdir"], "collapsed_trees","{tree}.tree"),
+        taxa = os.path.join(config["outdir"], "collapsed_trees","{tree}.txt")
     output:
         tree = os.path.join(config["outdir"], "catchment_aln","{tree}.aln.fasta.treefile")
     run:
@@ -143,6 +162,7 @@ rule iqtree_catchment:
             shell("iqtree -s {input.aln:q} -bb 1000 -au -alrt 1000 -g {input.guide_tree:q} -m HKY -nt 1 -redo")
         else:
             shell("cp {input.guide_tree} {output.tree}")
+            
 rule rename:
     input:
         tree=rules.iqtree_catchment.output

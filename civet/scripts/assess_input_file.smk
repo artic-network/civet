@@ -181,7 +181,8 @@ rule prune_out_catchments:
 
 rule process_catchments:
     input:
-        snakefile = os.path.join(workflow.current_basedir,"process_catchment_trees.smk"),
+        snakefile_collapse_after = os.path.join(workflow.current_basedir,"process_catchment_trees.smk"),
+        snakefile_collapse_before = os.path.join(workflow.current_basedir,"process_collapsed_trees.smk"),
         combined_metadata = os.path.join(config["outdir"],"combined_metadata.csv"),
         catchment_placeholder = os.path.join(config["outdir"],"catchment_trees","catchment_tree_summary.txt"),
         query = config["post_qc_query"],
@@ -214,7 +215,7 @@ rule process_catchments:
 
         if params.fasta != "" or num_in_all_cog !=0:
             print(f"Passing {input.query} into processing pipeline.")
-            shell("snakemake --nolock --snakefile {input.snakefile:q} "
+            shell("snakemake --nolock --snakefile {input.snakefile_collapse_before:q} "
                         "{params.force} "
                         "{params.quiet_mode} "
                         # "--directory {params.tempdir:q} "
