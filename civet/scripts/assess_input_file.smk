@@ -194,6 +194,7 @@ rule process_catchments:
         # tempdir= config["tempdir"],
         path = workflow.current_basedir,
         cores = workflow.cores,
+        delay_collapse = config["delay_collapse"]
         force = config["force"],
         fasta = config["fasta"],
         tree_dir = os.path.join(config["outdir"],"catchment_trees"),
@@ -214,7 +215,7 @@ rule process_catchments:
             num_in_all_cog +=1
 
         if params.fasta != "" or num_in_all_cog !=0:
-            if params.collapse_before:
+            if params.delay_collapse==False:
                 print(f"Passing {input.query} into processing pipeline.")
                 shell("snakemake --nolock --snakefile {input.snakefile_collapse_before:q} "
                             "{params.force} "

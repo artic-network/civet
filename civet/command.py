@@ -36,7 +36,7 @@ def main(sysargs = sys.argv[1:]):
     parser.add_argument("-uun","--your-user-name", action="store", help="Your CLIMB COG-UK username. Required if running with --remote flag", dest="uun")
     parser.add_argument('-o','--outdir', action="store",help="Output directory. Default: current working directory")
     parser.add_argument('--datadir', action="store",help="Data directory. Default with --remote flag will rsync COG_UK data from CLIMB.")
-
+    parser.add_argument('--delay-tree-collapse',action="store_true",dest="delay_tree_collapse",help="Wait until after iqtree runs to collapse the polytomies. NOTE: This may result in large trees that take quite a while to run.")
     parser.add_argument('-n', '--dry-run', action='store_true',help="Go through the motions but don't actually run")
     parser.add_argument('-f', '--force', action='store_true',help="Overwrite all output",dest="force")
     # parser.add_argument('--tempdir',action="store",help="Specify where you want the temp stuff to go. Default: $TMPDIR")
@@ -238,7 +238,10 @@ You will also need to specify your CLIMB username e.g. `-uun climb-covid19-uun`"
     if args.force:
         config["force"]="forceall"
     # find the data
-
+    if args.delay_tree_collapse:
+        config["delay_collapse"] = "True"
+    else:
+        config["delay_collapse"] = "False"
     reference_fasta = pkg_resources.resource_filename('civet', 'data/reference.fasta')
     font_file = pkg_resources.resource_filename('civet', 'data/HelveticaNeue.ttf')
 

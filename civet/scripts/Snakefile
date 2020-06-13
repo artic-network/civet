@@ -16,6 +16,11 @@ if config["quiet_mode"]=="True":
 else:
     config["quiet_mode"] = ""
 
+if config["delay_collapse"] == "False":
+    config["delay_collapse"] = False
+elif config["delay_collapse"] == "True":
+    config["delay_collapse"] = True
+
 ##### Target rules #####
 rule all:
     input:
