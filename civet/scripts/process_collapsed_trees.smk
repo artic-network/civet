@@ -30,7 +30,7 @@ rule summarise_polytomies:
         tree_dir = os.path.join(config["outdir"],"catchment_trees")
     output:
         collapsed_tree = os.path.join(config["outdir"],"collapsed_trees","{tree}.tree"),
-        collapsed_information = os.path.join(config["outdir"],"collapsed_trees","{tree}.collapsed_info.txt")
+        collapsed_information = os.path.join(config["outdir"],"restored_trees","{tree}.txt")
     shell:
         """
         clusterfunk focus -i {input.tree:q} \
@@ -249,7 +249,7 @@ rule to_nexus:
 
 rule summarise_processing:
     input:
-        collapse_reports = expand(os.path.join(config["outdir"],"collapsed_trees","{tree}.collapsed_info.txt"), tree=config["tree_stems"])
+        collapse_reports = expand(os.path.join(config["outdir"],"restored_trees","{tree}.txt"), tree=config["tree_stems"])
     output:
         report = os.path.join(config["outdir"],"combined_trees","collapse_report.txt")
     run:
