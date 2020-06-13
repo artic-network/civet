@@ -20,7 +20,7 @@ rule all:
     input:
         expand(os.path.join(config["outdir"], "collapsed_trees","{tree}.tree"), tree = config["tree_stems"]),
         os.path.join(config["outdir"],"combined_trees","collapse_report.txt"),
-        expand(os.path.join(config["outdir"],"combined_trees","{tree}.tree"), tree = config["tree_stems"])
+        expand(os.path.join(config["outdir"],"renamed_trees","{tree}.query.aln.fasta.treefile"), tree = config["tree_stems"])
 
 rule summarise_polytomies:
     input:
@@ -118,24 +118,24 @@ rule gather_fasta_seqs:
             for record in SeqIO.parse(input.post_qc_query, "fasta"):
                 if record.id in queries.values() or record.id in queries.keys():
                     iqtree_friendly = record.id.replace("/","_")
-                    fw.write(f">{iqtree_friendly}\n{record.seq}\n")
+                    fw.write(f">{record.id}\n{record.seq}\n")
                     added_seqs.append(record.id)
 
             for record in SeqIO.parse(input.in_all_cog_fasta, "fasta"):
                 if record.id in queries.values() or record.id in queries.keys():
                     iqtree_friendly = record.id.replace("/","_")
-                    fw.write(f">{iqtree_friendly}\n{record.seq}\n")
+                    fw.write(f">{record.id}\n{record.seq}\n")
                     added_seqs.append(record.id)
 
             for record in SeqIO.parse(input.collapsed_nodes, "fasta"):
                 iqtree_friendly = record.id.replace("/","_")
-                fw.write(f">{iqtree_friendly}\n{record.seq}\n")
+                fw.write(f">{record.id}\n{record.seq}\n")
                 added_seqs.append(record.id)
 
             for record in SeqIO.parse(input.cog_seqs,"fasta"):
                 if record.id in taxa:
                     iqtree_friendly = record.id.replace("/","_")
-                    fw.write(f">_{iqtree_friendly}_\n{record.seq}\n")
+                    fw.write(f">{record.id}\n{record.seq}\n")
                     added_seqs.append(record.id)
         not_added = []
         for seq in taxa:
@@ -145,15 +145,66 @@ rule gather_fasta_seqs:
         for seq in not_added:
             print(f"- {seq}")
 
+# rule rename:
+#     input:
+#         tree=os.path.join(config["outdir"],"collapsed_trees","{tree}.tree")
+#     output:
+#         tree = os.path.join(config["outdir"],"collapsed_trees","{tree}.fixed.tree")
+#     shell:
+#         """
+#         clusterfunk relabel_tips -i {input.tree} \
+#         -o {output.tree} \
+#         --from-label \
+#         --parse-taxon-key "\'(.+)\/(.+)\/(.+)\'" \
+#         --separator "/" \
+#         --replace \
+#         --in-format newick \
+#         --out-format newick
+#         """
 
+rule hash_for_iqtree:
+    input:
+        aln = rules.gather_fasta_seqs.output.aln
+    output:
+        hash = os.path.join(config["outdir"], "renamed_trees","{tree}.hash_for_iqtree.csv"),
+        hashed_aln = os.path.join(config["outdir"], "renamed_trees","{tree}.query.aln.fasta")
+    run:
+        fw = open(output.hash, "w")
+        fw.write("taxon,iqtree_hash,cluster_hash\n")
+        hash_count = 0
+        with open(output.hashed_aln, "w") as fseq:
+            for record in SeqIO.parse(input.aln, "fasta"):
+                hash_count +=1
+                without_str = record.id.rstrip("'").lstrip("'")
+                fw.write(f"{without_str},'taxon_{hash_count}',taxon_{hash_count}\n")
+                fseq.write(f">'taxon_{hash_count}'\n{record.seq}\n")
+        fw.close()
+
+rule hash_tax_labels:
+    input:
+        tree=os.path.join(config["outdir"],"collapsed_trees","{tree}.tree"),
+        hash = rules.hash_for_iqtree.output.hash
+    output:
+        tree = os.path.join(config["outdir"],"renamed_trees","{tree}.tree")
+    shell:
+        """
+        clusterfunk relabel_tips -i {input.tree} \
+        -o {output[0]} \
+        --in-metadata {input.hash} \
+        --index-column taxon \
+        --trait-columns cluster_hash \
+        --replace \
+        --in-format newick \
+        --out-format newick
+        """
 
 rule iqtree_catchment:
     input:
-        aln = os.path.join(config["outdir"], "catchment_aln","{tree}.query.aln.fasta"),
-        guide_tree = rules.summarise_polytomies.output.collapsed_tree,
+        aln = rules.hash_for_iqtree.output.hashed_aln,
+        guide_tree = rules.hash_tax_labels.output.tree,
         taxa = rules.extract_taxa.output.tree_taxa
     output:
-        tree = os.path.join(config["outdir"], "catchment_aln","{tree}.query.aln.fasta.treefile")
+        tree = os.path.join(config["outdir"], "renamed_trees","{tree}.query.aln.fasta.treefile")
     run:
         taxa = 0
         aln_taxa = 0
@@ -164,24 +215,11 @@ rule iqtree_catchment:
         for record in SeqIO.parse(input.aln, "fasta"):
             aln_taxa +=1 
         if taxa != aln_taxa:
-            shell("iqtree -s {input.aln:q} -bb 1000 -au -alrt 1000 -g {input.guide_tree:q} -m HKY -nt 1 -redo")
+            shell("iqtree -s {input.aln:q} -bb 1000 -au -alrt 1000 -m HKY -nt 1 -redo")
         else:
             shell("cp {input.guide_tree} {output.tree}")
 
-rule rename:
-    input:
-        tree=rules.iqtree_catchment.output.tree
-    output:
-        os.path.join(config["outdir"],"combined_trees","{tree}.tree")
-    shell:
-        """
-        clusterfunk relabel_tips -i {input.tree} \
-        -o {output[0]} \
-         --from-label \
-        --parse-taxon-key "_(.+)_(.+)_(.+)_" \
-        --separator "/" \
-         --in-format newick 
-        """
+
 
 rule summarise_processing:
     input:
@@ -197,6 +235,3 @@ rule summarise_processing:
                         l = l.rstrip("\n")
                         new_l = f"{fn}\t{l}\n"
                         fw.write(new_l)
-
-
-
