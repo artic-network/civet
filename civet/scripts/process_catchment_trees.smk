@@ -72,18 +72,23 @@ rule gather_fasta_seqs:
 rule iqtree_catchment:
     input:
         aln = os.path.join(config["outdir"], "catchment_aln","{tree}.query.aln.fasta"),
-        guide_tree = os.path.join(config["outdir"], "catchment_trees","{tree}.tree")
+        guide_tree = os.path.join(config["outdir"], "catchment_trees","{tree}.tree"),
+        taxa = os.path.join(config["outdir"], "catchment_trees","{tree}.txt")
     output:
-        os.path.join(config["outdir"], "catchment_aln","{tree}.aln.fasta.treefile"),
-        os.path.join(config["outdir"], "catchment_aln","{tree}.aln.fasta.parstree"),
-        os.path.join(config["outdir"], "catchment_aln","{tree}.aln.fasta.splits.nex"),
-        os.path.join(config["outdir"], "catchment_aln","{tree}.aln.fasta.contree"),
-        os.path.join(config["outdir"], "catchment_aln","{tree}.aln.fasta.log"),
-        os.path.join(config["outdir"], "catchment_aln","{tree}.aln.fasta.ckp.gz"),
-        os.path.join(config["outdir"], "catchment_aln","{tree}.aln.fasta.iqtree")
-    shell:
-        "iqtree -s {input.aln:q} -bb 1000 -au -alrt 1000 -g {input.guide_tree:q} -m HKY -nt 1 -redo"
-
+        tree = os.path.join(config["outdir"], "catchment_aln","{tree}.aln.fasta.treefile")
+    run:
+        taxa = 0
+        aln_taxa = 0
+        with open(input.taxa, "r") as f:
+            for l in f:
+                l  = l.rstrip ("\n")
+                taxa +=1
+        for record in SeqIO.parse(aln, "fasta"):
+            aln_taxa +=1 
+        if taxa != aln_taxa:
+            shell("iqtree -s {input.aln:q} -bb 1000 -au -alrt 1000 -g {input.guide_tree:q} -m HKY -nt 1 -redo")
+        else:
+            shell("cp {input.guide_tree} {output.tree}")
 rule rename:
     input:
         tree=rules.iqtree_catchment.output
