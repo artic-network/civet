@@ -37,7 +37,7 @@ rule non_cog_minimap2_to_reference:
         sam = os.path.join(config["outdir"],"post_qc_query.reference_mapped.sam")
     shell:
         """
-        minimap2 -a -x asm5 {input.reference} {input.fasta} > {output.sam}
+        minimap2 -a -x asm5 {input.reference:q} {input.fasta:q} > {output.sam:q}
         """
 
 rule non_cog_remove_insertions_and_trim_and_pad:
@@ -53,9 +53,9 @@ rule non_cog_remove_insertions_and_trim_and_pad:
     shell:
         """
         datafunk sam_2_fasta \
-          -s {input.sam} \
-          -r {input.reference} \
-          -o {output.fasta} \
+          -s {input.sam:q} \
+          -r {input.reference:q} \
+          -o {output.fasta:q} \
           -t [{params.trim_start}:{params.trim_end}] \
           --pad \
           --log-inserts &
@@ -70,7 +70,7 @@ rule minimap2_against_cog:
         paf = os.path.join(config["outdir"],"post_qc_query.cog_mapped.paf")
     shell:
         """
-        minimap2 -x asm5 --secondary=no --paf-no-hit {input.cog_seqs} {input.query_seqs} > {output.paf}
+        minimap2 -x asm5 --secondary=no --paf-no-hit {input.cog_seqs:q} {input.query_seqs:q} > {output.paf:q}
         """
 
 rule parse_paf:
@@ -86,7 +86,7 @@ rule parse_paf:
         parse_paf.py \
         --paf {input.paf:q} \
         --metadata {input.metadata:q} \
-        --seqs {input.fasta} \
+        --seqs {input.fasta:q} \
         --csv-out {output.csv:q} \
         --seqs-out {output.fasta:q}
         """
