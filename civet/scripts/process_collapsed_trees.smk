@@ -198,7 +198,7 @@ rule iqtree_catchment:
         for record in SeqIO.parse(input.aln, "fasta"):
             aln_taxa +=1 
         if taxa != aln_taxa:
-            shell("iqtree -s {input.aln:q} -bb 1000 -au -alrt 1000 -m HKY -nt 1 -redo")
+            shell("iqtree -s {input.aln:q} -bb 1000 -au -m HKY -nt 1 -redo")
         else:
             with open(output.tree,"w") as fw:
                 with open(input.guide_tree, "r") as f:

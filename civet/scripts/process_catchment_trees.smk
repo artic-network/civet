@@ -86,7 +86,7 @@ rule iqtree_catchment:
         for record in SeqIO.parse(aln, "fasta"):
             aln_taxa +=1 
         if taxa != aln_taxa:
-            shell("iqtree -s {input.aln:q} -bb 1000 -au -alrt 1000 -g {input.guide_tree:q} -m HKY -nt 1 -redo")
+            shell("iqtree -s {input.aln:q} -bb 1000 -au -g {input.guide_tree:q} -m HKY -nt 1 -redo")
         else:
             shell("cp {input.guide_tree} {output.tree}")
 rule rename:
