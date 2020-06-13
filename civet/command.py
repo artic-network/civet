@@ -186,7 +186,7 @@ def main(sysargs = sys.argv[1:]):
             sys.stderr.write('Error: Username (-uun) required with --remote flag\n')
             sys.exit(-1)
     else:
-        data_dir = "/cephfs/covid/bham/raccoon-dog/civet-data"
+        data_dir = "/cephfs/covid/bham/civet-cat"
         if os.path.exists(data_dir):
             config["remote"] = "False"
             config["username"] = ""
