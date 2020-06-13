@@ -212,7 +212,7 @@ rule restore_tip_names:
         tree = rules.iqtree_catchment.output.tree,
         hash = rules.hash_for_iqtree.output.hash
     output:
-        os.path.join(config["outdir"],"restored_trees","{tree}.tree")
+        os.path.join(config["outdir"],"almost_restored_trees","{tree}.tree")
     shell:
         """
         clusterfunk relabel_tips -i {input.tree} \
@@ -224,6 +224,20 @@ rule restore_tip_names:
         --in-format newick \
         --out-format newick
         """
+
+rule remove_str_for_baltic:
+    input:
+        tree = os.path.join(config["outdir"],"almost_restored_trees","{tree}.tree")
+    output:
+        tree = os.path.join(config["outdir"],"restored_trees","{tree}.tree")
+    run:
+        with open(output.tree,"w") as fw:
+            with open(input.tree, "r") as f:
+                for l in f:
+                    l = l.rstrip("\n")
+                    l = l.replace("'","")
+                    fw.write(l)
+    
 
 rule summarise_processing:
     input:
