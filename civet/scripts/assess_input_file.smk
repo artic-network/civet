@@ -194,7 +194,7 @@ rule process_catchments:
         # tempdir= config["tempdir"],
         path = workflow.current_basedir,
         cores = workflow.cores,
-        delay_collapse = config["delay_collapse"]
+        delay_collapse = config["delay_collapse"],
         force = config["force"],
         fasta = config["fasta"],
         tree_dir = os.path.join(config["outdir"],"catchment_trees"),
@@ -253,7 +253,7 @@ rule process_catchments:
 
 rule make_report:
     input:
-        lineage_trees = os.path.join(config["outdir"],"collapsed_trees","collapse_report.txt"),
+        lineage_trees = os.path.join(config["outdir"],"combined_trees","collapse_report.txt"),
         query = config["query"],
         combined_metadata = os.path.join(config["outdir"],"combined_metadata.csv"),
         full_cog_metadata = config["cog_metadata"],
