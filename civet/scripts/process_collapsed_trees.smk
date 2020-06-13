@@ -12,18 +12,20 @@ combined_metadata
 from Bio import Phylo
 from Bio import SeqIO
 import csv
+import collections
 
 config["tree_stems"] = config["catchment_str"].split(",")
 
 rule all:
     input:
         expand(os.path.join(config["outdir"], "collapsed_trees","{tree}.tree"), tree = config["tree_stems"]),
-        os.path.join(config["outdir"],"combined_trees","collapse_report.txt")
+        os.path.join(config["outdir"],"combined_trees","collapse_report.txt"),
+        expand(os.path.join(config["outdir"],"combined_trees","{tree}.tree"), tree = config["tree_stems"])
 
 rule summarise_polytomies:
     input:
         tree = os.path.join(config["outdir"], "catchment_trees","{tree}.tree"),
-        metadata = os.path.join(config["outdir"],"combined_metadata.csv")
+        metadata = config["combined_metadata"]
     params:
         tree_dir = os.path.join(config["outdir"],"catchment_trees")
     output:
@@ -34,7 +36,9 @@ rule summarise_polytomies:
         clusterfunk focus -i {input.tree:q} \
         -o {output.collapsed_tree:q} \
         --metadata {input.metadata} \
-        --index-column query \
+        --index-column closest \
+        --in-format newick \
+        --out-format newick \
         --output-tsv {output.collapsed_information}
         """
 
@@ -43,12 +47,12 @@ rule get_collapsed_representative:
         cog_seqs = config["all_cog_seqs"],
         collapsed_information = rules.summarise_polytomies.output.collapsed_information
     params:
-        tree_dir = os.path.join(config["outdir"],"catchment_trees")
+        tree_dir = os.path.join(config["outdir"],"collapsed_trees")
     output:
         representative_seq = os.path.join(config["outdir"],"collapsed_trees","{tree}_representatives.fasta"),
     run:
         collapsed = {}
-        collapsed_seqs = {}
+        collapsed_seqs = collections.defaultdict(list)
         
         with open(input.collapsed_information, "r") as f:
             for l in f:
@@ -59,6 +63,7 @@ rule get_collapsed_representative:
             for node in collapsed:
                 if record.id in collapsed[node]:
                     collapsed_seqs[node].append(record)
+
         with open(output.representative_seq, "w") as fw:
             for node in collapsed_seqs:
                 records = collapsed_seqs[node]
@@ -69,7 +74,7 @@ rule get_collapsed_representative:
                         if base.upper() not in ["A","T","C","G","-"]:
                             amb_count +=1
                     amb_pcent = (100*amb_count) / len(record.seq)
-                    sorted_with_amb.append(record.id, amb_pcent, record.seq)
+                    sorted_with_amb.append((record.id, amb_pcent, record.seq))
                 sorted_with_amb = sorted(sorted_with_amb, key = lambda x : x[1])
                 rep = sorted_with_amb[0]
                 fw.write(f">{node} representative={rep[0]} ambiguity={rep[1]}\n{rep[2]}\n")
@@ -80,7 +85,7 @@ rule extract_taxa:
     output:
         tree_taxa = os.path.join(config["outdir"], "collapsed_trees","{tree}_taxon_names.txt")
     shell:
-        "clusterfunk get_taxa -i {input.tree} --in-format newick -o {output.tree_taxa} --out-format newick"
+        "clusterfunk get_taxa -i {input.collapsed_tree} --in-format newick -o {output.tree_taxa} --out-format newick"
 
 rule gather_fasta_seqs:
     input:
@@ -89,7 +94,7 @@ rule gather_fasta_seqs:
         in_all_cog_fasta = config["in_all_cog_fasta"],
         cog_seqs = config["all_cog_seqs"],
         combined_metadata = config["combined_metadata"],
-        tree_taxa = os.path.join(config["outdir"], "collapsed_trees","{tree}.txt")
+        tree_taxa = rules.extract_taxa.output.tree_taxa
     output:
         aln = os.path.join(config["outdir"], "catchment_aln","{tree}.query.aln.fasta")
     run:
@@ -145,10 +150,10 @@ rule gather_fasta_seqs:
 rule iqtree_catchment:
     input:
         aln = os.path.join(config["outdir"], "catchment_aln","{tree}.query.aln.fasta"),
-        guide_tree = os.path.join(config["outdir"], "collapsed_trees","{tree}.tree"),
-        taxa = os.path.join(config["outdir"], "collapsed_trees","{tree}.txt")
+        guide_tree = rules.summarise_polytomies.output.collapsed_tree,
+        taxa = rules.extract_taxa.output.tree_taxa
     output:
-        tree = os.path.join(config["outdir"], "catchment_aln","{tree}.aln.fasta.treefile")
+        tree = os.path.join(config["outdir"], "catchment_aln","{tree}.query.aln.fasta.treefile")
     run:
         taxa = 0
         aln_taxa = 0
@@ -156,7 +161,7 @@ rule iqtree_catchment:
             for l in f:
                 l  = l.rstrip ("\n")
                 taxa +=1
-        for record in SeqIO.parse(aln, "fasta"):
+        for record in SeqIO.parse(input.aln, "fasta"):
             aln_taxa +=1 
         if taxa != aln_taxa:
             shell("iqtree -s {input.aln:q} -bb 1000 -au -alrt 1000 -g {input.guide_tree:q} -m HKY -nt 1 -redo")
@@ -165,7 +170,7 @@ rule iqtree_catchment:
 
 rule rename:
     input:
-        tree=rules.iqtree_catchment.output
+        tree=rules.iqtree_catchment.output.tree
     output:
         os.path.join(config["outdir"],"combined_trees","{tree}.tree")
     shell:
@@ -180,7 +185,7 @@ rule rename:
 
 rule summarise_processing:
     input:
-        collapse_reports = expand(os.path.join(config["outdir"],"combined_trees","{tree}.txt"), tree=config["tree_stems"])
+        collapse_reports = expand(os.path.join(config["outdir"],"collapsed_trees","{tree}.collapsed_info.txt"), tree=config["tree_stems"])
     output:
         report = os.path.join(config["outdir"],"combined_trees","collapse_report.txt")
     run:
