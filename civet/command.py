@@ -79,12 +79,11 @@ def main(sysargs = sys.argv[1:]):
     else:
         print("No fasta loaded")
         fasta = ""
-
     
     # default output dir
     outdir = ''
     if args.outdir:
-        rel_outdir = args.outdir
+        rel_outdir = args.outdir #for report weaving
         outdir = os.path.join(cwd, args.outdir)
         
         if not os.path.exists(outdir):
@@ -109,6 +108,7 @@ def main(sysargs = sys.argv[1:]):
     2) check fasta file N content
     3) write a file that contains just the seqs to run
     """
+
     fields = []
     queries = []
     with open(query, newline="") as f:
@@ -183,8 +183,9 @@ def main(sysargs = sys.argv[1:]):
                 config["all_cog_seqs"] = all_cog_seqs
                 config["cog_tree"] = cog_tree
         else:
-            sys.stderr.write('Error: Username (-uun) required with --remote flag\n')
-            sys.exit(-1)
+            if not args.datadir:
+                sys.stderr.write('Error: Username (-uun) required with --remote flag, or supply data directory\n')
+                sys.exit(-1)
     else:
         data_dir = "/cephfs/covid/bham/civet-cat"
         if os.path.exists(data_dir):
@@ -263,7 +264,6 @@ You will also need to specify your CLIMB username e.g. `-uun climb-covid19-uun`"
         quiet_mode = True
         config["quiet_mode"]="True"
 
-    # run subtyping
     status = snakemake.snakemake(snakefile, printshellcmds=True,
                                  dryrun=args.dry_run, forceall=args.force,force_incomplete=True,
                                  config=config, cores=threads,lock=False,quiet=quiet_mode
