@@ -264,12 +264,12 @@ rule make_report:
         treedir = os.path.join(config["outdir"],"restored_trees"),
         outdir = config["rel_outdir"],
         fields = config["fields"],
-        figdir = os.path.join(config["rel_outdir"],"figures")
     output:
+        poly_fig = os.path.join(config["outdir"],"figures","polytomies.png"),
         outfile = os.path.join(config["outdir"], "civet_report.md")
     shell:
         """
-        cp {input.polytomy_figure:q} {params.figdir} &&
+        cp {input.polytomy_figure:q} {output.poly_fig} &&
         make_report.py \
         --input-csv {input.query:q} \
         -f {params.fields:q} \
