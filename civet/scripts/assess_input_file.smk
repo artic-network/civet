@@ -214,21 +214,39 @@ rule process_catchments:
             num_in_all_cog +=1
 
         if params.fasta != "" or num_in_all_cog !=0:
-            print(f"Passing {input.query} into processing pipeline.")
-            shell("snakemake --nolock --snakefile {input.snakefile_collapse_before:q} "
-                        "{params.force} "
-                        "{params.quiet_mode} "
-                        # "--directory {params.tempdir:q} "
-                        "--config "
-                        f"catchment_str={catchment_str} "
-                        "outdir={params.outdir:q} "
-                        # "tempdir={params.tempdir:q} "
-                        "not_cog_csv={input.not_cog_csv:q} "
-                        "in_all_cog_fasta={input.in_all_cog_fasta:q} "
-                        "post_qc_query={input.query:q} "
-                        "all_cog_seqs={input.all_cog_seqs:q} "
-                        "combined_metadata={input.combined_metadata:q} "
-                        "--cores {params.cores}")
+            if params.collapse_before:
+                print(f"Passing {input.query} into processing pipeline.")
+                shell("snakemake --nolock --snakefile {input.snakefile_collapse_before:q} "
+                            "{params.force} "
+                            "{params.quiet_mode} "
+                            # "--directory {params.tempdir:q} "
+                            "--config "
+                            f"catchment_str={catchment_str} "
+                            "outdir={params.outdir:q} "
+                            # "tempdir={params.tempdir:q} "
+                            "not_cog_csv={input.not_cog_csv:q} "
+                            "in_all_cog_fasta={input.in_all_cog_fasta:q} "
+                            "post_qc_query={input.query:q} "
+                            "all_cog_seqs={input.all_cog_seqs:q} "
+                            "combined_metadata={input.combined_metadata:q} "
+                            "--cores {params.cores}")
+            else:
+                print(f"Passing {input.query} into processing pipeline.")
+                shell("snakemake --nolock --snakefile {input.snakefile_collapse_after:q} "
+                            "{params.force} "
+                            "{params.quiet_mode} "
+                            # "--directory {params.tempdir:q} "
+                            "--config "
+                            f"catchment_str={catchment_str} "
+                            "outdir={params.outdir:q} "
+                            # "tempdir={params.tempdir:q} "
+                            "not_cog_csv={input.not_cog_csv:q} "
+                            "in_all_cog_fasta={input.in_all_cog_fasta:q} "
+                            "post_qc_query={input.query:q} "
+                            "all_cog_seqs={input.all_cog_seqs:q} "
+                            "combined_metadata={input.combined_metadata:q} "
+                            "--cores {params.cores}")
+
         else:
             shell("touch {output.tree_summary:q}")
 
@@ -241,7 +259,7 @@ rule make_report:
         report_template = config["report_template"],
         font = config["font_file"] 
     params:
-        tree_dir = os.path.join(config["outdir"],"trees_with_querys"),
+        tree_dir = os.path.join(config["outdir"],"restored_trees"),
         outdir = config["rel_outdir"],
         fields = config["fields"]
     output:
