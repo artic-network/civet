@@ -244,6 +244,7 @@ You will also need to specify your CLIMB username e.g. `-uun climb-covid19-uun`"
         config["delay_collapse"] = "False"
     reference_fasta = pkg_resources.resource_filename('civet', 'data/reference.fasta')
     font_file = pkg_resources.resource_filename('civet', 'data/HelveticaNeue.ttf')
+    polytomy_figure = pkg_resources.resource_filename('civet', 'data/polytomies.png')
 
     print("The reference genome is found", reference_fasta)
     print("The font file is", font_file)
@@ -257,6 +258,7 @@ You will also need to specify your CLIMB username e.g. `-uun climb-covid19-uun`"
 
     config["reference_fasta"] = reference_fasta
     config["font_file"] = font_file
+    config["polytomy_figure"] = polytomy_figure
     config["report_template"] = report_template
 
 
