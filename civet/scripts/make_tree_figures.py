@@ -226,7 +226,7 @@ def make_all_of_the_trees(input_dir, taxon_dict, query_id_dict, query_dict, min_
         with open(input_dir + "/" + treefile,"r") as f:
             for l in f:
                 l = l.rstrip("\n")
-                if l.startswith("    DIMENSIONS NTAX"):
+                if l.startswith(" Dimensions NTax="):
                     num_taxa = int(l.rstrip(";").split("=")[1])
                     intro_name = fn
 
