@@ -264,6 +264,7 @@ rule make_report:
         treedir = os.path.join(config["outdir"],"restored_trees"),
         outdir = config["rel_outdir"],
         fields = config["fields"],
+        figdir = os.path.join(config["outdir"],"figures")
     output:
         poly_fig = os.path.join(config["outdir"],"figures","polytomies.png"),
         outfile = os.path.join(config["outdir"], "civet_report.md")
