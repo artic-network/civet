@@ -70,12 +70,18 @@ def display_name(tree, tree_name, tree_dir, query_id_dict, full_taxon_dict):
                 k.traits["display"] = collapsed_node_info
             else:
                 # taxon_obj = query_id_dict[name] #I think this isn't needed because the ones in COG will just have the full name in the tree
-                taxon_obj = full_taxon_dict[name]
-                if "sample_date" in taxon_obj.attribute_dict.keys():
-                    date = taxon_obj.attribute_dict["sample_date"]
-                    k.traits["display"] = f"{name}|{date}"
+                if name in full_taxon_dict:
+                    taxon_obj = full_taxon_dict[name]
+                    if "sample_date" in taxon_obj.attribute_dict.keys():
+                        date = taxon_obj.attribute_dict["sample_date"]
+                        k.traits["display"] = f"{name}|{date}"
+                    else:
+                        k.traits["display"] = name
                 else:
-                    k.traits["display"] = name
+                    taxon_obj = ""
+                    k.traits["display"] = name + "|" + "not in dict"
+
+                
                 
                 # if "county" in taxon_obj.attribute_dict.keys(): 
                 #     county = taxon_obj.attribute_dict["county"]
