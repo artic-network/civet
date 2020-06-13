@@ -20,7 +20,7 @@ rule all:
     input:
         expand(os.path.join(config["outdir"], "collapsed_trees","{tree}.tree"), tree = config["tree_stems"]),
         os.path.join(config["outdir"],"combined_trees","collapse_report.txt"),
-        expand(os.path.join(config["outdir"],"renamed_trees","{tree}.query.aln.fasta.treefile"), tree = config["tree_stems"])
+        expand(os.path.join(config["outdir"],"restored_trees","{tree}.tree"), tree = config["tree_stems"])
 
 rule summarise_polytomies:
     input:
@@ -145,23 +145,6 @@ rule gather_fasta_seqs:
         for seq in not_added:
             print(f"- {seq}")
 
-# rule rename:
-#     input:
-#         tree=os.path.join(config["outdir"],"collapsed_trees","{tree}.tree")
-#     output:
-#         tree = os.path.join(config["outdir"],"collapsed_trees","{tree}.fixed.tree")
-#     shell:
-#         """
-#         clusterfunk relabel_tips -i {input.tree} \
-#         -o {output.tree} \
-#         --from-label \
-#         --parse-taxon-key "\'(.+)\/(.+)\/(.+)\'" \
-#         --separator "/" \
-#         --replace \
-#         --in-format newick \
-#         --out-format newick
-#         """
-
 rule hash_for_iqtree:
     input:
         aln = rules.gather_fasta_seqs.output.aln
@@ -176,7 +159,7 @@ rule hash_for_iqtree:
             for record in SeqIO.parse(input.aln, "fasta"):
                 hash_count +=1
                 without_str = record.id.rstrip("'").lstrip("'")
-                fw.write(f"{without_str},'taxon_{hash_count}',taxon_{hash_count}\n")
+                fw.write(f"{without_str},_taxon_{hash_count}_,taxon_{hash_count}\n")
                 fseq.write(f">'taxon_{hash_count}'\n{record.seq}\n")
         fw.close()
 
@@ -217,9 +200,30 @@ rule iqtree_catchment:
         if taxa != aln_taxa:
             shell("iqtree -s {input.aln:q} -bb 1000 -au -alrt 1000 -m HKY -nt 1 -redo")
         else:
-            shell("cp {input.guide_tree} {output.tree}")
+            with open(output.tree,"w") as fw:
+                with open(input.guide_tree, "r") as f:
+                    for l in f:
+                        l = l.rstrip("\n")
+                        l = l.replace("'","_")
+                        fw.write(l)
 
-
+rule restore_tip_names:
+    input:
+        tree = rules.iqtree_catchment.output.tree,
+        hash = rules.hash_for_iqtree.output.hash
+    output:
+        os.path.join(config["outdir"],"restored_trees","{tree}.tree")
+    shell:
+        """
+        clusterfunk relabel_tips -i {input.tree} \
+        -o {output[0]} \
+        --in-metadata {input.hash} \
+        --index-column iqtree_hash \
+        --trait-columns taxon \
+        --replace \
+        --in-format newick \
+        --out-format newick
+        """
 
 rule summarise_processing:
     input:
