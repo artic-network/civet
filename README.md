@@ -72,23 +72,30 @@ Example usage:
 
 Full usage:
 ```
+civet: Cluster Investivation & Virus Epidemiology Tool
+
 positional arguments:
-  query                 Input csv file with minimally "name" as a column header.
-                        Can include additional fields to be incorporated into the
-                        analysis, e.g. sample_date
+  query                 Input csv file with minimally `name` as a column
+                        header. Can include additional fields to be
+                        incorporated into the analysis, e.g. `sample_date`
 
 optional arguments:
   -h, --help            show this help message and exit
   --fasta FASTA         Optional fasta query.
-  --remote              Remotely access lineage trees from CLIMB (note read
-                        access required)
-  -uun UUN, --your-user-name UUN
-                        Your CLIMB COG-UK username. Required if running with
+  --remote              Remotely access lineage trees from CLIMB, need to
+                        supply --your-user-name
+  -uun UUN, 
+  --your-user-name UUN. Your CLIMB COG-UK username. Required if running with
                         --remote flag
-  -o OUTDIR, --outdir OUTDIR
+  -o OUTDIR, 
+  --outdir OUTDIR
                         Output directory. Default: current working directory
-  --datadir DATADIR     Data directory. Default with --remote flag will
-                        rsync COG_UK data from CLIMB.
+  --datadir DATADIR     Data directory. Default with --remote flag will rsync
+                        COG_UK data from CLIMB.
+  --delay-tree-collapse
+                        Wait until after iqtree runs to collapse the
+                        polytomies. NOTE: This may result in large trees that
+                        take quite a while to run.
   -n, --dry-run         Go through the motions but don't actually run
   -f, --force           Overwrite all output
   -t THREADS, --threads THREADS
@@ -99,6 +106,7 @@ optional arguments:
   --min-length MINLEN   Minimum query length allowed to attempt analysis.
                         Default: 10000
   -v, --version         show program's version number and exit
+
 ```
 
 ### Analysis pipeline
@@ -115,9 +123,13 @@ Overview:
 
 - The metadata for the closest sequences are also pulled out of the large COG-UK database.
 
-- For each set of sequences in the large COG-UK tree, local subtrees are pruned out and vizualised.
+- Combining the metadata from the COG-UK records of the closest hit and the exact matching records found in COG-UK, `civet` queries the large global phylogeny (also from COG-UK database)containing all COG-UK and all GISAID sequences. The local trees around the relevant tips are pruned out of the large phylogeny, merging overlapping local phylogenys as needed.
 
-- A report summarising the query sequences is generated, providing information about global and UK lineages.
+- If these local trees contain "closest-matching" tips, the sequence records for the tips on the tree and the sequences of the relevant queries are added into an alignment. Any peripheral sequences coming off of a polytomy are collapsed to a single node and summaries of the tip's contents are output.
+
+- After collapsing the nodes, civet runs `iqtree` on the new alignment, now with query sequences in. Optionally, the `--delay-tree-collapse` argument will wait to collapse nodes until after `iqtree` has added the new query sequences in, but be wary as some of these local trees can be very large and may take a number of hours to run. 
+
+- `civet` then generates a report summarising the query sequences, providing information about global and UK lineages.
 
 ### Output
 
