@@ -34,7 +34,7 @@ civet runs on MacOS and Linux. The conda environment recipe may not build on Win
 3. ``conda activate civet``
 4. ``python setup.py install`` or ``pip install .``
 
-> Note: we recommend using pangolin in the conda environment specified in the ``environment.yml`` file as per the instructions above. If you can't use conda for some reason, dependency details can be found in the ``environment.yml`` file.
+> Note: we recommend using civet in the conda environment specified in the ``environment.yml`` file as per the instructions above. If you can't use conda for some reason, dependency details can be found in the ``environment.yml`` file.
 
 
 ### Check the install worked
@@ -68,7 +68,7 @@ updates the conda environment
 2. Run ``civet <query> [options]``
 
 Example usage:
-> ``civet civet/tests/test.csv --fasta civet/tests/test.fasta --remote -uun <your-user-name>``, where `<your-user-name>` represents your unique climb identifier.
+> ``civet civet/tests/test.csv --fasta civet/tests/test.fasta --remote -uun <your-user-name>``, where `<your-user-name>` represents your unique CLIMB identifier.
 
 Full usage:
 ```
@@ -141,11 +141,13 @@ Data associated with COG-UK is pulled from CLIMB, which is why access to CLIMB i
 
 Data files:
 
-- `/cephfs/covid/bham/artifacts/published/latest/phylogenetics/alignments/cog_2020-06-05_metadata.csv`
+- `/cephfs/covid/bham/civet-cat/cog_metadata.csv`
 
-- `/cephfs/covid/bham/artifacts/published/latest/phylogenetics/trees/cog_global_2020-06-05_tree.newick`
+- `/cephfs/covid/bham/civet-cat/cog_global.tree`
 
-- `/cephfs/covid/bham/artifacts/published/latest/phylogenetics/alignments/cog_2020-06-05_all_alignment.fasta`
+- `/cephfs/covid/bham/civet-cat/cog_gisaid_all.fasta`
+
+-- `/cephfs/covid/bham/civet-cat/cog.alignment.fasta`
 
 
 ### Authors
