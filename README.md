@@ -15,6 +15,7 @@ Cluster Investigation & Virus Epidemiology Tool
   * [Authors](#authors)
   * [Acknowledgements](#acknowledgements)
   * [References](#references)
+  * [Software versions](#software-versions)
 
 
 ### Requirements
@@ -101,6 +102,9 @@ optional arguments:
 ```
 
 ### Analysis pipeline
+
+Overview:
+
 <img src="https://github.com/COG-UK/civet/blob/master/workflow_diagram.png" width="900">
 
 - From the input csv (`<query>`), `civet` attempts to match the ids with COG-UK ids in the up-to-date metadata database.
@@ -161,3 +165,15 @@ Stéphane Guindon, Jean-François Dufayard, Vincent Lefort, Maria Anisimova, Wim
 [snakemake](https://snakemake.readthedocs.io/en/stable/index.html)
 
 Köster, Johannes and Rahmann, Sven. “Snakemake - A scalable bioinformatics workflow engine”. Bioinformatics 2012.
+
+### Software versions
+
+    - python=3.6
+    - snakemake-minimal=5.13 
+    - iqtree=1.6.12
+    - minimap2=2.17-r941
+    - pandas==1.0.1
+    - pytools=2020.1
+    - dendropy=4.4.0
+    - tabulate=0.8.7
+    
