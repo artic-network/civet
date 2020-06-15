@@ -8,7 +8,7 @@ For each query sequence, CIVET either finds them in the COG database, or matches
 Key points for interpreting this information:
 
  - This type of analysis is not able to infer direct transmission between two samples. Even identical sequences may be unrelated as SARS-COV2 is relatively slow evolving for an RNA virus. Our analysis has shown that samples taken over 100 days apart can be identical (see Figure S1). 
- - If sequences have different global or UK lineage designations, we can rule out transmission.
+ - If sequences have different global or UK lineage designations, we can rule out close epidemiological linkage.
  - If sequences have different phylotypes it’s very unlikely that they are direct transmissions. 
  - If sequences share the same lineage and the same phylotype, transmission cannot be ruled out and also cannot be confirmed.
 
@@ -23,30 +23,48 @@ If you have provided additional information in the input csv, and specified that
 
 
 
+201061090 is in the input file but not the processed file. This suggests that it is not in COG and a sequence has also not been provided.
+201090063 is in the input file but not the processed file. This suggests that it is not in COG and a sequence has also not been provided.
+201080063 is in the input file but not the processed file. This suggests that it is not in COG and a sequence has also not been provided.
 
 
 
-| Query ID            | Part of COG   | Sequence name in COG   | Closest sequence in COG   | UK lineage   | Global lineage   | Phylotype   | sample_date   |
-|:--------------------|:--------------|:-----------------------|:--------------------------|:-------------|:-----------------|:------------|:--------------|
-| EDB129_closestb     | False         | NA                     | Wales/PHWC-2A0F1/2020     | UK156        | B.1.71           | UK156_1     | NA            |
-| 20144000304_closest | False         | NA                     | England/LOND-D521D/2020   | UK63         | B.1.1            | UK63_1      | NA            |
-| BRIS-12174F_closest | False         | NA                     | England/BRIS-12174F/2020  | UK611        | B.1.1            | UK611_1     | NA            |
-| EDB3588             | True          | Scotland/EDB3588/2020  | NA                        | UK36         | B.1              | UK36_1.1.1  | 2020-04-27    |
-| EDB2533             | True          | Scotland/EDB2533/2020  | NA                        | UK845        | B.1.1            | UK845_1     | 2020-04-23    |
+
+| Query ID            | Part of COG   | Sequence name in COG   | Closest sequence in COG   | UK lineage   | Global lineage   | Phylotype   | country   | adm1     | HCW_status   |
+|:--------------------|:--------------|:-----------------------|:--------------------------|:-------------|:-----------------|:------------|:----------|:---------|:-------------|
+| EDB129_closest      | False         | NA                     | Scotland/EDB910/2020      | UK156        | B.1.71           | UK156_1     | UK        | Scotland | HCW          |
+| EDB129_closestb     | False         | NA                     | Wales/PHWC-2A0F1/2020     | UK156        | B.1.71           | UK156_1     | UK        | Wales    | Patient      |
+| 20144000304_closest | False         | NA                     | England/LOND-D521D/2020   | UK63         | B.1.1            | UK63_1      | UK        | England  | Patient      |
+| BRIS-12174F_closest | False         | NA                     | England/BRIS-12174F/2020  | UK611        | B.1.1            | UK611_1     | UK        | England  | HCW          |
+| EDB3588             | True          | Scotland/EDB3588/2020  | NA                        | UK36         | B.1              | UK36_1.1.1  | UK        | Scotland | HCW          |
+| EDB2533             | True          | Scotland/EDB2533/2020  | NA                        | UK845        | B.1.1            | UK845_1     | UK        | Scotland | Patient      |
 
 
 
 The nearest neighbours of each of the query sequences are shown below in order to show their phylogenetic context.
 
-This investigation's sequences are highlighted in pink.
+This investigation's sequences are coloured by country where red is England, dark blue is Scotland, green is Wales and light blue is Northern Ireland.
+If country was not provided in the input csv and the sequence is not in the COG database, then the sequence is coloured by the country of its closest match in the COG database.
+If you would like the specific country highlighted, please provide a column named "adm1" in the input csv.
 
 
 
 
-![](./figures/civet_report_tree_viz_1.png)\
-![](./figures/civet_report_tree_viz_2.png)\
-![](./figures/civet_report_tree_viz_3.png)\
-![](./figures/civet_report_tree_viz_4.png)
+
+
+
+Tree number 1 contains query: Scotland/EDB3588/2020
+Given that there are no other sequences in the query dataset that are in this tree, transmission between this sequence and other queries can be ruled out.
+![](./figures/civet_report_tree_viz_0.png)
+Tree number 2 contains queries: 20144000304_closest, Scotland/EDB2533/2020
+There are multiple query sequences in this tree, and so transmission cannot be ruled out, but neither can it be confirmed. Therefore their relationship must be investigated further using epidemiological data.
+![](./figures/civet_report_tree_viz_1.png)
+Tree number 3 contains queries: EDB129_closest, EDB129_closestb
+There are multiple query sequences in this tree, and so transmission cannot be ruled out, but neither can it be confirmed. Therefore their relationship must be investigated further using epidemiological data.
+![](./figures/civet_report_tree_viz_2.png)
+Tree number 4 contains query: BRIS-12174F_closest
+Given that there are no other sequences in the query dataset that are in this tree, transmission between this sequence and other queries can be ruled out.
+![](./figures/civet_report_tree_viz_3.png)
 
 
 
@@ -62,24 +80,51 @@ It is to illustrate that identical sequences does not confirm linked cases.
 
 
 
-![](./figures/polytomies.png)\
+![](./figures/polytomies.png)
+
 
 
 ### Useful definitions
 
-*Phylotype* \
+*Phylotype* 
+
 Each lineage phylogeny is labelled with phylotypes that describe shared mutations in the tree. If two sequences have the same phylotype it means the share mutations. They may also have additional, unique mutations. So having the same phylotype doesn't mean the seqeunces are identical. If sequences have different phylotypes however it means they are present on distinct parts of the phylogenetic tree.
 
-*UK lineage* \
+*UK lineage* 
+
 UK lineages are an approximation to distinct introductions of SARS-CoV-2 to the UK based on the phylogenetic tree.
 
-*Global lineage* \
+*Global lineage* 
+
 Assigned using the pangolin software, these are phylogenetic lineages. More information can be found at https://github.com/hCoV-2019/lineages
+
+### Software versions
+
+This report was made using:
+
+
+
+Python 3.6.10
+Matplotlib version 3.2.1
+Pandas version 1.0.1
+Tabulate version 0.8.7
+CSV version 1.0
+Numpy version 1.18.5
+Scipy version 1.5.0rc1
+No version number for Baltic
+The COG data used here was submitted in batch on 2020-06-12
+CIVET version is 0.1
+
 
 ## Acknowledgements
 
 This report was generated by CIVET.
 
-The background data was generated by the COG consortium (https://www.cogconsortium.uk/), a national, multi-centre consortium for the sequencing and analysis of SARS-CoV-2 genomes for Public Health.
+The background data from the UK was generated by the COG consortium (https://www.cogconsortium.uk/), a national, multi-centre consortium for the sequencing and analysis of SARS-CoV-2 genomes for Public Health.
+
+We also use some background data from GISAID (https://www.gisaid.org/) in the phylogenies. We thank everyone involved in the global sequencing effort for making their data available. 
+Acknowledgements for GISAID sequences that have been shown specifically in the tree can be found below.
 
 Tree data was visualised using baltic (https://github.com/evogytis/baltic)
+
+## GISAID acknowledgements table
