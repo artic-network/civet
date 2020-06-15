@@ -150,18 +150,21 @@ Data associated with COG-UK is pulled from CLIMB, which is why access to CLIMB i
 
 Data files:
 
+- `/cephfs/covid/bham/civet-cat/cog_global_tree.nexus`
+
 - `/cephfs/covid/bham/civet-cat/cog_metadata.csv`
 
-- `/cephfs/covid/bham/civet-cat/cog_global.tree`
+- `/cephfs/covid/bham/civet-cat/cog_metadata_all.csv`
 
-- `/cephfs/covid/bham/civet-cat/cog_gisaid_all.fasta`
+- `/cephfs/covid/bham/civet-cat/cog_global_alignment.fasta`
 
--- `/cephfs/covid/bham/civet-cat/cog.alignment.fasta`
+- `/cephfs/covid/bham/civet-cat/cog_alignment.fasta`
 
+- `/cephfs/covid/bham/civet-cat/cog_alignment_all.fasta`
 
 ### Authors
 
-`civet` was created by Áine O'Toole & Verity Hill, on behalf of the COG_UK consortium.
+`civet` was created by Áine O'Toole & Verity Hill & Rambaut Group on behalf of the COG_UK consortium.
 
 ### Acknowledgements
 
