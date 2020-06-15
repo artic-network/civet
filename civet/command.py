@@ -131,7 +131,7 @@ def main(sysargs = sys.argv[1:]):
         "fasta":fasta,
         "rel_outdir":rel_outdir,
         "search_field":args.search_field,
-        "force"="forceall"
+        "force":"True"
         }
 
     """ 
