@@ -4,34 +4,28 @@ rule all:
     input:
         os.path.join(config["outdir"],"closest_cog.csv")
 
-rule non_cog_match_fasta:
+rule combine_in_all_cog_and_query:
     input:
         fasta = config["post_qc_query"],
-        not_cog = config["not_cog_csv"]
+        in_all_cog_seqs = config["in_all_cog_seqs"]
     output:
-        fasta = os.path.join(config["outdir"],"not_in_cog.fasta")
+        fasta = os.path.join(config["outdir"],"to_find_closest.fasta")
     run:
-        not_cog = []
-        with open(input.not_cog, "r") as f:
-            for l in f:
-                l = l.rstrip("\n")
-                not_cog.append(l)
-        in_fasta = []
+        num_query = 0
+        num_all_cog = 0
         with open(output.fasta, "w") as fw:
             for record in SeqIO.parse(input.fasta, "fasta"):
-                if record.id in not_cog:
-                    fw.write(f">{record.id}\n{record.seq}\n")
-                    in_fasta.append(record.id)
-                else:
-                    in_fasta.append(record.id)
-        print("The following sequences queried not in COG \nand not in fasta file so cannot be analysed\n")
-        for record in not_cog:
-            if record not in in_fasta: 
-                print(record)
-                
+                num_query +=1
+                fw.write(f">{record.id} status=query_sequence\n{record.seq}\n")
+            for record in SeqIO.parse(input.in_all_cog_seqs, "fasta"):
+                num_all_cog +=1
+                fw.write(f">{record.id} status=in_all_cog\n{record.seq}\n")
+        print(f"{num_query} sequences from the query fasta\n{num_all_cog} found un-analysed in COG database\n")
+
+
 rule non_cog_minimap2_to_reference:
     input:
-        fasta = rules.non_cog_match_fasta.output.fasta,
+        fasta = rules.combine_in_all_cog_and_query.output.fasta,
         reference = config["reference_fasta"]
     output:
         sam = os.path.join(config["outdir"],"post_qc_query.reference_mapped.sam")
@@ -64,7 +58,7 @@ rule non_cog_remove_insertions_and_trim_and_pad:
 
 rule minimap2_against_cog:
     input:
-        query_seqs = config["post_qc_query"],
+        query_seqs = rules.combine_in_all_cog_and_query.output.fasta,
         cog_seqs = config["cog_seqs"]
     output:
         paf = os.path.join(config["outdir"],"post_qc_query.cog_mapped.paf")

@@ -148,7 +148,9 @@ rule get_closest_cog:
         reference_fasta = config["reference_fasta"],
         cog_seqs = config["cog_seqs"],
         cog_metadata = config["cog_metadata"],
-        not_cog_csv = os.path.join(config["outdir"],"not_in_all_cog.csv")
+        not_cog_csv = os.path.join(config["outdir"],"not_in_all_cog.csv"),
+        in_all_cog_metadata = os.path.join(config["outdir"],"query_in_all_cog.csv"),
+        in_all_cog_seqs = os.path.join(config["outdir"],"query_in_all_cog.fasta")
     params:
         outdir= config["outdir"],
         # tempdir= config["tempdir"],
@@ -161,25 +163,45 @@ rule get_closest_cog:
         trim_start = config["trim_start"],
         trim_end = config["trim_end"]
     output:
-        closest_cog = os.path.join(config["outdir"],"closest_cog.csv")
+        closest_cog = os.path.join(config["outdir"],"closest_cog.csv"),
+        not_cog_query = os.path.join(config["outdir"],"not_in_all_cog.fasta")
     run:
         if params.fasta != "":
-            print(f"Passing {params.query} into processing pipeline.")
-            shell("snakemake --nolock --snakefile {input.snakefile:q} "
-                        "{params.force} "
-                        "{params.quiet_mode} "
-                        # "--directory {params.tempdir:q} "
-                        "--config "
-                        "outdir={params.outdir:q} "
-                        # "tempdir={params.tempdir:q} "
-                        "not_cog_csv={input.not_cog_csv:q} "
-                        "post_qc_query={params.query:q} "
-                        "cog_seqs={input.cog_seqs:q} "
-                        "trim_start={params.trim_start} "
-                        "trim_end={params.trim_end} "
-                        "reference_fasta={input.reference_fasta:q} "
-                        "cog_metadata={input.cog_metadata:q} "
-                        "--cores {params.cores}")
+            not_cog = []
+            with open(input.not_cog_csv, "r") as f:
+                for l in f:
+                    l = l.rstrip('\n')
+                    not_cog.append(l)
+            num_seqs = 0
+            not_cog_with_seqs = []
+            with open(output.not_cog_query, "w"):
+                for record in SeqIO.parse(params.query, "fasta"):
+                    if record.id in not_cog:
+                        num_seqs +=1
+                        not_cog_with_seqs.append(record.id)
+                        fw.write(f">{record.id} status=not_cog\n{record.seq}\n")
+            if num_seqs !=0:
+                print(f"Passing {num_seqs} sequences into nearest COG search pipeline.")
+                for i in not_cog_with_seqs:
+                    print(f"    - {i}")
+                shell("snakemake --nolock --snakefile {input.snakefile:q} "
+                            "{params.force} "
+                            "{params.quiet_mode} "
+                            # "--directory {params.tempdir:q} "
+                            "--config "
+                            "outdir={params.outdir:q} "
+                            # "tempdir={params.tempdir:q} "
+                            "not_cog_csv={input.not_cog_csv:q} "
+                            "post_qc_query={output.not_cog_query:q} "
+                            "in_all_cog_metadata={input.in_all_cog} "
+                            "in_all_cog_seqs={input.in_all_cog_seqs} "
+                            "cog_seqs={input.cog_seqs:q} "
+                            "trim_start={params.trim_start} "
+                            "trim_end={params.trim_end} "
+                            "reference_fasta={input.reference_fasta:q} "
+                            "cog_metadata={input.cog_metadata:q} "
+                            "--cores {params.cores}")
+                
         else:
             shell("touch {output.closest_cog:q}")
 
