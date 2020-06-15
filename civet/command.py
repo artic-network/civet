@@ -145,32 +145,43 @@ def main(sysargs = sys.argv[1:]):
     if args.datadir:
         data_dir = os.path.join(cwd, args.datadir)
         # find the data files
-        cog_metadata = ""
-        cog_seqs = ""
+        cog_metadata,all_cog_metadata,cog_global_metadata = ("","","")
+        cog_seqs,all_cog_seqs = ("","")
         cog_tree = ""
-        cog_seqs = os.path.join(data_dir,"cog.alignment.fasta")
-        all_cog_seqs = os.path.join(data_dir,"cog_gisaid_all.fasta")
+        
+        cog_seqs = os.path.join(data_dir,"cog_alignment.fasta")
+        all_cog_seqs = os.path.join(data_dir,"cog_global_alignment.fasta")
+        
         cog_metadata = os.path.join(data_dir,"cog_metadata.csv")
         all_cog_metadata = os.path.join(data_dir,"cog_metadata_all.csv")
-        cog_tree = os.path.join(data_dir,"cog_global.tree")
+        cog_global_metadata = os.path.join(data_dir,"cog_global_metadata.csv")
 
-        if not os.path.isfile(cog_metadata) or not os.path.isfile(cog_seqs) or not os.path.isfile(all_cog_seqs) or not os.path.isfile(all_cog_metadata) or not os.path.isfile(cog_tree):
+        cog_tree = os.path.join(data_dir,"cog_global_tree.nexus")
+
+        if not os.path.isfile(cog_seqs) or not os.path.isfile(all_cog_seqs) or not os.path.isfile(cog_metadata) or not  os.path.isfile(all_cog_metadata) or not os.path.isfile(cog_global_metadata) or not os.path.isfile(cog_tree):
             sys.stderr.write(f"""Error: cannot find correct data files at {data_dir}\nThe directory should contain the following files:\n\
-    - cog.alignment.fasta\n    - cog_gisaid_all.fasta\n    - cog_metadata.csv\n    - cog_metadata_all.csv\n    - cog_global.tree\n\n\
+    - cog_alignment.fasta\n    - cog_global_alignment.fasta\n    - cog_global_metadata.csv\n    - cog_metadata.csv\n    - cog_metadata_all.csv\n    - cog_global.tree\n\n\
 To run civet please either\n1) ssh into CLIMB and run with --CLIMB flag\n\
 2) Run using `--remote-sync` flag and your CLIMB username specified e.g. `-uun climb-covid19-otoolexyz`\n\
 3) Specify a local directory with the appropriate files\n\n""")
             sys.exit(-1)
         else:
-            config["cog_metadata"] = cog_metadata
-            config["all_cog_metadata"] = all_cog_metadata
             config["cog_seqs"] = cog_seqs
             config["all_cog_seqs"] = all_cog_seqs
+
+            config["cog_metadata"] = cog_metadata
+            config["all_cog_metadata"] = all_cog_metadata
+            config["cog_global_metadata"] = cog_global_metadata
+
             config["cog_tree"] = cog_tree
+
             print("Found cog data:")
-            print(cog_metadata)
-            print(cog_seqs)
-            print(cog_tree)
+            print("    -",cog_seqs)
+            print("    -",all_cog_seqs)
+            print("    -",cog_metadata)
+            print("    -",all_cog_metadata)
+            print("    -",cog_global_metadata)
+            print("    -",cog_tree)
     else:
         data_dir = outdir
 
@@ -183,22 +194,47 @@ To run civet please either\n1) ssh into CLIMB and run with --CLIMB flag\n\
                 rsync_command = f"rsync -avzh {args.uun}@bham.covid19.climb.ac.uk:/cephfs/covid/bham/civet-cat {outdir}"
                 print(f"Syncing civet data to {outdir}")
                 os.system(rsync_command)
-                cog_seqs = os.path.join(outdir,"civet-data","cog.alignment.fasta")
-                all_cog_seqs = os.path.join(outdir,"civet-data","cog_gisaid_all.fasta")
-                cog_metadata = os.path.join(outdir,"civet-data","cog_metadata.csv")
-                all_cog_metadata = os.path.join(outdir,"civet-data","cog_metadata_all.csv")
-                cog_tree = os.path.join(outdir,"civet-data","cog_global.tree")
-                config["cog_metadata"] = cog_metadata
-                config["all_cog_metadata"] = all_cog_metadata
+
+                cog_metadata,all_cog_metadata,cog_global_metadata = ("","","")
+                cog_seqs,all_cog_seqs = ("","")
+                cog_tree = ""
+                
+                cog_seqs = os.path.join(outdir,"civet-cat","cog_alignment.fasta")
+                all_cog_seqs = os.path.join(outdir,"civet-cat","cog_global_alignment.fasta")
+
+                cog_metadata = os.path.join(outdir,"civet-cat","cog_metadata.csv")
+                all_cog_metadata = os.path.join(outdir,"civet-cat","cog_metadata_all.csv")
+                cog_global_metadata = os.path.join(outdir,"civet-cat","cog_global_metadata.csv")
+
+                cog_tree = os.path.join(outdir,"civet-cat","cog_global_tree.nexus")
+
                 config["cog_seqs"] = cog_seqs
                 config["all_cog_seqs"] = all_cog_seqs
+
+                config["cog_metadata"] = cog_metadata
+                config["all_cog_metadata"] = all_cog_metadata
+                config["cog_global_metadata"] = cog_global_metadata
+
                 config["cog_tree"] = cog_tree
+
+                print("Found cog data:")
+                print("    -",cog_seqs)
+                print("    -",all_cog_seqs)
+                print("    -",cog_metadata)
+                print("    -",all_cog_metadata)
+                print("    -",cog_global_metadata)
+                print("    -",cog_tree)
         else:
             sys.stderr.write("""Error: Username (-uun) required with --remote flag, or supply data directory\n\
 To run civet please either\n1) ssh into CLIMB and run with --CLIMB flag\n\
 2) Run using `--remote-sync` flag and your CLIMB username specified e.g. `-uun climb-covid19-otoolexyz`\n\
-3) Specify a local directory with the appropriate files on. The following files are required:\n
-    - cog_global.tree\n    - cog_metadata.csv\n    - cog_metadata_all.csv\n    - cog_global_metadata.csv\n    - cog_gisaid_all.fasta\n    - cog.alignment.fasta\n\n""")
+3) Specify a local directory with the appropriate files on. The following files are required:\n\
+    - cog_global_tree.nexus\n\
+    - cog_metadata.csv\n\
+    - cog_metadata_all.csv\n\
+    - cog_global_metadata.csv\n\
+    - cog_global_alignment.fasta\n\
+    - cog_alignment.fasta\n\n""")
             sys.exit(-1)
 
     if args.climb:
@@ -206,21 +242,42 @@ To run civet please either\n1) ssh into CLIMB and run with --CLIMB flag\n\
         if os.path.exists(data_dir):
             config["remote"] = "False"
             config["username"] = ""
-            cog_seqs = os.path.join(data_dir,"cog.alignment.fasta")
-            all_cog_seqs = os.path.join(data_dir,"cog_gisaid_all.fasta")
-            all_cog_metadata = os.path.join(data_dir,"cog_metadata_all.csv")
+
+            cog_seqs = os.path.join(data_dir,"cog_alignment.fasta")
+            all_cog_seqs = os.path.join(data_dir,"cog_global_alignment.fasta")
+
             cog_metadata = os.path.join(data_dir,"cog_metadata.csv")
-            cog_tree = os.path.join(data_dir,"cog_global.tree")
-            config["cog_metadata"] = cog_metadata
-            config["all_cog_metadata"] = all_cog_metadata
+            all_cog_metadata = os.path.join(data_dir,"cog_metadata_all.csv")
+            cog_global_metadata = os.path.join(data_dir,"cog_global_metadata.csv")
+
+            cog_tree = os.path.join(data_dir,"cog_global_tree.nexus")
+
             config["cog_seqs"] = cog_seqs
             config["all_cog_seqs"] = all_cog_seqs
+
+            config["cog_metadata"] = cog_metadata
+            config["all_cog_metadata"] = all_cog_metadata
+            config["cog_global_metadata"] = cog_global_metadata
+
             config["cog_tree"] = cog_tree
+
+            print("Found cog data:")
+            print("    -",cog_seqs)
+            print("    -",all_cog_seqs)
+            print("    -",cog_metadata)
+            print("    -",all_cog_metadata)
+            print("    -",cog_global_metadata)
+            print("    -",cog_tree)
         else:
             sys.stderr.write("""Error: to run civet please either\n1) ssh into CLIMB and run with --CLIMB flag\n\
 2) Run using `--remote-sync` flag and your CLIMB username specified e.g. `-uun climb-covid19-otoolexyz`\n\
 3) Specify a local directory with the appropriate files on. The following files are required:\n
-    - cog_global.tree\n    - cog_metadata.csv\n    - cog_metadata_all.csv\n    - cog_global_metadata.csv\n    - cog_gisaid_all.fasta\n    - cog.alignment.fasta\n\n""")
+    - cog_global_tree.nexus\n\
+    - cog_metadata.csv\n\
+    - cog_metadata_all.csv\n\
+    - cog_global_metadata.csv\n\
+    - cog_global_alignment.fasta\n\
+    - cog_alignment.fasta\n\n""")
             sys.exit(-1)
 
     if args.fasta:
