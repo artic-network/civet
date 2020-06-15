@@ -285,6 +285,7 @@ rule process_catchments:
         combined_metadata = os.path.join(config["outdir"],"combined_metadata.csv"),
         catchment_placeholder = os.path.join(config["outdir"],"catchment_trees","catchment_tree_summary.txt"),
         all_cog_seqs = config["all_cog_seqs"],
+        
         not_cog_query_seqs = rules.get_closest_cog.output.combined_query,
         not_cog_csv = rules.check_cog_all.output.not_cog
     params:
@@ -339,7 +340,6 @@ rule process_catchments:
                             "outdir={params.outdir:q} "
                             # "tempdir={params.tempdir:q} "
                             "not_cog_csv={input.not_cog_csv:q} "
-                            "in_all_cog_fasta={input.in_all_cog_fasta:q} "
                             "post_qc_query={input.not_cog_query_seqs:q} "
                             "all_cog_seqs={input.all_cog_seqs:q} "
                             "combined_metadata={input.combined_metadata:q} "

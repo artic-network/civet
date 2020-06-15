@@ -4,7 +4,6 @@ Passed into config:
 catchment_str=tree_1,tree_2,...,tree_X
 outdir=path/to/outdir
 not_cog_csv
-in_all_cog_fasta
 post_qc_query
 cog_seqs
 combined_metadata
@@ -91,7 +90,6 @@ rule gather_fasta_seqs:
     input:
         collapsed_nodes = os.path.join(config["outdir"],"collapsed_trees","{tree}_representatives.fasta"),
         post_qc_query = config["post_qc_query"],
-        in_all_cog_fasta = config["in_all_cog_fasta"],
         cog_seqs = config["all_cog_seqs"],
         combined_metadata = config["combined_metadata"],
         tree_taxa = rules.extract_taxa.output.tree_taxa
@@ -116,12 +114,6 @@ rule gather_fasta_seqs:
         with open(output.aln, "w") as fw:
 
             for record in SeqIO.parse(input.post_qc_query, "fasta"):
-                if record.id in queries.values() or record.id in queries.keys():
-                    iqtree_friendly = record.id.replace("/","_")
-                    fw.write(f">{record.id}\n{record.seq}\n")
-                    added_seqs.append(record.id)
-
-            for record in SeqIO.parse(input.in_all_cog_fasta, "fasta"):
                 if record.id in queries.values() or record.id in queries.keys():
                     iqtree_friendly = record.id.replace("/","_")
                     fw.write(f">{record.id}\n{record.seq}\n")
