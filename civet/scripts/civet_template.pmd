@@ -8,7 +8,7 @@ For each query sequence, CIVET either finds them in the COG database, or matches
 Key points for interpreting this information:
 
  - This type of analysis is not able to infer direct transmission between two samples. Even identical sequences may be unrelated as SARS-COV2 is relatively slow evolving for an RNA virus. Our analysis has shown that samples taken over 100 days apart can be identical (see Figure S1). 
- - If sequences have different global or UK lineage designations, we can rule out transmission.
+ - If sequences have different global or UK lineage designations, we can rule out close epidemiological linkage.
  - If sequences have different phylotypes it’s very unlikely that they are direct transmissions. 
  - If sequences share the same lineage and the same phylotype, transmission cannot be ruled out and also cannot be confirmed.
 
