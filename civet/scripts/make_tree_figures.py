@@ -98,10 +98,28 @@ def display_name(tree, tree_name, tree_dir, query_id_dict, full_taxon_dict):
             #         k.traits["display"]=""
 
             # else:
-                
+def find_colour_dict(query_dict, trait):
 
+    attribute_options = set()
 
-def make_scaled_tree_without_legend(My_Tree, tree_name, tree_dir, num_tips, colour_dict, tallest_height,lineage, taxon_dict, query_id_dict, query_dict, tree_to_query):
+    if trait == "adm1":
+        colour_dict = {"Wales":"darkseagreen",
+                "England":"indianred",
+                "Scotland":"steelblue",
+                "Northern_Ireland":"skyblue"}
+        return colour_dict
+
+    else:
+        for query in query_dict.values():
+            attribute_options.add(query.attribute_dict[trait])
+            
+    if len(attribute_options) == 2:
+        colour_dict = {list(attribute_options)[0]: "goldenrod",
+                        list(attribute_options)[1]:"midnightblue"}
+        return colour_dict
+    
+    
+def make_scaled_tree_without_legend(My_Tree, tree_name, tree_dir, num_tips, colour_dict, trait, tallest_height,lineage, taxon_dict, query_id_dict, query_dict, tree_to_query):
     
     display_name(My_Tree, tree_name, tree_dir, query_id_dict, taxon_dict) #this is id dict for when the ids are in the tree.
     My_Tree.uncollapseSubtree()
@@ -136,12 +154,10 @@ def make_scaled_tree_without_legend(My_Tree, tree_name, tree_dir, num_tips, colo
     font_size_func = lambda k: 25 if k.name in query_id_dict.keys() or k.name in query_dict.keys() else 15
     kwargs={'ha':'left','va':'center','size':12}
 
-    #we'll add in some if statements here for flexible input categorical data
-    co_func=lambda k: colour_dict[query_dict[k.name].attribute_dict["adm1"]] if k.name in query_id_dict.keys() or k.name in query_dict.keys() else 'dimgrey' 
-    outline_colour_func = lambda k: colour_dict[query_dict[k.name].attribute_dict["adm1"]] if k.name in query_id_dict.keys() or k.name in query_dict.keys() else 'dimgrey' 
+    #Colour by specified trait. If no trait is specified, they will be coloured by UK country
+    co_func=lambda k: colour_dict[query_dict[k.name].attribute_dict[trait]] if k.name in query_id_dict.keys() or k.name in query_dict.keys() else 'dimgrey' 
+    outline_colour_func = lambda k: colour_dict[query_dict[k.name].attribute_dict[trait]] if k.name in query_id_dict.keys() or k.name in query_dict.keys() else 'dimgrey' 
 
-
-    
     x_attr=lambda k: k.height + offset
     y_attr=lambda k: k.y
 
@@ -213,19 +229,14 @@ def sort_trees_index(tree_dir):
         
     return c
 
-def make_all_of_the_trees(input_dir, taxon_dict, query_id_dict, query_dict, tree_to_query, min_uk_taxa=3):
+def make_all_of_the_trees(input_dir, taxon_dict, query_id_dict, query_dict, tree_to_query, desired_fields, min_uk_taxa=3):
     
     tallest_height = find_tallest_tree(input_dir)
 
     too_tall_trees = []
 
-    count = 0
+    overall_tree_count = 0
     
-    colour_dict = {"Wales":"darkseagreen",
-               "England":"indianred",
-               "Scotland":"steelblue",
-               "Northern_Ireland":"skyblue"}
-
     lst = sort_trees_index(input_dir)
 
     for fn in lst:
@@ -249,13 +260,20 @@ def make_all_of_the_trees(input_dir, taxon_dict, query_id_dict, query_dict, tree
                 if k.branchType == 'leaf':
                     tips.append(k.name)
             if len(tips) < 1000:
-                count += 1
-                tree_to_query = make_scaled_tree_without_legend(tree, treename, input_dir, len(tips),colour_dict, tallest_height, lineage, taxon_dict, query_id_dict, query_dict, tree_to_query)     
+                overall_tree_count += 1      
+                if desired_fields == []:
+                    colour_by = ["adm1"]
+                else:
+                    colour_by = desired_fields
+
+                for trait in colour_by:
+                    colour_dict = find_colour_dict(query_dict, trait)
+                    tree_to_query = make_scaled_tree_without_legend(tree, treename, input_dir, len(tips), colour_dict, trait, tallest_height, lineage, taxon_dict, query_id_dict, query_dict, tree_to_query)     
             else:
                 too_tall_trees.append(lineage)
                 continue
 
-    return too_tall_trees, count, tree_to_query
+    return too_tall_trees, overall_tree_count, tree_to_query
 
 def summarise_collapsed_node(tree_dir, focal_node, focal_tree, full_tax_dict):
 
@@ -279,8 +297,8 @@ def summarise_collapsed_node(tree_dir, focal_node, focal_tree, full_tax_dict):
                     if tax in full_tax_dict.keys():
                         taxon_obj = full_tax_dict[tax]
                     
-                        if taxon_obj.attribute_dict["sample_date"] != "NA":
-                            date_string = taxon_obj.attribute_dict["sample_date"]
+                        if taxon_obj.sample_date != "NA":
+                            date_string = taxon_obj.sample_date
                             date = dt.datetime.strptime(date_string, "%Y-%m-%d").date()
                             dates.append(date)
                         

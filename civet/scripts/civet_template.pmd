@@ -57,7 +57,10 @@ if desired_fields != "":
     desired_fields = list(desired_fields)
 
 #font_list = font_manager.fontManager.addfont(font_file)
-font_list = font_manager.FontProperties(family="helveticaneue")
+font_props = font_manager.FontProperties(family="helveticaneue")
+#print(font_props)
+a = matplotlib.font_manager.FontManager()
+a.findfont(font_props, fallback_to_default=False)
 
 #mpl.rcParams['font.family'] = 'helveticaneue'
 mpl.rcParams['font.weight']=50
@@ -97,19 +100,21 @@ If you would like the specific country highlighted, please provide a column name
 
 ```python, name="tree_viz", echo=False, include=False, figure=False
 tree_to_query = defaultdict(list)
-too_tall_trees, tree_number, tree_to_query = tree_viz.make_all_of_the_trees(tree_dir, full_tax_dict, query_id_dict, query_dict, tree_to_query)
+too_tall_trees, overall_tree_number, tree_to_query = tree_viz.make_all_of_the_trees(tree_dir, full_tax_dict, query_id_dict, query_dict, tree_to_query, desired_fields)
 
 ```
 ```python, name="show_trees", echo=False, results='raw'
-for i in range(1,tree_number+1):
+for i in range(1,overall_tree_number+1):
     if len(tree_to_query[i]) == 1:
         print("Tree number " + str(i) + " contains query: " + str(tree_to_query[i]).replace("[","").replace("]","").replace("'",""))
         print("Given that there are no other sequences in the query dataset that are in this tree, transmission between this sequence and other queries can be ruled out.")
     else:
         print("Tree number " + str(i) + " contains queries: " + str(tree_to_query[i]).replace("[","").replace("]","").replace("'",""))
-        print("There are multiple query sequences in this tree, and so transmission cannot be ruled out, but neither can it be confirmed. Therefore their relationship must be investigated using epidemiological data.")
+        print("There are multiple query sequences in this tree, and so transmission cannot be ruled out, but neither can it be confirmed. Therefore their relationship must be investigated further using epidemiological data.")
     
-    print("![](" + figdir + "/" + name_stem + "_tree_viz_" + str(i) + ".png)\\")
+    for k in range(len(desired_fields)):
+        base_number = ((i)*len(desired_fields)) - 1
+        print("![](" + figdir + "/" + name_stem + "_tree_viz_" + str(base_number + k) + ".png)")
 
 
 ```
@@ -128,19 +133,22 @@ The figure below shows the distribution of time differences that two sequences c
 It is to illustrate that identical sequences does not confirm linked cases.
 
 ```python, name="Identity figure", results='raw', echo=False, fig=True, caption="Distribution of time between identical sequences"
-print("![](" + figdir + "/polytomies.png)\\")
+print("![](" + figdir + "/polytomies.png)")
 ```
 
 
 ### Useful definitions
 
-*Phylotype* \
+*Phylotype* 
+
 Each lineage phylogeny is labelled with phylotypes that describe shared mutations in the tree. If two sequences have the same phylotype it means the share mutations. They may also have additional, unique mutations. So having the same phylotype doesn't mean the seqeunces are identical. If sequences have different phylotypes however it means they are present on distinct parts of the phylogenetic tree.
 
-*UK lineage* \
+*UK lineage* 
+
 UK lineages are an approximation to distinct introductions of SARS-CoV-2 to the UK based on the phylogenetic tree.
 
-*Global lineage* \
+*Global lineage* 
+
 Assigned using the pangolin software, these are phylogenetic lineages. More information can be found at https://github.com/hCoV-2019/lineages
 
 ### Software versions
