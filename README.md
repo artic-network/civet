@@ -135,6 +135,8 @@ Overview:
 
 Your output will be a markdown report, with summaries of lineages and genetic diversity present in your query. Trees are visualised in the report and compared to the diversity of lineages present in the community.
 
+We suggest visualising this markdown report by converting it eg to a pdf using pandoc (https://pandoc.org/) or to an html document using markserv (https://www.npmjs.com/package/markserv) or markdown-server (https://pypi.org/project/markdown-server/). An HTML is often a better choice when dealing with long markdown documents like this, as it doesn't arbitrarily split up figures and text.
+
 ### Source data
 
 Data associated with COG-UK is pulled from CLIMB, which is why access to CLIMB is required to run remotely. 

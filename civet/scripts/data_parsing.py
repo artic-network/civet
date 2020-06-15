@@ -67,11 +67,14 @@ def parse_reduced_metadata(metadata_file):
 
             if query_name == closest_name: #if it's in COG, get it's sample date
                 new_taxon.in_cog = True
-                new_taxon.attribute_dict["sample_date"] = sample_date
+                #new_taxon.attribute_dict["sample_date"] = sample_date
+                new_taxon.date = sample_date
                 new_taxon.closest = "NA"
             else:
                 new_taxon.closest = closest_name
 
+            new_taxon.attribute_dict["country"] = "UK"
+            new_taxon.attribute_dict["adm1"] = adm1
 
             query_dict[query_name] = new_taxon
             query_id_dict[query_id] = new_taxon
@@ -87,39 +90,48 @@ def parse_input_csv(input_csv, query_id_dict, desired_fields):
         reader = csv.DictReader(f)
         col_name_prep = next(reader)
         col_names = list(col_name_prep.keys())
+
+    with open(input_csv, 'r') as f:
+        reader = csv.DictReader(f)
         in_data = [r for r in reader]
         for sequence in in_data:
             
             name = sequence["name"]
 
-            taxon = query_id_dict[name]
+            if name in query_id_dict.keys():
+                taxon = query_id_dict[name]
 
-            if "sample_date" in col_names:
-                taxon.attribute_dict["sample_date"] = sequence["sample_date"] #if it's not in COG but date is provided
-            elif "sample_date" not in taxon.attribute_dict.keys(): #if it's not in cog and no data is provided
-                taxon.attribute_dict["sample_date"] = "NA" 
-            #if it's in COG, it will already have been assigned a sample date.
+                if "sample_date" in col_names:
+                    #taxon.attribute_dict["sample_date"] = sequence["sample_date"] #if it's not in COG but date is provided
+                    taxon.sample_date = sample_date
+                elif "sample_date" not in taxon.attribute_dict.keys(): #if it's not in cog and no data is provided
+                    # taxon.attribute_dict["sample_date"] = "NA" 
+                    taxon.sample_date = "NA"
+                #if it's in COG, it will already have been assigned a sample date.
+
+                for col in col_names:
+                    if desired_fields != []:
+                        if col != "name" and col in desired_fields:
+                            if sequence[col] == "":
+                                taxon.attribute_dict[col] = "NA"
+                            else:
+                                taxon.attribute_dict[col] = sequence[col]
+            
+                        elif col == "adm1":
+                            if "UK" in sequence[col]:
+                                adm1_prep = sequence[col].split("-")[1]
+                                adm1 = contract_dict[adm1_prep]
+                            else:
+                                adm1 = sequence[col]
+
+                            taxon.attribute_dict["adm1"] = adm1
+
+                new_query_dict[taxon.name] = taxon
+            
+            else:
+                print(name + " is in the input file but not the processed file. This suggests that it is not in COG and a sequence has also not been provided.")
                 
-
-            for col in col_names:
-                if desired_fields != []:
-                    if col != "name" and col in desired_fields:
-                        if sequence[col] == "":
-                            taxon.attribute_dict[col] = "NA"
-                        else:
-                            taxon.attribute_dict[col] = sequence[col]
-                if col == "adm1":
-                    if "UK" in sequence[col]:
-                        adm1_prep = sequence[col].split("-")[1]
-                        adm1 = contract_dict[adm1_prep]
-                    else:
-                        adm1 = sequence[col]
-
-                    taxon.adm1 = adm1
-
-            new_query_dict[taxon.name] = taxon
-                
-    return new_query_dict
+    return new_query_dict 
 
 
 def parse_tree_tips(tree_dir):
@@ -165,7 +177,8 @@ def parse_full_metadata(query_dict, full_metadata, present_lins, present_in_tree
                 if date == "":
                     date = "NA"
                 
-                new_taxon.attribute_dict["sample_date"] = date
+                # new_taxon.attribute_dict["sample_date"] = date
+                new_taxon.sample_date = date
                 
                 new_taxon.attribute_dict["adm2"] = adm2
                 new_taxon.attribute_dict["country"] = country

@@ -20,7 +20,7 @@ setup(name='civet',
       "civet/scripts/utils/baltic.py",
       "civet/scripts/civet_template.pmd",
       "civet/scripts/make_tree_figures.py"],
-      package_data={"civet":["data/HelveticaNeue.ttf","data/reference.fasta","data/polytomies.png"]},
+      package_data={"civet":["data/reference.fasta","data/polytomies.png"]},
       install_requires=[
             "biopython>=1.70",
             "dendropy>=4.4.0",

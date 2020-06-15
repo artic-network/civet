@@ -8,7 +8,7 @@ For each query sequence, CIVET either finds them in the COG database, or matches
 Key points for interpreting this information:
 
  - This type of analysis is not able to infer direct transmission between two samples. Even identical sequences may be unrelated as SARS-COV2 is relatively slow evolving for an RNA virus. Our analysis has shown that samples taken over 100 days apart can be identical (see Figure S1). 
- - If sequences have different global or UK lineage designations, we can rule out transmission.
+ - If sequences have different global or UK lineage designations, we can rule out close epidemiological linkage.
  - If sequences have different phylotypes it’s very unlikely that they are direct transmissions. 
  - If sequences share the same lineage and the same phylotype, transmission cannot be ruled out and also cannot be confirmed.
 
@@ -20,12 +20,18 @@ If you have provided additional information in the input csv, and specified that
 import matplotlib.pyplot as pyplot
 import pandas as pd 
 import os
-
 import data_parsing as dp
 import make_tree_figures as tree_viz
 import matplotlib.font_manager as font_manager
 import matplotlib as mpl
-from tabulate import tabulate
+from collections import defaultdict
+import tabulate
+import datetime as dt
+import csv
+import numpy as np
+import scipy as sp
+
+from dateutil.relativedelta import relativedelta, FR
 
 filtered_cog_metadata = "" ##CHANGE
 input_csv = "" ##CHANGE
@@ -33,7 +39,6 @@ full_metadata_file = "" ##CHANGE
 desired_fields = "" ##CHANGE
 figdir = "" ##CHANGE
 tree_dir = "" ##CHANGE
-font_file = "" ##CHANGE
 
 input_directory = "" ##CHANGE
 
@@ -45,23 +50,32 @@ if "/" in name_stem_input:
 else:
     name_stem = name_stem_input
 
-desired_fields = "" ##CHANGE
+desired_fields_input = "" ##CHANGE
 summary_dir = "" ##CHANGE
 
-if desired_fields != "":
-    desired_fields = list(desired_fields)
 
-font_list = font_manager.fontManager.addfont(font_file)
+desired_fields = []
+if desired_fields_input != "":
+    options = desired_fields_input.split(",")
+    for i in options: 
+        desired_fields.append(i)
 
-mpl.rcParams['font.family'] = 'helveticaneue'
-mpl.rcParams['font.weight']=300
-mpl.rcParams['axes.labelweight']=300
+
+#font_list = font_manager.fontManager.addfont(font_file)
+font_props = font_manager.FontProperties(family="helveticaneue")
+#print(font_props)
+a = matplotlib.font_manager.FontManager()
+a.findfont(font_props, fallback_to_default=False)
+
+#mpl.rcParams['font.family'] = 'helveticaneue'
+mpl.rcParams['font.weight']=50
+mpl.rcParams['axes.labelweight']=50
 
 ```
 
 
 
-```python, name="parse metadata", echo=False
+```python, name="parse metadata", echo=False, results='raw'
 
 query_dict, query_id_dict, present_lins = dp.parse_reduced_metadata(filtered_cog_metadata) #Just the lines with their queries plus the closest match in COG
 
@@ -83,12 +97,43 @@ print(df.to_markdown())
 
 The nearest neighbours of each of the query sequences are shown below in order to show their phylogenetic context.
 
-This investigation's sequences are highlighted in pink.
+This investigation's sequences are coloured by country where red is England, dark blue is Scotland, green is Wales and light blue is Northern Ireland.
+If country was not provided in the input csv and the sequence is not in the COG database, then the sequence is coloured by the country of its closest match in the COG database.
+If you would like the specific country highlighted, please provide a column named "adm1" in the input csv.
 
 
 
-```python, name="tree_viz", echo=False, include=True, figure=True
-too_tall_trees = tree_viz.make_all_of_the_trees(tree_dir, full_tax_dict, query_id_dict, query_dict)
+```python, name="tree_viz", echo=False, include=False, figure=False
+tree_to_query = defaultdict(list)
+too_tall_trees, overall_tree_number, tree_to_query = tree_viz.make_all_of_the_trees(tree_dir, full_tax_dict, query_id_dict, query_dict, tree_to_query, desired_fields)
+
+```
+```python, name="show_trees", echo=False, results='raw'
+
+if desired_fields == []:
+    for i in range(1,overall_tree_number+1):
+        if len(tree_to_query[i]) == 1:
+            print("Tree number " + str(i) + " contains query: " + str(tree_to_query[i]).replace("[","").replace("]","").replace("'",""))
+            print("Given that there are no other sequences in the query dataset that are in this tree, transmission between this sequence and other queries can be ruled out.")
+        else:
+            print("Tree number " + str(i) + " contains queries: " + str(tree_to_query[i]).replace("[","").replace("]","").replace("'",""))
+            print("There are multiple query sequences in this tree, and so transmission cannot be ruled out, but neither can it be confirmed. Therefore their relationship must be investigated further using epidemiological data.")
+    
+        print("![](" + figdir + "/" + name_stem + "_tree_viz_" + str(i) + ".png)")
+
+else:
+    for i in range(1,overall_tree_number+1):
+        if len(tree_to_query[i]) == 1:
+            print("Tree number " + str(i) + " contains query: " + str(tree_to_query[i]).replace("[","").replace("]","").replace("'",""))
+            print("Given that there are no other sequences in the query dataset that are in this tree, transmission between this sequence and other queries can be ruled out.")
+        else:
+            print("Tree number " + str(i) + " contains queries: " + str(tree_to_query[i]).replace("[","").replace("]","").replace("'",""))
+            
+            print("There are multiple query sequences in this tree, and so transmission cannot be ruled out, but neither can it be confirmed. Therefore their relationship must be investigated further using epidemiological data.")
+        for k in range(len(desired_fields)):
+            base_number = ((i)*len(desired_fields)) - 1
+            print("![](" + figdir + "/" + name_stem + "_tree_viz_" + str(base_number + k) + ".png)")
+
 
 ```
 
@@ -106,24 +151,62 @@ The figure below shows the distribution of time differences that two sequences c
 It is to illustrate that identical sequences does not confirm linked cases.
 
 ```python, name="Identity figure", results='raw', echo=False, fig=True, caption="Distribution of time between identical sequences"
-print("![](" + figdir + "/polytomies.png)\\")
+print("![](" + figdir + "/polytomies.png)")
 ```
+
 
 ### Useful definitions
 
-*Phylotype* \
+*Phylotype* 
+
 Each lineage phylogeny is labelled with phylotypes that describe shared mutations in the tree. If two sequences have the same phylotype it means the share mutations. They may also have additional, unique mutations. So having the same phylotype doesn't mean the seqeunces are identical. If sequences have different phylotypes however it means they are present on distinct parts of the phylogenetic tree.
 
-*UK lineage* \
+*UK lineage* 
+
 UK lineages are an approximation to distinct introductions of SARS-CoV-2 to the UK based on the phylogenetic tree.
 
-*Global lineage* \
+*Global lineage* 
+
 Assigned using the pangolin software, these are phylogenetic lineages. More information can be found at https://github.com/hCoV-2019/lineages
+
+### Software versions
+
+This report was made using:
+
+```python, name='software versions', echo=False, results='raw'
+
+import platform
+
+
+print("Python " + platform.python_version())
+
+print("Matplotlib version " + matplotlib.__version__)
+print("Pandas version " + pd.__version__)
+print("Tabulate version " + tabulate.__version__)
+print("CSV version " + csv.__version__)
+print("Numpy version " + np.__version__)
+print("Scipy version " + sp.__version__)
+print("No version number for Baltic")
+
+
+todays_date = dt.date.today()
+
+#This just takes last Friday so if a more continuous pipeline is implemented this will have to be cleverer.
+last_friday = todays_date + relativedelta(weekday=FR(-1))
+print("The COG data used here was submitted in batch on " + str(last_friday))
+
+print("CIVET version is 0.1")
+```
 
 ## Acknowledgements
 
 This report was generated by CIVET.
 
-The background data was generated by the COG consortium (https://www.cogconsortium.uk/), a national, multi-centre consortium for the sequencing and analysis of SARS-CoV-2 genomes for Public Health.
+The background data from the UK was generated by the COG consortium (https://www.cogconsortium.uk/), a national, multi-centre consortium for the sequencing and analysis of SARS-CoV-2 genomes for Public Health.
+
+We also use some background data from GISAID (https://www.gisaid.org/) in the phylogenies. We thank everyone involved in the global sequencing effort for making their data available. 
+Acknowledgements for GISAID sequences that have been shown specifically in the tree can be found below.
 
 Tree data was visualised using baltic (https://github.com/evogytis/baltic)
+
+## GISAID acknowledgements table
