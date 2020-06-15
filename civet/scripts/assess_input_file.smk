@@ -230,7 +230,6 @@ rule process_catchments:
         snakefile_collapse_before = os.path.join(workflow.current_basedir,"process_collapsed_trees.smk"),
         combined_metadata = os.path.join(config["outdir"],"combined_metadata.csv"),
         catchment_placeholder = os.path.join(config["outdir"],"catchment_trees","catchment_tree_summary.txt"),
-        query = config["post_qc_query"],
         all_cog_seqs = config["all_cog_seqs"],
         in_all_cog_fasta = os.path.join(config["outdir"],"in_all_cog.fasta"),
         not_cog_csv = os.path.join(config["outdir"],"not_in_all_cog.csv")
@@ -238,6 +237,7 @@ rule process_catchments:
         outdir= config["outdir"],
         # tempdir= config["tempdir"],
         path = workflow.current_basedir,
+        query = config["post_qc_query"],
         cores = workflow.cores,
         delay_collapse = config["delay_collapse"],
         force = config["force"],
@@ -261,7 +261,7 @@ rule process_catchments:
 
         if params.fasta != "" or num_in_all_cog !=0:
             if params.delay_collapse==False:
-                print(f"Passing {input.query} into processing pipeline.")
+                print(f"Passing {params.query} into processing pipeline.")
                 shell("snakemake --nolock --snakefile {input.snakefile_collapse_before:q} "
                             "{params.force} "
                             "{params.quiet_mode} "
@@ -272,12 +272,12 @@ rule process_catchments:
                             # "tempdir={params.tempdir:q} "
                             "not_cog_csv={input.not_cog_csv:q} "
                             "in_all_cog_fasta={input.in_all_cog_fasta:q} "
-                            "post_qc_query={input.query:q} "
+                            "post_qc_query={params.query:q} "
                             "all_cog_seqs={input.all_cog_seqs:q} "
                             "combined_metadata={input.combined_metadata:q} "
                             "--cores {params.cores}")
             else:
-                print(f"Passing {input.query} into processing pipeline.")
+                print(f"Passing {params.query} into processing pipeline.")
                 shell("snakemake --nolock --snakefile {input.snakefile_collapse_after:q} "
                             "{params.force} "
                             "{params.quiet_mode} "
@@ -288,7 +288,7 @@ rule process_catchments:
                             # "tempdir={params.tempdir:q} "
                             "not_cog_csv={input.not_cog_csv:q} "
                             "in_all_cog_fasta={input.in_all_cog_fasta:q} "
-                            "post_qc_query={input.query:q} "
+                            "post_qc_query={params.query:q} "
                             "all_cog_seqs={input.all_cog_seqs:q} "
                             "combined_metadata={input.combined_metadata:q} "
                             "--cores {params.cores}")
