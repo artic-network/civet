@@ -1,5 +1,5 @@
 import os
-
+from Bio import SeqIO
 rule all:
     input:
         os.path.join(config["outdir"],"closest_cog.csv"),
@@ -73,6 +73,8 @@ rule parse_paf:
         paf = rules.minimap2_against_cog.output.paf,
         metadata = config["cog_metadata"],
         fasta = config["cog_seqs"]
+    params:
+        search_field = config["search_field"]
     output:
         fasta = os.path.join(config["outdir"],"closest_cog.fasta"),
         csv = os.path.join(config["outdir"],"closest_cog.csv")
@@ -83,5 +85,6 @@ rule parse_paf:
         --metadata {input.metadata:q} \
         --seqs {input.fasta:q} \
         --csv-out {output.csv:q} \
-        --seqs-out {output.fasta:q}
+        --seqs-out {output.fasta:q} \
+        --search-field {params.search_field}
         """
