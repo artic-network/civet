@@ -32,6 +32,7 @@ def main(sysargs = sys.argv[1:]):
 
     parser.add_argument('query',help="Input csv file with minimally `name` as a column header. Can include additional fields to be incorporated into the analysis, e.g. `sample_date`",)
     parser.add_argument('--fasta', action="store",help="Optional fasta query.", dest="fasta")
+    parser.add_argument('--search-field', action="store",help="Option to search COG database for a different id type. Default: COG-UK ID", dest="search_field",default="central_sample_id")
     parser.add_argument('--remote', action="store_true",dest="remote",help="Remotely access lineage trees from CLIMB, need to supply --your-user-name")
     parser.add_argument("-uun","--your-user-name", action="store", help="Your CLIMB COG-UK username. Required if running with --remote flag", dest="uun")
     parser.add_argument('-o','--outdir', action="store",help="Output directory. Default: current working directory")
@@ -133,7 +134,8 @@ def main(sysargs = sys.argv[1:]):
         "trim_start":265,
         "trim_end":29674,
         "fasta":fasta,
-        "rel_outdir":rel_outdir
+        "rel_outdir":rel_outdir,
+        "search-field":args.search_field
         }
 
     data_dir = ""
@@ -145,15 +147,17 @@ def main(sysargs = sys.argv[1:]):
         cog_tree = ""
         cog_seqs = os.path.join(data_dir,"cog.alignment.fasta")
         all_cog_seqs = os.path.join(data_dir,"cog_gisaid_all.fasta")
+        all_cog_metadata = os.path.join(data_dir,"cog_metadata_all.csv")
         cog_metadata = os.path.join(data_dir,"cog_metadata.csv")
         cog_tree = os.path.join(data_dir,"cog_global.tree")
 
-        if not os.path.isfile(cog_metadata) or not os.path.isfile(all_cog_seqs) or not os.path.isfile(cog_seqs) or not os.path.isfile(cog_tree):
+        if not os.path.isfile(cog_metadata) or not os.path.isfile(all_cog_seqs) or not os.path.isfile(all_cog_metadata) or not os.path.isfile(cog_seqs) or not os.path.isfile(cog_tree):
             sys.stderr.write('Error: cannot find correct data files at {}\nThe directory should contain the following files:\n\
 - cog.alignment.fasta\n- cog_all.alignment.fasta\n- cog_metadata.csv\n- cog_global.tree\nWe recommend you try running with --remote flag and -uun specified to rsync them from CLIMB\n'.format(data_dir))
             sys.exit(-1)
         else:
             config["cog_metadata"] = cog_metadata
+            config["all_cog_metadata"] = all_cog_metadata
             config["cog_seqs"] = cog_seqs
             config["all_cog_seqs"] = all_cog_seqs
             config["cog_tree"] = cog_tree
@@ -177,8 +181,10 @@ def main(sysargs = sys.argv[1:]):
                 cog_seqs = os.path.join(data_dir,"civet-data","cog.alignment.fasta")
                 all_cog_seqs = os.path.join(data_dir,"civet-data","cog_gisaid_all.fasta")
                 cog_metadata = os.path.join(data_dir,"civet-data","cog_metadata.csv")
+                all_cog_metadata = os.path.join(data_dir,"civet-data","cog_metadata_all.csv")
                 cog_tree = os.path.join(data_dir,"civet-data","cog_global.tree")
                 config["cog_metadata"] = cog_metadata
+                config["all_cog_metadata"] = all_cog_metadata
                 config["cog_seqs"] = cog_seqs
                 config["all_cog_seqs"] = all_cog_seqs
                 config["cog_tree"] = cog_tree
@@ -193,9 +199,11 @@ def main(sysargs = sys.argv[1:]):
             config["username"] = ""
             cog_seqs = os.path.join(data_dir,"cog.alignment.fasta")
             all_cog_seqs = os.path.join(data_dir,"cog_gisaid_all.fasta")
+            all_cog_metadata = os.path.join(data_dir,"cog_metadata_all.csv")
             cog_metadata = os.path.join(data_dir,"cog_metadata.csv")
             cog_tree = os.path.join(data_dir,"cog_global.tree")
             config["cog_metadata"] = cog_metadata
+            config["all_cog_metadata"] = all_cog_metadata
             config["cog_seqs"] = cog_seqs
             config["all_cog_seqs"] = all_cog_seqs
             config["cog_tree"] = cog_tree
