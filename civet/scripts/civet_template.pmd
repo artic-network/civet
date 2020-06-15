@@ -39,7 +39,6 @@ full_metadata_file = "" ##CHANGE
 desired_fields = "" ##CHANGE
 figdir = "" ##CHANGE
 tree_dir = "" ##CHANGE
-font_file = "" ##CHANGE
 
 input_directory = "" ##CHANGE
 
@@ -57,11 +56,12 @@ summary_dir = "" ##CHANGE
 if desired_fields != "":
     desired_fields = list(desired_fields)
 
-font_list = font_manager.fontManager.addfont(font_file)
+#font_list = font_manager.fontManager.addfont(font_file)
+font_list = font_manager.FontProperties(family="helveticaneue")
 
-mpl.rcParams['font.family'] = 'helveticaneue'
-mpl.rcParams['font.weight']=300
-mpl.rcParams['axes.labelweight']=300
+#mpl.rcParams['font.family'] = 'helveticaneue'
+mpl.rcParams['font.weight']=50
+mpl.rcParams['axes.labelweight']=50
 
 ```
 

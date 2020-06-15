@@ -7,7 +7,7 @@ import shutil
 
 thisdir = os.path.abspath(os.path.dirname(__file__))
 
-def make_report(cog_metadata, input_csv, filtered_cog_metadata, outfile, outdir, treedir, figdir, fields, report_template, font_file):
+def make_report(cog_metadata, input_csv, filtered_cog_metadata, outfile, outdir, treedir, figdir, fields, report_template):
 
     name_stem = ".".join(outfile.split(".")[:-1])
     with open(outfile, 'w') as pmd_file:
@@ -31,8 +31,6 @@ def make_report(cog_metadata, input_csv, filtered_cog_metadata, outfile, outdir,
                         new_l = f'input_directory = "{treedir}"\n'
                     elif "desired_fields" in l:
                         new_l = f'desired_fields = "{fields}"\n'
-                    elif "font_file" in l:
-                        new_l = f'font_file = "{font_file}"\n'
                     elif "figdir" in l:
                         new_l = f'figdir = "{figdir}"\n'
                     elif "tree_dir" in l:
@@ -57,7 +55,6 @@ def main():
     
     parser.add_argument("-t","--treedir", required=False, default="", help="path to tree directory",dest="treedir")
     parser.add_argument("--report-template", help="report template file",dest="report_template")
-    parser.add_argument("--font-file", help="custom font",dest="font_file")
 
     parser.add_argument("-o","--outfile", default="civet_report.pmd", help="output name stem as a string",dest="outfile")
     parser.add_argument("--outdir", help="output directory",dest="outdir")
@@ -65,7 +62,7 @@ def main():
 
     args = parser.parse_args()
 
-    make_report(args.cog_metadata, args.input_csv, args.filtered_cog_metadata, args.outfile, args.outdir, args.treedir, args.figdir,args.fields, args.report_template, args.font_file)
+    make_report(args.cog_metadata, args.input_csv, args.filtered_cog_metadata, args.outfile, args.outdir, args.treedir, args.figdir,args.fields, args.report_template)
 
 
 if __name__ == "__main__":
