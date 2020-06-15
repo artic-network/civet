@@ -135,7 +135,7 @@ def main(sysargs = sys.argv[1:]):
         "trim_end":29674,
         "fasta":fasta,
         "rel_outdir":rel_outdir,
-        "search-field":args.search_field
+        "search_field":args.search_field
         }
 
     data_dir = ""
