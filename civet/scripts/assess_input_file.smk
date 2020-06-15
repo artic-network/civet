@@ -15,6 +15,7 @@ rule check_cog_db:
         cog_seqs = os.path.join(config["outdir"],"query_in_cog.fasta"),
         not_cog = os.path.join(config["outdir"],"not_in_cog.csv")
     run:
+        found = []
         query_names = []
         in_cog_metadata = []
         in_cog_names = {}
@@ -33,6 +34,7 @@ rule check_cog_db:
                     cog_id = row[column_to_match]
                     if seq == cog_id:
                         print(seq)
+                        found.append(seq)
                         row["query_id"]=seq
                         row["cog_id"] = row[column_to_match]
                         row["query"]=row["sequence_name"]
@@ -61,11 +63,7 @@ rule check_cog_db:
             print("The following sequences were not found in the cog database:\n")
 
             for query in query_names:
-                in_cog = False
-                for name in in_cog_names:
-                    if query == name:
-                        in_cog = True
-                if not in_cog:
+                if query not in found:
                     fw.write(query + '\n')
                     print(f"{query}")
             print("If you wish to access sequences in the cog database\nwith your query, ensure you have the correct sequence id.")
@@ -82,8 +80,9 @@ rule check_cog_all:
         cog_seqs = os.path.join(config["outdir"],"query_in_all_cog.fasta"),
         not_cog = os.path.join(config["outdir"],"not_in_all_cog.csv")
     run:
+        found = []
         not_cog = []
-        in_all_cog_names = []
+        in_all_cog_names = {}
         in_all_cog_metadata = []
         with open(input.not_in_cog, "r") as f:
             for l in f:
@@ -100,6 +99,7 @@ rule check_cog_all:
                     cog_id = row[column_to_match]
                     if seq == cog_id:
                         print(seq)
+                        found.append(seq)
                         row["query_id"]=seq
                         row["cog_id"] = row[column_to_match]
                         row["query"]=row["sequence_name"]
@@ -107,7 +107,7 @@ rule check_cog_all:
                         in_all_cog_metadata.append(row)
                         in_all_cog_names[column_to_match] = row["sequence_name"]
 
-            print(f"The following sequences were found in COG-UK put hadn't passed the QC.\nLowering QC and adding them in to analysis now.")
+            
             with open(output.cog, "w") as fw:
                 header_names.append("query_id")
                 header_names.append("cog_id")
@@ -124,22 +124,21 @@ rule check_cog_all:
                     sequence_name = in_all_cog_names[name]
                     if sequence_name==record.id:
                         fw.write(f">{record.id} status=in_all_cog\n{record.seq}\n")
-        
+        if found != []:
+            print(f"The following sequences were found in COG-UK put hadn't passed the QC.\nLowering QC and adding them in to analysis now.")
+            for i in found:
+                print(f"    - {i}")
         with open(output.not_cog, "w") as fw:
             c = 0
             print("The following sequences were not found in the cog database:\n")
 
             for query in not_cog:
-                in_cog = False
-                for name in in_all_cog_names:
-                    if query == name:
-                        in_cog = True
-                if not in_cog:
+                if query not in found:
                     c+=1
                     fw.write(query + '\n')
                     print(f"{query}")
         
-            print(f"{c} sequences remaining not in COG, will find nearest COG sequence.")
+            print(f"\n{c} sequences remaining not in COG, will find nearest COG sequence.")
 
 
 rule get_closest_cog:
@@ -158,6 +157,7 @@ rule get_closest_cog:
         cores = workflow.cores,
         force = config["force"],
         fasta = config["fasta"],
+        search_field = config["search_field"],
         query = config["post_qc_query"],
         quiet_mode = config["quiet_mode"],
         stand_in_query = os.path.join(config["outdir"], "temp.fasta"),
@@ -176,7 +176,7 @@ rule get_closest_cog:
                     not_cog.append(l)
             num_seqs = 0
             not_cog_with_seqs = []
-            with open(output.not_cog_query, "w"):
+            with open(output.not_cog_query, "w") as fw:
                 for record in SeqIO.parse(params.query, "fasta"):
                     if record.id in not_cog:
                         num_seqs +=1
@@ -195,8 +195,9 @@ rule get_closest_cog:
                             # "tempdir={params.tempdir:q} "
                             "not_cog_csv={input.not_cog_csv:q} "
                             "post_qc_query={output.not_cog_query:q} "
-                            "in_all_cog_metadata={input.in_all_cog} "
+                            "in_all_cog_metadata={input.in_all_cog_metadata} "
                             "in_all_cog_seqs={input.in_all_cog_seqs} "
+                            "search_field={params.search_field} "
                             "cog_seqs={input.cog_seqs:q} "
                             "trim_start={params.trim_start} "
                             "trim_end={params.trim_end} "
@@ -224,8 +225,9 @@ rule get_closest_cog:
                             # "tempdir={params.tempdir:q} "
                             "not_cog_csv={input.not_cog_csv:q} "
                             "post_qc_query={params.stand_in_query:q} "
-                            "in_all_cog_metadata={input.in_all_cog} "
+                            "in_all_cog_metadata={input.in_all_cog_metadata} "
                             "in_all_cog_seqs={input.in_all_cog_seqs} "
+                            "search_field={params.search_field} "
                             "cog_seqs={input.cog_seqs:q} "
                             "trim_start={params.trim_start} "
                             "trim_end={params.trim_end} "
@@ -289,7 +291,6 @@ rule process_catchments:
         outdir= config["outdir"],
         # tempdir= config["tempdir"],
         path = workflow.current_basedir,
-        # query = config["post_qc_query"],
         cores = workflow.cores,
         delay_collapse = config["delay_collapse"],
         force = config["force"],
@@ -313,7 +314,7 @@ rule process_catchments:
 
         if params.fasta != "" or num_not_cog_query_seqs !=0:
             if params.delay_collapse==False:
-                print(f"Passing {params.query} into processing pipeline.")
+                print(f"Passing {input.not_cog_query_seqs} into processing pipeline.")
                 shell("snakemake --nolock --snakefile {input.snakefile_collapse_before:q} "
                             "{params.force} "
                             "{params.quiet_mode} "
@@ -323,12 +324,12 @@ rule process_catchments:
                             "outdir={params.outdir:q} "
                             # "tempdir={params.tempdir:q} "
                             "not_cog_csv={input.not_cog_csv:q} "
-                            "post_qc_query={params.not_cog_query_seqs:q} "
+                            "post_qc_query={input.not_cog_query_seqs:q} "
                             "all_cog_seqs={input.all_cog_seqs:q} "
                             "combined_metadata={input.combined_metadata:q} "
                             "--cores {params.cores}")
             else:
-                print(f"Passing {params.query} into processing pipeline.")
+                print(f"Passing {input.not_cog_query_seqs} into processing pipeline.")
                 shell("snakemake --nolock --snakefile {input.snakefile_collapse_after:q} "
                             "{params.force} "
                             "{params.quiet_mode} "
@@ -339,7 +340,7 @@ rule process_catchments:
                             # "tempdir={params.tempdir:q} "
                             "not_cog_csv={input.not_cog_csv:q} "
                             "in_all_cog_fasta={input.in_all_cog_fasta:q} "
-                            "post_qc_query={params.not_cog_query_seqs:q} "
+                            "post_qc_query={input.not_cog_query_seqs:q} "
                             "all_cog_seqs={input.all_cog_seqs:q} "
                             "combined_metadata={input.combined_metadata:q} "
                             "--cores {params.cores}")
