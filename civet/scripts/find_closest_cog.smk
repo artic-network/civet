@@ -2,7 +2,8 @@ import os
 
 rule all:
     input:
-        os.path.join(config["outdir"],"closest_cog.csv")
+        os.path.join(config["outdir"],"closest_cog.csv"),
+        os.path.join(config["outdir"],"to_find_closest.fasta")
 
 rule combine_in_all_cog_and_query:
     input:
