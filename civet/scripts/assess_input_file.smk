@@ -74,9 +74,9 @@ rule check_cog_all:
     input:
         not_in_cog = rules.check_cog_db.output.not_cog,
         cog_seqs = config["all_cog_seqs"],
-        all_cog_seqs = config["all_cog_metadata"]
+        metadata = config["all_cog_metadata"]
     params:
-        column_to_match = config["search_field"]
+        field_to_match = config["search_field"]
     output:
         cog = os.path.join(config["outdir"],"query_in_all_cog.csv"),
         cog_seqs = os.path.join(config["outdir"],"query_in_all_cog.fasta"),
@@ -89,7 +89,7 @@ rule check_cog_all:
             for l in f:
                 l = l.rstrip("\n")
                 not_cog.append(l)
-
+        column_to_match = params.field_to_match
         print("Checking for sequences in whole COG database")
         with open(input.metadata,newline="") as f:
             reader = csv.DictReader(f)
