@@ -82,22 +82,29 @@ positional arguments:
 optional arguments:
   -h, --help            show this help message and exit
   --fasta FASTA         Optional fasta query.
-  --remote              Remotely access lineage trees from CLIMB, need to
-                        supply --your-user-name
+  --CLIMB               Indicates you're running CIVET from within CLIMB, uses
+                        default paths in CLIMB to access data
+  -r, --remote-sync     Remotely access lineage trees from CLIMB, need to also
+                        supply -uun,--your-user-name
   -uun UUN, 
-  --your-user-name UUN. Your CLIMB COG-UK username. Required if running with
-                        --remote flag
+  --your-user-name UUN
+                        Your CLIMB COG-UK username. Required if running with
+                        --remote-sync flag
   -o OUTDIR, 
   --outdir OUTDIR
                         Output directory. Default: current working directory
-  --datadir DATADIR     Data directory. Default with --remote flag will rsync
-                        COG_UK data from CLIMB.
+  --datadir DATADIR     Local directory that contains the data files
+  --fields FIELDS       Comma separated string of fields to colour by in the
+                        report. Default: all fields in the metadata file other
+                        than `name`
+  --search-field SEARCH_FIELD
+                        Option to search COG database for a different id type.
+                        Default: COG-UK ID
   --delay-tree-collapse
                         Wait until after iqtree runs to collapse the
                         polytomies. NOTE: This may result in large trees that
                         take quite a while to run.
   -n, --dry-run         Go through the motions but don't actually run
-  -f, --force           Overwrite all output
   -t THREADS, --threads THREADS
                         Number of threads
   --verbose             Print lots of stuff to screen
