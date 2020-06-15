@@ -37,6 +37,7 @@ def main(sysargs = sys.argv[1:]):
     parser.add_argument("-uun","--your-user-name", action="store", help="Your CLIMB COG-UK username. Required if running with --remote-sync flag", dest="uun")
     parser.add_argument('-o','--outdir', action="store",help="Output directory. Default: current working directory")
     parser.add_argument('--datadir', action="store",help="Local directory that contains the data files")
+    parser.add_argument('--fields', action="store",help="Comma separated string of fields to colour by in the report. Default: all fields in the metadata file other than `name`")
     parser.add_argument('--search-field', action="store",help="Option to search COG database for a different id type. Default: COG-UK ID", dest="search_field",default="central_sample_id")
     parser.add_argument('--delay-tree-collapse',action="store_true",dest="delay_tree_collapse",help="Wait until after iqtree runs to collapse the polytomies. NOTE: This may result in large trees that take quite a while to run.")
     parser.add_argument('-n', '--dry-run', action='store_true',help="Go through the motions but don't actually run")
@@ -109,8 +110,15 @@ def main(sysargs = sys.argv[1:]):
     queries = []
     with open(query, newline="") as f:
         reader = csv.DictReader(f)
-        for field in reader.fieldnames:
-            fields.append(field)
+        if not args.fields:
+            for field in reader.fieldnames:
+                if field != "name":
+                    fields.append(field)
+        else:
+            desired_fields = args.fields.split(",")
+            for field in args.fields:
+                if field in reader.fieldnames:
+                    fields.append(field)
         for row in reader:
             queries.append(row["name"])
 
