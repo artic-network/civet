@@ -12,6 +12,7 @@ def parse_args():
 
     parser.add_argument("--paf", action="store", type=str, dest="paf")
     parser.add_argument("--metadata", action="store", type=str, dest="metadata")
+    parser.add_argument("--search-field", action="store",type=str, dest="search_field")
     parser.add_argument("--csv-out", action="store", type=str, dest="outfile")
     parser.add_argument("--seqs", action="store", type=str, dest="seqs")
     parser.add_argument("--seqs-out", action="store", type=str, dest="seqs_out")
@@ -60,6 +61,7 @@ def parse_paf_and_get_metadata():
     args = parse_args()
 
     closest_cog, closest_to_query = get_closest_cog_sequences(args.paf)
+    column_to_match = args.search_field
     with open(args.metadata, newline="") as f:
         rows_to_write = []
         reader = csv.DictReader(f)
@@ -67,12 +69,14 @@ def parse_paf_and_get_metadata():
         for row in reader:
             if row["sequence_name"] in closest_cog:
                 row["query_id"]=closest_to_query[row["sequence_name"]]
+                row["cog_id"]= row[column_to_match]
                 row["query"]=closest_to_query[row["sequence_name"]]
                 row["closest"]=row["sequence_name"]
                 rows_to_write.append(row)
     
         with open(args.outfile, "w") as fw:
             header_names.append("query_id")
+            header_names.append("cog_id")
             header_names.append("query")
             header_names.append("closest")
             writer = csv.DictWriter(fw, fieldnames=header_names)
