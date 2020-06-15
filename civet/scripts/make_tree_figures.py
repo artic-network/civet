@@ -78,7 +78,7 @@ def display_name(tree, tree_name, tree_dir, query_id_dict, full_taxon_dict):
                     else:
                         k.traits["display"] = name
                 else:
-                    taxon_obj = ""
+                    #taxon_obj = ""
                     k.traits["display"] = name + "|" + "not in dict"
 
                 
@@ -106,10 +106,10 @@ def make_scaled_tree_without_legend(My_Tree, tree_name, tree_dir, num_tips, colo
     display_name(My_Tree, tree_name, tree_dir, query_id_dict, taxon_dict) #this is id dict for when the ids are in the tree.
     My_Tree.uncollapseSubtree()
 
-    closest_names = []
+    # closest_names = []
 
-    for query in query_id_dict.values():
-        closest_names.append(query.closest)
+    # for query in query_id_dict.values():
+    #     closest_names.append(query.closest)
 
     if num_tips < 10:
         #page_height = num_tips/2
@@ -126,22 +126,22 @@ def make_scaled_tree_without_legend(My_Tree, tree_name, tree_dir, num_tips, colo
     c_func=lambda k: 'dimgrey' ## colour of branches
     l_func=lambda k: 'lightgrey' ## colour of branches
     # cn_func=lambda k: colour_dict[k.traits["country"]] if k.traits["country"] in colour_dict else 'dimgrey'
-    cn_func = lambda k: 'fuchsia' if k.name in query_id_dict.keys() or k.name in query_dict.keys() or k.name in closest_names else 'dimgrey'
+    cn_func = lambda k: 'fuchsia' if k.name in query_id_dict.keys() or k.name in query_dict.keys() else 'dimgrey'
     #s_func=lambda k: tipsize*5 if k.traits["country"] in colour_dict else tipsize
-    s_func = lambda k: tipsize*5 if k.name in query_id_dict.keys() or k.name in query_dict.keys() or k.name in closest_names else tipsize
+    s_func = lambda k: tipsize*5 if k.name in query_id_dict.keys() or k.name in query_dict.keys() else tipsize
     z_func=lambda k: 100
     b_func=lambda k: 0.5 #branch width
     #co_func=lambda k: colour_dict[k.traits["country"]] if k.traits["country"] in colour_dict else 'dimgrey' ## for plotting a black outline of tip circles
-    co_func=lambda k: 'fuchsia' if k.name in query_id_dict.keys() or k.name in query_dict.keys() or k.name in closest_names else 'dimgrey' 
+    co_func=lambda k: 'fuchsia' if k.name in query_id_dict.keys() or k.name in query_dict.keys() else 'dimgrey' 
     #so_func=lambda k: tipsize*5 if k.traits["country"] in colour_dict else 0 #plots the uk tips over the grey ones
-    so_func=lambda k: tipsize*5 if k.name in query_id_dict.keys() or k.name in query_dict.keys() or k.name in closest_names else 0
+    so_func=lambda k: tipsize*5 if k.name in query_id_dict.keys() or k.name in query_dict.keys() else 0
     zo_func=lambda k: 99
     # outline_func = lambda k: None
     #outline_colour_func = lambda k: colour_dict[k.traits["country"]] if k.traits["country"] in colour_dict else 'dimgrey'
-    outline_colour_func = lambda k: "fuchsia" if k.name in query_id_dict.keys()or k.name in query_dict.keys()  or k.name in closest_names else 'dimgrey'
+    outline_colour_func = lambda k: "fuchsia" if k.name in query_id_dict.keys()or k.name in query_dict.keys() else 'dimgrey'
     zb_func=lambda k: 98
     zt_func=lambda k: 97
-    font_size_func = lambda k: 25 if k.name in query_id_dict.keys() or k.name in query_dict.keys() or k.name in closest_names else 15
+    font_size_func = lambda k: 25 if k.name in query_id_dict.keys() or k.name in query_dict.keys() else 15
     kwargs={'ha':'left','va':'center','size':12}
     
     x_attr=lambda k: k.height + offset

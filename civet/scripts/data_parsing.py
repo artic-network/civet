@@ -72,6 +72,7 @@ def parse_reduced_metadata(metadata_file):
             else:
                 new_taxon.closest = closest_name
 
+            new_taxon.attribute_dict["country"] = "UK"
 
             query_dict[query_name] = new_taxon
             query_id_dict[query_id] = new_taxon
@@ -87,6 +88,9 @@ def parse_input_csv(input_csv, query_id_dict, desired_fields):
         reader = csv.DictReader(f)
         col_name_prep = next(reader)
         col_names = list(col_name_prep.keys())
+
+    with open(input_csv, 'r') as f:
+        reader = csv.DictReader(f)
         in_data = [r for r in reader]
         for sequence in in_data:
             
@@ -99,7 +103,6 @@ def parse_input_csv(input_csv, query_id_dict, desired_fields):
             elif "sample_date" not in taxon.attribute_dict.keys(): #if it's not in cog and no data is provided
                 taxon.attribute_dict["sample_date"] = "NA" 
             #if it's in COG, it will already have been assigned a sample date.
-                
 
             for col in col_names:
                 if desired_fields != []:
