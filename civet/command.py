@@ -32,15 +32,14 @@ def main(sysargs = sys.argv[1:]):
 
     parser.add_argument('query',help="Input csv file with minimally `name` as a column header. Can include additional fields to be incorporated into the analysis, e.g. `sample_date`",)
     parser.add_argument('--fasta', action="store",help="Optional fasta query.", dest="fasta")
-    parser.add_argument('--search-field', action="store",help="Option to search COG database for a different id type. Default: COG-UK ID", dest="search_field",default="central_sample_id")
-    parser.add_argument("-r",'--remote-sync', action="store_true",dest="remote",help="Remotely access lineage trees from CLIMB, need to supply -uun,--your-user-name")
     parser.add_argument('--CLIMB', action="store_true",dest="climb",help="Indicates you're running CIVET from within CLIMB, uses default paths in CLIMB to access data")
+    parser.add_argument("-r",'--remote-sync', action="store_true",dest="remote",help="Remotely access lineage trees from CLIMB, need to also supply -uun,--your-user-name")
     parser.add_argument("-uun","--your-user-name", action="store", help="Your CLIMB COG-UK username. Required if running with --remote-sync flag", dest="uun")
     parser.add_argument('-o','--outdir', action="store",help="Output directory. Default: current working directory")
-    parser.add_argument('--datadir', action="store",help="Local directory that contains the data files.")
+    parser.add_argument('--datadir', action="store",help="Local directory that contains the data files")
+    parser.add_argument('--search-field', action="store",help="Option to search COG database for a different id type. Default: COG-UK ID", dest="search_field",default="central_sample_id")
     parser.add_argument('--delay-tree-collapse',action="store_true",dest="delay_tree_collapse",help="Wait until after iqtree runs to collapse the polytomies. NOTE: This may result in large trees that take quite a while to run.")
     parser.add_argument('-n', '--dry-run', action='store_true',help="Go through the motions but don't actually run")
-    parser.add_argument('-f', '--force', action='store_true',help="Overwrite all output",dest="force")
     # parser.add_argument('--tempdir',action="store",help="Specify where you want the temp stuff to go. Default: $TMPDIR")
     parser.add_argument('-t', '--threads', action='store',type=int,help="Number of threads")
     parser.add_argument("--verbose",action="store_true",help="Print lots of stuff to screen")
@@ -131,7 +130,8 @@ def main(sysargs = sys.argv[1:]):
         "trim_end":29674,
         "fasta":fasta,
         "rel_outdir":rel_outdir,
-        "search_field":args.search_field
+        "search_field":args.search_field,
+        "force"="forceall"
         }
 
     """ 
@@ -254,8 +254,7 @@ To run civet please either\n1) ssh into CLIMB and run with --CLIMB flag\n\
         config["post_qc_query"] = ""
         config["qc_fail"] = ""
 
-    if args.force:
-        config["force"]="forceall"
+        
     # find the data
     if args.delay_tree_collapse:
         config["delay_collapse"] = "True"
@@ -289,7 +288,7 @@ To run civet please either\n1) ssh into CLIMB and run with --CLIMB flag\n\
         config["quiet_mode"]="True"
 
     status = snakemake.snakemake(snakefile, printshellcmds=True,
-                                 dryrun=args.dry_run, forceall=args.force,force_incomplete=True,
+                                 dryrun=args.dry_run, forceall=True,force_incomplete=True,
                                  config=config, cores=threads,lock=False,quiet=quiet_mode
                                  )
 
