@@ -10,6 +10,7 @@ thisdir = os.path.abspath(os.path.dirname(__file__))
 def make_report(cog_metadata, input_csv, filtered_cog_metadata, outfile, outdir, treedir, figdir, fields, report_template):
 
     name_stem = ".".join(outfile.split(".")[:-1])
+
     with open(outfile, 'w') as pmd_file:
     
         md_template = report_template
@@ -29,8 +30,8 @@ def make_report(cog_metadata, input_csv, filtered_cog_metadata, outfile, outdir,
                         new_l = f'input_csv = "{input_csv}"\n'
                     elif "input_directory" in l:
                         new_l = f'input_directory = "{treedir}"\n'
-                    elif "desired_fields" in l:
-                        new_l = f'desired_fields = "{fields}"\n'
+                    elif "desired_fields_input" in l:
+                        new_l = f'desired_fields_input = "{fields}"\n'
                     elif "figdir" in l:
                         new_l = f'figdir = "{figdir}"\n'
                     elif "tree_dir" in l:
@@ -43,6 +44,7 @@ def make_report(cog_metadata, input_csv, filtered_cog_metadata, outfile, outdir,
 
                 pmd_file.write(new_l)
 
+    #weave(outfile, doctype = "pandoc", figdir=figdir)
     weave(outfile, doctype = "pandoc", figdir=figdir)
 
 def main():

@@ -46,6 +46,7 @@ def find_tallest_tree(input_dir):
 
                             num_taxa = int(l.rstrip(";").split("=")[1])
                             intro_name = fn.rstrip(".tree")
+                
                 if num_taxa > 1:
                     tree_file = os.path.join(r, fn)
                     tree = bt.loadNewick(tree_file,absoluteTime=False)
@@ -120,7 +121,7 @@ def find_colour_dict(query_dict, trait):
     
     
 def make_scaled_tree_without_legend(My_Tree, tree_name, tree_dir, num_tips, colour_dict, trait, tallest_height,lineage, taxon_dict, query_id_dict, query_dict, tree_to_query):
-    
+
     display_name(My_Tree, tree_name, tree_dir, query_id_dict, taxon_dict) #this is id dict for when the ids are in the tree.
     My_Tree.uncollapseSubtree()
 
@@ -140,14 +141,14 @@ def make_scaled_tree_without_legend(My_Tree, tree_name, tree_dir, num_tips, colo
     space_offset = tallest_height/100
     absolute_x_axis_size = tallest_height+space_offset+space_offset + tallest_height #changed from /3 
     
-    tipsize = 20
+    tipsize = 40
     c_func=lambda k: 'dimgrey' ## colour of branches
     l_func=lambda k: 'lightgrey' ## colour of branches
     cn_func = lambda k: 'fuchsia' if k.name in query_id_dict.keys() or k.name in query_dict.keys() else 'dimgrey'
     s_func = lambda k: tipsize*5 if k.name in query_id_dict.keys() or k.name in query_dict.keys() else tipsize
     z_func=lambda k: 100
-    b_func=lambda k: 1.0 #branch width
-    so_func=lambda k: tipsize*10 if k.name in query_id_dict.keys() or k.name in query_dict.keys() else 0
+    b_func=lambda k: 2.0 #branch width
+    so_func=lambda k: tipsize*5 if k.name in query_id_dict.keys() or k.name in query_dict.keys() else 0
     zo_func=lambda k: 99
     zb_func=lambda k: 98
     zt_func=lambda k: 97
@@ -265,7 +266,7 @@ def make_all_of_the_trees(input_dir, taxon_dict, query_id_dict, query_dict, tree
                     colour_by = ["adm1"]
                 else:
                     colour_by = desired_fields
-
+            
                 for trait in colour_by:
                     colour_dict = find_colour_dict(query_dict, trait)
                     tree_to_query = make_scaled_tree_without_legend(tree, treename, input_dir, len(tips), colour_dict, trait, tallest_height, lineage, taxon_dict, query_id_dict, query_dict, tree_to_query)     
