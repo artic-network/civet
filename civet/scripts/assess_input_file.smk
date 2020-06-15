@@ -355,7 +355,6 @@ rule make_report:
         combined_metadata = os.path.join(config["outdir"],"combined_metadata.csv"),
         full_cog_metadata = config["cog_metadata"],
         report_template = config["report_template"],
-        font = config["font_file"],
         polytomy_figure = config["polytomy_figure"]
     params:
         treedir = os.path.join(config["outdir"],"restored_trees"),
@@ -377,6 +376,5 @@ rule make_report:
         --filtered-cog-metadata {input.combined_metadata:q} \
         --cog-metadata {input.full_cog_metadata:q} \
         --outfile {output.outfile:q} \
-        --outdir {params.outdir:q} \
-        --font-file {input.font:q}
+        --outdir {params.outdir:q} 
         """
