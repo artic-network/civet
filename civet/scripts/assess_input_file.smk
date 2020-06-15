@@ -164,7 +164,7 @@ rule get_closest_cog:
         closest_cog = os.path.join(config["outdir"],"closest_cog.csv")
     run:
         if params.fasta != "":
-            print(f"Passing {input.query} into processing pipeline.")
+            print(f"Passing {params.query} into processing pipeline.")
             shell("snakemake --nolock --snakefile {input.snakefile:q} "
                         "{params.force} "
                         "{params.quiet_mode} "
