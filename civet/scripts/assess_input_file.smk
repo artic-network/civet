@@ -148,7 +148,6 @@ rule get_closest_cog:
         reference_fasta = config["reference_fasta"],
         cog_seqs = config["cog_seqs"],
         cog_metadata = config["cog_metadata"],
-        query = config["post_qc_query"],
         not_cog_csv = os.path.join(config["outdir"],"not_in_all_cog.csv")
     params:
         outdir= config["outdir"],
@@ -157,6 +156,7 @@ rule get_closest_cog:
         cores = workflow.cores,
         force = config["force"],
         fasta = config["fasta"],
+        query = config["post_qc_query"],
         quiet_mode = config["quiet_mode"],
         trim_start = config["trim_start"],
         trim_end = config["trim_end"]
@@ -173,7 +173,7 @@ rule get_closest_cog:
                         "outdir={params.outdir:q} "
                         # "tempdir={params.tempdir:q} "
                         "not_cog_csv={input.not_cog_csv:q} "
-                        "post_qc_query={input.query:q} "
+                        "post_qc_query={params.query:q} "
                         "cog_seqs={input.cog_seqs:q} "
                         "trim_start={params.trim_start} "
                         "trim_end={params.trim_end} "
