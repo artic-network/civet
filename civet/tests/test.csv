@@ -1,7 +1,10 @@
-name
-EDB129_closest
-EDB129_closestb
-20144000304_closest
-BRIS-12174F_closest
-EDB3588
-EDB2533
+name,HCW_status
+EDB129_closest,HCW
+EDB129_closestb,Patient
+20144000304_closest,Patient
+BRIS-12174F_closest,HCW
+EDB3588,HCW
+EDB2533,Patient
+201061090,Patient
+201090063,HCW
+201080063,HCW
