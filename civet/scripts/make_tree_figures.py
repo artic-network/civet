@@ -101,7 +101,7 @@ def display_name(tree, tree_name, tree_dir, query_id_dict, full_taxon_dict):
                 
 
 
-def make_scaled_tree_without_legend(My_Tree, tree_name, tree_dir, num_tips, colour_dict, tallest_height,lineage, taxon_dict, query_id_dict, query_dict):
+def make_scaled_tree_without_legend(My_Tree, tree_name, tree_dir, num_tips, colour_dict, tallest_height,lineage, taxon_dict, query_id_dict, query_dict, tree_to_query):
     
     display_name(My_Tree, tree_name, tree_dir, query_id_dict, taxon_dict) #this is id dict for when the ids are in the tree.
     My_Tree.uncollapseSubtree()
@@ -125,24 +125,22 @@ def make_scaled_tree_without_legend(My_Tree, tree_name, tree_dir, num_tips, colo
     tipsize = 20
     c_func=lambda k: 'dimgrey' ## colour of branches
     l_func=lambda k: 'lightgrey' ## colour of branches
-    # cn_func=lambda k: colour_dict[k.traits["country"]] if k.traits["country"] in colour_dict else 'dimgrey'
     cn_func = lambda k: 'fuchsia' if k.name in query_id_dict.keys() or k.name in query_dict.keys() else 'dimgrey'
-    #s_func=lambda k: tipsize*5 if k.traits["country"] in colour_dict else tipsize
     s_func = lambda k: tipsize*5 if k.name in query_id_dict.keys() or k.name in query_dict.keys() else tipsize
     z_func=lambda k: 100
-    b_func=lambda k: 0.5 #branch width
-    #co_func=lambda k: colour_dict[k.traits["country"]] if k.traits["country"] in colour_dict else 'dimgrey' ## for plotting a black outline of tip circles
-    co_func=lambda k: 'fuchsia' if k.name in query_id_dict.keys() or k.name in query_dict.keys() else 'dimgrey' 
-    #so_func=lambda k: tipsize*5 if k.traits["country"] in colour_dict else 0 #plots the uk tips over the grey ones
-    so_func=lambda k: tipsize*5 if k.name in query_id_dict.keys() or k.name in query_dict.keys() else 0
+    b_func=lambda k: 1.0 #branch width
+    so_func=lambda k: tipsize*10 if k.name in query_id_dict.keys() or k.name in query_dict.keys() else 0
     zo_func=lambda k: 99
-    # outline_func = lambda k: None
-    #outline_colour_func = lambda k: colour_dict[k.traits["country"]] if k.traits["country"] in colour_dict else 'dimgrey'
-    outline_colour_func = lambda k: "fuchsia" if k.name in query_id_dict.keys()or k.name in query_dict.keys() else 'dimgrey'
     zb_func=lambda k: 98
     zt_func=lambda k: 97
     font_size_func = lambda k: 25 if k.name in query_id_dict.keys() or k.name in query_dict.keys() else 15
     kwargs={'ha':'left','va':'center','size':12}
+
+    #we'll add in some if statements here for flexible input categorical data
+    co_func=lambda k: colour_dict[query_dict[k.name].attribute_dict["adm1"]] if k.name in query_id_dict.keys() or k.name in query_dict.keys() else 'dimgrey' 
+    outline_colour_func = lambda k: colour_dict[query_dict[k.name].attribute_dict["adm1"]] if k.name in query_id_dict.keys() or k.name in query_dict.keys() else 'dimgrey' 
+
+
     
     x_attr=lambda k: k.height + offset
     y_attr=lambda k: k.y
@@ -182,6 +180,9 @@ def make_scaled_tree_without_legend(My_Tree, tree_name, tree_dir, num_tips, colo
             ax2.text(tallest_height+space_offset+space_offset, y, name, size=font_size_func(k), ha="left", va="center", fontweight="bold")
             ax2.plot([x+space_offset,tallest_height+space_offset],[y,y],ls='--',lw=0.5,color=l_func(k))
 
+            if k.name in query_dict.keys() or k.name in query_id_dict.keys():
+                tree_to_query[lineage].append(k.name)
+
     ax2.spines['top'].set_visible(False) ## make axes invisible
     ax2.spines['right'].set_visible(False)
     ax2.spines['left'].set_visible(False)
@@ -192,9 +193,11 @@ def make_scaled_tree_without_legend(My_Tree, tree_name, tree_dir, num_tips, colo
 
     plt.yticks([])
     plt.xticks([])
-    plt.title(lineage, size=25)
+    #plt.title(lineage, size=25)
 
     fig2.tight_layout()
+
+    return tree_to_query
 
 def sort_trees_index(tree_dir):
     b_list = []
@@ -210,11 +213,13 @@ def sort_trees_index(tree_dir):
         
     return c
 
-def make_all_of_the_trees(input_dir, taxon_dict, query_id_dict, query_dict, min_uk_taxa=3):
+def make_all_of_the_trees(input_dir, taxon_dict, query_id_dict, query_dict, tree_to_query, min_uk_taxa=3):
     
     tallest_height = find_tallest_tree(input_dir)
 
     too_tall_trees = []
+
+    count = 0
     
     colour_dict = {"Wales":"darkseagreen",
                "England":"indianred",
@@ -244,12 +249,13 @@ def make_all_of_the_trees(input_dir, taxon_dict, query_id_dict, query_dict, min_
                 if k.branchType == 'leaf':
                     tips.append(k.name)
             if len(tips) < 1000:
-                make_scaled_tree_without_legend(tree, treename, input_dir, len(tips),colour_dict, tallest_height, lineage, taxon_dict, query_id_dict, query_dict)     
+                count += 1
+                tree_to_query = make_scaled_tree_without_legend(tree, treename, input_dir, len(tips),colour_dict, tallest_height, lineage, taxon_dict, query_id_dict, query_dict, tree_to_query)     
             else:
                 too_tall_trees.append(lineage)
                 continue
 
-    return too_tall_trees
+    return too_tall_trees, count, tree_to_query
 
 def summarise_collapsed_node(tree_dir, focal_node, focal_tree, full_tax_dict):
 
@@ -317,3 +323,4 @@ def summarise_collapsed_node(tree_dir, focal_node, focal_tree, full_tax_dict):
 
 
     return info
+
