@@ -15,6 +15,10 @@ if config["quiet_mode"]=="True":
 else:
     config["quiet_mode"] = ""
 
+if config["qc_fail"] != "":
+    fail_file = config["qc_fail"]
+    config["qc_fail"] = f"--failed-seqs {fail_file}"
+
 if config["delay_collapse"] == "False":
     config["delay_collapse"] = False
 elif config["delay_collapse"] == "True":

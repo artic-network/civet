@@ -358,12 +358,12 @@ rule process_catchments:
                             "combined_metadata={input.combined_metadata:q} "
                             "--cores {params.cores}")
             shell("touch {output.tree_summary:q}")
+print(config)
 
 rule make_report:
     input:
-        lineage_trees = os.path.join(config["outdir"],"combined_trees","collapse_report.txt"),
+        lineage_trees = rules.process_catchments.output.tree_summary,
         query = config["query"],
-        failure = config["qc_fail"],
         combined_metadata = os.path.join(config["outdir"],"combined_metadata.csv"),
         full_cog_metadata = config["cog_metadata"],
         report_template = config["report_template"],
@@ -372,7 +372,8 @@ rule make_report:
         treedir = os.path.join(config["outdir"],"restored_trees"),
         outdir = config["rel_outdir"],
         fields = config["fields"],
-        figdir = os.path.join("./figures")
+        figdir = os.path.join("./figures"),
+        failure = config["qc_fail"]
     output:
         poly_fig = os.path.join(config["outdir"],"figures","polytomies.png"),
         outfile = os.path.join(config["outdir"], "civet_report.md")
@@ -383,11 +384,11 @@ rule make_report:
         --input-csv {input.query:q} \
         -f {params.fields:q} \
         --figdir {params.figdir:q} \
-        --failed-seqs {input.failure} \
+        {params.failure} \
         --treedir {params.treedir:q} \
         --report-template {input.report_template:q} \
         --filtered-cog-metadata {input.combined_metadata:q} \
-        --cog-metadata {input.full_cog_metadata:q} \
+        --cog-metadata {input.cog_global_metadata:q} \
         --outfile {output.outfile:q} \
         --outdir {params.outdir:q} 
         """
