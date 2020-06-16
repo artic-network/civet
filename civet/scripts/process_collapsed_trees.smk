@@ -2,11 +2,19 @@
 Passed into config:
 
 catchment_str=tree_1,tree_2,...,tree_X
-outdir=path/to/outdir
-not_cog_csv
-post_qc_query
-cog_seqs
-combined_metadata
+"snakemake --nolock --snakefile {input.snakefile_collapse_before:q} "
+                            "{params.force} "
+                            "{params.quiet_mode} "
+                            # "--directory {params.tempdir:q} "
+                            "--config "
+                            f"catchment_str={catchment_str} "
+                            "outdir={params.outdir:q} "
+                            # "tempdir={params.tempdir:q} "
+                            "not_cog_csv={input.not_cog_csv:q} "
+                            "post_qc_query={input.not_cog_query_seqs:q} "
+                            "all_cog_seqs={input.all_cog_seqs:q} "
+                            "combined_metadata={input.combined_metadata:q} "
+                            "--cores {params.cores}"
 """
 from Bio import Phylo
 from Bio import SeqIO
