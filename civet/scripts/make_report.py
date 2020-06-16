@@ -7,7 +7,7 @@ import shutil
 
 thisdir = os.path.abspath(os.path.dirname(__file__))
 
-def make_report(cog_metadata, input_csv, filtered_cog_metadata, outfile, outdir, treedir, figdir, fields, report_template):
+def make_report(cog_metadata, input_csv, filtered_cog_metadata, outfile, outdir, treedir, figdir, fields, report_template, failed_seqs):
 
     name_stem = ".".join(outfile.split(".")[:-1])
 
@@ -39,7 +39,7 @@ def make_report(cog_metadata, input_csv, filtered_cog_metadata, outfile, outdir,
                     elif "summary_dir" in l:
                         new_l = f'summary_dir = "{summary_dir}"\n'
                     elif "QC_fail_file" in l:
-                        new_l = f'QC_fail_file = "{QC_fail_file}"\n'
+                        new_l = f'QC_fail_file = "{failed_seqs}"\n'
                     
                 else:
                     new_l = l
@@ -66,7 +66,7 @@ def main():
 
     args = parser.parse_args()
 
-    make_report(args.cog_metadata, args.input_csv, args.filtered_cog_metadata, args.outfile, args.outdir, args.treedir, args.figdir,args.fields, args.report_template)
+    make_report(args.cog_metadata, args.input_csv, args.filtered_cog_metadata, args.outfile, args.outdir, args.treedir, args.figdir,args.fields, args.report_template, args.failed_seqs)
 
 
 if __name__ == "__main__":
