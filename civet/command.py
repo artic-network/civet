@@ -330,7 +330,6 @@ To run civet please either\n1) ssh into CLIMB and run with --CLIMB flag\n\
     polytomy_figure = pkg_resources.resource_filename('civet', 'data/polytomies.png')
 
     print("The reference genome is found", reference_fasta)
-    print("The font file is", font_file)
 
     report_template = os.path.join(thisdir, 'scripts','civet_template.pmd')
     if not os.path.exists(report_template):
@@ -340,7 +339,7 @@ To run civet please either\n1) ssh into CLIMB and run with --CLIMB flag\n\
         print("Found the report_template", report_template)
 
     config["reference_fasta"] = reference_fasta
-    config["font_file"] = font_file
+
     config["polytomy_figure"] = polytomy_figure
     config["report_template"] = report_template
 
