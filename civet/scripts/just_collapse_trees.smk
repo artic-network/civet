@@ -25,19 +25,19 @@ config["tree_stems"] = config["catchment_str"].split(",")
 
 rule all:
     input:
-        expand(os.path.join(config["outdir"], "collapsed_trees","{tree}.tree"), tree = config["tree_stems"]),
-        os.path.join(config["outdir"],"combined_trees","collapse_report.txt"),
-        expand(os.path.join(config["outdir"],"restored_trees","{tree}.tree"), tree = config["tree_stems"])
+        expand(os.path.join(config["tempdir"], "collapsed_trees","{tree}.tree"), tree = config["tree_stems"]),
+        os.path.join(config["outdir"],"local_trees","collapse_report.txt"),
+        expand(os.path.join(config["outdir"],"local_trees","{tree}.tree"), tree = config["tree_stems"])
 
 rule summarise_polytomies:
     input:
-        tree = os.path.join(config["outdir"], "catchment_trees","{tree}.tree"),
+        tree = os.path.join(config["tempdir"], "catchment_trees","{tree}.tree"),
         metadata = config["combined_metadata"]
     params:
-        tree_dir = os.path.join(config["outdir"],"catchment_trees")
+        tree_dir = os.path.join(config["tempdir"],"catchment_trees")
     output:
-        collapsed_tree = os.path.join(config["outdir"],"collapsed_trees","{tree}.tree"),
-        collapsed_information = os.path.join(config["outdir"],"restored_trees","{tree}.txt")
+        collapsed_tree = os.path.join(config["tempdir"],"collapsed_trees","{tree}.tree"),
+        collapsed_information = os.path.join(config["outdir"],"local_trees","{tree}.txt")
     shell:
         """
         clusterfunk focus -i {input.tree:q} \
@@ -51,9 +51,9 @@ rule summarise_polytomies:
 
 rule remove_str_for_baltic:
     input:
-        tree = os.path.join(config["outdir"],"collapsed_trees","{tree}.tree")
+        tree = os.path.join(config["tempdir"],"collapsed_trees","{tree}.tree")
     output:
-        tree = os.path.join(config["outdir"],"collapsed_trees","{tree}.newick")
+        tree = os.path.join(config["tempdir"],"collapsed_trees","{tree}.newick")
     run:
         with open(output.tree,"w") as fw:
             with open(input.tree, "r") as f:
@@ -64,18 +64,18 @@ rule remove_str_for_baltic:
 
 rule to_nexus:
     input:
-        tree = os.path.join(config["outdir"],"collapsed_trees","{tree}.newick")
+        tree = os.path.join(config["tempdir"],"collapsed_trees","{tree}.newick")
     output:
-        tree = os.path.join(config["outdir"],"restored_trees","{tree}.tree")
+        tree = os.path.join(config["outdir"],"local_trees","{tree}.tree")
     run:
         Phylo.convert(input[0], 'newick', output[0], 'nexus')
 
 
 rule summarise_processing:
     input:
-        collapse_reports = expand(os.path.join(config["outdir"],"restored_trees","{tree}.txt"), tree=config["tree_stems"])
+        collapse_reports = expand(os.path.join(config["outdir"],"local_trees","{tree}.txt"), tree=config["tree_stems"])
     output:
-        report = os.path.join(config["outdir"],"combined_trees","collapse_report.txt")
+        report = os.path.join(config["outdir"],"local_trees","collapse_report.txt")
     run:
         with open(output.report, "w") as fw:
             for report in input.collapse_reports:

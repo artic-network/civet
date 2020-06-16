@@ -41,7 +41,8 @@ def main(sysargs = sys.argv[1:]):
     parser.add_argument('--search-field', action="store",help="Option to search COG database for a different id type. Default: COG-UK ID", dest="search_field",default="central_sample_id")
     parser.add_argument('--delay-tree-collapse',action="store_true",dest="delay_tree_collapse",help="Wait until after iqtree runs to collapse the polytomies. NOTE: This may result in large trees that take quite a while to run.")
     parser.add_argument('-n', '--dry-run', action='store_true',help="Go through the motions but don't actually run")
-    # parser.add_argument('--tempdir',action="store",help="Specify where you want the temp stuff to go. Default: $TMPDIR")
+    parser.add_argument('--tempdir',action="store",help="Specify where you want the temp stuff to go. Default: $TMPDIR")
+    parser.add_argument("--no-temp",action="store_true",help="Output all intermediate files, for dev purposes.")
     parser.add_argument('-t', '--threads', action='store',type=int,help="Number of threads")
     parser.add_argument("--verbose",action="store_true",help="Print lots of stuff to screen")
     parser.add_argument('--max-ambig', action="store", default=0.5, type=float,help="Maximum proportion of Ns allowed to attempt analysis. Default: 0.5",dest="maxambig")
@@ -94,17 +95,19 @@ def main(sysargs = sys.argv[1:]):
         outdir = cwd
         rel_outdir = "."
 
-    # tempdir = ''
-    # if args.tempdir:
-    #     to_be_dir = os.path.join(cwd, args.tempdir)
-    #     if not os.path.exists(to_be_dir):
-    #         os.mkdir(to_be_dir)
-    #     temporary_directory = tempfile.TemporaryDirectory(suffix=None, prefix=None, dir=to_be_dir)
-    #     tempdir = temporary_directory.name
-    # else:
-    #     temporary_directory = tempfile.TemporaryDirectory(suffix=None, prefix=None, dir=None)
-    #     tempdir = temporary_directory.name
+    tempdir = ''
+    if args.tempdir:
+        to_be_dir = os.path.join(cwd, args.tempdir)
+        if not os.path.exists(to_be_dir):
+            os.mkdir(to_be_dir)
+        temporary_directory = tempfile.TemporaryDirectory(suffix=None, prefix=None, dir=to_be_dir)
+        tempdir = temporary_directory.name
+    else:
+        temporary_directory = tempfile.TemporaryDirectory(suffix=None, prefix=None, dir=None)
+        tempdir = temporary_directory.name
 
+    if args.no_temp:
+        tempdir = outdir
 
     fields = []
     queries = []
@@ -131,7 +134,7 @@ def main(sysargs = sys.argv[1:]):
         "query":query,
         "fields":",".join(fields),
         "outdir":outdir,
-        # "tempdir":tempdir,
+        "tempdir":tempdir,
         "trim_start":265,
         "trim_end":29674,
         "fasta":fasta,

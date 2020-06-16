@@ -11,9 +11,9 @@ rule check_cog_db:
     params:
         field_to_match = config["search_field"]
     output:
-        cog = os.path.join(config["outdir"],"query_in_cog.csv"),
-        cog_seqs = os.path.join(config["outdir"],"query_in_cog.fasta"),
-        not_cog = os.path.join(config["outdir"],"not_in_cog.csv")
+        cog = os.path.join(config["tempdir"],"query_in_cog.csv"),
+        cog_seqs = os.path.join(config["tempdir"],"query_in_cog.fasta"),
+        not_cog = os.path.join(config["tempdir"],"not_in_cog.csv")
     run:
         found = []
         query_names = []
@@ -76,9 +76,9 @@ rule check_cog_all:
     params:
         field_to_match = config["search_field"]
     output:
-        cog = os.path.join(config["outdir"],"query_in_all_cog.csv"),
-        cog_seqs = os.path.join(config["outdir"],"query_in_all_cog.fasta"),
-        not_cog = os.path.join(config["outdir"],"not_in_all_cog.csv")
+        cog = os.path.join(config["tempdir"],"query_in_all_cog.csv"),
+        cog_seqs = os.path.join(config["tempdir"],"query_in_all_cog.fasta"),
+        not_cog = os.path.join(config["tempdir"],"not_in_all_cog.csv")
     run:
         found = []
         not_cog = []
@@ -147,12 +147,12 @@ rule get_closest_cog:
         reference_fasta = config["reference_fasta"],
         cog_seqs = config["cog_seqs"],
         cog_metadata = config["cog_metadata"],
-        not_cog_csv = os.path.join(config["outdir"],"not_in_all_cog.csv"),
-        in_all_cog_metadata = os.path.join(config["outdir"],"query_in_all_cog.csv"),
-        in_all_cog_seqs = os.path.join(config["outdir"],"query_in_all_cog.fasta")
+        not_cog_csv = os.path.join(config["tempdir"],"not_in_all_cog.csv"),
+        in_all_cog_metadata = os.path.join(config["tempdir"],"query_in_all_cog.csv"),
+        in_all_cog_seqs = os.path.join(config["tempdir"],"query_in_all_cog.fasta")
     params:
         outdir= config["outdir"],
-        # tempdir= config["tempdir"],
+        tempdir= config["tempdir"],
         path = workflow.current_basedir,
         cores = workflow.cores,
         force = config["force"],
@@ -160,13 +160,13 @@ rule get_closest_cog:
         search_field = config["search_field"],
         query = config["post_qc_query"],
         quiet_mode = config["quiet_mode"],
-        stand_in_query = os.path.join(config["outdir"], "temp.fasta"),
+        stand_in_query = os.path.join(config["tempdir"], "temp.fasta"),
         trim_start = config["trim_start"],
         trim_end = config["trim_end"]
     output:
-        closest_cog = os.path.join(config["outdir"],"closest_cog.csv"),
-        not_cog_query = os.path.join(config["outdir"],"not_in_all_cog.fasta"),
-        combined_query = os.path.join(config["outdir"],"to_find_closest.fasta")
+        closest_cog = os.path.join(config["tempdir"],"closest_cog.csv"),
+        not_cog_query = os.path.join(config["tempdir"],"not_in_all_cog.fasta"),
+        combined_query = os.path.join(config["tempdir"],"to_find_closest.fasta")
     run:
         if params.fasta != "":
             not_cog = []
@@ -189,10 +189,10 @@ rule get_closest_cog:
                 shell("snakemake --nolock --snakefile {input.snakefile:q} "
                             "{params.force} "
                             "{params.quiet_mode} "
-                            # "--directory {params.tempdir:q} "
+                            "--directory {params.tempdir:q} "
                             "--config "
                             "outdir={params.outdir:q} "
-                            # "tempdir={params.tempdir:q} "
+                            "tempdir={params.tempdir:q} "
                             "not_cog_csv={input.not_cog_csv:q} "
                             "post_qc_query={output.not_cog_query:q} "
                             "in_all_cog_metadata={input.in_all_cog_metadata} "
@@ -219,10 +219,10 @@ rule get_closest_cog:
                 shell("snakemake --nolock --snakefile {input.snakefile:q} "
                             "{params.force} "
                             "{params.quiet_mode} "
-                            # "--directory {params.tempdir:q} "
+                            "--directory {params.tempdir:q} "
                             "--config "
                             "outdir={params.outdir:q} "
-                            # "tempdir={params.tempdir:q} "
+                            "tempdir={params.tempdir:q} "
                             "not_cog_csv={input.not_cog_csv:q} "
                             "post_qc_query={params.stand_in_query:q} "
                             "in_all_cog_metadata={input.in_all_cog_metadata} "
@@ -262,9 +262,9 @@ rule prune_out_catchments:
         tree = config["cog_tree"],
         metadata = rules.combine_metadata.output.combined_csv
     params:
-        outdir = os.path.join(config["outdir"],"catchment_trees")
+        outdir = os.path.join(config["tempdir"],"catchment_trees")
     output:
-        txt = os.path.join(config["outdir"],"catchment_trees","catchment_tree_summary.txt")
+        txt = os.path.join(config["tempdir"],"catchment_trees","catchment_tree_summary.txt")
     shell:
         """
         clusterfunk find_catchments -i {input.tree:q} \
@@ -283,23 +283,23 @@ rule process_catchments:
         snakefile_collapse_after = os.path.join(workflow.current_basedir,"process_catchment_trees.smk"),
         snakefile_collapse_before = os.path.join(workflow.current_basedir,"process_collapsed_trees.smk"),
         snakefile_just_collapse = os.path.join(workflow.current_basedir,"just_collapse_trees.smk"),
-        combined_metadata = os.path.join(config["outdir"],"combined_metadata.csv"),
-        catchment_placeholder = os.path.join(config["outdir"],"catchment_trees","catchment_tree_summary.txt"),
+        combined_metadata = rules.combine_metadata.output.combined_csv,
+        catchment_placeholder = rules.prune_out_catchments.output.txt,
         all_cog_seqs = config["all_cog_seqs"],
         not_cog_query_seqs = rules.get_closest_cog.output.combined_query,
         not_cog_csv = rules.check_cog_all.output.not_cog
     params:
         outdir= config["outdir"],
-        # tempdir= config["tempdir"],
+        tempdir= config["tempdir"],
         path = workflow.current_basedir,
         cores = workflow.cores,
         delay_collapse = config["delay_collapse"],
         force = config["force"],
         fasta = config["fasta"],
-        tree_dir = os.path.join(config["outdir"],"catchment_trees"),
+        tree_dir = os.path.join(config["tempdir"],"catchment_trees"),
         quiet_mode = config["quiet_mode"]
     output:
-        tree_summary = os.path.join(config["outdir"],"combined_trees","collapse_report.txt")
+        tree_summary = os.path.join(config["outdir"],"local_trees","collapse_report.txt")
     run:
         catchment_trees = []
         for r,d,f in os.walk(params.tree_dir):
@@ -319,11 +319,11 @@ rule process_catchments:
                 shell("snakemake --nolock --snakefile {input.snakefile_collapse_before:q} "
                             "{params.force} "
                             "{params.quiet_mode} "
-                            # "--directory {params.tempdir:q} "
+                            "--directory {params.tempdir:q} "
                             "--config "
                             f"catchment_str={catchment_str} "
                             "outdir={params.outdir:q} "
-                            # "tempdir={params.tempdir:q} "
+                            "tempdir={params.tempdir:q} "
                             "not_cog_csv={input.not_cog_csv:q} "
                             "post_qc_query={input.not_cog_query_seqs:q} "
                             "all_cog_seqs={input.all_cog_seqs:q} "
@@ -334,11 +334,11 @@ rule process_catchments:
                 shell("snakemake --nolock --snakefile {input.snakefile_collapse_after:q} "
                             "{params.force} "
                             "{params.quiet_mode} "
-                            # "--directory {params.tempdir:q} "
+                            "--directory {params.tempdir:q} "
                             "--config "
                             f"catchment_str={catchment_str} "
                             "outdir={params.outdir:q} "
-                            # "tempdir={params.tempdir:q} "
+                            "tempdir={params.tempdir:q} "
                             "not_cog_csv={input.not_cog_csv:q} "
                             "post_qc_query={input.not_cog_query_seqs:q} "
                             "all_cog_seqs={input.all_cog_seqs:q} "
@@ -354,7 +354,7 @@ rule process_catchments:
                             "--config "
                             f"catchment_str={catchment_str} "
                             "outdir={params.outdir:q} "
-                            # "tempdir={params.tempdir:q} "
+                            "tempdir={params.tempdir:q} "
                             "combined_metadata={input.combined_metadata:q} "
                             "--cores {params.cores}")
 
@@ -367,7 +367,7 @@ rule make_report:
         report_template = config["report_template"],
         polytomy_figure = config["polytomy_figure"]
     params:
-        treedir = os.path.join(config["outdir"],"restored_trees"),
+        treedir = os.path.join(config["outdir"],"local_trees"),
         outdir = config["rel_outdir"],
         fields = config["fields"],
         figdir = os.path.join("./figures"),

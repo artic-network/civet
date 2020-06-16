@@ -2,15 +2,15 @@ import os
 from Bio import SeqIO
 rule all:
     input:
-        os.path.join(config["outdir"],"closest_cog.csv"),
-        os.path.join(config["outdir"],"to_find_closest.fasta")
+        os.path.join(config["tempdir"],"closest_cog.csv"),
+        os.path.join(config["tempdir"],"to_find_closest.fasta")
 
 rule combine_in_all_cog_and_query:
     input:
         fasta = config["post_qc_query"],
         in_all_cog_seqs = config["in_all_cog_seqs"]
     output:
-        fasta = os.path.join(config["outdir"],"to_find_closest.fasta")
+        fasta = os.path.join(config["tempdir"],"to_find_closest.fasta")
     run:
         num_query = 0
         num_all_cog = 0
@@ -29,7 +29,7 @@ rule non_cog_minimap2_to_reference:
         fasta = rules.combine_in_all_cog_and_query.output.fasta,
         reference = config["reference_fasta"]
     output:
-        sam = os.path.join(config["outdir"],"post_qc_query.reference_mapped.sam")
+        sam = os.path.join(config["tempdir"],"post_qc_query.reference_mapped.sam")
     shell:
         """
         minimap2 -a -x asm5 {input.reference:q} {input.fasta:q} > {output.sam:q}
@@ -42,9 +42,9 @@ rule non_cog_remove_insertions_and_trim_and_pad:
     params:
         trim_start = config["trim_start"],
         trim_end = config["trim_end"],
-        insertions = os.path.join(config["outdir"],"post_qc_query.insertions.txt")
+        insertions = os.path.join(config["tempdir"],"post_qc_query.insertions.txt")
     output:
-        fasta = os.path.join(config["outdir"],"post_qc_query.alignment.trimmed.fasta")
+        fasta = os.path.join(config["tempdir"],"post_qc_query.alignment.trimmed.fasta")
     shell:
         """
         datafunk sam_2_fasta \
@@ -62,7 +62,7 @@ rule minimap2_against_cog:
         query_seqs = rules.combine_in_all_cog_and_query.output.fasta,
         cog_seqs = config["cog_seqs"]
     output:
-        paf = os.path.join(config["outdir"],"post_qc_query.cog_mapped.paf")
+        paf = os.path.join(config["tempdir"],"post_qc_query.cog_mapped.paf")
     shell:
         """
         minimap2 -x asm5 --secondary=no --paf-no-hit {input.cog_seqs:q} {input.query_seqs:q} > {output.paf:q}
@@ -76,8 +76,8 @@ rule parse_paf:
     params:
         search_field = config["search_field"]
     output:
-        fasta = os.path.join(config["outdir"],"closest_cog.fasta"),
-        csv = os.path.join(config["outdir"],"closest_cog.csv")
+        fasta = os.path.join(config["tempdir"],"closest_cog.fasta"),
+        csv = os.path.join(config["tempdir"],"closest_cog.csv")
     shell:
         """
         parse_paf.py \
