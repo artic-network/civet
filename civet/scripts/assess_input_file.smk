@@ -235,7 +235,7 @@ rule get_closest_cog:
                             "cog_metadata={input.cog_metadata:q} "
                             "--cores {params.cores}")
             else:
-                shell("touch {output.closest_cog:q} && touch {output.not_in_all_cog} && touch {output.combined_query}")
+                shell("touch {output.closest_cog:q} && touch {output.not_cog_query} && touch {output.combined_query}")
 
 rule combine_metadata:
     input:
