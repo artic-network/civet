@@ -128,8 +128,8 @@ def parse_input_csv(input_csv, query_id_dict, desired_fields):
 
                 new_query_dict[taxon.name] = taxon
             
-            else:
-                print(name + " is in the input file but not the processed file. This suggests that it is not in COG and a sequence has also not been provided.")
+            # else:
+            #     print(name + " is in the input file but not the processed file. This suggests that it is not in COG and a sequence has also not been provided.")
                 
     return new_query_dict 
 
@@ -226,8 +226,6 @@ def investigate_QC_fails(QC_file):
         for sequence in in_data:
             name = sequence["name"]
             reason = sequence["reason_for_failure"]
-
-            fail=seq_len:5052
 
             if "seq_len" in reason:
                 length = reason.split(":")[1]
