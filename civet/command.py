@@ -307,9 +307,12 @@ To run civet please either\n1) ssh into CLIMB and run with --CLIMB flag\n\
         post_qc_query = os.path.join(outdir, 'query.post_qc.fasta')
         with open(post_qc_query,"w") as fw:
             SeqIO.write(run, fw, "fasta")
-        qc_fail = os.path.join(outdir,'query.failed_qc.fasta')
+        qc_fail = os.path.join(outdir,'query.failed_qc.csv')
         with open(qc_fail,"w") as fw:
-            SeqIO.write(do_not_run, fw, "fasta")
+            fw.write("name,reason_for_failure\n")
+            for record in do_not_run:
+                desc = record.description.split(" ")
+                fw.write(f"{record.id},{desc[1]}\n")
 
         config["post_qc_query"] = post_qc_query
         config["qc_fail"] = qc_fail
@@ -324,7 +327,6 @@ To run civet please either\n1) ssh into CLIMB and run with --CLIMB flag\n\
     else:
         config["delay_collapse"] = "False"
     reference_fasta = pkg_resources.resource_filename('civet', 'data/reference.fasta')
-    font_file = pkg_resources.resource_filename('civet', 'data/HelveticaNeue.ttf')
     polytomy_figure = pkg_resources.resource_filename('civet', 'data/polytomies.png')
 
     print("The reference genome is found", reference_fasta)
