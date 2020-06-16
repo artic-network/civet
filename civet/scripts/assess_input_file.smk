@@ -282,10 +282,10 @@ rule process_catchments:
     input:
         snakefile_collapse_after = os.path.join(workflow.current_basedir,"process_catchment_trees.smk"),
         snakefile_collapse_before = os.path.join(workflow.current_basedir,"process_collapsed_trees.smk"),
+        snakefile_just_collapse = os.path.join(workflow.current_basedir,"just_collapse_trees.smk"),
         combined_metadata = os.path.join(config["outdir"],"combined_metadata.csv"),
         catchment_placeholder = os.path.join(config["outdir"],"catchment_trees","catchment_tree_summary.txt"),
         all_cog_seqs = config["all_cog_seqs"],
-        
         not_cog_query_seqs = rules.get_closest_cog.output.combined_query,
         not_cog_csv = rules.check_cog_all.output.not_cog
     params:
@@ -346,6 +346,17 @@ rule process_catchments:
                             "--cores {params.cores}")
 
         else:
+            print(f"No new sequences to add in, just collapsing trees.")
+            shell("snakemake --nolock --snakefile {input.snakefile_just_collapse:q} "
+                            "{params.force} "
+                            "{params.quiet_mode} "
+                            # "--directory {params.tempdir:q} "
+                            "--config "
+                            f"catchment_str={catchment_str} "
+                            "outdir={params.outdir:q} "
+                            # "tempdir={params.tempdir:q} "
+                            "combined_metadata={input.combined_metadata:q} "
+                            "--cores {params.cores}")
             shell("touch {output.tree_summary:q}")
 
 rule make_report:
