@@ -352,6 +352,7 @@ rule make_report:
     input:
         lineage_trees = os.path.join(config["outdir"],"combined_trees","collapse_report.txt"),
         query = config["query"],
+        failure = config["qc_fail"],
         combined_metadata = os.path.join(config["outdir"],"combined_metadata.csv"),
         full_cog_metadata = config["cog_metadata"],
         report_template = config["report_template"],
@@ -371,6 +372,7 @@ rule make_report:
         --input-csv {input.query:q} \
         -f {params.fields:q} \
         --figdir {params.figdir:q} \
+        --failed-seqs {input.failure} \
         --treedir {params.treedir:q} \
         --report-template {input.report_template:q} \
         --filtered-cog-metadata {input.combined_metadata:q} \
