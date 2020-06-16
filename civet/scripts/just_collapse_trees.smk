@@ -51,9 +51,9 @@ rule summarise_polytomies:
 
 rule remove_str_for_baltic:
     input:
-        tree = os.path.join(config["outdir"],"almost_restored_trees","{tree}.tree")
+        tree = os.path.join(config["outdir"],"collapsed_trees","{tree}.tree")
     output:
-        tree = os.path.join(config["outdir"],"almost_restored_trees","{tree}.newick")
+        tree = os.path.join(config["outdir"],"collapsed_trees","{tree}.newick")
     run:
         with open(output.tree,"w") as fw:
             with open(input.tree, "r") as f:
@@ -64,7 +64,7 @@ rule remove_str_for_baltic:
 
 rule to_nexus:
     input:
-        tree = os.path.join(config["outdir"],"almost_restored_trees","{tree}.newick")
+        tree = os.path.join(config["outdir"],"collapsed_trees","{tree}.newick")
     output:
         tree = os.path.join(config["outdir"],"restored_trees","{tree}.tree")
     run:
