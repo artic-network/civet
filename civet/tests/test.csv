@@ -2,9 +2,8 @@ name,HCW_status
 EDB129_closest,HCW
 EDB129_closestb,Patient
 20144000304_closest,Patient
-BRIS-12174F_closest,HCW
+This_seq_is_too_short,HCW
 EDB3588,HCW
 EDB2533,Patient
-201061090,Patient
-201090063,HCW
-201080063,HCW
+This_seq_has_lots_of_Ns,HCW
+This_seq_is_literally_just_N,HCW
