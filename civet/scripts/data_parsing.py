@@ -216,3 +216,30 @@ def make_initial_table(query_dict):
 
     return df
 
+def investigate_QC_fails(QC_file):
+
+    fail_dict = {}
+
+    with open(QC_file) as f:
+        reader = csv.DictReader(f)
+        in_data = [r for r in reader]
+        for sequence in in_data:
+            name = sequence["name"]
+            reason = sequence["reason_for_failure"]
+
+            fail=seq_len:5052
+
+            if "seq_len" in reason:
+                length = reason.split(":")[1]
+                final_reason = "Sequence too short: only " + length + " bases."
+            elif "N_content" in reason:
+                n_content = reason.split(":")[1]
+                final_reason = "Sequence has too many Ns: " + n_content + "\% of bases"
+
+            fail_dict[name] = final_reason
+
+
+    return fail_dict
+    
+
+

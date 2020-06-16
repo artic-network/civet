@@ -38,13 +38,14 @@ def make_report(cog_metadata, input_csv, filtered_cog_metadata, outfile, outdir,
                         new_l = f'tree_dir = "{treedir}"\n'
                     elif "summary_dir" in l:
                         new_l = f'summary_dir = "{summary_dir}"\n'
+                    elif "QC_fail_file" in l:
+                        new_l = f'QC_fail_file = "{QC_fail_file}"\n'
                     
                 else:
                     new_l = l
 
                 pmd_file.write(new_l)
 
-    #weave(outfile, doctype = "pandoc", figdir=figdir)
     weave(outfile, doctype = "pandoc", figdir=figdir)
 
 def main():
