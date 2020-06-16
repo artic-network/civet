@@ -89,13 +89,14 @@ present_in_tree = dp.parse_tree_tips(tree_dir)
 full_tax_dict = dp.parse_full_metadata(query_dict, full_metadata_file, present_lins, present_in_tree)
 ```
 ```python, name="QC fails", echo=False, results="raw"
-fail_dict = dp.investigate_QC_fails(QC_fail_file)
-if len(fail_dict) > 0:
-    print("The following sequences have failed QC:")
-    for seq, reason in fail_dict.items():
-        pretty_name = seq.replace("'","")
-        pretty_reason = reason.replace("'","")
-        print(pretty_name, pretty_reason)
+if QC_fail_file != "":
+    fail_dict = dp.investigate_QC_fails(QC_fail_file)
+    if len(fail_dict) > 0:
+        print("The following sequences have failed QC:")
+        for seq, reason in fail_dict.items():
+            pretty_name = seq.replace("'","")
+            pretty_reason = reason.replace("'","")
+            print(pretty_name, pretty_reason)
 
 ```
 
