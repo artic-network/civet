@@ -55,7 +55,7 @@ def main():
 
     parser.add_argument("--filtered-cog-metadata", required=False, help="path to combined metadata file",dest="filtered_cog_metadata")
     parser.add_argument("--cog-metadata", required=True, help="path to full COG metadata file",dest="cog_metadata")
-    parser.add_argument("--failed-seqs", required=True, help="csv of seqs that fail qc and the reason why",dest="failed_seqs")
+    parser.add_argument("--failed-seqs", required=False, help="csv of seqs that fail qc and the reason why",dest="failed_seqs")
     
     parser.add_argument("-t","--treedir", required=False, default="", help="path to tree directory",dest="treedir")
     parser.add_argument("--report-template", help="report template file",dest="report_template")

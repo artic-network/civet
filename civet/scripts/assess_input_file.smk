@@ -357,14 +357,13 @@ rule process_catchments:
                             # "tempdir={params.tempdir:q} "
                             "combined_metadata={input.combined_metadata:q} "
                             "--cores {params.cores}")
-            shell("touch {output.tree_summary:q}")
 
 rule make_report:
     input:
         lineage_trees = rules.process_catchments.output.tree_summary,
         query = config["query"],
         combined_metadata = os.path.join(config["outdir"],"combined_metadata.csv"),
-        full_cog_metadata = config["cog_metadata"],
+        cog_global_metadata = config["cog_global_metadata"],
         report_template = config["report_template"],
         polytomy_figure = config["polytomy_figure"]
     params:
