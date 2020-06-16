@@ -31,10 +31,9 @@ rule extract_taxa:
 rule gather_fasta_seqs:
     input:
         post_qc_query = config["post_qc_query"],
-        in_all_cog_fasta = config["in_all_cog_fasta"],
         cog_seqs = config["all_cog_seqs"],
         combined_metadata = config["combined_metadata"],
-        tree_taxa = os.path.join(config["outdir"], "catchment_trees","{tree}.txt")
+        tree_taxa = rules.extract_taxa.output.tree_taxa
     output:
         aln = os.path.join(config["outdir"], "catchment_aln","{tree}.query.aln.fasta")
     run:
@@ -59,21 +58,52 @@ rule gather_fasta_seqs:
                     iqtree_friendly = record.id.replace("/","_")
                     fw.write(f">{iqtree_friendly}\n{record.seq}\n")
 
-            for record in SeqIO.parse(input.in_all_cog_fasta, "fasta"):
-                if record.id in queries.values() or record.id in queries.keys():
-                    iqtree_friendly = record.id.replace("/","_")
-                    fw.write(f">{iqtree_friendly}\n{record.seq}\n")
-
             for record in SeqIO.parse(input.cog_seqs,"fasta"):
                 if record.id in taxa:
                     iqtree_friendly = record.id.replace("/","_")
                     fw.write(f">_{iqtree_friendly}_\n{record.seq}\n")
 
+rule hash_for_iqtree:
+    input:
+        aln = rules.gather_fasta_seqs.output.aln
+    output:
+        hash = os.path.join(config["outdir"], "renamed_trees","{tree}.hash_for_iqtree.csv"),
+        hashed_aln = os.path.join(config["outdir"], "renamed_trees","{tree}.query.aln.fasta")
+    run:
+        fw = open(output.hash, "w")
+        fw.write("taxon,iqtree_hash,cluster_hash\n")
+        hash_count = 0
+        with open(output.hashed_aln, "w") as fseq:
+            for record in SeqIO.parse(input.aln, "fasta"):
+                hash_count +=1
+                without_str = record.id.rstrip("'").lstrip("'")
+                fw.write(f"{without_str},_taxon_{hash_count}_,taxon_{hash_count}\n")
+                fseq.write(f">'taxon_{hash_count}'\n{record.seq}\n")
+        fw.close()
+
+rule hash_tax_labels:
+    input:
+        tree=os.path.join(config["outdir"],"catchment_trees","{tree}.tree"),
+        hash = rules.hash_for_iqtree.output.hash
+    output:
+        tree = os.path.join(config["outdir"],"renamed_trees","{tree}.tree")
+    shell:
+        """
+        clusterfunk relabel_tips -i {input.tree} \
+        -o {output[0]} \
+        --in-metadata {input.hash} \
+        --index-column taxon \
+        --trait-columns cluster_hash \
+        --replace \
+        --in-format newick \
+        --out-format newick
+        """
+
 rule iqtree_catchment:
     input:
-        aln = os.path.join(config["outdir"], "catchment_aln","{tree}.query.aln.fasta"),
-        guide_tree = os.path.join(config["outdir"], "catchment_trees","{tree}.tree"),
-        taxa = os.path.join(config["outdir"], "catchment_trees","{tree}.txt")
+        aln = rules.hash_for_iqtree.output.hashed_aln,
+        guide_tree = rules.hash_tax_labels.output.tree,
+        taxa = rules.extract_taxa.output.tree_taxa
     output:
         tree = os.path.join(config["outdir"], "catchment_aln","{tree}.aln.fasta.treefile")
     run:
@@ -88,31 +118,53 @@ rule iqtree_catchment:
         if taxa != aln_taxa:
             shell("iqtree -s {input.aln:q} -bb 1000 -au -g {input.guide_tree:q} -m HKY -nt 1 -redo")
         else:
-            shell("cp {input.guide_tree} {output.tree}")
-rule rename:
+            with open(output.tree,"w") as fw:
+                with open(input.guide_tree, "r") as f:
+                    for l in f:
+                        l = l.rstrip("\n")
+                        l = l.replace("'","_")
+                        fw.write(l)
+
+rule restore_tip_names:
     input:
-        tree=rules.iqtree_catchment.output
+        tree = rules.iqtree_catchment.output.tree,
+        hash = rules.hash_for_iqtree.output.hash
     output:
-        os.path.join(config["outdir"],"combined_trees","{tree}.tree")
+        os.path.join(config["outdir"],"almost_restored_trees","{tree}.tree")
     shell:
         """
         clusterfunk relabel_tips -i {input.tree} \
         -o {output[0]} \
-         --from-label \
-        --parse-taxon-key "_(.+)_(.+)_(.+)_" \
-        --separator "/" \
-         --in-format newick 
+        --in-metadata {input.hash} \
+        --index-column iqtree_hash \
+        --trait-columns taxon \
+        --replace \
+        --in-format newick \
+        --out-format newick
         """
+
+rule remove_str_for_baltic:
+    input:
+        tree = os.path.join(config["outdir"],"almost_restored_trees","{tree}.tree")
+    output:
+        tree = os.path.join(config["outdir"],"almost_restored_trees","{tree}.newick")
+    run:
+        with open(output.tree,"w") as fw:
+            with open(input.tree, "r") as f:
+                for l in f:
+                    l = l.rstrip("\n")
+                    l = l.replace("'","")
+                    fw.write(l)
 
 rule summarise_polytomies:
     input:
-        tree = os.path.join(config["outdir"], "combined_trees","{tree}.tree"),
-        metadata = os.path.join(config["outdir"],"combined_metadata.csv")
+        tree = os.path.join(config["outdir"], "almost_restored_trees","{tree}.newick"),
+        metadata = config["combined_metadata"]
     params:
-        tree_dir = os.path.join(config["outdir"],"combined_trees")
+        tree_dir = os.path.join(config["outdir"],"almost_restored_trees")
     output:
-        collapsed_tree = os.path.join(config["outdir"],"collapsed_trees","{tree}.tree"),
-        collapsed_information = os.path.join(config["outdir"],"collapsed_trees","{tree}.txt")
+        collapsed_tree = os.path.join(config["outdir"],"restored_trees","{tree}.tree"),
+        collapsed_information = os.path.join(config["outdir"],"restored_trees","{tree}.txt")
     shell:
         """
         clusterfunk focus -i {input.tree:q} \
@@ -124,9 +176,9 @@ rule summarise_polytomies:
 
 rule summarise_processing:
     input:
-        collapse_reports = expand(os.path.join(config["outdir"],"collapsed_trees","{tree}.txt"), tree=config["tree_stems"])
+        collapse_reports = expand(os.path.join(config["outdir"],"restored_trees","{tree}.txt"), tree=config["tree_stems"])
     output:
-        report = os.path.join(config["outdir"],"collapsed_trees","collapse_report.txt")
+        report = os.path.join(config["outdir"],"combined_trees","collapse_report.txt")
     run:
         with open(output.report, "w") as fw:
             for report in input.collapse_reports:
