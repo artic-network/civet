@@ -358,7 +358,6 @@ rule process_catchments:
                             "combined_metadata={input.combined_metadata:q} "
                             "--cores {params.cores}")
             shell("touch {output.tree_summary:q}")
-print(config)
 
 rule make_report:
     input:
