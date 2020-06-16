@@ -7,6 +7,7 @@ import copy
 
 import matplotlib as mpl
 from matplotlib import pyplot as plt
+from matplotlib import cm
 import matplotlib.patheffects as path_effects
 from matplotlib.gridspec import GridSpec
 from matplotlib.patches import Polygon
@@ -103,6 +104,8 @@ def find_colour_dict(query_dict, trait):
 
     attribute_options = set()
 
+    cmap = cm.get_cmap("viridis")
+
     if trait == "adm1":
         colour_dict = {"Wales":"darkseagreen",
                 "England":"indianred",
@@ -118,7 +121,17 @@ def find_colour_dict(query_dict, trait):
         colour_dict = {list(attribute_options)[0]: "goldenrod",
                         list(attribute_options)[1]:"midnightblue"}
         return colour_dict
+
+    else:
+        #get the right number of colours, then loop through the set
+        colour_dict = {}
+        count = 0
+        colors = cmap(np.linspace(0, 1, len(attribute_options)))
+        for option in attribute_options:
+            colour_dict[option] = colors[count]
+            count += 1
     
+        return colour_dict
     
 def make_scaled_tree_without_legend(My_Tree, tree_name, tree_dir, num_tips, colour_dict, trait, tallest_height,lineage, taxon_dict, query_id_dict, query_dict, tree_to_query):
 
