@@ -33,7 +33,6 @@ rule check_cog_db:
 
                     cog_id = row[column_to_match]
                     if seq == cog_id:
-                        print(seq)
                         found.append(seq)
                         row["query_id"]=seq
                         row["cog_id"] = row[column_to_match]
@@ -60,7 +59,7 @@ rule check_cog_db:
                         fw.write(f">{record.id} status=in_cog\n{record.seq}\n")
         
         with open(output.not_cog, "w") as fw:
-            print("The following sequences were not found in the cog database:\n")
+            print("\nThe following sequences were not found in the cog database:")
 
             for query in query_names:
                 if query not in found:
@@ -128,18 +127,15 @@ rule check_cog_all:
             print(f"The following sequences were found in COG-UK put hadn't passed the QC.\nLowering QC and adding them in to analysis now.")
             for i in found:
                 print(f"    - {i}")
+
         with open(output.not_cog, "w") as fw:
             c = 0
-            print("The following sequences were not found in the cog database:\n")
-
+            print("The following sequences were not found in the cog database:")
             for query in not_cog:
                 if query not in found:
                     c+=1
                     fw.write(query + '\n')
                     print(f"{query}")
-        
-            print(f"\n{c} sequences remaining not in COG, will find nearest COG sequence.")
-
 
 rule get_closest_cog:
     input:
@@ -166,8 +162,10 @@ rule get_closest_cog:
     output:
         closest_cog = os.path.join(config["tempdir"],"closest_cog.csv"),
         not_cog_query = os.path.join(config["tempdir"],"not_in_all_cog.fasta"),
-        combined_query = os.path.join(config["tempdir"],"to_find_closest.fasta")
+        combined_query = os.path.join(config["tempdir"],"to_find_closest.fasta"),
+        not_processed = os.path.join(config["tempdir"], "no_seq_to_process.csv")
     run:
+        query_with_no_seq = []
         if params.fasta != "":
             not_cog = []
             with open(input.not_cog_csv, "r") as f:
@@ -182,6 +180,9 @@ rule get_closest_cog:
                         num_seqs +=1
                         not_cog_with_seqs.append(record.id)
                         fw.write(f">{record.id} status=not_cog\n{record.seq}\n")
+            for q in not_cog:
+                if q not in not_cog_with_seqs:
+                    query_with_no_seq.append(q)
             if num_seqs !=0:
                 print(f"Passing {num_seqs} sequences into nearest COG search pipeline.")
                 for i in not_cog_with_seqs:
@@ -207,10 +208,21 @@ rule get_closest_cog:
         else:
             num_seqs = 0
             all_cog_seqs = []
-            
+
+            not_cog = []
+            with open(input.not_cog_csv, "r") as f:
+                for l in f:
+                    l = l.rstrip('\n')
+                    not_cog.append(l)
+
             for record in SeqIO.parse(input.in_all_cog_seqs,"fasta"):
                 num_seqs +=1
                 all_cog_seqs.append(record.id)
+
+            for q in not_cog:
+                if q not in all_cog_seqs:
+                    query_with_no_seq.append(q)
+
             if num_seqs != 0:
                 shell("touch {params.stand_in_query:q}")
                 print(f"Passing {num_seqs} sequences into nearest COG search pipeline.")
@@ -235,7 +247,15 @@ rule get_closest_cog:
                             "cog_metadata={input.cog_metadata:q} "
                             "--cores {params.cores}")
             else:
+                with open(input.not_cog_csv, "r") as f:
+                    for l in f:
+                        l = l.rstrip('\n')
+                        query_with_no_seq.append(l)
+                    
                 shell("touch {output.closest_cog:q} && touch {output.not_cog_query} && touch {output.combined_query}")
+        with open(output.not_processed, "w") as fw:
+            for q in query_with_no_seq:
+                fw.write(f"{q},fail=no sequence provided\n")
 
 rule combine_metadata:
     input:
@@ -365,7 +385,8 @@ rule make_report:
         combined_metadata = os.path.join(config["outdir"],"combined_metadata.csv"),
         cog_global_metadata = config["cog_global_metadata"],
         report_template = config["report_template"],
-        polytomy_figure = config["polytomy_figure"]
+        polytomy_figure = config["polytomy_figure"],
+        no_seq = rules.get_closest_cog.output.not_processed
     params:
         treedir = os.path.join(config["outdir"],"local_trees"),
         outdir = config["rel_outdir"],
@@ -383,6 +404,7 @@ rule make_report:
         -f {params.fields:q} \
         --figdir {params.figdir:q} \
         {params.failure} \
+        --no-seq-provided {input.no_seq} \
         --treedir {params.treedir:q} \
         --report-template {input.report_template:q} \
         --filtered-cog-metadata {input.combined_metadata:q} \

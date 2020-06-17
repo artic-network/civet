@@ -31,6 +31,7 @@ def main(sysargs = sys.argv[1:]):
     usage='''civet <query> [options]''')
 
     parser.add_argument('query',help="Input csv file with minimally `name` as a column header. Can include additional fields to be incorporated into the analysis, e.g. `sample_date`",)
+    parser.add_argument('-i',"--id-string", action="store_true",help="Indicates the input is a comma-separated id string with one or more query ids. Example: `EDB3588,EDB3589`.", dest="ids")
     parser.add_argument('--fasta', action="store",help="Optional fasta query.", dest="fasta")
     parser.add_argument('--CLIMB', action="store_true",dest="climb",help="Indicates you're running CIVET from within CLIMB, uses default paths in CLIMB to access data")
     parser.add_argument("-r",'--remote-sync', action="store_true",dest="remote",help="Remotely access lineage trees from CLIMB, need to also supply -uun,--your-user-name")
@@ -49,28 +50,19 @@ def main(sysargs = sys.argv[1:]):
     parser.add_argument('--min-length', action="store", default=10000, type=int,help="Minimum query length allowed to attempt analysis. Default: 10000",dest="minlen")
     parser.add_argument("-v","--version", action='version', version=f"civet {__version__}")
 
-    if len(sysargs)<1:
+    # Exit with help menu if no args supplied
+    if len(sysargs)<1: 
         parser.print_help()
         sys.exit(-1)
     else:
         args = parser.parse_args(sysargs)
 
-    # find the Snakefile
+    # find the master Snakefile
     snakefile = os.path.join(thisdir, 'scripts','Snakefile')
     if not os.path.exists(snakefile):
-        sys.stderr.write('Error: cannot find Snakefile at {}\n'.format(snakefile))
+        sys.stderr.write('Error: cannot find Snakefile at {}\n Check installation'.format(snakefile))
         sys.exit(-1)
-    else:
-        print("Found the snakefile")
-
-    # find the query csv
-    query = os.path.join(cwd, args.query)
-    if not os.path.exists(query):
-        sys.stderr.write('Error: cannot find query at {}\n'.format(query))
-        sys.exit(-1)
-    else:
-        print(f"The query file is {query}")
-
+    
     # find the query fasta
     if args.fasta:
         fasta = os.path.join(cwd, args.fasta)
@@ -78,9 +70,8 @@ def main(sysargs = sys.argv[1:]):
             sys.stderr.write('Error: cannot find fasta query at {}\n'.format(fasta))
             sys.exit(-1)
         else:
-            print(f"The fasta file is {fasta}")
+            print(f"Input fasta file: {fasta}")
     else:
-        print("No fasta loaded")
         fasta = ""
     
     # default output dir
@@ -94,7 +85,10 @@ def main(sysargs = sys.argv[1:]):
     else:
         outdir = cwd
         rel_outdir = "."
+    
+    print(f"Output files will be written to {outdir}\n")
 
+    # specifying temp directory
     tempdir = ''
     if args.tempdir:
         to_be_dir = os.path.join(cwd, args.tempdir)
@@ -106,37 +100,66 @@ def main(sysargs = sys.argv[1:]):
         temporary_directory = tempfile.TemporaryDirectory(suffix=None, prefix=None, dir=None)
         tempdir = temporary_directory.name
 
+    # if no temp, just write everything to outdir
     if args.no_temp:
+        print(f"--no-temp: All intermediate files will be written to {outdir}")
         tempdir = outdir
 
+    # find the query csv, or string of ids
+    query = os.path.join(cwd, args.query)
+    if not os.path.exists(query):
+        if args.ids:
+            id_list = args.query.split(",")
+            query = os.path.join(tempdir, "query.csv")
+            with open(query,"w") as fw:
+                fw.write("name\n")
+                for i in id_list:
+                    fw.write(i+'\n')
+        else:
+            sys.stderr.write(f"Error: cannot find query file at {query}\n Check if the file exists, or if you're inputting an id string (e.g. EDB3588,EDB2533), please use in conjunction with the `--id-string` flag\n.")
+            sys.exit(-1)
+    else:
+        print(f"Input file: {query}")
+
+    # parse the input csv, check col headers and get fields if fields specified
     fields = []
     queries = []
     with open(query, newline="") as f:
         reader = csv.DictReader(f)
+        column_names = reader.fieldnames
+        if "name" not in column_names:
+            sys.stderr.write(f"Error: Input file missing header field `name`\n.")
+            sys.exit(-1)
+
         if not args.fields:
             fields.append("adm1")
+            print("No fields to colour by provided, will colour by adm1 by default.\n")
         else:
             desired_fields = args.fields.split(",")
             for field in args.fields:
                 if field in reader.fieldnames:
                     fields.append(field)
+
+        print("COG-UK ids to process:")
         for row in reader:
             queries.append(row["name"])
-
+            print(row["name"])
+    print('\n')
     # how many threads to pass
     if args.threads:
         threads = args.threads
     else:
         threads = 1
-    print("Number of threads is", threads)
+    print(f"Number of threads: {threads}\n")
 
+    # create the config dict to pass through to the snakemake file
     config = {
         "query":query,
         "fields":",".join(fields),
         "outdir":outdir,
         "tempdir":tempdir,
-        "trim_start":265,
-        "trim_end":29674,
+        "trim_start":265,   # where to pad to using datafunk
+        "trim_end":29674,   # where to pad after using datafunk
         "fasta":fasta,
         "rel_outdir":rel_outdir,
         "search_field":args.search_field,
@@ -149,11 +172,11 @@ def main(sysargs = sys.argv[1:]):
     2) check fasta file N content
     3) write a file that contains just the seqs to run
     """
-
+    # find the data files
     data_dir = ""
     if args.datadir:
         data_dir = os.path.join(cwd, args.datadir)
-        # find the data files
+        
         cog_metadata,all_cog_metadata,cog_global_metadata = ("","","")
         cog_seqs,all_cog_seqs = ("","")
         cog_tree = ""
@@ -190,10 +213,12 @@ To run civet please either\n1) ssh into CLIMB and run with --CLIMB flag\n\
             print("    -",cog_metadata)
             print("    -",all_cog_metadata)
             print("    -",cog_global_metadata)
-            print("    -",cog_tree)
+            print("    -",cog_tree,"\n")
+
     else:
         data_dir = outdir
 
+    # if remote flag, and uun provided, sync data from climb
     if args.remote:
         config["remote"]= "True"
         if args.uun:
@@ -232,7 +257,7 @@ To run civet please either\n1) ssh into CLIMB and run with --CLIMB flag\n\
                 print("    -",cog_metadata)
                 print("    -",all_cog_metadata)
                 print("    -",cog_global_metadata)
-                print("    -",cog_tree)
+                print("    -",cog_tree,"\n")
         else:
             sys.stderr.write("""Error: Username (-uun) required with --remote flag, or supply data directory\n\
 To run civet please either\n1) ssh into CLIMB and run with --CLIMB flag\n\
@@ -246,6 +271,7 @@ To run civet please either\n1) ssh into CLIMB and run with --CLIMB flag\n\
     - cog_alignment.fasta\n\n""")
             sys.exit(-1)
 
+    # assume you're runnnig from climb
     if args.climb:
         data_dir = "/cephfs/covid/bham/civet-cat"
         if os.path.exists(data_dir):
@@ -276,7 +302,7 @@ To run civet please either\n1) ssh into CLIMB and run with --CLIMB flag\n\
             print("    -",cog_metadata)
             print("    -",all_cog_metadata)
             print("    -",cog_global_metadata)
-            print("    -",cog_tree)
+            print("    -",cog_tree,"\n")
         else:
             sys.stderr.write("""Error: to run civet please either\n1) ssh into CLIMB and run with --CLIMB flag\n\
 2) Run using `--remote-sync` flag and your CLIMB username specified e.g. `-uun climb-covid19-otoolexyz`\n\
@@ -289,6 +315,7 @@ To run civet please either\n1) ssh into CLIMB and run with --CLIMB flag\n\
     - cog_alignment.fasta\n\n""")
             sys.exit(-1)
 
+    # run qc on the input sequence file
     if args.fasta:
         do_not_run = []
         run = []
@@ -296,14 +323,14 @@ To run civet please either\n1) ssh into CLIMB and run with --CLIMB flag\n\
             if len(record) <args.minlen:
                 record.description = record.description + f" fail=seq_len:{len(record)}"
                 do_not_run.append(record)
-                print(record.id, "\tsequence too short")
+                print(f"    - {record.id}\tsequence too short: Sequence length {len(record)}")
             else:
                 num_N = str(record.seq).upper().count("N")
                 prop_N = round((num_N)/len(record.seq), 2)
                 if prop_N > args.maxambig: 
                     record.description = record.description + f" fail=N_content:{prop_N}"
                     do_not_run.append(record)
-                    print(f"{record.id}\thas an N content of {prop_N}")
+                    print(f"    - {record.id}\thas an N content of {prop_N}")
                 else:
                     run.append(record)
 
@@ -323,30 +350,27 @@ To run civet please either\n1) ssh into CLIMB and run with --CLIMB flag\n\
         config["post_qc_query"] = ""
         config["qc_fail"] = ""
 
-        
-    # find the data
+    # delay tree colapse
     if args.delay_tree_collapse:
+        print("--delay-tree-collapse: Warning tree building may take a long time.")
         config["delay_collapse"] = "True"
     else:
         config["delay_collapse"] = "False"
+
+    # accessing package data and adding to config dict
     reference_fasta = pkg_resources.resource_filename('civet', 'data/reference.fasta')
     polytomy_figure = pkg_resources.resource_filename('civet', 'data/polytomies.png')
-
-    print("The reference genome is found", reference_fasta)
 
     report_template = os.path.join(thisdir, 'scripts','civet_template.pmd')
     if not os.path.exists(report_template):
         sys.stderr.write('Error: cannot find report_template at {}\n'.format(report_template))
         sys.exit(-1)
-    else:
-        print("Found the report_template", report_template)
 
     config["reference_fasta"] = reference_fasta
-
     config["polytomy_figure"] = polytomy_figure
     config["report_template"] = report_template
 
-
+    # don't run in quiet mode if verbose specified
     if args.verbose:
         quiet_mode = False
         config["quiet_mode"]="False"

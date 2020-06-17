@@ -81,6 +81,9 @@ positional arguments:
 
 optional arguments:
   -h, --help            show this help message and exit
+  -i, --id-string       Indicates the input is a comma-separated id string
+                        with one or more query ids. Example:
+                        `EDB3588,EDB3589`.
   --fasta FASTA         Optional fasta query.
   --CLIMB               Indicates you're running CIVET from within CLIMB, uses
                         default paths in CLIMB to access data
@@ -95,9 +98,9 @@ optional arguments:
                         Output directory. Default: current working directory
   --datadir DATADIR     Local directory that contains the data files
   --fields FIELDS       Comma separated string of fields to colour by in the
-                        report. Default: all fields in the metadata file other
-                        than `name`
-  --search-field SEARCH_FIELD
+                        report. Default: country
+  --search-field 
+  SEARCH_FIELD
                         Option to search COG database for a different id type.
                         Default: COG-UK ID
   --delay-tree-collapse
@@ -105,7 +108,11 @@ optional arguments:
                         polytomies. NOTE: This may result in large trees that
                         take quite a while to run.
   -n, --dry-run         Go through the motions but don't actually run
-  -t THREADS, --threads THREADS
+  --tempdir TEMPDIR     Specify where you want the temp stuff to go. Default:
+                        $TMPDIR
+  --no-temp             Output all intermediate files, for dev purposes.
+  -t THREADS, 
+  --threads THREADS
                         Number of threads
   --verbose             Print lots of stuff to screen
   --max-ambig MAXAMBIG  Maximum proportion of Ns allowed to attempt analysis.
@@ -120,7 +127,7 @@ optional arguments:
 
 Overview:
 
-<img src="https://github.com/COG-UK/civet/blob/master/workflow_diagram.png" width="900">
+<img src="./docs/workflow_diagram.png" width="900">
 
 - From the input csv (`<query>`), `civet` attempts to match the ids with COG-UK ids in the up-to-date metadata database.
 
@@ -142,7 +149,9 @@ Overview:
 
 Your output will be a markdown report, with summaries of lineages and genetic diversity present in your query. Trees are visualised in the report and compared to the diversity of lineages present in the community.
 
-We suggest visualising this markdown report by converting it eg to a pdf using pandoc (https://pandoc.org/) or to an html document using markserv (https://www.npmjs.com/package/markserv) or markdown-server (https://pypi.org/project/markdown-server/). An HTML is often a better choice when dealing with long markdown documents like this, as it doesn't arbitrarily split up figures and text.
+**An example report can be found [here](https://github.com/COG-UK/civet/blob/master/docs/civet_report_example.md).**
+
+We suggest visualising this markdown report by converting it eg to a pdf using [pandoc](https://pandoc.org/) or to an html document using [markserv](https://www.npmjs.com/package/markserv) or [markdown-server](https://pypi.org/project/markdown-server/). A HTML is often a better choice when dealing with long markdown documents like this, as it doesn't arbitrarily split up figures and text.
 
 ### Source data
 
