@@ -31,6 +31,7 @@ def main(sysargs = sys.argv[1:]):
     usage='''civet <query> [options]''')
 
     parser.add_argument('query',help="Input csv file with minimally `name` as a column header. Can include additional fields to be incorporated into the analysis, e.g. `sample_date`",)
+    parser.add_argument('-i',"--id-string", action="store_true",help="Indicates the input is a comma-separated id string with one or more query ids. Example: `EDB3588,EDB3589`.", dest="ids")
     parser.add_argument('--fasta', action="store",help="Optional fasta query.", dest="fasta")
     parser.add_argument('--CLIMB', action="store_true",dest="climb",help="Indicates you're running CIVET from within CLIMB, uses default paths in CLIMB to access data")
     parser.add_argument("-r",'--remote-sync', action="store_true",dest="remote",help="Remotely access lineage trees from CLIMB, need to also supply -uun,--your-user-name")
@@ -49,13 +50,14 @@ def main(sysargs = sys.argv[1:]):
     parser.add_argument('--min-length', action="store", default=10000, type=int,help="Minimum query length allowed to attempt analysis. Default: 10000",dest="minlen")
     parser.add_argument("-v","--version", action='version', version=f"civet {__version__}")
 
-    if len(sysargs)<1:
+    # Exit with help menu if no args supplied
+    if len(sysargs)<1: 
         parser.print_help()
         sys.exit(-1)
     else:
         args = parser.parse_args(sysargs)
 
-    # find the Snakefile
+    # find the master Snakefile
     snakefile = os.path.join(thisdir, 'scripts','Snakefile')
     if not os.path.exists(snakefile):
         sys.stderr.write('Error: cannot find Snakefile at {}\n'.format(snakefile))
@@ -63,13 +65,6 @@ def main(sysargs = sys.argv[1:]):
     else:
         print("Found the snakefile")
 
-    # find the query csv
-    query = os.path.join(cwd, args.query)
-    if not os.path.exists(query):
-        sys.stderr.write('Error: cannot find query at {}\n'.format(query))
-        sys.exit(-1)
-    else:
-        print(f"The query file is {query}")
 
     # find the query fasta
     if args.fasta:
@@ -108,6 +103,25 @@ def main(sysargs = sys.argv[1:]):
 
     if args.no_temp:
         tempdir = outdir
+
+    # find the query csv
+    query = os.path.join(cwd, args.query)
+    if not os.path.exists(query):
+        if args.ids:
+            id_list = args.query.split(",")
+            query = os.path.join(tempdir, "query.csv")
+            with open(query,"w") as fw:
+                fw.write("name\n")
+                print("COG-UK ids to process")
+                for i in id_list:
+                    fw.write(i+'\n')
+                    print(i)
+            print(f"The query file is {query}")
+        else:
+            sys.stderr.write(f"Error: cannot find query file at {query}\n Check if the file exists, or if you're inputting an id string (e.g. EDB3588,EDB2533), please use in conjunction with the `--id-string` flag\n.")
+            sys.exit(-1)
+    else:
+        print(f"The query file is {query}")
 
     fields = []
     queries = []
