@@ -15,6 +15,10 @@ if config["quiet_mode"]=="True":
 else:
     config["quiet_mode"] = ""
 
+if config["qc_fail"] != "":
+    fail_file = config["qc_fail"]
+    config["qc_fail"] = f"--failed-seqs {fail_file}"
+
 if config["delay_collapse"] == "False":
     config["delay_collapse"] = False
 elif config["delay_collapse"] == "True":
@@ -24,9 +28,8 @@ elif config["delay_collapse"] == "True":
 rule all:
     input:
         os.path.join(config["outdir"],"combined_metadata.csv"),
-        os.path.join(config["outdir"],"catchment_trees","catchment_tree_summary.txt"),
         os.path.join(config["outdir"], "civet_report.md"),
-        os.path.join(config["outdir"],"combined_trees","collapse_report.txt")
+        os.path.join(config["outdir"],"local_trees","collapse_report.txt")
 
 
 ##### Modules #####
