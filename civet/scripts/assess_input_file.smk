@@ -254,7 +254,7 @@ rule get_closest_cog:
                     
                 shell("touch {output.closest_cog:q} && touch {output.not_cog_query} && touch {output.combined_query}")
         with open(output.not_processed, "w") as fw:
-            for q in query_with_no_seq:
+            for q in list(set(query_with_no_seq)):
                 fw.write(f"{q},fail=no sequence provided\n")
 
 rule combine_metadata:
