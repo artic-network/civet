@@ -151,7 +151,7 @@ def make_scaled_tree_without_legend(My_Tree, tree_name, tree_dir, num_tips, colo
         page_height = num_tips/2  
 
     offset = tallest_height - My_Tree.treeHeight
-    space_offset = tallest_height/100
+    space_offset = tallest_height/10
     absolute_x_axis_size = tallest_height+space_offset+space_offset + tallest_height #changed from /3 
     
     tipsize = 40
@@ -268,6 +268,18 @@ def make_all_of_the_trees(input_dir, taxon_dict, query_id_dict, query_dict, tree
 
         if num_taxa > 1: 
             tree = bt.loadNewick(input_dir + "/" + treefile, absoluteTime=False)
+
+            old_node = tree.root
+            new_node = bt.node()
+            new_node.children.append(old_node)
+            old_node.parent = new_node
+            old_node.length=2.0
+            new_node.height = 0
+            new_node.y = old_node.y
+            tree.root = new_node
+
+            tree.Objects.append(new_node)
+
             tips = []
             
             for k in tree.Objects:
