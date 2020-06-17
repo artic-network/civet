@@ -12,8 +12,7 @@ Key points for interpreting this information:
  - If sequences have different phylotypes it’s very unlikely that they are direct transmissions. 
  - If sequences share the same lineage and the same phylotype, transmission cannot be ruled out and also cannot be confirmed.
 
-The table below is a summary of the sequences provided with your metadata, along with their associated UK lineage and global lineage. For more information on these concepts, see the Appendix.
-If you have provided additional information in the input csv, and specified that you would like it included in the analysis, it will also be displayed here.
+
 
 
 ```python, name="import dependencies", echo=False
@@ -87,18 +86,23 @@ present_in_tree = dp.parse_tree_tips(tree_dir)
 
 full_tax_dict = dp.parse_full_metadata(query_dict, full_metadata_file, present_lins, present_in_tree)
 ```
+
 ```python, name="QC fails", echo=False, results="raw"
 if QC_fail_file != "":
+    print("## Failed sequences")
     fail_dict = dp.investigate_QC_fails(QC_fail_file)
     if len(fail_dict) > 0:
-        print("The following sequences have failed QC:")
+        print("The following sequences have failed QC\n")
         for seq, reason in fail_dict.items():
             pretty_name = seq.replace("'","")
             pretty_reason = reason.replace("'","")
             print(pretty_name, pretty_reason)
 
 ```
+## Summary data
 
+The table below is a summary of the sequences provided with your metadata, along with their associated UK lineage and global lineage. For more information on these concepts, see the Appendix.
+If you have provided additional information in the input csv, and specified that you would like it included in the analysis, it will also be displayed here.
 
 ```python, name="first_table", echo=False, results="tex"
 
@@ -107,20 +111,31 @@ df = dp.make_initial_table(query_dict)
 print(df.to_markdown())
 ```
 
+## Phylogenies
 
 The nearest neighbours of each of the query sequences are shown below in order to show their phylogenetic context.
 
-This investigation's sequences are coloured by country where red is England, dark blue is Scotland, green is Wales and light blue is Northern Ireland.
+They are coloured by the input field you have specified. 
+If no fields were specified, they are coloured by the country they were found in. 
+
 If country was not provided in the input csv and the sequence is not in the COG database, then the sequence is coloured by the country of its closest match in the COG database.
 If you would like the specific country highlighted, please provide a column named "adm1" in the input csv.
 
 
-
-```python, name="tree_viz", echo=False, include=False, figure=False
+```python, name="make_trees", echo=False, include=False, figure=False
 tree_to_query = defaultdict(list)
-too_tall_trees, overall_tree_number, tree_to_query = tree_viz.make_all_of_the_trees(tree_dir, full_tax_dict, query_id_dict, query_dict, tree_to_query, desired_fields)
-
+too_tall_trees, overall_tree_number, tree_to_query, colour_dict_dict = tree_viz.make_all_of_the_trees(tree_dir, full_tax_dict, query_id_dict, query_dict, tree_to_query, desired_fields)
 ```
+```python, name="make_legend", echo=False, include=False
+for colour_dict in colour_dict_dict.values():
+    tree_viz.make_legend(colour_dict)
+```
+```python,name="show_legend",echo=False,results='raw'
+for i, trait in enumerate(colour_dict_dict.keys()):
+    print("The legend for " + trait + " is shown below.")
+    print("![](" + figdir + "/" + name_stem + "_make_legend_" + str(i+1) + ".png)")
+```
+
 ```python, name="show_trees", echo=False, results='raw'
 if len(desired_fields) == 1:
     for i in range(1,overall_tree_number+1):
@@ -131,7 +146,7 @@ if len(desired_fields) == 1:
             print("Tree number " + str(i) + " contains queries: " + str(tree_to_query[i]).replace("[","").replace("]","").replace("'",""))
             print("There are multiple query sequences in this tree, and so transmission cannot be ruled out, but neither can it be confirmed. Therefore their relationship must be investigated further using epidemiological data.")
     
-        print("![](" + figdir + "/" + name_stem + "_tree_viz_" + str(i) + ".png)")
+        print("![](" + figdir + "/" + name_stem + "_make_trees_" + str(i) + ".png)")
 
 else:
     for i in range(1,overall_tree_number+1):
@@ -145,12 +160,12 @@ else:
         
         for k in range(len(desired_fields)):
             base_number = ((i)*len(desired_fields)) - 1
-            print("![](" + figdir + "/" + name_stem + "_tree_viz_" + str(base_number + k) + ".png)")
+            print("![](" + figdir + "/" + name_stem + "_make_trees_" + str(base_number + k) + ".png)")
 
 
 ```
 
-```python, name="print any trees that are too big", echo=False, results='raw'
+```python, name="Tree error checking", echo=False, results='raw'
 if too_tall_trees != []:
     for tree in too_tall_trees:
         print("Tree" + str(tree) + " is too large to be rendered here.")
