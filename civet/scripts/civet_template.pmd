@@ -40,6 +40,7 @@ figdir = "" ##CHANGE
 tree_dir = "" ##CHANGE
 
 QC_fail_file = "" ##CHANGE
+missing_seq_file = "" ##CHANGE
 
 input_directory = "" ##CHANGE
 
@@ -88,15 +89,21 @@ full_tax_dict = dp.parse_full_metadata(query_dict, full_metadata_file, present_l
 ```
 
 ```python, name="QC fails", echo=False, results="raw"
-if QC_fail_file != "":
+if QC_fail_file != "" or missing_seq_file != "":
     print("## Failed sequences")
-    fail_dict = dp.investigate_QC_fails(QC_fail_file)
-    if len(fail_dict) > 0:
-        print("The following sequences have failed QC\n")
-        for seq, reason in fail_dict.items():
-            pretty_name = seq.replace("'","")
-            pretty_reason = reason.replace("'","")
-            print(pretty_name, pretty_reason)
+    if QC_fail_file != "":
+        fail_dict = dp.investigate_QC_fails(QC_fail_file)
+        if len(fail_dict) > 0:
+            print("The following sequences have failed QC\n")
+            for seq, reason in fail_dict.items():
+                pretty_name = seq.replace("'","")
+                pretty_reason = reason.replace("'","")
+                print(pretty_name, pretty_reason)
+    elif missing_seq_file != "":
+        failed_names = dp.print_missing_seqs(missing_seq_file)
+        print("The following seqs were not found in COG and a fasta file was not provided, so CIVET was unable to add them into phylogenies.")
+        for i in failed_names:
+            print(i.replace("'",""))
 
 ```
 ## Summary data

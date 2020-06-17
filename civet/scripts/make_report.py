@@ -7,7 +7,7 @@ import shutil
 
 thisdir = os.path.abspath(os.path.dirname(__file__))
 
-def make_report(cog_metadata, input_csv, filtered_cog_metadata, outfile, outdir, treedir, figdir, fields, report_template, failed_seqs):
+def make_report(cog_metadata, input_csv, filtered_cog_metadata, outfile, outdir, treedir, figdir, fields, report_template, failed_seqs, no_seq):
 
     name_stem = ".".join(outfile.split(".")[:-1])
 
@@ -40,6 +40,8 @@ def make_report(cog_metadata, input_csv, filtered_cog_metadata, outfile, outdir,
                         new_l = f'summary_dir = "{summary_dir}"\n'
                     elif "QC_fail_file" in l:
                         new_l = f'QC_fail_file = "{failed_seqs}"\n'
+                    elif "missing_seq_file" in l:
+                        new_l = f'missing_seq_file = "{no_seq}"\n'
                     
                 else:
                     new_l = l
@@ -55,6 +57,7 @@ def main():
 
     parser.add_argument("--filtered-cog-metadata", required=False, help="path to combined metadata file",dest="filtered_cog_metadata")
     parser.add_argument("--cog-metadata", required=True, help="path to full COG metadata file",dest="cog_metadata")
+    
     parser.add_argument("--failed-seqs", required=False, default="", help="csv of seqs that fail qc and the reason why",dest="failed_seqs")
     parser.add_argument("--no-seq-provided", required=False, default="", help="file of seqs that weren't in cog and didn't have a sequence provided",dest="no_seq")
     
@@ -67,7 +70,7 @@ def main():
 
     args = parser.parse_args()
 
-    make_report(args.cog_metadata, args.input_csv, args.filtered_cog_metadata, args.outfile, args.outdir, args.treedir, args.figdir,args.fields, args.report_template, args.failed_seqs)
+    make_report(args.cog_metadata, args.input_csv, args.filtered_cog_metadata, args.outfile, args.outdir, args.treedir, args.figdir,args.fields, args.report_template, args.failed_seqs,args.no_seq)
 
 
 if __name__ == "__main__":

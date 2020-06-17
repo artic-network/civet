@@ -238,6 +238,17 @@ def investigate_QC_fails(QC_file):
 
 
     return fail_dict
+
+def print_missing_seqs(missing_seqs_file):
     
+    failed_names = []
+
+    with open(missing_seqs_file) as f:
+        for l in f:
+            name = l.strip("\n").split(",")[0]
+            
+            failed_names.append(name)
+
+    return failed_names
 
 
