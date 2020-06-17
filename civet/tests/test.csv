@@ -5,5 +5,8 @@ EDB129_closestb,Patient
 This_seq_is_too_short,HCW
 EDB3588,HCW
 EDB2533,Patient
+PHEC-1A65C,HCW
+PHEC-1AD2A,HCW
+PHEC-1A917,Patient
 This_seq_has_lots_of_Ns,HCW
 This_seq_is_literally_just_N,HCW
