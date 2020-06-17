@@ -113,11 +113,8 @@ def main(sysargs = sys.argv[1:]):
             query = os.path.join(tempdir, "query.csv")
             with open(query,"w") as fw:
                 fw.write("name\n")
-                print("COG-UK ids to process:")
                 for i in id_list:
                     fw.write(i+'\n')
-                    print(i)
-            print(f"\n")
         else:
             sys.stderr.write(f"Error: cannot find query file at {query}\n Check if the file exists, or if you're inputting an id string (e.g. EDB3588,EDB2533), please use in conjunction with the `--id-string` flag\n.")
             sys.exit(-1)
@@ -147,13 +144,13 @@ def main(sysargs = sys.argv[1:]):
         for row in reader:
             queries.append(row["name"])
             print(row["name"])
-
+    print('\n')
     # how many threads to pass
     if args.threads:
         threads = args.threads
     else:
         threads = 1
-    print("Number of threads is", threads)
+    print(f"Number of threads: {threads}\n")
 
     # create the config dict to pass through to the snakemake file
     config = {
@@ -368,8 +365,6 @@ To run civet please either\n1) ssh into CLIMB and run with --CLIMB flag\n\
     if not os.path.exists(report_template):
         sys.stderr.write('Error: cannot find report_template at {}\n'.format(report_template))
         sys.exit(-1)
-    else:
-        print("Found the report_template", report_template)
 
     config["reference_fasta"] = reference_fasta
     config["polytomy_figure"] = polytomy_figure
