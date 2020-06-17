@@ -248,6 +248,7 @@ def make_all_of_the_trees(input_dir, taxon_dict, query_id_dict, query_dict, tree
     tallest_height = find_tallest_tree(input_dir)
 
     too_tall_trees = []
+    colour_dict_dict = defaultdict(dict)
 
     overall_tree_count = 0
     
@@ -294,12 +295,13 @@ def make_all_of_the_trees(input_dir, taxon_dict, query_id_dict, query_dict, tree
             
                 for trait in colour_by:
                     colour_dict = find_colour_dict(query_dict, trait)
+                    colour_dict_dict[trait] = colour_dict
                     tree_to_query = make_scaled_tree_without_legend(tree, treename, input_dir, len(tips), colour_dict, trait, tallest_height, lineage, taxon_dict, query_id_dict, query_dict, tree_to_query)     
             else:
                 too_tall_trees.append(lineage)
                 continue
 
-    return too_tall_trees, overall_tree_count, tree_to_query
+    return too_tall_trees, overall_tree_count, tree_to_query, colour_dict_dict
 
 def summarise_collapsed_node(tree_dir, focal_node, focal_tree, full_tax_dict):
 
@@ -368,3 +370,31 @@ def summarise_collapsed_node(tree_dir, focal_node, focal_tree, full_tax_dict):
 
     return info
 
+def make_legend(colour_dict):
+    
+    fig,ax = plt.subplots()
+
+    plt.gca().set_aspect('equal', adjustable='box')
+    
+    x = 0
+    for option in colour_dict.keys():
+        circle = plt.Circle((x, 0.5), 0.1, color=colour_dict[option])
+        ax.add_artist(circle)
+        plt.text(x-0.1,0.1,option)
+        x += 1
+        
+        
+    length = len(colour_dict)
+
+    plt.xlim(-1,length)
+    plt.ylim(0,1)
+
+    ax.spines['top'].set_visible(False) ## make axes invisible
+    ax.spines['right'].set_visible(False)
+    ax.spines['left'].set_visible(False)
+    ax.spines['bottom'].set_visible(False)
+
+
+    plt.yticks([])
+    plt.xticks([])
+    plt.show()

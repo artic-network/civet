@@ -39,7 +39,7 @@ def parse_reduced_metadata(metadata_file):
     query_id_dict = {}
     present_lins = set()
 
-    contract_dict = {"SCT":"Scotland", "WLS": "Wales", "ENG":"England", "NIRE": "Northern_Ireland"}
+    contract_dict = {"SCT":"Scotland", "WLS": "Wales", "ENG":"England", "NIR": "Northern_Ireland"}
 
     with open(metadata_file, "r") as f:
         reader = csv.DictReader(f)
