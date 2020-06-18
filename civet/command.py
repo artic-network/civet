@@ -11,6 +11,7 @@ import json
 import csv
 import setuptools
 import os
+from datetime import datetime
 from Bio import SeqIO
 
 import pkg_resources
@@ -73,7 +74,7 @@ def main(sysargs = sys.argv[1:]):
             print(f"Input fasta file: {fasta}")
     else:
         fasta = ""
-    
+
     # default output dir
     outdir = ''
     if args.outdir:
@@ -83,8 +84,11 @@ def main(sysargs = sys.argv[1:]):
         if not os.path.exists(outdir):
             os.mkdir(outdir)
     else:
-        outdir = cwd
-        rel_outdir = "."
+        timestamp = str(datetime.now().isoformat(timespec='milliseconds')).replace(":","").replace(".","").replace("T","-")
+        outdir = os.path.join(cwd, timestamp)
+        if not os.path.exists(outdir):
+            os.mkdir(outdir)
+        rel_outdir = os.path.join(".",timestamp)
     
     print(f"Output files will be written to {outdir}\n")
 
