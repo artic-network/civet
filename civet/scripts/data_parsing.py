@@ -233,7 +233,7 @@ def investigate_QC_fails(QC_file):
                 final_reason = "Sequence too short: only " + length + " bases."
             elif "N_content" in reason:
                 n_content = reason.split(":")[1]
-                final_reason = "Sequence has too many Ns: " + n_content + "\% of bases"
+                final_reason = "Sequence has too many Ns: " + str(float(n_content)*100) + "\% of bases"
 
             fail_dict[name] = final_reason
 
