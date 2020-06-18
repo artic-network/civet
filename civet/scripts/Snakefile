@@ -9,6 +9,10 @@ import os
 if config.get("force"):
     config["force"] = "--forceall "
 
+if config["global"] == "True":
+    config["seq_db"] = config["cog_seqs"]
+else:
+    config["seq_db"] = config["all_cog_seqs"]
 
 if config["quiet_mode"]=="True":
     config["quiet_mode"] = "--quiet"

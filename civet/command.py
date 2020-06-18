@@ -42,6 +42,7 @@ def main(sysargs = sys.argv[1:]):
     parser.add_argument('--fields', action="store",help="Comma separated string of fields to colour by in the report. Default: country")
     parser.add_argument('--search-field', action="store",help="Option to search COG database for a different id type. Default: COG-UK ID", dest="search_field",default="central_sample_id")
     parser.add_argument('--delay-tree-collapse',action="store_true",dest="delay_tree_collapse",help="Wait until after iqtree runs to collapse the polytomies. NOTE: This may result in large trees that take quite a while to run.")
+    parser.add_argument('-g','--global',action="store_true",dest="search_global",help="Search globally.")
     parser.add_argument('-n', '--dry-run', action='store_true',help="Go through the motions but don't actually run")
     parser.add_argument('--tempdir',action="store",help="Specify where you want the temp stuff to go. Default: $TMPDIR")
     parser.add_argument("--no-temp",action="store_true",help="Output all intermediate files, for dev purposes.")
@@ -366,6 +367,11 @@ To run civet please either\n1) ssh into CLIMB and run with --CLIMB flag\n\
     else:
         config["post_qc_query"] = ""
         config["qc_fail"] = ""
+
+    if args.search_global:
+        config["global"]="True"
+    else:
+        config["global"]="False"
 
     # delay tree colapse
     if args.delay_tree_collapse:

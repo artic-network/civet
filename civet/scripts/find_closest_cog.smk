@@ -60,7 +60,7 @@ rule non_cog_remove_insertions_and_trim_and_pad:
 rule minimap2_against_cog:
     input:
         query_seqs = rules.combine_in_all_cog_and_query.output.fasta,
-        cog_seqs = config["cog_seqs"]
+        cog_seqs = config["seq_db"]
     threads: workflow.cores
     output:
         paf = os.path.join(config["tempdir"],"post_qc_query.cog_mapped.paf")
@@ -73,7 +73,7 @@ rule parse_paf:
     input:
         paf = rules.minimap2_against_cog.output.paf,
         metadata = config["cog_metadata"],
-        fasta = config["cog_seqs"]
+        fasta = config["seq_db"]
     params:
         search_field = config["search_field"]
     output:

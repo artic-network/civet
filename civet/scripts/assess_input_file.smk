@@ -143,6 +143,7 @@ rule get_closest_cog:
         reference_fasta = config["reference_fasta"],
         cog_seqs = config["cog_seqs"],
         cog_metadata = config["cog_metadata"],
+        seq_db = config["seq_db"],
         not_cog_csv = os.path.join(config["tempdir"],"not_in_all_cog.csv"),
         in_all_cog_metadata = os.path.join(config["tempdir"],"query_in_all_cog.csv"),
         in_all_cog_seqs = os.path.join(config["tempdir"],"query_in_all_cog.fasta")
@@ -194,6 +195,7 @@ rule get_closest_cog:
                             "--config "
                             "outdir={params.outdir:q} "
                             "tempdir={params.tempdir:q} "
+                            "seq_db={input.seq_db} "
                             "not_cog_csv={input.not_cog_csv:q} "
                             "post_qc_query={output.not_cog_query:q} "
                             "in_all_cog_metadata={input.in_all_cog_metadata} "
