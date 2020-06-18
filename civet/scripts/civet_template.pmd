@@ -98,16 +98,13 @@ full_tax_dict = dp.parse_full_metadata(query_dict, full_metadata_file, present_l
 ```python, name="QC fails", echo=False, results="raw"
 count_fails = 0
 count_missing = 0
-with open(QC_fail_file) as f:
-    for l in f:
-        if "name" not in l:
-            count_fails += 1
+
 with open(missing_seq_file) as f:
     for l in f:
         if "name" not in l:
             count_missing += 1
 
-if count_fails != 0 or count_missing != 0:
+if QC_fail_file != "" or count_missing != 0:
     print("## Failed sequences")
     if count_fails != 0:
         fail_dict = dp.investigate_QC_fails(QC_fail_file)
