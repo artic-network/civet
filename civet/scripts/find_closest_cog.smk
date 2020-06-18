@@ -61,11 +61,12 @@ rule minimap2_against_cog:
     input:
         query_seqs = rules.combine_in_all_cog_and_query.output.fasta,
         cog_seqs = config["cog_seqs"]
+    threads: workflow.cores
     output:
         paf = os.path.join(config["tempdir"],"post_qc_query.cog_mapped.paf")
     shell:
         """
-        minimap2 -x asm5 --secondary=no --paf-no-hit {input.cog_seqs:q} {input.query_seqs:q} > {output.paf:q}
+        minimap2 -x asm5  -t {threads} --secondary=no --paf-no-hit {input.cog_seqs:q} {input.query_seqs:q} > {output.paf:q}
         """
 
 rule parse_paf:
