@@ -2,7 +2,7 @@
 import csv
 import argparse
 from Bio import SeqIO
-
+import collections
 """
 --paf {input.paf:q} 
 --metadata {input.metadata:q} 
@@ -35,7 +35,7 @@ def parse_line(line):
 def get_closest_cog_sequences(paf):
 
     closest_cog_sequences = []
-    closest_to_query = {}
+    closest_to_query = collections.defaultdict(list)
     with open(paf,"r") as f:
         last_mapping = None
         for line in f:
@@ -47,13 +47,13 @@ def get_closest_cog_sequences(paf):
                     last_mapping['ref_hit'] = '?'
                 else:
                     closest_cog_sequences.append(last_mapping["ref_hit"])
-                    closest_to_query[last_mapping["ref_hit"]]=last_mapping["name"]
+                    closest_to_query[last_mapping["ref_hit"]].append(last_mapping["name"])
                     last_mapping = mapping
             else:
                 last_mapping = mapping
 
         closest_cog_sequences.append(last_mapping["ref_hit"])
-        closest_to_query[last_mapping["ref_hit"]]=last_mapping["name"]
+        closest_to_query[last_mapping["ref_hit"]].append(last_mapping["name"])
 
     return closest_cog_sequences, closest_to_query
 
@@ -69,11 +69,12 @@ def parse_paf_and_get_metadata():
         header_names = reader.fieldnames
         for row in reader:
             if row["sequence_name"] in closest_cog:
-                row["query_id"]=closest_to_query[row["sequence_name"]]
-                row["cog_id"]= row[column_to_match]
-                row["query"]=closest_to_query[row["sequence_name"]]
-                row["closest"]=row["sequence_name"]
-                rows_to_write.append(row)
+                for query in closest_to_query[row["sequence_name"]]:
+                    row["query_id"]=query
+                    row["cog_id"]= row[column_to_match]
+                    row["query"]=query
+                    row["closest"]=row["sequence_name"]
+                    rows_to_write.append(row)
     
         with open(args.outfile, "w") as fw:
             header_names.append("query_id")
@@ -88,7 +89,8 @@ def parse_paf_and_get_metadata():
     with open(args.seqs_out, "w") as fw:
         for record in SeqIO.parse(args.seqs,"fasta"):
             if record.id in closest_cog:
-                fw.write(f">{record.id} query={closest_to_query[record.id]}\n{record.seq}\n")
+                closest_queries = ",".join(closest_to_query[record.id])
+                fw.write(f">{record.id} query={closest_queries}\n{record.seq}\n")
 
 if __name__ == '__main__':
 
