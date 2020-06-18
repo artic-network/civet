@@ -83,8 +83,7 @@ def parse_paf_and_get_metadata():
                         new_row["cog_id"]= row[column_to_match]
                         new_row["query"]=query
                         new_row["closest"]=row["sequence_name"]
-                        print(query, row)
-                        print(new_row)
+
                         writer.writerow(new_row)
 
 
