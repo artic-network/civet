@@ -55,13 +55,13 @@ rule gather_fasta_seqs:
 
             for record in SeqIO.parse(input.post_qc_query, "fasta"):
                 if record.id in queries.values() or record.id in queries.keys():
-                    iqtree_friendly = record.id.replace("/","_")
+                    iqtree_friendly = record.id
                     fw.write(f">{iqtree_friendly}\n{record.seq}\n")
 
             for record in SeqIO.parse(input.cog_seqs,"fasta"):
                 if record.id in taxa:
-                    iqtree_friendly = record.id.replace("/","_")
-                    fw.write(f">_{iqtree_friendly}_\n{record.seq}\n")
+                    iqtree_friendly = record.id
+                    fw.write(f">{iqtree_friendly}\n{record.seq}\n")
 
 rule hash_for_iqtree:
     input:
@@ -113,7 +113,7 @@ rule iqtree_catchment:
             for l in f:
                 l  = l.rstrip ("\n")
                 taxa +=1
-        for record in SeqIO.parse(aln, "fasta"):
+        for record in SeqIO.parse(input.aln, "fasta"):
             aln_taxa +=1 
         if taxa != aln_taxa:
             shell("iqtree -s {input.aln:q} -bb 1000 -au -g {input.guide_tree:q} -m HKY -nt 1 -redo")
