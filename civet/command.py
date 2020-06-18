@@ -270,6 +270,19 @@ To run civet please either\n1) ssh into CLIMB and run with --CLIMB flag\n\
     - cog_global_alignment.fasta\n\
     - cog_alignment.fasta\n\n""")
             sys.exit(-1)
+    else:
+        if not args.datadir:
+            sys.stderr.write("""Error: no way to find source data.\n\nTo run civet please either\n1) ssh into CLIMB and run with --CLIMB flag\n\
+2) Run using `--remote-sync` flag and your CLIMB username specified e.g. `-uun climb-covid19-otoolexyz`\n\
+3) Specify a local directory with the appropriate files on. The following files are required:\n\
+    - cog_global_tree.nexus\n\
+    - cog_metadata.csv\n\
+    - cog_metadata_all.csv\n\
+    - cog_global_metadata.csv\n\
+    - cog_global_alignment.fasta\n\
+    - cog_alignment.fasta\n\n""")
+            sys.exit(-1)
+
 
     # assume you're runnnig from climb
     if args.climb:
