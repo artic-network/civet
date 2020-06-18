@@ -2,7 +2,7 @@
 figdir = "" ##CHANGE
 sequencing_centre = "" ##CHANGE
 if sequencing_centre != "":
-    print(("![](" + "/" + figdir + "/" + sequencing_centre + ".png)"))
+    print(("![](" + "/" + figdir + "/" + sequencing_centre + ".svg)"))
 ```
 
 # Cluster investigation 
