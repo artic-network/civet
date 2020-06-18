@@ -7,7 +7,7 @@ import shutil
 
 thisdir = os.path.abspath(os.path.dirname(__file__))
 
-def make_report(cog_metadata, input_csv, filtered_cog_metadata, outfile, outdir, treedir, figdir, fields, report_template, failed_seqs, no_seq):
+def make_report(cog_metadata, input_csv, filtered_cog_metadata, outfile, outdir, treedir, figdir, fields, report_template, failed_seqs, no_seq, seq_centre):
 
     name_stem = ".".join(outfile.split(".")[:-1])
 
@@ -42,6 +42,8 @@ def make_report(cog_metadata, input_csv, filtered_cog_metadata, outfile, outdir,
                         new_l = f'QC_fail_file = "{failed_seqs}"\n'
                     elif "missing_seq_file" in l:
                         new_l = f'missing_seq_file = "{no_seq}"\n'
+                    elif "sequencing_centre" in l:
+                        new_l = f'sequencing_centre = "{seq_centre}"\n'
                     
                 else:
                     new_l = l
@@ -54,6 +56,7 @@ def main():
     parser = argparse.ArgumentParser(description="Report generator script")
     parser.add_argument("-i","--input-csv", required=False, help="path to input file",dest="input_csv")
     parser.add_argument("-f", "--fields",default="", help="desired fields for report. Default=date and UK country",dest="fields")
+    parser.add_argument("-sc", "--sc",default="", help="Sequencing centre", dest="sc")
 
     parser.add_argument("--filtered-cog-metadata", required=False, help="path to combined metadata file",dest="filtered_cog_metadata")
     parser.add_argument("--cog-metadata", required=True, help="path to full COG metadata file",dest="cog_metadata")
@@ -70,7 +73,7 @@ def main():
 
     args = parser.parse_args()
 
-    make_report(args.cog_metadata, args.input_csv, args.filtered_cog_metadata, args.outfile, args.outdir, args.treedir, args.figdir,args.fields, args.report_template, args.failed_seqs,args.no_seq)
+    make_report(args.cog_metadata, args.input_csv, args.filtered_cog_metadata, args.outfile, args.outdir, args.treedir, args.figdir,args.fields, args.report_template, args.failed_seqs,args.no_seq, args.sc)
 
 
 if __name__ == "__main__":
