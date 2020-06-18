@@ -396,7 +396,7 @@ To run civet please either\n1) ssh into CLIMB and run with --CLIMB flag\n\
         config["quiet_mode"]="True"
 
     status = snakemake.snakemake(snakefile, printshellcmds=True,
-                                 dryrun=args.dry_run, forceall=True,force_incomplete=True,
+                                 dryrun=args.dry_run, forceall=True,force_incomplete=True,workdir=tempdir,
                                  config=config, cores=threads,lock=False,quiet=quiet_mode
                                  )
 

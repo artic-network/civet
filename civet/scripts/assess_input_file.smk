@@ -370,7 +370,7 @@ rule process_catchments:
             shell("snakemake --nolock --snakefile {input.snakefile_just_collapse:q} "
                             "{params.force} "
                             "{params.quiet_mode} "
-                            # "--directory {params.tempdir:q} "
+                            "--directory {params.tempdir:q} "
                             "--config "
                             f"catchment_str={catchment_str} "
                             "outdir={params.outdir:q} "
@@ -391,7 +391,7 @@ rule make_report:
         treedir = os.path.join(config["outdir"],"local_trees"),
         outdir = config["rel_outdir"],
         fields = config["fields"],
-        figdir = os.path.join("./figures"),
+        figdir = os.path.join(".","figures"),
         failure = config["qc_fail"]
     output:
         poly_fig = os.path.join(config["outdir"],"figures","polytomies.png"),
