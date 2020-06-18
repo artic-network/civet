@@ -194,7 +194,7 @@ def make_initial_table(query_dict):
 
     for query in query_dict.values():
         
-        df_dict["Query ID"].append(query.query_id)
+        df_dict["Query ID"].append(query.query_id.replace("|","\|"))
         df_dict["Part of COG"].append(query.in_cog)
         
         if query.in_cog: 
