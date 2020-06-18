@@ -1,3 +1,4 @@
+#!/usr/bin/env python3
 import os
 from matplotlib import font_manager as fm, rcParams
 import baltic as bt
