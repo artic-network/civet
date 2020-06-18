@@ -41,6 +41,7 @@ def main(sysargs = sys.argv[1:]):
     parser.add_argument('--datadir', action="store",help="Local directory that contains the data files")
     parser.add_argument('--fields', action="store",help="Comma separated string of fields to colour by in the report. Default: country")
     parser.add_argument('--search-field', action="store",help="Option to search COG database for a different id type. Default: COG-UK ID", dest="search_field",default="central_sample_id")
+    parser.add_argument('--distance', action="store",help="Extraction from large tree radius. Default:1", dest="distance",default="1")
     parser.add_argument('--delay-tree-collapse',action="store_true",dest="delay_tree_collapse",help="Wait until after iqtree runs to collapse the polytomies. NOTE: This may result in large trees that take quite a while to run.")
     parser.add_argument('-g','--global',action="store_true",dest="search_global",help="Search globally.")
     parser.add_argument('-n', '--dry-run', action='store_true',help="Go through the motions but don't actually run")
@@ -232,7 +233,10 @@ To run civet please either\n1) ssh into CLIMB and run with --CLIMB flag\n\
 
                 rsync_command = f"rsync -avzh {args.uun}@bham.covid19.climb.ac.uk:/cephfs/covid/bham/civet-cat {outdir}"
                 print(f"Syncing civet data to {outdir}")
-                os.system(rsync_command)
+                status = os.system(rsync_command)
+                if status != 0:
+                    sys.stderr.write("Error: rsync command failed.\nCheck your user name is a valid CLIMB username e.g. climb-covid19-smithj\n\n")
+                    sys.exit(-1)
 
                 cog_metadata,all_cog_metadata,cog_global_metadata = ("","","")
                 cog_seqs,all_cog_seqs = ("","")
@@ -392,6 +396,16 @@ To run civet please either\n1) ssh into CLIMB and run with --CLIMB flag\n\
     config["reference_fasta"] = reference_fasta
     config["polytomy_figure"] = polytomy_figure
     config["report_template"] = report_template
+
+    if args.distance:
+        try:
+            distance = int(args.distance)
+            config["distance"] = args.distance
+        except:
+            sys.stderr.write('Error: distance must be an integer\n')
+            sys.exit(-1)
+    else:
+        config["distance"] = "1"
 
     # don't run in quiet mode if verbose specified
     if args.verbose:

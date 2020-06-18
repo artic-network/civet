@@ -284,7 +284,8 @@ rule prune_out_catchments:
         tree = config["cog_tree"],
         metadata = rules.combine_metadata.output.combined_csv
     params:
-        outdir = os.path.join(config["tempdir"],"catchment_trees")
+        outdir = os.path.join(config["tempdir"],"catchment_trees"),
+        distance = config["distance"]
     output:
         txt = os.path.join(config["tempdir"],"catchment_trees","catchment_tree_summary.txt")
     shell:
@@ -293,7 +294,7 @@ rule prune_out_catchments:
         -o {params.outdir:q} \
         --metadata {input.metadata} \
         --index-column closest \
-        --threshold 1 \
+        --threshold {params.distance} \
         --branch-count \
         --out-format newick \
         && touch {output.txt} 
