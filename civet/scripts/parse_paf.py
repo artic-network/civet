@@ -67,15 +67,6 @@ def parse_paf_and_get_metadata():
         rows_to_write = []
         reader = csv.DictReader(f)
         header_names = reader.fieldnames
-        for row in reader:
-            if row["sequence_name"] in closest_cog:
-                for query in closest_to_query[row["sequence_name"]]:
-                    row["query_id"]=query
-                    row["cog_id"]= row[column_to_match]
-                    row["query"]=query
-                    row["closest"]=row["sequence_name"]
-                    rows_to_write.append(row)
-    
         with open(args.outfile, "w") as fw:
             header_names.append("query_id")
             header_names.append("cog_id")
@@ -83,8 +74,19 @@ def parse_paf_and_get_metadata():
             header_names.append("closest")
             writer = csv.DictWriter(fw, fieldnames=header_names)
             writer.writeheader()
-            
-            writer.writerows(rows_to_write)
+        
+            for row in reader:
+                if row["sequence_name"] in closest_cog:
+                    for query in closest_to_query[row["sequence_name"]]:
+                        new_row = row
+                        new_row["query_id"]=query
+                        new_row["cog_id"]= row[column_to_match]
+                        new_row["query"]=query
+                        new_row["closest"]=row["sequence_name"]
+                        print(query, row)
+                        print(new_row)
+                        writer.writerow(new_row)
+
 
     with open(args.seqs_out, "w") as fw:
         for record in SeqIO.parse(args.seqs,"fasta"):
