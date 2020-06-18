@@ -180,9 +180,19 @@ def main(sysargs = sys.argv[1:]):
     """
     # find the data files
     data_dir = ""
-    if args.datadir:
-        data_dir = os.path.join(cwd, args.datadir)
-        
+    if args.climb or args.datadir:
+        if args.climb:
+            data_dir = "/cephfs/covid/bham/civet-cat"
+            if os.path.exists(data_dir):
+                config["remote"] = "False"
+                config["username"] = ""
+            else:
+                sys.stderr.write(f"Error: --CLIMB argument called, but CLIMB data path doesn't exist.\n")
+                sys.exit(-1)
+
+        elif args.datadir:
+            data_dir = os.path.join(cwd, args.datadir)
+            
         cog_metadata,all_cog_metadata,cog_global_metadata = ("","","")
         cog_seqs,all_cog_seqs = ("","")
         cog_tree = ""
@@ -284,51 +294,6 @@ To run civet please either\n1) ssh into CLIMB and run with --CLIMB flag\n\
             sys.stderr.write("""Error: no way to find source data.\n\nTo run civet please either\n1) ssh into CLIMB and run with --CLIMB flag\n\
 2) Run using `--remote-sync` flag and your CLIMB username specified e.g. `-uun climb-covid19-otoolexyz`\n\
 3) Specify a local directory with the appropriate files on. The following files are required:\n\
-    - cog_global_tree.nexus\n\
-    - cog_metadata.csv\n\
-    - cog_metadata_all.csv\n\
-    - cog_global_metadata.csv\n\
-    - cog_global_alignment.fasta\n\
-    - cog_alignment.fasta\n\n""")
-            sys.exit(-1)
-
-
-    # assume you're runnnig from climb
-    if args.climb:
-        data_dir = "/cephfs/covid/bham/civet-cat"
-        if os.path.exists(data_dir):
-            config["remote"] = "False"
-            config["username"] = ""
-
-            cog_seqs = os.path.join(data_dir,"cog_alignment.fasta")
-            all_cog_seqs = os.path.join(data_dir,"cog_global_alignment.fasta")
-
-            cog_metadata = os.path.join(data_dir,"cog_metadata.csv")
-            all_cog_metadata = os.path.join(data_dir,"cog_metadata_all.csv")
-            cog_global_metadata = os.path.join(data_dir,"cog_global_metadata.csv")
-
-            cog_tree = os.path.join(data_dir,"cog_global_tree.nexus")
-
-            config["cog_seqs"] = cog_seqs
-            config["all_cog_seqs"] = all_cog_seqs
-
-            config["cog_metadata"] = cog_metadata
-            config["all_cog_metadata"] = all_cog_metadata
-            config["cog_global_metadata"] = cog_global_metadata
-
-            config["cog_tree"] = cog_tree
-
-            print("Found cog data:")
-            print("    -",cog_seqs)
-            print("    -",all_cog_seqs)
-            print("    -",cog_metadata)
-            print("    -",all_cog_metadata)
-            print("    -",cog_global_metadata)
-            print("    -",cog_tree,"\n")
-        else:
-            sys.stderr.write("""Error: to run civet please either\n1) ssh into CLIMB and run with --CLIMB flag\n\
-2) Run using `--remote-sync` flag and your CLIMB username specified e.g. `-uun climb-covid19-otoolexyz`\n\
-3) Specify a local directory with the appropriate files on. The following files are required:\n
     - cog_global_tree.nexus\n\
     - cog_metadata.csv\n\
     - cog_metadata_all.csv\n\
