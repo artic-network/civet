@@ -365,7 +365,7 @@ To run civet please either\n1) ssh into CLIMB and run with --CLIMB flag\n\
     config["report_template"] = report_template
 
     sc_list = ["PHEC", 'LIVE', 'BIRM', 'PHWC', 'CAMB', 'NORW', 'GLAS', 'EDIN', 'SHEF',
-                 'EXET', 'NOTT', 'PORT', 'OXON', 'NORT', 'NIRE', 'LOND', 'SANG']
+                 'EXET', 'NOTT', 'PORT', 'OXON', 'NORT', 'NIRE', 'GSTT', 'LOND', 'SANG']
 
     if args.sequencing_centre:
         if args.sequencing_centre in sc_list:
