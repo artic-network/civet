@@ -233,7 +233,8 @@ To run civet please either\n1) ssh into CLIMB and run with --CLIMB flag\n\
             print("    -",cog_tree,"\n")
 
     else:
-        data_dir = outdir
+        print("No data directory specified, will save data in civet-cat in current working directory")
+        data_dir = cwd
 
     # if remote flag, and uun provided, sync data from climb
     if args.remote:
@@ -242,8 +243,8 @@ To run civet please either\n1) ssh into CLIMB and run with --CLIMB flag\n\
             config["username"] = args.uun
             if not args.datadir:
 
-                rsync_command = f"rsync -avzh {args.uun}@bham.covid19.climb.ac.uk:/cephfs/covid/bham/civet-cat {outdir}"
-                print(f"Syncing civet data to {outdir}")
+                rsync_command = f"rsync -avzh {args.uun}@bham.covid19.climb.ac.uk:/cephfs/covid/bham/civet-cat {data_dir}"
+                print(f"Syncing civet data to {data_dir}")
                 status = os.system(rsync_command)
                 if status != 0:
                     sys.stderr.write("Error: rsync command failed.\nCheck your user name is a valid CLIMB username e.g. climb-covid19-smithj\n\n")
@@ -253,14 +254,14 @@ To run civet please either\n1) ssh into CLIMB and run with --CLIMB flag\n\
                 cog_seqs,all_cog_seqs = ("","")
                 cog_tree = ""
                 
-                cog_seqs = os.path.join(outdir,"civet-cat","cog_alignment.fasta")
-                all_cog_seqs = os.path.join(outdir,"civet-cat","cog_global_alignment.fasta")
+                cog_seqs = os.path.join(data_dir,"civet-cat","cog_alignment.fasta")
+                all_cog_seqs = os.path.join(data_dir,"civet-cat","cog_global_alignment.fasta")
 
-                cog_metadata = os.path.join(outdir,"civet-cat","cog_metadata.csv")
-                all_cog_metadata = os.path.join(outdir,"civet-cat","cog_metadata_all.csv")
-                cog_global_metadata = os.path.join(outdir,"civet-cat","cog_global_metadata.csv")
+                cog_metadata = os.path.join(data_dir,"civet-cat","cog_metadata.csv")
+                all_cog_metadata = os.path.join(data_dir,"civet-cat","cog_metadata_all.csv")
+                cog_global_metadata = os.path.join(data_dir,"civet-cat","cog_global_metadata.csv")
 
-                cog_tree = os.path.join(outdir,"civet-cat","cog_global_tree.nexus")
+                cog_tree = os.path.join(data_dir,"civet-cat","cog_global_tree.nexus")
 
                 config["cog_seqs"] = cog_seqs
                 config["all_cog_seqs"] = all_cog_seqs
