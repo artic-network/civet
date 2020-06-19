@@ -34,6 +34,7 @@ def main(sysargs = sys.argv[1:]):
     parser.add_argument('query',help="Input csv file with minimally `name` as a column header. Can include additional fields to be incorporated into the analysis, e.g. `sample_date`",)
     parser.add_argument('-i',"--id-string", action="store_true",help="Indicates the input is a comma-separated id string with one or more query ids. Example: `EDB3588,EDB3589`.", dest="ids")
     parser.add_argument('--fasta', action="store",help="Optional fasta query.", dest="fasta")
+    parser.add_argument('-sc',"--sequencing-centre", action="store",help="Customise report with logos from sequencing centre.", dest="sequencing_centre")
     parser.add_argument('--CLIMB', action="store_true",dest="climb",help="Indicates you're running CIVET from within CLIMB, uses default paths in CLIMB to access data")
     parser.add_argument("-r",'--remote-sync', action="store_true",dest="remote",help="Remotely access lineage trees from CLIMB, need to also supply -uun,--your-user-name")
     parser.add_argument("-uun","--your-user-name", action="store", help="Your CLIMB COG-UK username. Required if running with --remote-sync flag", dest="uun")
@@ -361,6 +362,20 @@ To run civet please either\n1) ssh into CLIMB and run with --CLIMB flag\n\
     config["reference_fasta"] = reference_fasta
     config["polytomy_figure"] = polytomy_figure
     config["report_template"] = report_template
+
+    sc_list = ["PHEC", 'LIVE', 'BIRM', 'PHWC', 'CAMB', 'NORW', 'GLAS', 'EDIN', 'SHEF',
+                 'EXET', 'NOTT', 'PORT', 'OXON', 'NORT', 'NIRE', 'LOND', 'SANG']
+
+    if args.sequencing_centre:
+        if args.sequencing_centre in sc_list:
+            relative_file = os.path.join("data","headers",f"{args.sequencing_centre}.svg")
+            header = pkg_resources.resource_filename('civet', relative_file)
+            print(f"using header file from {header}\n")
+            config["sequencing_centre"] = header
+        else:
+            sc_string = "\n".join(sc_list)
+            sys.stderr.write(f'Error: sequencing centre must be one of the following:\n{sc_string}\n')
+            sys.exit(-1)
 
     if args.distance:
         try:

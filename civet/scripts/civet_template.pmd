@@ -1,8 +1,10 @@
 ```python, name="header",echo=False, results='raw'
+import os
 figdir = "" ##CHANGE
 sequencing_centre = "" ##CHANGE
 if sequencing_centre != "":
-    print(("![](" + "/" + figdir + "/" + sequencing_centre + ".svg)"))
+    header_file = os.path.join(figdir, sequencing_centre)
+    print(f"![]({header_file})")
 ```
 
 # Cluster investigation 

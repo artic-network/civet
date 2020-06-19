@@ -394,18 +394,26 @@ rule make_report:
         treedir = os.path.join(config["outdir"],"local_trees"),
         outdir = config["rel_outdir"],
         fields = config["fields"],
-        figdir = os.path.join(".","figures"),
+        sc_source = config["sequencing_centre"],
+        sc = config["sequencing_centre_file"],
+        sc_flag = config["sequencing_centre_flag"],
+        rel_figdir = os.path.join(".","figures"),
+        figdir = os.path.join(config["outdir"],"figures"),
         failure = config["qc_fail"]
     output:
         poly_fig = os.path.join(config["outdir"],"figures","polytomies.png"),
         outfile = os.path.join(config["outdir"], "civet_report.md")
-    shell:
+    run:
+        if params.sc != "":
+            shell("cp {params.sc_source} {params.sc}")
+        shell(
         """
-        cp {input.polytomy_figure:q} {output.poly_fig} &&
+        cp {input.polytomy_figure:q} {output.poly_fig} 
         make_report.py \
         --input-csv {input.query:q} \
         -f {params.fields:q} \
-        --figdir {params.figdir:q} \
+        --figdir {params.rel_figdir:q} \
+        {params.sc_flag} \
         {params.failure} \
         --no-seq-provided {input.no_seq} \
         --treedir {params.treedir:q} \
@@ -414,4 +422,4 @@ rule make_report:
         --cog-metadata {input.cog_global_metadata:q} \
         --outfile {output.outfile:q} \
         --outdir {params.outdir:q} 
-        """
+        """)

@@ -56,7 +56,7 @@ def main():
     parser = argparse.ArgumentParser(description="Report generator script")
     parser.add_argument("-i","--input-csv", required=False, help="path to input file",dest="input_csv")
     parser.add_argument("-f", "--fields",default="", help="desired fields for report. Default=date and UK country",dest="fields")
-    parser.add_argument("-sc", "--sc",default="", help="Sequencing centre", dest="sc")
+    parser.add_argument("-sc", "--sequencing-centre",default="", help="Sequencing centre", dest="sc")
 
     parser.add_argument("--filtered-cog-metadata", required=False, help="path to combined metadata file",dest="filtered_cog_metadata")
     parser.add_argument("--cog-metadata", required=True, help="path to full COG metadata file",dest="cog_metadata")
