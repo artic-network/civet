@@ -405,7 +405,7 @@ rule make_report:
         outfile = os.path.join(config["outdir"], "civet_report.md")
     run:
         if params.sc != "":
-            shell("cp {params.sc_source} {params.sc}")
+            shell("cp {params.sc_source:q} {params.sc:q}")
         shell(
         """
         cp {input.polytomy_figure:q} {output.poly_fig:q} 
