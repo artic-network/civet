@@ -195,11 +195,11 @@ rule get_closest_cog:
                             "--config "
                             "outdir={params.outdir:q} "
                             "tempdir={params.tempdir:q} "
-                            "seq_db={input.seq_db} "
+                            "seq_db={input.seq_db:q} "
                             "not_cog_csv={input.not_cog_csv:q} "
                             "post_qc_query={output.not_cog_query:q} "
-                            "in_all_cog_metadata={input.in_all_cog_metadata} "
-                            "in_all_cog_seqs={input.in_all_cog_seqs} "
+                            "in_all_cog_metadata={input.in_all_cog_metadata:q} "
+                            "in_all_cog_seqs={input.in_all_cog_seqs:q} "
                             "search_field={params.search_field} "
                             "cog_seqs={input.cog_seqs:q} "
                             "trim_start={params.trim_start} "
@@ -239,8 +239,8 @@ rule get_closest_cog:
                             "tempdir={params.tempdir:q} "
                             "not_cog_csv={input.not_cog_csv:q} "
                             "post_qc_query={params.stand_in_query:q} "
-                            "in_all_cog_metadata={input.in_all_cog_metadata} "
-                            "in_all_cog_seqs={input.in_all_cog_seqs} "
+                            "in_all_cog_metadata={input.in_all_cog_metadata:q} "
+                            "in_all_cog_seqs={input.in_all_cog_seqs:q} "
                             "search_field={params.search_field} "
                             "cog_seqs={input.cog_seqs:q} "
                             "trim_start={params.trim_start} "
@@ -292,12 +292,12 @@ rule prune_out_catchments:
         """
         clusterfunk find_catchments -i {input.tree:q} \
         -o {params.outdir:q} \
-        --metadata {input.metadata} \
+        --metadata {input.metadata:q} \
         --index-column closest \
         --threshold {params.distance} \
         --branch-count \
         --out-format newick \
-        && touch {output.txt} 
+        && touch {output.txt:q} 
 
         """
 
@@ -408,7 +408,7 @@ rule make_report:
             shell("cp {params.sc_source} {params.sc}")
         shell(
         """
-        cp {input.polytomy_figure:q} {output.poly_fig} 
+        cp {input.polytomy_figure:q} {output.poly_fig:q} 
         make_report.py \
         --input-csv {input.query:q} \
         -f {params.fields:q} \
