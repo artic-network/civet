@@ -42,11 +42,11 @@ rule summarise_polytomies:
         """
         clusterfunk focus -i {input.tree:q} \
         -o {output.collapsed_tree:q} \
-        --metadata {input.metadata} \
+        --metadata {input.metadata:q} \
         --index-column closest \
         --in-format newick \
         --out-format newick \
-        --output-tsv {output.collapsed_information}
+        --output-tsv {output.collapsed_information:q}
         """
 
 rule remove_str_for_baltic:
