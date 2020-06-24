@@ -26,7 +26,7 @@ rule extract_taxa:
     output:
         tree_taxa = os.path.join(config["tempdir"], "catchment_trees","{tree}.txt")
     shell:
-        "clusterfunk get_taxa -i {input.tree} --in-format newick -o {output.tree_taxa} --out-format newick"
+        "clusterfunk get_taxa -i {input.tree:q} --in-format newick -o {output.tree_taxa:q} --out-format newick"
 
 rule gather_fasta_seqs:
     input:
@@ -89,9 +89,9 @@ rule hash_tax_labels:
         tree = os.path.join(config["tempdir"],"renamed_trees","{tree}.tree")
     shell:
         """
-        clusterfunk relabel_tips -i {input.tree} \
-        -o {output[0]} \
-        --in-metadata {input.hash} \
+        clusterfunk relabel_tips -i {input.tree:q} \
+        -o {output[0]:q} \
+        --in-metadata {input.hash:q} \
         --index-column taxon \
         --trait-columns cluster_hash \
         --replace \
@@ -133,9 +133,9 @@ rule restore_tip_names:
         os.path.join(config["tempdir"],"almost_restored_trees","{tree}.tree")
     shell:
         """
-        clusterfunk relabel_tips -i {input.tree} \
-        -o {output[0]} \
-        --in-metadata {input.hash} \
+        clusterfunk relabel_tips -i {input.tree:q} \
+        -o {output[0]:q} \
+        --in-metadata {input.hash:q} \
         --index-column iqtree_hash \
         --trait-columns taxon \
         --replace \
@@ -169,9 +169,9 @@ rule summarise_polytomies:
         """
         clusterfunk focus -i {input.tree:q} \
         -o {output.collapsed_tree:q} \
-        --metadata {input.metadata} \
+        --metadata {input.metadata:q} \
         --index-column query \
-        --output-tsv {output.collapsed_information}
+        --output-tsv {output.collapsed_information:q}
         """
 
 rule summarise_processing:

@@ -42,11 +42,11 @@ rule summarise_polytomies:
         """
         clusterfunk focus -i {input.tree:q} \
         -o {output.collapsed_tree:q} \
-        --metadata {input.metadata} \
+        --metadata {input.metadata:q} \
         --index-column closest \
         --in-format newick \
         --out-format newick \
-        --output-tsv {output.collapsed_information}
+        --output-tsv {output.collapsed_information:q}
         """
 
 rule get_collapsed_representative:
@@ -171,9 +171,9 @@ rule hash_tax_labels:
         tree = os.path.join(config["tempdir"],"renamed_trees","{tree}.tree")
     shell:
         """
-        clusterfunk relabel_tips -i {input.tree} \
-        -o {output[0]} \
-        --in-metadata {input.hash} \
+        clusterfunk relabel_tips -i {input.tree:q} \
+        -o {output[0]:q} \
+        --in-metadata {input.hash:q} \
         --index-column taxon \
         --trait-columns cluster_hash \
         --replace \
@@ -215,9 +215,9 @@ rule restore_tip_names:
         os.path.join(config["tempdir"],"almost_restored_trees","{tree}.tree")
     shell:
         """
-        clusterfunk relabel_tips -i {input.tree} \
-        -o {output[0]} \
-        --in-metadata {input.hash} \
+        clusterfunk relabel_tips -i {input.tree:q} \
+        -o {output[0]:q} \
+        --in-metadata {input.hash:q} \
         --index-column iqtree_hash \
         --trait-columns taxon \
         --replace \

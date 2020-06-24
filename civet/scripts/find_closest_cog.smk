@@ -54,7 +54,7 @@ rule non_cog_remove_insertions_and_trim_and_pad:
           -t [{params.trim_start}:{params.trim_end}] \
           --pad \
           --log-inserts &
-        mv insertions.txt {params.insertions}
+        mv insertions.txt {params.insertions:q}
         """
 
 rule minimap2_against_cog:
