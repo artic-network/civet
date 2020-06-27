@@ -2,7 +2,7 @@
 
 **C**luster **I**nvestigation & **V**irus **E**pidemiology **T**ool
 
-<img src="./docs/civet_logo.png" width="300">
+<img src="./docs/civet_logo.png" width="450">
 
 ## Quick links
 
