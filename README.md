@@ -1,7 +1,7 @@
 # civet
 
 Cluster Investigation & Virus Epidemiology Tool
-
+<img src="./docs/civet_logo.png" width="700">
 ## Quick links
 
   * [Requirements](#requirements)
