@@ -1,7 +1,7 @@
 # civet
 
-Cluster Investigation & Virus Epidemiology Tool
-<img src="./docs/civet_logo.png" width="700">
+**C**luster **I**nvestigation & **V**irus **E**pidemiology **T**ool
+<img src="./docs/civet_logo.png" width="300">
 ## Quick links
 
   * [Requirements](#requirements)
@@ -127,7 +127,7 @@ optional arguments:
 
 Overview:
 
-<img src="./docs/workflow_diagram.png" width="900">
+<img src="./docs/workflow_diagram.png" width="700">
 
 - From the input csv (`<query>`), `civet` attempts to match the ids with COG-UK ids in the up-to-date metadata database.
 
