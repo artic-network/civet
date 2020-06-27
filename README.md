@@ -1,7 +1,9 @@
 # civet
 
 **C**luster **I**nvestigation & **V**irus **E**pidemiology **T**ool
+
 <img src="./docs/civet_logo.png" width="300">
+
 ## Quick links
 
   * [Requirements](#requirements)
