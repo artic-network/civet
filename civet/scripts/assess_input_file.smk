@@ -7,7 +7,7 @@ rule check_cog_db:
     input:
         query = config["query"],
         cog_seqs = config["cog_seqs"],
-        metadata = config["cog_metadata"]
+        cog_metadata = config["cog_metadata"]
     params:
         field_to_match = config["search_field"]
     output:
