@@ -209,7 +209,12 @@ def main(sysargs = sys.argv[1:]):
 
         if not os.path.isfile(cog_seqs) or not os.path.isfile(all_cog_seqs) or not os.path.isfile(cog_metadata) or not  os.path.isfile(all_cog_metadata) or not os.path.isfile(cog_global_metadata) or not os.path.isfile(cog_tree):
             sys.stderr.write(f"""Error: cannot find correct data files at {data_dir}\nThe directory should contain the following files:\n\
-    - cog_alignment.fasta\n    - cog_global_alignment.fasta\n    - cog_global_metadata.csv\n    - cog_metadata.csv\n    - cog_metadata_all.csv\n    - cog_global.tree\n\n\
+    - cog_global_tree.nexus\n\
+    - cog_metadata.csv\n\
+    - cog_metadata_all.csv\n\
+    - cog_global_metadata.csv\n\
+    - cog_global_alignment.fasta\n\
+    - cog_alignment.fasta\n\n\
 To run civet please either\n1) ssh into CLIMB and run with --CLIMB flag\n\
 2) Run using `--remote-sync` flag and your CLIMB username specified e.g. `-uun climb-covid19-otoolexyz`\n\
 3) Specify a local directory with the appropriate files\n\n""")
