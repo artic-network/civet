@@ -30,71 +30,23 @@ rule check_cog_all:
     input:
         not_in_cog = rules.check_cog_db.output.not_cog,
         cog_seqs = config["all_cog_seqs"],
-        metadata = config["all_cog_metadata"]
+        cog_metadata = config["all_cog_metadata"]
     params:
         field_to_match = config["search_field"]
     output:
         cog = os.path.join(config["tempdir"],"query_in_all_cog.csv"),
         cog_seqs = os.path.join(config["tempdir"],"query_in_all_cog.fasta"),
         not_cog = os.path.join(config["tempdir"],"not_in_all_cog.csv")
-    run:
-        found = []
-        not_cog = []
-        in_all_cog_names = {}
-        in_all_cog_metadata = []
-        with open(input.not_in_cog, "r") as f:
-            for l in f:
-                l = l.rstrip("\n")
-                not_cog.append(l)
-        column_to_match = params.field_to_match
-        print("Checking for sequences in whole COG database")
-        with open(input.metadata,newline="") as f:
-            reader = csv.DictReader(f)
-            header_names = reader.fieldnames
-            for row in reader:
-                for seq in not_cog:
-
-                    cog_id = row[column_to_match]
-                    if seq == cog_id:
-                        print(seq)
-                        found.append(seq)
-                        row["query_id"]=seq
-                        row["cog_id"] = row[column_to_match]
-                        row["query"]=row["sequence_name"]
-                        row["closest"]=row["sequence_name"]
-                        in_all_cog_metadata.append(row)
-                        in_all_cog_names[row[column_to_match]] = row["sequence_name"]
-
-            
-            with open(output.cog, "w") as fw:
-                header_names.append("query_id")
-                header_names.append("cog_id")
-                header_names.append("query")
-                header_names.append("closest")
-                writer = csv.DictWriter(fw, fieldnames=header_names,lineterminator='\n')
-                writer.writeheader()
-                writer.writerows(in_all_cog_metadata)
-
-        with open(output.cog_seqs, "w") as fw:
-            
-            for record in SeqIO.parse(input.cog_seqs, "fasta"):
-                for name in in_all_cog_names:
-                    sequence_name = in_all_cog_names[name]
-                    if sequence_name==record.id:
-                        fw.write(f">{record.id} status=in_all_cog\n{record.seq}\n")
-        if found != []:
-            print(f"The following sequences were found in COG-UK put hadn't passed the QC.\nLowering QC and adding them in to analysis now.")
-            for i in found:
-                print(f"    - {i}")
-
-        with open(output.not_cog, "w") as fw:
-            c = 0
-            print("The following sequences were not found in the cog database:")
-            for query in not_cog:
-                if query not in found:
-                    c+=1
-                    fw.write(query + '\n')
-                    print(f"{query}")
+    shell:
+        """
+        check_cog_db.py --query {input.not_in_cog:q} \
+                        --cog-seqs {input.cog_seqs:q} \
+                        --cog-metadata {input.cog_metadata:q} \
+                        --field {params.field_to_match} \
+                        --in-metadata {output.cog:q} \
+                        --in-seqs {output.cog_seqs:q} \
+                        --not-in-cog {output.not_cog:q}
+        """
 
 rule get_closest_cog:
     input:

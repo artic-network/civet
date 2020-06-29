@@ -73,7 +73,7 @@ def check_cog_db():
     print(f"Number of associated sequences found: {len(found)}")
     with open(args.not_in_cog, "w") as fw:
         print("\nThe following sequences were not found in the cog database:")
-
+        fw.write("name\n")
         for query in query_names:
             if query not in found:
                 fw.write(query + '\n')
