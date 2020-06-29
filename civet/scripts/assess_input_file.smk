@@ -39,7 +39,7 @@ rule check_cog_db:
                         row["query"]=row["sequence_name"]
                         row["closest"]=row["sequence_name"]
                         in_cog_metadata.append(row)
-                        in_cog_names[column_to_match] = row["sequence_name"]
+                        in_cog_names[row[column_to_match]] = row["sequence_name"]
 
             print(f"Number of seqs found in metadata: {len(in_cog_metadata)}")
             with open(output.cog, "w") as fw:
@@ -104,7 +104,7 @@ rule check_cog_all:
                         row["query"]=row["sequence_name"]
                         row["closest"]=row["sequence_name"]
                         in_all_cog_metadata.append(row)
-                        in_all_cog_names[column_to_match] = row["sequence_name"]
+                        in_all_cog_names[row[column_to_match]] = row["sequence_name"]
 
             
             with open(output.cog, "w") as fw:
