@@ -16,13 +16,13 @@ rule check_cog_db:
         not_cog = os.path.join(config["tempdir"],"not_in_cog.csv")
     shell:
         """
-        check_cog_db.py --query {input.query} \
-                        --cog-seqs {input.cog_seqs} \
-                        --cog-metadata {input.cog_metadata} \
+        check_cog_db.py --query {input.query:q} \
+                        --cog-seqs {input.cog_seqs:q} \
+                        --cog-metadata {input.cog_metadata:q} \
                         --field {params.field_to_match} \
-                        --in-metadata {output.cog} \
-                        --in-seqs {output.cog_seqs} \
-                        --not-in-cog {output.not_cog}
+                        --in-metadata {output.cog:q} \
+                        --in-seqs {output.cog_seqs:q} \
+                        --not-in-cog {output.not_cog:q}
         """
         
 
