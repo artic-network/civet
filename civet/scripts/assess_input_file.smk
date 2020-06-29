@@ -14,58 +14,17 @@ rule check_cog_db:
         cog = os.path.join(config["tempdir"],"query_in_cog.csv"),
         cog_seqs = os.path.join(config["tempdir"],"query_in_cog.fasta"),
         not_cog = os.path.join(config["tempdir"],"not_in_cog.csv")
-    run:
-        found = []
-        query_names = []
-        in_cog_metadata = []
-        in_cog_names = {}
-        column_to_match = params.field_to_match
-        with open(input.query,newline="") as f:
-            reader = csv.DictReader(f)
-            for row in reader:
-                query_names.append(row["name"])
-
-        with open(input.metadata,newline="") as f:
-            reader = csv.DictReader(f)
-            header_names = reader.fieldnames
-            for row in reader:
-                for seq in query_names:
-
-                    cog_id = row[column_to_match]
-                    if seq == cog_id:
-                        found.append(seq)
-                        row["query_id"]=seq
-                        row["cog_id"] = row[column_to_match]
-                        row["query"]=row["sequence_name"]
-                        row["closest"]=row["sequence_name"]
-                        in_cog_metadata.append(row)
-                        in_cog_names[row[column_to_match]] = row["sequence_name"]
-
-            print(f"Number of seqs found in metadata: {len(in_cog_metadata)}")
-            with open(output.cog, "w") as fw:
-                header_names.append("query_id")
-                header_names.append("cog_id")
-                header_names.append("query")
-                header_names.append("closest")
-                writer = csv.DictWriter(fw, fieldnames=header_names,lineterminator='\n')
-                writer.writeheader()
-                writer.writerows(in_cog_metadata)
-
-        with open(output.cog_seqs, "w") as fw:
-            for record in SeqIO.parse(input.cog_seqs, "fasta"):
-                for name in in_cog_names:
-                    sequence_name = in_cog_names[name]
-                    if sequence_name==record.id:
-                        fw.write(f">{record.id} status=in_cog\n{record.seq}\n")
+    shell:
+        """
+        check_cog_db.py --query {input.query} \
+                        --cog-seqs {input.cog_seqs} \
+                        --cog-metadata {input.cog_metadata} \
+                        --field {params.field_to_match} \
+                        --in-metadata {output.cog} \
+                        --in-seqs {output.cog_seqs} \
+                        --not-in-cog {output.not_cog}
+        """
         
-        with open(output.not_cog, "w") as fw:
-            print("\nThe following sequences were not found in the cog database:")
-
-            for query in query_names:
-                if query not in found:
-                    fw.write(query + '\n')
-                    print(f"{query}")
-            print("If you wish to access sequences in the cog database\nwith your query, ensure you have the correct sequence id.")
 
 rule check_cog_all:
     input:

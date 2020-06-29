@@ -18,6 +18,7 @@ setup(name='civet',
       "civet/scripts/just_collapse_trees.smk",
       "civet/scripts/make_report.py",
       "civet/scripts/data_parsing.py",
+      "civet/scripts/check_cog_db.py"
       "civet/scripts/utils/baltic.py",
       "civet/scripts/civet_template.pmd",
       "civet/scripts/make_tree_figures.py"],
