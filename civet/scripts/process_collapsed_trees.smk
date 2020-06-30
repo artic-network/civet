@@ -1,20 +1,17 @@
 """
-Passed into config:
-
-catchment_str=tree_1,tree_2,...,tree_X
-"snakemake --nolock --snakefile {input.snakefile_collapse_before:q} "
-                            "{params.force} "
-                            "{params.quiet_mode} "
-                            # "--directory {params.tempdir:q} "
-                            "--config "
-                            f"catchment_str={catchment_str} "
-                            "outdir={params.outdir:q} "
-                            # "tempdir={params.tempdir:q} "
-                            "not_cog_csv={input.not_cog_csv:q} "
-                            "post_qc_query={input.not_cog_query_seqs:q} "
-                            "all_cog_seqs={input.all_cog_seqs:q} "
-                            "combined_metadata={input.combined_metadata:q} "
-                            "--cores {params.cores}"
+            shell(f"snakemake --nolock --snakefile {snakestring}"
+                        "{params.force} "
+                        "{params.quiet_mode} "
+                        "--directory {params.tempdir:q} "
+                        "--config "
+                        f"catchment_str={catchment_str} "
+                        "outdir={params.outdir:q} "
+                        "tempdir={params.tempdir:q} "
+                        # "not_cog_csv={input.not_cog_csv:q} "
+                        "aligned_query_seqs={input.query_seqs:q} "
+                        "all_cog_seqs={input.all_cog_seqs:q} "
+                        "combined_metadata={input.combined_metadata:q} "
+                        "--cores {params.cores}")
 """
 from Bio import Phylo
 from Bio import SeqIO
@@ -97,7 +94,7 @@ rule extract_taxa:
 rule gather_fasta_seqs:
     input:
         collapsed_nodes = os.path.join(config["tempdir"],"collapsed_trees","{tree}_representatives.fasta"),
-        post_qc_query = config["post_qc_query"],
+        aligned_query_seqs = config["aligned_query_seqs"],
         cog_seqs = config["all_cog_seqs"],
         combined_metadata = config["combined_metadata"],
         tree_taxa = rules.extract_taxa.output.tree_taxa
@@ -121,29 +118,27 @@ rule gather_fasta_seqs:
         added_seqs = []
         with open(output.aln, "w") as fw:
 
-            for record in SeqIO.parse(input.post_qc_query, "fasta"):
+            for record in SeqIO.parse(input.aligned_query_seqs, "fasta"):
                 if record.id in queries.values() or record.id in queries.keys():
-                    iqtree_friendly = record.id.replace("/","_")
-                    fw.write(f">{record.id}\n{record.seq}\n")
+                    fw.write(f">{record.description}\n{record.seq}\n")
                     added_seqs.append(record.id)
 
             for record in SeqIO.parse(input.collapsed_nodes, "fasta"):
-                iqtree_friendly = record.id.replace("/","_")
-                fw.write(f">{record.id}\n{record.seq}\n")
+                fw.write(f">{record.description}\n{record.seq}\n")
                 added_seqs.append(record.id)
 
             for record in SeqIO.parse(input.cog_seqs,"fasta"):
                 if record.id in taxa:
-                    iqtree_friendly = record.id.replace("/","_")
-                    fw.write(f">{record.id}\n{record.seq}\n")
+                    fw.write(f">{record.description}\n{record.seq}\n")
                     added_seqs.append(record.id)
-        not_added = []
-        for seq in taxa:
-            if seq not in added_seqs:
-                not_added.append(seq)
-        print(f"Seqs not added are:")
-        for seq in not_added:
-            print(f"- {seq}")
+
+        # not_added = []
+        # for seq in taxa:
+        #     if seq not in added_seqs:
+        #         not_added.append(seq)
+        # print(f"Seqs not added are:")
+        # for seq in not_added:
+        #     print(f"- {seq}")
 
 rule hash_for_iqtree:
     input:
@@ -198,7 +193,7 @@ rule iqtree_catchment:
         for record in SeqIO.parse(input.aln, "fasta"):
             aln_taxa +=1 
         if taxa != aln_taxa:
-            shell("iqtree -s {input.aln:q} -bb 1000 -au -m HKY -nt 1 -redo")
+            shell("iqtree -s {input.aln:q} -au -m HKY -nt 1 -redo")
         else:
             with open(output.tree,"w") as fw:
                 with open(input.guide_tree, "r") as f:
