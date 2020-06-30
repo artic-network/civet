@@ -2,3 +2,5 @@
 .idea/
 
 workspace/
+
+civet/scripts/__pycache__/
