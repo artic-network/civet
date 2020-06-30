@@ -83,10 +83,10 @@ rule get_closest_cog:
             to_find_closest[record.id] = ("in_all_cog",record.seq)
 
         not_cog = []
-            with open(input.not_cog_csv, newline = "") as f: # getting list of non-cog queries
-                reader = csv.DictReader(f)
-                for row in reader:
-                    not_cog.append(row["name"])
+        with open(input.not_cog_csv, newline = "") as f: # getting list of non-cog queries
+            reader = csv.DictReader(f)
+            for row in reader:
+                not_cog.append(row["name"])
 
         if params.fasta != "":
              # get set with supplied sequences
