@@ -25,7 +25,6 @@ rule check_cog_db:
                         --not-in-cog {output.not_cog:q}
         """
         
-
 rule check_cog_all:
     input:
         not_in_cog = rules.check_cog_db.output.not_cog,
@@ -55,120 +54,86 @@ rule get_closest_cog:
         cog_seqs = config["cog_seqs"],
         cog_metadata = config["cog_metadata"],
         seq_db = config["seq_db"],
-        not_cog_csv = os.path.join(config["tempdir"],"not_in_all_cog.csv"),
-        in_all_cog_metadata = os.path.join(config["tempdir"],"query_in_all_cog.csv"),
-        in_all_cog_seqs = os.path.join(config["tempdir"],"query_in_all_cog.fasta")
+        not_cog_csv = rules.check_cog_all.output.not_cog, #use
+        in_all_cog_metadata = rules.check_cog_all.output.cog,
+        in_all_cog_seqs = rules.check_cog_all.output.cog_seqs #use 
     params:
         outdir= config["outdir"],
         tempdir= config["tempdir"],
         path = workflow.current_basedir,
         cores = workflow.cores,
         force = config["force"],
-        fasta = config["fasta"],
+        fasta = config["fasta"], #use
         search_field = config["search_field"],
-        query = config["post_qc_query"],
-        quiet_mode = config["quiet_mode"],
+        query = config["post_qc_query"], #use
         stand_in_query = os.path.join(config["tempdir"], "temp.fasta"),
         trim_start = config["trim_start"],
-        trim_end = config["trim_end"]
+        trim_end = config["trim_end"],
+        quiet_mode = config["quiet_mode"]
     output:
         closest_cog = os.path.join(config["tempdir"],"closest_cog.csv"),
-        not_cog_query = os.path.join(config["tempdir"],"not_in_all_cog.fasta"),
         combined_query = os.path.join(config["tempdir"],"to_find_closest.fasta"),
+        aligned_query = os.path.join(config["tempdir"],"post_qc_query.aligned.fasta"),
         not_processed = os.path.join(config["tempdir"], "no_seq_to_process.csv")
     run:
         query_with_no_seq = []
+        to_find_closest = {}
+
+        for record in SeqIO.parse(input.in_all_cog_seqs,"fasta"):
+            to_find_closest[record.id] = ("in_all_cog",record.seq)
+
+        not_cog = []
+            with open(input.not_cog_csv, newline = "") as f: # getting list of non-cog queries
+                reader = csv.DictReader(f)
+                for row in reader:
+                    not_cog.append(row["name"])
+
         if params.fasta != "":
-            not_cog = []
-            with open(input.not_cog_csv, "r") as f:
-                for l in f:
-                    l = l.rstrip('\n')
-                    not_cog.append(l)
-            num_seqs = 0
-            not_cog_with_seqs = []
-            with open(output.not_cog_query, "w") as fw:
+             # get set with supplied sequences
+                print("Not in COG but have a sequence supplied:")
                 for record in SeqIO.parse(params.query, "fasta"):
                     if record.id in not_cog:
-                        num_seqs +=1
-                        not_cog_with_seqs.append(record.id)
-                        fw.write(f">{record.id} status=not_cog\n{record.seq}\n")
-            for q in not_cog:
-                if q not in not_cog_with_seqs:
-                    query_with_no_seq.append(q)
-            if num_seqs !=0:
-                print(f"Passing {num_seqs} sequences into nearest COG search pipeline.")
-                for i in not_cog_with_seqs:
-                    print(f"    - {i}")
-                shell("snakemake --nolock --snakefile {input.snakefile:q} "
-                            "{params.force} "
-                            "{params.quiet_mode} "
-                            "--directory {params.tempdir:q} "
-                            "--config "
-                            "outdir={params.outdir:q} "
-                            "tempdir={params.tempdir:q} "
-                            "seq_db={input.seq_db:q} "
-                            "not_cog_csv={input.not_cog_csv:q} "
-                            "post_qc_query={output.not_cog_query:q} "
-                            "in_all_cog_metadata={input.in_all_cog_metadata:q} "
-                            "in_all_cog_seqs={input.in_all_cog_seqs:q} "
-                            "search_field={params.search_field} "
-                            "cog_seqs={input.cog_seqs:q} "
-                            "trim_start={params.trim_start} "
-                            "trim_end={params.trim_end} "
-                            "reference_fasta={input.reference_fasta:q} "
-                            "cog_metadata={input.cog_metadata:q} "
-                            "--cores {params.cores}")
+                        to_find_closest[record.id] = ("not_cog",record.seq) # overwrites with supplied seq if found in all cog
+
+        with open(output.combined_query, "w") as fw:
+            for seq in to_find_closest:
+                fw.write(f">{seq} status={to_find_closest[seq][0]}\n{to_find_closest[seq][1]}\n")
+
+        for query in not_cog: # get set with no sequences supplied
+            if query not in to_find_closest:
+                query_with_no_seq.append(query)
+
+        if to_find_closest != {}:
+            print(f"Passing {len(to_find_closest)} sequences into nearest COG search pipeline:")
+            for seq in to_find_closest:
+                print(f"    - {seq}    {to_find_closest[seq][0]}")
+            shell("snakemake --nolock --snakefile {input.snakefile:q} "
+                        "{params.force} "
+                        "{params.quiet_mode} "
+                        "--directory {params.tempdir:q} "
+                        "--config "
+                        # "outdir={params.outdir:q} "
+                        "tempdir={params.tempdir:q} "
+                        "seq_db={input.seq_db:q} "
+                        # "not_cog_csv={input.not_cog_csv:q} "
+                        "to_find_closest={output.combined_query} "
+                        # "post_qc_query={output.not_cog_query:q} "
+                        # "in_all_cog_metadata={input.in_all_cog_metadata:q} "
+                        # "in_all_cog_seqs={input.in_all_cog_seqs:q} "
+                        "search_field={params.search_field} "
+                        # "cog_seqs={input.cog_seqs:q} "
+                        "trim_start={params.trim_start} "
+                        "trim_end={params.trim_end} "
+                        "reference_fasta={input.reference_fasta:q} "
+                        "cog_metadata={input.cog_metadata:q} "
+                        "--cores {params.cores}")
+
         else:
-            num_seqs = 0
-            all_cog_seqs = []
+            shell("touch {output.closest_cog:q} && touch {output.combined_query}")
 
-            not_cog = []
-            with open(input.not_cog_csv, "r") as f:
-                for l in f:
-                    l = l.rstrip('\n')
-                    not_cog.append(l)
-
-            for record in SeqIO.parse(input.in_all_cog_seqs,"fasta"):
-                num_seqs +=1
-                all_cog_seqs.append(record.id)
-
-            for q in not_cog:
-                if q not in all_cog_seqs:
-                    query_with_no_seq.append(q)
-
-            if num_seqs != 0:
-                shell("touch {params.stand_in_query:q}")
-                print(f"Passing {num_seqs} sequences into nearest COG search pipeline.")
-                for i in all_cog_seqs:
-                    print(f"    - {i}")
-                shell("snakemake --nolock --snakefile {input.snakefile:q} "
-                            "{params.force} "
-                            "{params.quiet_mode} "
-                            "--directory {params.tempdir:q} "
-                            "--config "
-                            "outdir={params.outdir:q} "
-                            "tempdir={params.tempdir:q} "
-                            "not_cog_csv={input.not_cog_csv:q} "
-                            "post_qc_query={params.stand_in_query:q} "
-                            "in_all_cog_metadata={input.in_all_cog_metadata:q} "
-                            "in_all_cog_seqs={input.in_all_cog_seqs:q} "
-                            "search_field={params.search_field} "
-                            "cog_seqs={input.cog_seqs:q} "
-                            "trim_start={params.trim_start} "
-                            "trim_end={params.trim_end} "
-                            "reference_fasta={input.reference_fasta:q} "
-                            "cog_metadata={input.cog_metadata:q} "
-                            "--cores {params.cores}")
-            else:
-                with open(input.not_cog_csv, "r") as f:
-                    for l in f:
-                        l = l.rstrip('\n')
-                        query_with_no_seq.append(l)
-                    
-                shell("touch {output.closest_cog:q} && touch {output.not_cog_query} && touch {output.combined_query}")
         with open(output.not_processed, "w") as fw:
-            for q in list(set(query_with_no_seq)):
-                fw.write(f"{q},fail=no sequence provided\n")
+            for query in list(set(query_with_no_seq)):
+                fw.write(f"{query},fail=no sequence provided\n")
 
 rule combine_metadata:
     input:
