@@ -112,16 +112,10 @@ rule get_closest_cog:
                         "{params.quiet_mode} "
                         "--directory {params.tempdir:q} "
                         "--config "
-                        # "outdir={params.outdir:q} "
                         "tempdir={params.tempdir:q} "
                         "seq_db={input.seq_db:q} "
-                        # "not_cog_csv={input.not_cog_csv:q} "
                         "to_find_closest={output.combined_query} "
-                        # "post_qc_query={output.not_cog_query:q} "
-                        # "in_all_cog_metadata={input.in_all_cog_metadata:q} "
-                        # "in_all_cog_seqs={input.in_all_cog_seqs:q} "
                         "search_field={params.search_field} "
-                        # "cog_seqs={input.cog_seqs:q} "
                         "trim_start={params.trim_start} "
                         "trim_end={params.trim_end} "
                         "reference_fasta={input.reference_fasta:q} "
@@ -179,23 +173,26 @@ rule prune_out_catchments:
 
 rule process_catchments:
     input:
-        snakefile_collapse_after = os.path.join(workflow.current_basedir,"process_catchment_trees.smk"),
+        snakefile_collapse_after = os.path.join(workflow.current_basedir,"process_catchment_trees.smk"), #alternative snakefiles
         snakefile_collapse_before = os.path.join(workflow.current_basedir,"process_collapsed_trees.smk"),
         snakefile_just_collapse = os.path.join(workflow.current_basedir,"just_collapse_trees.smk"),
-        combined_metadata = rules.combine_metadata.output.combined_csv,
-        catchment_placeholder = rules.prune_out_catchments.output.txt,
-        all_cog_seqs = config["all_cog_seqs"],
-        not_cog_query_seqs = rules.get_closest_cog.output.combined_query,
-        not_cog_csv = rules.check_cog_all.output.not_cog
+        combined_metadata = rules.combine_metadata.output.combined_csv, 
+        query_seqs = rules.get_closest_cog.output.aligned_query, #datafunk-processed seqs
+        catchment_prompt = rules.prune_out_catchments.output.txt,
+        all_cog_seqs = config["all_cog_seqs"]
+        # not_cog_csv = rules.check_cog_all.output.not_cog
     params:
         outdir= config["outdir"],
         tempdir= config["tempdir"],
         path = workflow.current_basedir,
-        cores = workflow.cores,
+        
         delay_collapse = config["delay_collapse"],
-        force = config["force"],
+        
         fasta = config["fasta"],
         tree_dir = os.path.join(config["tempdir"],"catchment_trees"),
+
+        cores = workflow.cores,
+        force = config["force"],
         quiet_mode = config["quiet_mode"]
     output:
         tree_summary = os.path.join(config["outdir"],"local_trees","collapse_report.txt")
@@ -206,44 +203,32 @@ rule process_catchments:
                 if fn.endswith(".tree"):
                     file_stem = ".".join(fn.split(".")[:-1])
                     catchment_trees.append(file_stem)
-        catchment_str = ",".join(catchment_trees)
+        catchment_str = ",".join(catchment_trees) #to pass to snakemake pipeline
 
-        num_not_cog_query_seqs = 0
-        for record in SeqIO.parse(input.not_cog_query_seqs,"fasta"):
-            num_not_cog_query_seqs +=1
+        query_seqs = 0
+        for record in SeqIO.parse(input.query_seqs,"fasta"):
+            query_seqs +=1
 
-        if params.fasta != "" or num_not_cog_query_seqs !=0:
+        if query_seqs !=0:
             if params.delay_collapse==False:
-                print(f"Passing {input.not_cog_query_seqs} into processing pipeline.")
-                shell("snakemake --nolock --snakefile {input.snakefile_collapse_before:q} "
-                            "{params.force} "
-                            "{params.quiet_mode} "
-                            "--directory {params.tempdir:q} "
-                            "--config "
-                            f"catchment_str={catchment_str} "
-                            "outdir={params.outdir:q} "
-                            "tempdir={params.tempdir:q} "
-                            "not_cog_csv={input.not_cog_csv:q} "
-                            "post_qc_query={input.not_cog_query_seqs:q} "
-                            "all_cog_seqs={input.all_cog_seqs:q} "
-                            "combined_metadata={input.combined_metadata:q} "
-                            "--cores {params.cores}")
+                snakefile = input.snakefile_collapse_before
             else:
-                print(f"Passing {input.not_cog_query_seqs} into processing pipeline.")
-                shell("snakemake --nolock --snakefile {input.snakefile_collapse_after:q} "
-                            "{params.force} "
-                            "{params.quiet_mode} "
-                            "--directory {params.tempdir:q} "
-                            "--config "
-                            f"catchment_str={catchment_str} "
-                            "outdir={params.outdir:q} "
-                            "tempdir={params.tempdir:q} "
-                            "not_cog_csv={input.not_cog_csv:q} "
-                            "post_qc_query={input.not_cog_query_seqs:q} "
-                            "all_cog_seqs={input.all_cog_seqs:q} "
-                            "combined_metadata={input.combined_metadata:q} "
-                            "--cores {params.cores}")
+                nakefile = input.snakefile_collapse_after
 
+            snakestring = "{" + snakefile + ":q} "
+            print(f"Passing {input.query_seqs} into processing pipeline.")
+            shell(f"snakemake --nolock --snakefile {snakestring}"
+                        "{params.force} "
+                        "{params.quiet_mode} "
+                        "--directory {params.tempdir:q} "
+                        "--config "
+                        f"catchment_str={catchment_str} "
+                        "outdir={params.outdir:q} "
+                        "tempdir={params.tempdir:q} "
+                        "aligned_query_seqs={input.query_seqs:q} "
+                        "all_cog_seqs={input.all_cog_seqs:q} "
+                        "combined_metadata={input.combined_metadata:q} "
+                        "--cores {params.cores}")
         else:
             print(f"No new sequences to add in, just collapsing trees.")
             shell("snakemake --nolock --snakefile {input.snakefile_just_collapse:q} "
