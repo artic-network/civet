@@ -54,6 +54,9 @@ def main(sysargs = sys.argv[1:]):
     parser.add_argument("--verbose",action="store_true",help="Print lots of stuff to screen")
     parser.add_argument('--max-ambig', action="store", default=0.5, type=float,help="Maximum proportion of Ns allowed to attempt analysis. Default: 0.5",dest="maxambig")
     parser.add_argument('--min-length', action="store", default=10000, type=int,help="Minimum query length allowed to attempt analysis. Default: 10000",dest="minlen")
+    parser.add_argument('--local-lineages',action="store_true",dest="local_lineages",help="Contextualise the cluster lineages at local regional scale. Requires at least one adm2 value in query csv.")
+    parser.add_argument('--date-restriction',action="store_true",dest="date_restriction",help="Chose whether to date-restrict comparative sequences at regional-scale.")
+    parser.add_argument('--date-range',action="store",default=7, type=int, dest="date_range",help="Define the window +- either side of cluster sample collection date-range. Default is 7 days.")
     parser.add_argument("-v","--version", action='version', version=f"civet {__version__}")
 
     # Exit with help menu if no args supplied
@@ -149,6 +152,20 @@ def main(sysargs = sys.argv[1:]):
                 if field in reader.fieldnames:
                     fields.append(field)
 
+        if args.local_lineages is True and "adm2" not in column_names:
+            sys.stderr.write(f"Error: Input file missing header field `adm2`\n.")
+            sys.exit(-1)
+        else:
+            adm2regions=0
+            for row in reader:
+                if row['adm2'] not in (None, ''):
+                    adm2regions+=1
+            if adm2regions == 0:
+                sys.stderr.write(f"Error: Local-scale analysis requested but 0 values can be found for adm2 region in "
+                                 f"csv. Please provide at least one adm2 region from which local-scale analysis can "
+                                 f"be described.\n.")
+                sys.exit(-1)
+
         print("COG-UK ids to process:")
         for row in reader:
             queries.append(row["name"])
@@ -156,6 +173,7 @@ def main(sysargs = sys.argv[1:]):
             print(row["name"])
         print(f"Total: {len(queries)}")
     print('\n')
+
     # how many threads to pass
     if args.threads:
         threads = args.threads
