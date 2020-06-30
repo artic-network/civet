@@ -7,39 +7,40 @@
 - Output directory:
 	if given, get path and create directory if necessary
 	if not given, create a timestamped output directory
-- Set up temporary directory, can be specified. If --no-temp, set it to the output directory
+- Set up temporary directory, can be specified. If `--no-temp`, set it to the output directory
 - Check if input query is a file:
-	if not and if the -ids flag is given, parse the input comma-separated id string
+	if not and if the `-ids` flag is given, parse the input comma-separated id string
 	if not and the -ids flag isn't given, exit with informative message
 - Check input query file has appropriate headers (i.e. at least `name`)
-- If no input --fields, default to adm1
+- If no input `--fields`, default to adm1
 
 - Initialise config dictionary to pass through to snakemake
 
 ### 2) Finding COG-UK data
 
-- If --CLIMB, check path to civet directory exists, else exit
-- If --datadir, if not --remote, check if it has the appropriate files, else exit
-- If not --datadir, default to current working directory
-- If --remote and -uun have been specified, rsync data from CLIMB
-	If rsync fails exit with error showing username 
-- If -uun hasn't been specified, exit with error, if --remote and --datadir and --CLIMB haven't been given, exit with error
+- If `--CLIMB`, check path to civet directory exists, else exit
+- If `--datadir`, if not `--remote`, check if it has the appropriate files, else exit
+- If not `--datadir`, default to current working directory
+- If `--remote` and `-uun` have been specified, rsync data from CLIMB
+	If rsync fails exit with error showing username
+- If `-uun` hasn't been specified alongside `--remote` exit with error
+- If neither `--remote` nor `--datadir` nor `--CLIMB` have been given, exit with error
 
 ### 3) QC on input fasta file
-- Check minimum length (Default:10,000)
-- Check maximum ambiguity content (Default:0.5)
+- Check minimum length (Default: 10,000)
+- Check maximum ambiguity content (Default: 0.5)
 - Write out failed query ids and why they failed (to pass to report)
 - Write out sequences that passed QC to pass into pipeline
 
-### 4) Access package data
+### 4) Access installed package data
 - Find reference fasta file for downstream datafunk command
 - Find polytomies figure for the report
 - Find the report template
-- If --sequencing-centre specified, check it's a valid centre name and find the appropriate header for the report
+- If `--sequencing-centre` specified, check it's a valid centre name and find the appropriate header for the report. If not a real sequencing centre, exit and display valid names
 
 ### 5) Miscellaneous arguments
-- Check if --distance an integer, else exit
-- Add verbose to config 
+- Check if `--distance` an integer, else exit
+- Add `--verbose` to config 
 - --global boolean to config
 - --delay-tree-collapse to config
 - --dry-run to snakemake
