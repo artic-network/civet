@@ -215,7 +215,7 @@ rule process_catchments:
             else:
                 snakefile = input.snakefile_collapse_after
 
-            snakestring = f"'{snakefile}'"
+            snakestring = f"'{snakefile}' "
             print(f"Passing {input.query_seqs} into processing pipeline.")
             shell(f"snakemake --nolock --snakefile {snakestring}"
                         "{params.force} "
