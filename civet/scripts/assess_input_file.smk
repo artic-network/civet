@@ -179,7 +179,8 @@ rule process_catchments:
         combined_metadata = rules.combine_metadata.output.combined_csv, 
         query_seqs = rules.get_closest_cog.output.aligned_query, #datafunk-processed seqs
         catchment_prompt = rules.prune_out_catchments.output.txt,
-        all_cog_seqs = config["all_cog_seqs"]
+        all_cog_seqs = config["all_cog_seqs"],
+        cog_global_seqs = config["cog_global_seqs"]
         # not_cog_csv = rules.check_cog_all.output.not_cog
     params:
         outdir= config["outdir"],
