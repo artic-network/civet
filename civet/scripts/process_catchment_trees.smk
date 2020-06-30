@@ -1,13 +1,17 @@
 """
-Passed into config:
-
-catchment_str=tree_1,tree_2,...,tree_X
-outdir=path/to/outdir
-not_cog_csv
-in_all_cog_fasta
-post_qc_query
-cog_seqs
-combined_metadata
+            shell(f"snakemake --nolock --snakefile {snakestring}"
+                        "{params.force} "
+                        "{params.quiet_mode} "
+                        "--directory {params.tempdir:q} "
+                        "--config "
+                        f"catchment_str={catchment_str} "
+                        "outdir={params.outdir:q} "
+                        "tempdir={params.tempdir:q} "
+                        # "not_cog_csv={input.not_cog_csv:q} "
+                        "aligned_query_seqs={input.query_seqs:q} "
+                        "all_cog_seqs={input.all_cog_seqs:q} "
+                        "combined_metadata={input.combined_metadata:q} "
+                        "--cores {params.cores}")
 """
 from Bio import Phylo
 from Bio import SeqIO
@@ -30,7 +34,7 @@ rule extract_taxa:
 
 rule gather_fasta_seqs:
     input:
-        post_qc_query = config["post_qc_query"],
+        aligned_query_seqs = config["aligned_query_seqs"],
         cog_seqs = config["all_cog_seqs"],
         combined_metadata = config["combined_metadata"],
         tree_taxa = rules.extract_taxa.output.tree_taxa
@@ -53,7 +57,7 @@ rule gather_fasta_seqs:
 
         with open(output.aln, "w") as fw:
 
-            for record in SeqIO.parse(input.post_qc_query, "fasta"):
+            for record in SeqIO.parse(input.aligned_query_seqs, "fasta"):
                 if record.id in queries.values() or record.id in queries.keys():
                     iqtree_friendly = record.id
                     fw.write(f">{iqtree_friendly}\n{record.seq}\n")
