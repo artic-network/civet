@@ -158,6 +158,7 @@ for colour_dict in colour_dict_dict.values():
 ```python,name="show_legend",echo=False,results='raw'
 for i, trait in enumerate(colour_dict_dict.keys()):
     print("The legend for " + trait + " is shown below.")
+    print("   ")
     print("![](" + figdir + "/" + name_stem + "_make_legend_" + str(i+1) + ".png)")
 ```
 
@@ -170,7 +171,7 @@ if len(desired_fields) == 1:
         else:
             print("Tree number " + str(i) + " contains queries: " + str(tree_to_query[i]).replace("[","").replace("]","").replace("'",""))
             print("There are multiple query sequences in this tree, and so transmission cannot be ruled out, but neither can it be confirmed. Therefore their relationship must be investigated further using epidemiological data.")
-    
+        print("   ")
         print("![](" + figdir + "/" + name_stem + "_make_trees_" + str(i) + ".png)")
 
 else:
@@ -185,6 +186,7 @@ else:
         
         for k in range(len(desired_fields)):
             base_number = ((i)*len(desired_fields)) - 1
+            print("   ")
             print("![](" + figdir + "/" + name_stem + "_make_trees_" + str(base_number + k) + ".png)")
 
 
