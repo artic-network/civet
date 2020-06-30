@@ -22,13 +22,9 @@ def parse_args():
 
 def parse_line(line):
     values = {}
-    
     tokens = line.rstrip('\n').split('\t')
     values["name"], values["read_len"] = tokens[:2]
-    values["query_start"] = tokens[2]
-    values["query_end"] = tokens[3]
     values["ref_hit"], values["ref_len"], values["coord_start"], values["coord_end"], values["matches"], values["aln_block_len"] = tokens[5:11]
-
     return values
 
 
@@ -39,30 +35,18 @@ def get_closest_cog_sequences(paf):
     with open(paf,"r") as f:
         last_mapping = None
         for line in f:
-
             mapping = parse_line(line)
+            closest_to_query[mapping["ref_hit"]].append(mapping["name"])
 
-            if last_mapping:
-                if mapping["name"] == last_mapping["name"]:
-                    last_mapping['ref_hit'] = '?'
-                else:
-                    closest_cog_sequences.append(last_mapping["ref_hit"])
-                    closest_to_query[last_mapping["ref_hit"]].append(last_mapping["name"])
-                    last_mapping = mapping
-            else:
-                last_mapping = mapping
-
-        closest_cog_sequences.append(last_mapping["ref_hit"])
-        closest_to_query[last_mapping["ref_hit"]].append(last_mapping["name"])
-
-    return closest_cog_sequences, closest_to_query
+    return closest_to_query
 
 
 def parse_paf_and_get_metadata():
     args = parse_args()
 
-    closest_cog, closest_to_query = get_closest_cog_sequences(args.paf)
+    closest_to_query = get_closest_cog_sequences(args.paf)
     column_to_match = args.search_field
+    
     with open(args.metadata, newline="") as f:
         rows_to_write = []
         reader = csv.DictReader(f)
@@ -76,7 +60,7 @@ def parse_paf_and_get_metadata():
             writer.writeheader()
         
             for row in reader:
-                if row["sequence_name"] in closest_cog:
+                if row["sequence_name"] in closest_to_query:
                     for query in closest_to_query[row["sequence_name"]]:
                         new_row = row
                         new_row["query_id"]=query
@@ -89,7 +73,7 @@ def parse_paf_and_get_metadata():
 
     with open(args.seqs_out, "w") as fw:
         for record in SeqIO.parse(args.seqs,"fasta"):
-            if record.id in closest_cog:
+            if record.id in closest_to_query:
                 closest_queries = ",".join(closest_to_query[record.id])
                 fw.write(f">{record.id} query={closest_queries}\n{record.seq}\n")
 
