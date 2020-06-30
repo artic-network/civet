@@ -48,7 +48,7 @@ rule summarise_polytomies:
 
 rule get_collapsed_representative:
     input:
-        cog_seqs = config["all_cog_seqs"],
+        cog_seqs = config["cog_global_seqs"],
         collapsed_information = rules.summarise_polytomies.output.collapsed_information
     params:
         tree_dir = os.path.join(config["tempdir"],"collapsed_trees")

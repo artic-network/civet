@@ -35,7 +35,7 @@ rule extract_taxa:
 rule gather_fasta_seqs:
     input:
         aligned_query_seqs = config["aligned_query_seqs"],
-        cog_seqs = config["all_cog_seqs"],
+        cog_seqs = config["cog_global_seqs"],
         combined_metadata = config["combined_metadata"],
         tree_taxa = rules.extract_taxa.output.tree_taxa
     output:
