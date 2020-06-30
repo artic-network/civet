@@ -207,11 +207,11 @@ def main(sysargs = sys.argv[1:]):
             all_cog_metadata = os.path.join(data_dir,"cog_metadata_all.csv")
 
             cog_global_metadata = os.path.join(data_dir,"cog_global_metadata.csv")
-            cog_global_seqs= os.path.join(data_dir,"cog_global_alignment.fasta ")
+            cog_global_seqs= os.path.join(data_dir,"cog_global_alignment.fasta")
 
             cog_tree = os.path.join(data_dir,"cog_global_tree.nexus")
 
-            if not os.path.isfile(cog_seqs) or not os.path.isfile(all_cog_seqs) or not os.path.isfile(cog_metadata) or not  os.path.isfile(all_cog_metadata) or not os.path.isfile(cog_global_metadata) or not os.path.isfile(cog_tree):
+            if not os.path.isfile(cog_seqs) or not os.path.idfile(cog_global_seqs) or not os.path.isfile(all_cog_seqs) or not os.path.isfile(cog_metadata) or not  os.path.isfile(all_cog_metadata) or not os.path.isfile(cog_global_metadata) or not os.path.isfile(cog_tree):
                 sys.stderr.write(f"""Error: cannot find correct data files at {data_dir}\nThe directory should contain the following files:\n\
         - cog_global_tree.nexus\n\
         - cog_metadata.csv\n\
