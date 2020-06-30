@@ -69,7 +69,7 @@ def check_cog_db():
                 sequence_name = in_cog_names[name]
                 if sequence_name==record.id:
                     found.append(name)
-                    fw.write(f">{record.id} status=in_cog\n{record.seq}\n")
+                    fw.write(f">{name} sequence_name={record.id} status=in_cog\n{record.seq}\n")
     print(f"Number of associated sequences found: {len(found)}")
     with open(args.not_in_cog, "w") as fw:
         print("\nThe following sequences were not found in the cog database:")
