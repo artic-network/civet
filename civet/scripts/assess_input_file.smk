@@ -227,6 +227,7 @@ rule process_catchments:
                         "tempdir={params.tempdir:q} "
                         "aligned_query_seqs={input.query_seqs:q} "
                         "all_cog_seqs={input.all_cog_seqs:q} "
+                        "cog_global_seqs={input.cog_global_seqs:q} "
                         "combined_metadata={input.combined_metadata:q} "
                         "--cores {params.cores}")
         else:
