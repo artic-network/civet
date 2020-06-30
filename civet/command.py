@@ -201,7 +201,7 @@ def main(sysargs = sys.argv[1:]):
         cog_tree = ""
         
         cog_seqs = os.path.join(data_dir,"cog_alignment.fasta")
-        all_cog_seqs = os.path.join(data_dir,"cog_global_alignment.fasta")
+        all_cog_seqs = os.path.join(data_dir,"cog_alignment_all.fasta")
         
         cog_metadata = os.path.join(data_dir,"cog_metadata.csv")
         all_cog_metadata = os.path.join(data_dir,"cog_metadata_all.csv")
@@ -261,7 +261,7 @@ To run civet please either\n1) ssh into CLIMB and run with --CLIMB flag\n\
             cog_tree = ""
 
             cog_seqs = os.path.join(data_dir,"civet-cat","cog_alignment.fasta")
-            all_cog_seqs = os.path.join(data_dir,"civet-cat","cog_global_alignment.fasta")
+            all_cog_seqs = os.path.join(data_dir,"civet-cat","cog_alignment_all.fasta")
 
             cog_metadata = os.path.join(data_dir,"civet-cat","cog_metadata.csv")
             all_cog_metadata = os.path.join(data_dir,"civet-cat","cog_metadata_all.csv")
