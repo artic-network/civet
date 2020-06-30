@@ -1,32 +1,34 @@
+"""
+            shell("snakemake --nolock --snakefile {input.snakefile:q} "
+                        "{params.force} "
+                        "{params.quiet_mode} "
+                        "--directory {params.tempdir:q} "
+                        "--config "
+                        "outdir={params.outdir:q} "
+                        # "tempdir={params.tempdir:q} "
+                        # "seq_db={input.seq_db:q} "
+                        # "to_find_closest={output.combined_query} "
+                        "in_all_cog_metadata={input.in_all_cog_metadata:q} "
+                        # "search_field={params.search_field} "
+                        "cog_seqs={input.cog_seqs:q} "
+                        # "trim_start={params.trim_start} "
+                        # "trim_end={params.trim_end} "
+                        # "reference_fasta={input.reference_fasta:q} "
+                        # "cog_metadata={input.cog_metadata:q} "
+                        "--cores {params.cores}")
+"""
+
 import os
 from Bio import SeqIO
 rule all:
     input:
         os.path.join(config["tempdir"],"closest_cog.csv"),
-        os.path.join(config["tempdir"],"to_find_closest.fasta")
-
-rule combine_in_all_cog_and_query:
-    input:
-        fasta = config["post_qc_query"],
-        in_all_cog_seqs = config["in_all_cog_seqs"]
-    output:
-        fasta = os.path.join(config["tempdir"],"to_find_closest.fasta")
-    run:
-        num_query = 0
-        num_all_cog = 0
-        with open(output.fasta, "w") as fw:
-            for record in SeqIO.parse(input.fasta, "fasta"):
-                num_query +=1
-                fw.write(f">{record.id} status=query_sequence\n{record.seq}\n")
-            for record in SeqIO.parse(input.in_all_cog_seqs, "fasta"):
-                num_all_cog +=1
-                fw.write(f">{record.id} status=in_all_cog\n{record.seq}\n")
-        print(f"{num_query} sequences from the query fasta\n{num_all_cog} found un-analysed in COG database\n")
+        os.path.join(config["tempdir"],"post_qc_query.aligned.fasta")
 
 
 rule non_cog_minimap2_to_reference:
     input:
-        fasta = rules.combine_in_all_cog_and_query.output.fasta,
+        fasta = config["to_find_closest"],
         reference = config["reference_fasta"]
     output:
         sam = os.path.join(config["tempdir"],"post_qc_query.reference_mapped.sam")
@@ -44,7 +46,7 @@ rule non_cog_remove_insertions_and_trim_and_pad:
         trim_end = config["trim_end"],
         insertions = os.path.join(config["tempdir"],"post_qc_query.insertions.txt")
     output:
-        fasta = os.path.join(config["tempdir"],"post_qc_query.alignment.trimmed.fasta")
+        fasta = os.path.join(config["tempdir"],"post_qc_query.aligned.fasta")
     shell:
         """
         datafunk sam_2_fasta \
@@ -59,7 +61,7 @@ rule non_cog_remove_insertions_and_trim_and_pad:
 
 rule minimap2_against_cog:
     input:
-        query_seqs = rules.combine_in_all_cog_and_query.output.fasta,
+        query_seqs = rules.non_cog_remove_insertions_and_trim_and_pad.output.fasta,
         cog_seqs = config["seq_db"]
     threads: workflow.cores
     output:
