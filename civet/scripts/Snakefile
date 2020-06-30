@@ -21,9 +21,9 @@ else:
     config["sequencing_centre_file"] = ""
 
 if config["global"] == "True":
-    config["seq_db"] = config["cog_seqs"]
+    config["seq_db"] = config["cog_global_seqs"]
 else:
-    config["seq_db"] = config["all_cog_seqs"]
+    config["seq_db"] = config["cog_seqs"]
 
 if config["quiet_mode"]=="True":
     config["quiet_mode"] = "--quiet"
