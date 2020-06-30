@@ -150,7 +150,9 @@ def main(sysargs = sys.argv[1:]):
         print("COG-UK ids to process:")
         for row in reader:
             queries.append(row["name"])
+            
             print(row["name"])
+        print(f"Total: {len(queries)}")
     print('\n')
     # how many threads to pass
     if args.threads:
