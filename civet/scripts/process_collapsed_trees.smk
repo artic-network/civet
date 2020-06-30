@@ -132,13 +132,6 @@ rule gather_fasta_seqs:
                     fw.write(f">{record.description}\n{record.seq}\n")
                     added_seqs.append(record.id)
 
-        # not_added = []
-        # for seq in taxa:
-        #     if seq not in added_seqs:
-        #         not_added.append(seq)
-        # print(f"Seqs not added are:")
-        # for seq in not_added:
-        #     print(f"- {seq}")
 
 rule hash_for_iqtree:
     input:
