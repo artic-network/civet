@@ -213,9 +213,9 @@ rule process_catchments:
             if params.delay_collapse==False:
                 snakefile = input.snakefile_collapse_before
             else:
-                nakefile = input.snakefile_collapse_after
+                snakefile = input.snakefile_collapse_after
 
-            snakestring = "{" + snakefile + ":q} "
+            snakestring = f"'{snakefile}'"
             print(f"Passing {input.query_seqs} into processing pipeline.")
             shell(f"snakemake --nolock --snakefile {snakestring}"
                         "{params.force} "
