@@ -69,4 +69,52 @@ Using the names of the closest COG sequences and of the sequences already in the
 6) process_catchments
 Another sub-workflow that gets spawned off with the set of catchment trees produced from the prune_out_catchments rule. Full details of this step are found in Section 10, but in brief there are three alternative snakefiles can can be called at this step depending on whether --delay-tree-collapse has been called and depending on whether new sequences need to be added into the tree or not. The output of this step is a directory of "local_trees" that have the nodes we have not queried collapsed to the nearest polytomy, with an output summary file of the tips that had been in that sub-tree prior to collapse.
 7) make_report
-This step summarises the metadata and visualises the tree in a markdown report. 
+This step summarises the metadata and visualises the tree in a markdown report.
+
+### 9) find_closest_cog.smk
+1) non_cog_minimap2_to_reference
+Map the query fasta file containing sequences from CLIMB that didn't meet the phylogenetic cut offs and sequences from the input fasta file against the Wuhan-Hu-1 reference sequence (Genbank ID: MN908947.3). This mapping runs `minimap2` with the present option `asm5` that is configured for mapping a long, closely related assembly against a reference. 
+2) non_cog_remove_insertions_and_trim_and_pad
+This step runs the [`datafunk`](https://github.com/cov-ert/datafunk) command `sam_2_fasta`, which parses the cigar strings produced by `minimap2` and scaffolds the query sequence against the reference by removing insertions relative to the reference. The insertions are logged in a text file for reference, and can be retrieved by running `civet` with the `--no-temp` flag. This step also masks the UTR regions with N's as the terminal ends of the genome. 
+3) minimap2_against_cog
+The padded, mapped set of query sequences then get mapped against the entire COG-UK database, or if the `--global` flag is used against all COG-UK and all GISAID, and finds the top hit within the database for each query. Again, `minimap2` is run with the `asm5` presets. 
+4) parse_paf
+The output from minimap2 is parsed and the relevant COG-UK metadata and fasta sequences are pulled out of the big database.
+
+### 10) process_catchments
+
+#### just_collapse_trees.smk
+Runs if no new sequences need to be added to the phylogeny.
+1) summarise_polytomies
+`clusterfunk focus` is run, which collapses and summarises non-query or non-closest sequences to the parent polytomy and outputs a summary file of the tips that make up the collapsed node.
+2) remove_str_for_baltic
+Processes the tip names to make them readable for the baltic tree parser. 
+3) to_nexus
+Converts each tree from newick to nexus format.
+4) summarise_processing
+Combines all the information about collapsed tips into a single file.
+
+#### process_collapsed_trees.smk
+Runs by default if new trees need to be estimated with query sequences added in.
+1) summarise_polytomies
+`clusterfunk focus` is run, which collapses and summarises non-query or non-closest sequences to the parent polytomy and outputs a summary file of the tips that make up the collapsed node. 
+2) get_collapsed_representative
+For each collapsed node, the sequences of the tips that comprise that collapsed node are pulled out of the global alignment and the sequence with the least amount of ambiguity is selected to represent that node in the phylogeny.
+3) extract_taxa
+All taxon labels are extracted from the collapsed phylogeny.
+4) gather_fasta_seqs
+From the the respective sequences from each tip label in the tree are extracted from either the global phylogeny,the 'get_collapsed_representative' step or from the aligned input query sequences.
+5) hash_for_iqtree
+A hash for taxon labels is created for the input to `iqtree` so it doesn't corrupt the sequence names.
+6) hash_tax_labels
+`clusterfunk relabel_tips` is run that relabels the tips of the tree with the taxon hash.
+7) iqtree_catchment
+`iqtree` is run on the new alignment with added sequences, with `-m HKY` and `-au` options.
+8) restore_tip_names
+The hashed tip names are restored with the same `clusterfunk relabel_tips` command.
+9) remove_str_for_baltic
+Processes the tip names to make them readable for the baltic tree parser.
+10) to_nexus
+Converts each tree from newick to nexus format.
+11) summarise_processing
+Combines all the information about collapsed tips into a single file.
