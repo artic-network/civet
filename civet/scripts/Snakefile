@@ -48,7 +48,7 @@ if config.get("launch_browser"):
             os.path.join(config["outdir"],"combined_metadata.csv"),
             os.path.join(config["outdir"], "civet_report.md"),
             os.path.join(config["outdir"],"local_trees","collapse_report.txt"),
-            os.path.join(config["outdir"],"grip_output.txt")
+            os.path.join(config["outdir"],"civet_report.html")
 else:
     rule all:
         input:

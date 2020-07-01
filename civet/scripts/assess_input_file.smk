@@ -291,10 +291,12 @@ rule launch_grip:
     input:
         mdfile = os.path.join(config["outdir"], "civet_report.md")
     output:
-        out_file = os.path.join(config["outdir"],"grip_output.txt")
-
+        out_file = os.path.join(config["outdir"],"civet_report.html")
     run:
-        try:
-            shell("grip {input.mdfile:q} -b")
-        except:
-            print("too many windows open") 
+        shell("grip {input.mdfile:q} --export")
+        for i in range(8000, 8100):
+            try:
+                shell("grip {input.mdfile:q} -b {i}")
+                break
+            except:
+                print("Trying next port")
