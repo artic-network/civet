@@ -196,6 +196,9 @@ if too_tall_trees != []:
         print("Tree" + str(tree) + " is too large to be rendered here.")
 ```
 
+```
+
+```
 
 
 ## Appendix
