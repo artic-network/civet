@@ -41,6 +41,10 @@ import scipy as sp
 
 from dateutil.relativedelta import relativedelta, FR
 
+thisdir = os.path.abspath(os.path.dirname(__file__))
+cwd = os.getcwd()
+
+
 filtered_cog_metadata = "" ##CHANGE
 input_csv = "" ##CHANGE
 full_metadata_file = "" ##CHANGE
@@ -55,6 +59,13 @@ input_directory = "" ##CHANGE
 
 output_directory = "" ##CHANGE
 name_stem_input = "" ##CHANGE
+
+local_lineage = "" ##CHANGE
+date_restriction = "" ##CHANGE
+date_start= "" ##CHANGE
+date_end = "" ##CHANGE
+date_window_size = "" ##CHANGE
+
 
 if "/" in name_stem_input:
     name_stem = name_stem_input.split("/")[-1]
@@ -199,7 +210,59 @@ if too_tall_trees != []:
 ```
 
 ```
+## Regional-scale Lineage context
 
+```
+
+##### Start Code Execution #####
+mapfile=os.path.join(thisdir, "data", "maps", "Mainland_HBs_gapclosed_simplified.geojson")
+mainland_boards=gp.read_file(mapfile)
+mainland_boards=update_adm15(mainland_boards)
+###Get contiguity neighbors for mainland
+mainland_boards_W=Queen.from_dataframe(mainland_boards, idVariable='HBCode')
+##Hacky fix to link Fife and Lothian
+mainland_boards_final_W=getForthBridge(mainland_boards,mainland_boards_W)
+###Create translation dict for board codes
+HBCode_translation=dict(zip(mainland_boards.HBName, mainland_boards.HBCode))
+##########Data loading###########
+##Get HB translation dict##
+translator=os.path.join(thisdir, "data", "maps", "HB_Translation.pkl")
+HBTranslation=pickle.load(f'{data}/maps/HB_Translation.pkl')
+### Load cog_data ###
+COGDATA=losca.getSampleData(full_metadata_file)
+### Load sample data ###
+inputSamples = pd.read_csv(input_csv)
+###Checking user defined dates###
+date_list=None
+if date_restriction == 'True':
+    if len(date_start) == 10 and len(date_end) == 10:
+        date_list={'start': date_start, 'end': date_end}
+    elif len(date_start) == 0 and len(date_end) == 0:
+        date_list=losca.defineDateRestriction(inputSamples, date_window_size)
+
+cog_restricted = losca.getSampleData_final(COGDATA, date_restriction)
+
+###Preparing cog_meta for spatial filtering & processing
+cog_meta_mainland=cog_restricted.loc[cog_restricted['adm1'].isin(['UK-SCT', 'UK-ENG', 'UK-WAL'])]
+cog_meta_mainland['HBName']=cog_meta_mainland.loc[:, 'adm2'].map(HBTranslation)
+cog_meta_mainland['HBCode']=cog_meta_mainland.loc[:, 'HBName'].map(HBCode_translation)
+## Proessing input csv ##
+
+HB_code=losca.adm2_to_centralHBCode(inputSamples['adm2'].to_list())
+if HB_code is not None:
+    ## Get the localised regions ##
+    central, neighboring, submap = losca.central_surrounding_regions(HB_code, mainland_boards_final_W, mainland_boards)
+    ## Generate tabular data for each region ##
+    for each in [central, neighboring]:
+        for row, frame in each.iterrows():
+            print(frame['HBName'])
+            losca.tabulateLins(frame['HBCode'], cog_meta_mainland)
+    ## Generated Mapping ##
+    for each, region in [central, neighboring], ['Central Health Board', 'Neighboring Health Boards']:
+        print (region)
+        losca.mapProduce(each, cog_meta_mainland, submap)
+
+```
 
 ## Appendix
 
