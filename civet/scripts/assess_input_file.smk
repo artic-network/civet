@@ -123,7 +123,7 @@ rule get_closest_cog:
                         "--cores {params.cores}")
 
         else:
-            shell("touch {output.closest_cog:q} && touch {output.combined_query}")
+            shell("touch {output.closest_cog:q} && touch {output.aligned_query} ")
 
         with open(output.not_processed, "w") as fw:
             for query in list(set(query_with_no_seq)):
