@@ -1,24 +1,9 @@
 import geopandas as gp
 import pandas as pd
-import sjoin
 from libpysal.weights import Queen, attach_islands, DistanceBand, set_operations
-import maup
 import datetime as dtime
 import json
-
-
-
-##GADM data
-gadmpkg="https://github.com/SRooke/GeoFiles/raw/master/gadm36_GBR.gpkg"
-##adm1.5 regions as NHS boards/spatial units
-england_boards="https://github.com/SRooke/GeoFiles/raw/master/NHS_England_Region_localOffices.geojson"
-scotland_boards="https://github.com/SRooke/GeoFiles/raw/master/ScottishHealthBoards.json"
-wales_boards="https://github.com/SRooke/GeoFiles/raw/master/WalesHealthBoards.geojson"
-NI_all="https://github.com/SRooke/GeoFiles/raw/master/NIall.geojson"
-##other county boundaries
-england_counties="https://github.com/SRooke/GeoFiles/raw/master/England_counties.geojson"
-england_metroCounties="https://raw.githubusercontent.com/SRooke/GeoFiles/master/England_metrocounties.geojson"
-NI_counties_data="https://github.com/SRooke/GeoFiles/raw/master/NI_historicCounties.geojson"
+import pickle
 
 def adm2cleaning(data_cog):
     data_cog.dropna(subset=['adm2'],inplace=True)
@@ -40,14 +25,6 @@ def adm2cleaning(data_cog):
     data_cog['adm2']=data_cog['adm2'].str.replace('^CITY OF LONDON$','GREATER LONDON', regex=True)
     data_cog['adm2']=data_cog['adm2'].str.replace('^RHONDDA CYNON TAF$','RHONDDA, CYNON, TAFF', regex=True)
     return data_cog
-
-def adm1_5_assignment(data_boundaries_URL, data_adm):
-    data_NHSboard = gp.read_file(data_boundaries_URL)
-    data_NHSboard = data_NHSboard.to_crs("EPSG:4326")
-    data_adm = data_adm.to_crs("EPSG:4326")
-    data_adm = data_adm.set_geometry(col=data_adm.geometry.centroid)
-    adm1_5 = sjoin.sjoin_nearest(data_adm, data_NHSboard, how='left', search_radius=0.2)
-    return adm1_5
 
 
 def dateRestriction(DFin, start_date, end_date):
@@ -101,7 +78,7 @@ def getForthBridge(DFin, weightedMatrix):
 
 def mappie():
     multimappie_blank = """{
-    "$schema": "https://vega.github.io/schema/vega-lite/v5.json",
+    "$schema": "https://vega.github.io/schema/vega-lite/v4.json",
     "width": 1000,
     "height": 1500,
     "projection": {"type":"mercator"},
@@ -129,7 +106,7 @@ def mappie():
 
 def multimappie():
     multimappie_blank = """{
-    "$schema": "https://vega.github.io/schema/vega-lite/v5.json",
+    "$schema": "https://vega.github.io/schema/vega-lite/v4.json",
     "width": 1000,
     "height": 1500,
     "projection": {"type":"mercator"},
@@ -186,7 +163,6 @@ def blankJSON():
     return blank_json
 
 def tabulateLins(HBCODE, DF):
-    tableList=[]
     for each in HBCODE:
         if len(DF.loc[DF['HBCode']==each]['uk_lineage'].value_counts().to_frame()) > 20:
             uk_lin_DF=DF.loc[DF['HBCode'] == each]['uk_lineage'].value_counts[:20].to_frame()
@@ -196,15 +172,16 @@ def tabulateLins(HBCODE, DF):
             uk_lin_DF=DF.loc[DF['HBCode'] == each]['uk_lineage'].value_counts.to_frame()
             uk_lin_DF=uk_lin_DF.reset_index()
             uk_lin_DF.columns=['UK Lineage', 'Count']
-        tableList
         if len(DF.loc[DF['HBCode']==each]['lineage'].value_counts().to_frame()) > 10:
-            uk_lin_DF=DF.loc[DF['HBCode'] == each]['lineage'].value_counts[:10].to_frame()
-            uk_lin_DF=uk_lin_DF.reset_index()
-            uk_lin_DF.columns=['Global Lineage', 'Count']
+            glob_lin_DF=DF.loc[DF['HBCode'] == each]['lineage'].value_counts[:10].to_frame()
+            glob_lin_DF=uk_lin_DF.reset_index()
+            glob_lin_DF.columns=['Global Lineage', 'Count']
         else:
-            uk_lin_DF=DF.loc[DF['HBCode'] == each]['lineage'].value_counts.to_frame()
-            uk_lin_DF=uk_lin_DF.reset_index()
-            uk_lin_DF.columns=['Global Lineage', 'Count']
+            glob_lin_DF=DF.loc[DF['HBCode'] == each]['lineage'].value_counts.to_frame()
+            glob_lin_DF=uk_lin_DF.reset_index()
+            glob_lin_DF.columns=['Global Lineage', 'Count']
+    tableList=[uk_lin_DF, glob_lin_DF]
+    return tableList
 
 
 def mapProduce(HBSet, DF, region):
@@ -238,8 +215,13 @@ def mapProduce(HBSet, DF, region):
         mapPIE['layer'][0]['data']['values'] = HBSet['features']
         mapPIE['layer'][1]['data']['values'] = region
 
-def getSampleData_final(MetadataLoc, dates=None):
-    cog_meta=pd.read_csv(f'{MetadataLoc}')
+def getSampleData(metadataLoc):
+    cog_meta = pd.read_csv(metadataLoc)
+    cog_meta['sample_date'] = pd.to_datetime(cog_meta_mainland['sample_date'], format="%Y-%m-%d")
+
+
+def getSampleData_final(MetadataDF, dates=None):
+    cog_meta=MetadataDF
     cog_meta['central_sample_id'] = cog_meta['sequence_name'].str.split('/', expand=True)[1]
     cog_meta = cog_meta.loc[cog_meta['country'] == 'UK']
     cog_meta_clean=adm2cleaning(cog_meta)
@@ -255,80 +237,64 @@ def central_surrounding_regions(HBCODE, neighborW, MAP):
     neighbors=subregion.loc[subregion['HBCode'] != HBCODE]
     return central, neighbors, subregion
 
+def adm2_to_centralHBCode(adm2, translation_dict):
+    HBs=[]
+    for each in adm2:
+        if each in translation_dict:
+          HBs.append(translation_dict[each])
+    if len(HBs) > 0:
+        centralHB=max(HBs,key=HBs.count)
+        return centralHB
+    elif len(HBs) == 0:
+        return None
+
+def defineDateRestriction(samplesDF, specifiedRange):
+    datedSamples=samplesDF.drop_na(subset=['Collection_Date'])
+    if len(datedSamples) == 0:
+        print('No collection dates specified, will revert to using all available data for local lineage analysis.')
+        return None
+    if  len(datedSamples) == 1:
+        daterange=''
+        return daterange
+
+
+
 ##### Start Code Execution #####
-
-######## Handle Maps  ########
-
-##GADM definitions - importing from geopackages
-gadm3=gp.read_file(gadmpkg, layer="gadm36_GBR_3")
-gadm3['NAME_2']=gadm3['NAME_2'].str.upper()
-gadm3['NAME_3']=gadm3['NAME_3'].str.upper()
-
-##English Metropolitan counties
-england_metro_counties=gp.read_file(england_metroCounties)
-
-##Historic NI counties
-NI_counties=gp.read_file(NI_counties_data)
-
-##Generate list of regions
-gadm3_names=gadm3['NAME_3'].str.upper().to_list()
-NI_county_names=NI_counties['CountyName'].to_list()
-england_MCs_names=england_metro_counties['MCTY18NM'].str.upper().to_list()
-
-###Generate the correct spatial joins for adm2 centroids to 'adm1.5'; NHS health boards for England and Scotland and Wales
-england_adm2toboards=adm1_5_assignment(england_boards, gadm3.loc[gadm3['NAME_1'] == "England"])
-england_MCstoboards=adm1_5_assignment(england_boards, england_metro_counties)
-scotland_adm2toboards=adm1_5_assignment(scotland_boards, gadm3.loc[gadm3['NAME_1'] == 'Scotland'])
-
-###Generate simple translation dictionary for adm2 -> respective health boards
-england_boardTranslation=dict(dict(zip(england_adm2toboards.NAME_2,england_adm2toboards.nhsrlo19nm)),**dict(zip(england_MCstoboards.MCTY18NM,england_MCstoboards.nhsrlo19nm)))
-scotland_boardTranslation=dict(zip(scotland_adm2toboards.NAME_2, scotland_adm2toboards.HBName))
-
-##Ensuring all locations are upper-case for consistency
-mainland_boardTranslation=dict(england_boardTranslation, ** scotland_boardTranslation)
-mainland_boardTranslation={k.upper():v for k,v in mainland_boardTranslation.items()}
-
-### Import and assign consistent CRS to all map sub-units
-scot_boards=gp.read_file(scotland_boards)
-scot_boards=scot_boards.to_crs("EPSG:4326")
-eng_boards=gp.read_file(england_boards)
-eng_boards=eng_boards.to_crs("EPSG:4326")
-NI_region=gp.read_file(NI_all)
-NI_region=NI_region.to_crs("EPSG:4326")
-wal_boards=gp.read_file(wales_boards)
-wal_boards=wal_boards.to_crs("EPSG:4326")
-
-##Concat all regional boards together
-mainlandBoards=gp.GeoDataFrame(pd.concat([scot_boards,eng_boards,wal_boards])).reset_index()
-
-### Elminate small-scale gaps between polygons to ensure contiguity calculations work
-gapclosedMainland=maup.close_gaps(mainlandBoards['geometry'])
-
-###Get final regional boards map
-mainland_boards=gp.GeoDataFrame(mainlandBoards)
-mainland_boards.geometry=gapclosedMainland
-mainland_boards=update_adm15(mainland_boards)
-
+#mainland_boards=gp.read_file(f'{data}/maps/Mainland_HBs_gapclosed_simplified.geojson')
+#mainland_boards=update_adm15(mainland_boards)
 ###Get contiguity neighbors for mainland
-mainland_boards_W=Queen.from_dataframe(mainland_boards, idVariable='HBCode')
+#mainland_boards_W=Queen.from_dataframe(mainland_boards, idVariable='HBCode')
 ##Hacky fix to link Fife and Lothian
-mainland_boards_final_W=getForthBridge(mainland_boards,mainland_boards_W)
-
-
-HBCode_translation=dict(zip(mainland_boards.HBName, mainland_boards.HBCode))
-
-
-
-
-cog_restricted=getSampleData_final(DATALOC)
-
+#mainland_boards_final_W=getForthBridge(mainland_boards,mainland_boards_W)
+###Create translation dict for board codes
+#HBCode_translation=dict(zip(mainland_boards.HBName, mainland_boards.HBCode))
+##########Data loading###########
+##Get HB translation dict##
+#HBTranslation=pickle.load(f'{data}/maps/HB_Translation.pkl')
+###Checking user defined dates###
+#if DATERANGE is not None:
+#    cog_restricted = getSampleData_final(f'{metadata}', DATERANGE)
+#else:
+#    cog_restricted=getSampleData_final(f'{metadata}')
 ###Preparing cog_meta for spatial filtering & processing
-cog_meta_mainland=cog_restricted.loc[cog_restricted['adm1'].isin(['UK-SCT', 'UK-ENG', 'UK-WAL'])]
-cog_meta_mainland['HBName']=cog_meta_mainland.loc[:, 'adm2'].map(mainland_boardTranslation)
-cog_meta_mainland['HBCode']=cog_meta_mainland.loc[:, 'HBName'].map(HBCode_translation)
+#cog_meta_mainland=cog_restricted.loc[cog_restricted['adm1'].isin(['UK-SCT', 'UK-ENG', 'UK-WAL'])]
+#cog_meta_mainland['HBName']=cog_meta_mainland.loc[:, 'adm2'].map(mainland_boardTranslation)
+#cog_meta_mainland['HBCode']=cog_meta_mainland.loc[:, 'HBName'].map(HBCode_translation)
+### Get submitted sample metadata ###
+#sampleDataDF=pd.read_csv(sampleCSV)
+#HB_code=adm2_to_centralHBCode(sampleDataDF['adm2'].to_list())
+#if HB_code is not None:
+#    ## Get the localised regions ##
+#    central, neighboring, submap = central_surrounding_regions(HB_code, mainland_boards_final_W, mainland_boards)
+#    ## Generate tabular data for each region ##
+#    for each in [central, neighboring]:
+#        for row, frame in each.iterrows():
+#            print(frame['HBName'])
+#            tabulateLins(frame['HBCode'], cog_meta_mainland)
+#    ## Generated Mapping ##
+#    for each, region in [central, neighboring], ['Central Health Board', 'Neighboring Health Boards']:
+#        print (region)
+#        mapProduce(each, cog_meta_mainland, submap)
 
-
-central, neighboring, submap = central_surrounding_regions(HB_code, mainland_boards_final_W, mainland_boards)
-
-
-
+if __name__ == "__main__":
+    main()

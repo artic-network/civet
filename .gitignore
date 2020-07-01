@@ -3,4 +3,8 @@
 
 workspace/
 
+<<<<<<< refs/remotes/COG-UK/master
 civet/scripts/__pycache__/
+=======
+civet/tests/.~lock.test.csv#
+>>>>>>> Finalising integration
