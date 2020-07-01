@@ -127,6 +127,8 @@ optional arguments:
 
 ### Analysis pipeline
 
+Detailed description of civet found [here](./docs/civet_detailed_description.md).
+
 Overview:
 
 <img src="./docs/workflow_diagram.png" width="700">
