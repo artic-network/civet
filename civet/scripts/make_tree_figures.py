@@ -373,15 +373,16 @@ def summarise_collapsed_node(tree_dir, focal_node, focal_tree, full_tax_dict):
 
 def make_legend(colour_dict):
     
-    fig,ax = plt.subplots()
+    fig,ax = plt.subplots(figsize=(3,3))
 
     plt.gca().set_aspect('equal', adjustable='box')
+    plt.text
     
     x = 0
     for option in colour_dict.keys():
         circle = plt.Circle((x, 0.5), 0.1, color=colour_dict[option])
         ax.add_artist(circle)
-        plt.text(x-0.1,0.1,option)
+        plt.text(x-0.1,0.1,option, fontsize=5)
         x += 1
         
         
