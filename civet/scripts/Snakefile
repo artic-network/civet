@@ -42,11 +42,19 @@ elif config["delay_collapse"] == "True":
     config["delay_collapse"] = True
 
 ##### Target rules #####
-rule all:
-    input:
-        os.path.join(config["outdir"],"combined_metadata.csv"),
-        os.path.join(config["outdir"], "civet_report.md"),
-        os.path.join(config["outdir"],"local_trees","collapse_report.txt")
+if config.get("launch_browser"):
+    rule all:
+        input:
+            os.path.join(config["outdir"],"combined_metadata.csv"),
+            os.path.join(config["outdir"], "civet_report.md"),
+            os.path.join(config["outdir"],"local_trees","collapse_report.txt"),
+            os.path.join(config["outdir"],"grip_output.txt")
+else:
+    rule all:
+        input:
+            os.path.join(config["outdir"],"combined_metadata.csv"),
+            os.path.join(config["outdir"], "civet_report.md"),
+            os.path.join(config["outdir"],"local_trees","collapse_report.txt")
 
 
 ##### Modules #####

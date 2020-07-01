@@ -287,11 +287,11 @@ rule make_report:
         --outdir {params.outdir:q} 
         """)
 
-rule make_pdf:
+rule launch_grip:
     input:
         mdfile = os.path.join(config["outdir"], "civet_report.md")
     output:
-        out_file = os.path.join(config["tempdir"],"grip_output.pdf")
+        out_file = os.path.join(config["outdir"],"grip_output.txt")
 
     run:
         try:
