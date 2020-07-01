@@ -286,3 +286,15 @@ rule make_report:
         --outfile {output.outfile:q} \
         --outdir {params.outdir:q} 
         """)
+
+rule make_pdf:
+    input:
+        mdfile = os.path.join(config["outdir"], "civet_report.md")
+    output:
+        out_file = os.path.join(config["tempdir"],"grip_output.pdf")
+
+    run:
+        try:
+            shell("grip {input.mdfile:q} -b")
+        except:
+            print("too many windows open") 
