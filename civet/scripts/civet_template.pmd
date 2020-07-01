@@ -4,7 +4,7 @@ figdir = "" ##CHANGE
 sequencing_centre = "" ##CHANGE
 if sequencing_centre != "":
     header_file = os.path.join(figdir, sequencing_centre)
-    print(f"![]({header_file})")
+    print(f"![]({header_file})\\")
 ```
 
 # Cluster investigation 
@@ -159,7 +159,7 @@ for colour_dict in colour_dict_dict.values():
 for i, trait in enumerate(colour_dict_dict.keys()):
     print("The legend for " + trait + " is shown below.")
     print("   ")
-    print("![](" + figdir + "/" + name_stem + "_make_legend_" + str(i+1) + ".png)")
+    print("![](" + figdir + "/" + name_stem + "_make_legend_" + str(i+1) + ".png)\\")
 ```
 
 ```python, name="show_trees", echo=False, results='raw'
@@ -172,7 +172,7 @@ if len(desired_fields) == 1:
             print("Tree number " + str(i) + " contains queries: " + str(tree_to_query[i]).replace("[","").replace("]","").replace("'",""))
             print("There are multiple query sequences in this tree, and so transmission cannot be ruled out, but neither can it be confirmed. Therefore their relationship must be investigated further using epidemiological data.")
         print("   ")
-        print("![](" + figdir + "/" + name_stem + "_make_trees_" + str(i) + ".png)")
+        print("![](" + figdir + "/" + name_stem + "_make_trees_" + str(i) + ".png)\\")
 
 else:
     for i in range(1,overall_tree_number+1):
@@ -187,7 +187,7 @@ else:
         for k in range(len(desired_fields)):
             base_number = ((i)*len(desired_fields)) - 1
             print("   ")
-            print("![](" + figdir + "/" + name_stem + "_make_trees_" + str(base_number + k) + ".png)")
+            print("![](" + figdir + "/" + name_stem + "_make_trees_" + str(base_number + k) + ".png)\\")
 
 
 ```
@@ -206,7 +206,7 @@ The figure below shows the distribution of time differences that two sequences c
 It is to illustrate that identical sequences does not confirm linked cases.
 
 ```python, name="Identity figure", results='raw', echo=False, fig=True, caption="Distribution of time between identical sequences"
-print("![](" + figdir + "/polytomies.png)")
+print("![](" + figdir + "/polytomies.png)\\")
 ```
 
 

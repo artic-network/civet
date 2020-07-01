@@ -286,3 +286,17 @@ rule make_report:
         --outfile {output.outfile:q} \
         --outdir {params.outdir:q} 
         """)
+
+rule launch_grip:
+    input:
+        mdfile = os.path.join(config["outdir"], "civet_report.md")
+    output:
+        out_file = os.path.join(config["outdir"],"civet_report.html")
+    run:
+        shell("grip {input.mdfile:q} --export")
+        for i in range(8000, 8100):
+            try:
+                shell("grip {input.mdfile:q} -b {i}")
+                break
+            except:
+                print("Trying next port")

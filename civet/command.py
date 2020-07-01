@@ -39,6 +39,7 @@ def main(sysargs = sys.argv[1:]):
     parser.add_argument("-r",'--remote-sync', action="store_true",dest="remote",help="Remotely access lineage trees from CLIMB, need to also supply -uun,--your-user-name")
     parser.add_argument("-uun","--your-user-name", action="store", help="Your CLIMB COG-UK username. Required if running with --remote-sync flag", dest="uun")
     parser.add_argument('-o','--outdir', action="store",help="Output directory. Default: current working directory")
+    parser.add_argument('-b','--launch-browser', action="store_true",help="Optionally launch md viewer in the browser using grip",dest="launch_browser")
     parser.add_argument('--datadir', action="store",help="Local directory that contains the data files")
     parser.add_argument('--fields', action="store",help="Comma separated string of fields to colour by in the report. Default: country")
     parser.add_argument('--search-field', action="store",help="Option to search COG database for a different id type. Default: COG-UK ID", dest="search_field",default="central_sample_id")
@@ -214,6 +215,7 @@ def main(sysargs = sys.argv[1:]):
             if not os.path.isfile(cog_seqs) or not os.path.isfile(cog_global_seqs) or not os.path.isfile(all_cog_seqs) or not os.path.isfile(cog_metadata) or not  os.path.isfile(all_cog_metadata) or not os.path.isfile(cog_global_metadata) or not os.path.isfile(cog_tree):
                 sys.stderr.write(f"""Error: cannot find correct data files at {data_dir}\nThe directory should contain the following files:\n\
         - cog_global_tree.nexus\n\
+        - cog_alignment_all.fasta\n\
         - cog_metadata.csv\n\
         - cog_metadata_all.csv\n\
         - cog_global_metadata.csv\n\
@@ -398,6 +400,9 @@ To run civet please either\n1) ssh into CLIMB and run with --CLIMB flag\n\
             sys.exit(-1)
     else:
         config["distance"] = "1"
+
+    if args.launch_browser:
+        config["launch_browser"]="True"
 
     # don't run in quiet mode if verbose specified
     if args.verbose:
