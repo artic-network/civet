@@ -155,7 +155,7 @@ Your output will be a markdown report, with summaries of lineages and genetic di
 
 **An example report can be found [here](https://github.com/COG-UK/civet/blob/master/docs/civet_report_example.md).**
 
-We suggest visualising this markdown report by converting it eg to a pdf using [pandoc](https://pandoc.org/) or to an html document using [markserv](https://www.npmjs.com/package/markserv) or [markdown-server](https://pypi.org/project/markdown-server/). A HTML is often a better choice when dealing with long markdown documents like this, as it doesn't arbitrarily split up figures and text.
+The default output is a markdown file, which can then be converted to a file format of your choice. In addition to this, if you provide the `--launch-browser` option in the command line, an html document will be outputted using grip (https://github.com/joeyespo/grip), which will also appear in your browser. You can then save this as a pdf using your browser.
 
 ### Source data
 
