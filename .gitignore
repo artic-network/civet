@@ -4,3 +4,9 @@
 workspace/
 
 civet/tests/.~lock.test.csv#
+
+civet/scripts/testreport.html
+
+*.kate-swp
+
+civet/scripts/__pycache__/
