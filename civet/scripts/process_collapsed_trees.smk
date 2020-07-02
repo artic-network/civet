@@ -173,29 +173,12 @@ rule hash_tax_labels:
 
 rule iqtree_catchment:
     input:
-        aln = rules.hash_for_iqtree.output.hashed_aln,
-        guide_tree = rules.hash_tax_labels.output.tree,
-        taxa = rules.extract_taxa.output.tree_taxa
+        aln = os.path.join(config["tempdir"], "renamed_trees","{tree}.query.aln.fasta")
     output:
         tree = os.path.join(config["tempdir"], "renamed_trees","{tree}.query.aln.fasta.treefile")
-    run:
-        taxa = 0
-        aln_taxa = 0
-        with open(input.taxa, "r") as f:
-            for l in f:
-                l  = l.rstrip ("\n")
-                taxa +=1
-        for record in SeqIO.parse(input.aln, "fasta"):
-            aln_taxa +=1 
-        if taxa != aln_taxa:
-            shell("iqtree -s {input.aln:q} -au -m HKY -nt 1 -redo")
-        else:
-            with open(output.tree,"w") as fw:
-                with open(input.guide_tree, "r") as f:
-                    for l in f:
-                        l = l.rstrip("\n")
-                        l = l.replace("'","_")
-                        fw.write(l)
+    shell:
+        "iqtree -s {input.aln:q} -au -m HKY -nt 1 -redo"
+
 
 rule restore_tip_names:
     input:
