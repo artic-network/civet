@@ -186,7 +186,7 @@ rule process_catchments:
         outdir= config["outdir"],
         tempdir= config["tempdir"],
         path = workflow.current_basedir,
-        
+        threshold = config["threshold"],
         delay_collapse = config["delay_collapse"],
         
         fasta = config["fasta"],
@@ -230,6 +230,7 @@ rule process_catchments:
                         "all_cog_seqs={input.all_cog_seqs:q} "
                         "cog_global_seqs={input.cog_global_seqs:q} "
                         "combined_metadata={input.combined_metadata:q} "
+                        "threshold={params.threshold} "
                         "--cores {params.cores}")
         else:
             print(f"No new sequences to add in, just collapsing trees.")
