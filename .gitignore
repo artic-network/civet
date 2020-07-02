@@ -7,7 +7,10 @@ workspace/
 civet/scripts/__pycache__/
 =======
 civet/tests/.~lock.test.csv#
+<<<<<<< refs/remotes/COG-UK/master
 >>>>>>> Finalising integration
+=======
+>>>>>>> Editing ignores
 
 civet/scripts/testreport.html
 
