@@ -8,3 +8,9 @@ civet/scripts/__pycache__/
 =======
 civet/tests/.~lock.test.csv#
 >>>>>>> Finalising integration
+
+civet/scripts/testreport.html
+
+*.kate-swp
+
+civet/scripts/__pycache__/
