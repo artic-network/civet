@@ -31,7 +31,8 @@ rule summarise_polytomies:
         tree = os.path.join(config["tempdir"], "catchment_trees","{tree}.tree"),
         metadata = config["combined_metadata"]
     params:
-        tree_dir = os.path.join(config["tempdir"],"catchment_trees")
+        tree_dir = os.path.join(config["tempdir"],"catchment_trees"),
+        threshold = config["threshold"]
     output:
         collapsed_tree = os.path.join(config["tempdir"],"collapsed_trees","{tree}.tree"),
         collapsed_information = os.path.join(config["outdir"],"local_trees","{tree}.txt")
@@ -43,6 +44,7 @@ rule summarise_polytomies:
         --index-column closest \
         --in-format newick \
         --out-format newick \
+        --threshold {params.threshold} \
         --output-tsv {output.collapsed_information:q}
         """
 
