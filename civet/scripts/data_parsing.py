@@ -106,7 +106,8 @@ def parse_input_csv(input_csv, query_id_dict, desired_fields):
 
                 if "sample_date" in col_names:
                     #taxon.attribute_dict["sample_date"] = sequence["sample_date"] #if it's not in COG but date is provided
-                    taxon.sample_date = sample_date
+                    if sequence["sample_date"] != "":
+                        taxon.sample_date = sequence["sample_date"]
                 
                 #if it's in COG, it will already have been assigned a sample date.
 
