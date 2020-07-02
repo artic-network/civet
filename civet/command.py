@@ -382,7 +382,7 @@ To run civet please either\n1) ssh into CLIMB and run with --CLIMB flag\n\
 
     if args.sequencing_centre:
         if args.sequencing_centre in sc_list:
-            relative_file = os.path.join("data","headers",f"{args.sequencing_centre}.svg")
+            relative_file = os.path.join("data","headers",f"{args.sequencing_centre}.png")
             header = pkg_resources.resource_filename('civet', relative_file)
             print(f"using header file from {header}\n")
             config["sequencing_centre"] = header
