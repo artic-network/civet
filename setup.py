@@ -1,10 +1,16 @@
 from setuptools import setup, find_packages
+from setuptools.command.build_py import build_py
 import glob
 import os
 import pkg_resources
 # Note: the _program variable is set in __init__.py.
 # it determines the name of the package/final command line tool.
 from civet import __version__, _program
+
+class NPMInstall(build_py):
+    def run(self):
+        self.run_command('npm install -g markdown-pdf --ignore-scripts')
+        build_py.run(self)
 
 setup(name='civet',
       version=__version__,
@@ -24,21 +30,22 @@ setup(name='civet',
       "civet/scripts/make_tree_figures.py"],
       package_data={"civet":["data/reference.fasta",
                              "data/polytomies.png",
-                             "data/headers/BIRM.svg",
-                             "data/headers/CAMB.svg",
-                             "data/headers/EDIN.svg",
-                             "data/headers/GLAS.svg",
-                             "data/headers/LIVE.svg",
-                             "data/headers/LOND.svg",
-                             "data/headers/NORT.svg",
-                             "data/headers/NORW.svg",
-                             "data/headers/NOTT.svg",
-                             "data/headers/OXON.svg",
-                             "data/headers/PHEC.svg",
-                             "data/headers/PHWC.svg",
-                             "data/headers/PORT.svg",
-                             "data/headers/SANG.svg",
-                             "data/headers/SHEF.svg"]},
+                             "data/headers/DEFAULT.png",
+                             "data/headers/BIRM.png",
+                             "data/headers/CAMB.png",
+                             "data/headers/EDIN.png",
+                             "data/headers/GLAS.png",
+                             "data/headers/LIVE.png",
+                             "data/headers/LOND.png",
+                             "data/headers/NORT.png",
+                             "data/headers/NORW.png",
+                             "data/headers/NOTT.png",
+                             "data/headers/OXON.png",
+                             "data/headers/PHEC.png",
+                             "data/headers/PHWC.png",
+                             "data/headers/PORT.png",
+                             "data/headers/SANG.png",
+                             "data/headers/SHEF.png"]},
       install_requires=[
             "biopython>=1.70",
             "dendropy>=4.4.0",
@@ -50,6 +57,9 @@ setup(name='civet',
             "scipy>=1.4.1",
             "numpy>=1.13.3"
         ],
+      cmdclass={
+        'npm_install': NPMInstall
+      },
       description='Cluster Investivation & Virus Epidemiology Tool',
       url='https://github.com/aineniamh/civet',
       author='Aine OToole, Verity Hill',

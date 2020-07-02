@@ -10,15 +10,16 @@ if config.get("force"):
     config["force"] = "--forceall "
 
 if config.get("sequencing_centre"):
+    
     header = config["sequencing_centre"]
     filename = os.path.basename(header)
     moved_file = os.path.join(config["outdir"],"figures",filename)
     config["sequencing_centre_file"] = moved_file
-    config["sequencing_centre_flag"] = f"-sc {filename}"
-else:
-    config["sequencing_centre"] = ""
-    config["sequencing_centre_flag"] = ""
-    config["sequencing_centre_file"] = ""
+    if config["sequencing_centre"] == "DEFAULT":
+        config["sequencing_centre_flag"] = ""
+    else:
+        config["sequencing_centre_flag"] = f"-sc {filename}"
+
 
 if config["global"] == "True":
     config["seq_db"] = config["cog_global_seqs"]
