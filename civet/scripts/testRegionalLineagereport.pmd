@@ -1,0 +1,142 @@
+```python, name="import dependencies", echo=False
+import matplotlib.pyplot as pyplot
+import pandas as pd
+import os
+import data_parsing as dp
+import make_tree_figures as tree_viz
+import matplotlib.font_manager as font_manager
+import matplotlib as mpl
+from collections import defaultdict
+import tabulate
+import datetime as dt
+import csv
+import numpy as np
+import scipy as sp
+import sys
+import pickle
+#import local_scale_analysis as losca
+from dateutil.relativedelta import relativedelta, FR
+import geopandas as gp
+thisdir = "~/GitKraken/civet"
+cwd = os.getcwd()
+sys.path.append(os.path.abspath("/home/stefan/GitKraken/civet/civet/scripts/"))
+import local_scale_analysis as losca
+
+
+filtered_cog_metadata = "" ##CHANGE
+input_csv = "~/GitKraken/civet/civet/tests/test.csv" ##CHANGE
+full_metadata_file = "/home/stefan/GitKraken/workspace/cog_global_2020-06-19_metadata.csv" ##CHANGE
+desired_fields = "" ##CHANGE
+
+tree_dir = "" ##CHANGE
+
+QC_fail_file = "" ##CHANGE
+missing_seq_file = "" ##CHANGE
+
+input_directory = "" ##CHANGE
+
+output_directory = "" ##CHANGE
+name_stem_input = "" ##CHANGE
+
+local_lineage = "" ##CHANGE
+date_restriction = "" ##CHANGE
+date_start= "" ##CHANGE
+date_end = "" ##CHANGE
+date_window_size = "" ##CHANGE
+```
+
+## Regional-scale Lineage context
+
+```python, name="run regional", echo=False
+from vega import VegaLite
+from IPython.display import display
+from IPython.core.display import display_html 
+import warnings
+warnings.filterwarnings("ignore")
+
+
+
+from IPython.core.display import display_html
+import hashlib
+import json as JSON
+display_html(
+    """
+<script src="https://cdn.jsdelivr.net/npm/vega@5"></script>
+<script src="https://cdn.jsdelivr.net/npm/vega-lite@4"></script>
+<script src="https://cdn.jsdelivr.net/npm/vega-embed@4"></script>
+""",
+    raw=True)
+
+
+def show(plot):
+    """
+    Include an Altair (vega) figure in Pweave document.
+    Generates html output.
+    """
+    json = JSON.dumps(plot)
+    id = "A" + hashlib.sha256(json.encode()).hexdigest()
+    display_html(
+        """
+ <div id="{id}"></div>
+  <script type="text/javascript">
+    var spec = {json};
+    var opt = {{"renderer": "canvas", "actions": false}};
+    vegaEmbed("#{id}", spec, opt);
+  </script>
+  """.format(id=id, json=json),
+        raw=True)
+
+
+thisdir = "~/GitKraken/civet"
+##### Start Code Execution #####
+mapfile="/home/stefan/GitKraken/civet/civet/data/maps/Mainland_HBs_gapclosed_simplified.geojson"
+mainland_boards=gp.read_file(mapfile)
+#mainland_boards=losca.update_adm15(mainland_boards)
+###Get contiguity neighbors for mainland
+mainland_boards_W=losca.Queen.from_dataframe(mainland_boards, idVariable='HBCode')
+##Hacky fix to link Fife and Lothian
+mainland_boards_final_W=losca.getForthBridge(mainland_boards,mainland_boards_W)
+###Create translation dict for board codes
+HBCode_translation=dict(zip(mainland_boards.HBName, mainland_boards.HBCode))
+##########Data loading###########
+##Get HB translation dict##
+translator=os.path.join(thisdir, "data", "maps", "HB_Translation.pkl")
+HBTranslation=pickle.load(open('/home/stefan/GitKraken/civet/civet/data/maps/HB_Translation.pkl', 'rb'))
+
+### Load cog_data ###
+COGDATA=losca.getSampleData(full_metadata_file)
+### Load sample data ###
+inputSamples = pd.read_csv(input_csv)
+###Checking user defined dates###
+date_list=None
+if date_restriction == 'True':
+    if len(date_start) == 10 and len(date_end) == 10:
+        date_list={'start': date_start, 'end': date_end}
+    elif len(date_start) == 0 and len(date_end) == 0:
+        date_list=losca.defineDateRestriction(inputSamples, date_window_size)
+
+cog_restricted = losca.getSampleData_final(COGDATA)
+
+###Preparing cog_meta for spatial filtering & processing
+cog_meta_mainland=cog_restricted.loc[cog_restricted['adm1'].isin(['UK-SCT', 'UK-ENG', 'UK-WAL'])]
+cog_meta_mainland['HBName']=cog_meta_mainland.loc[:, 'adm2'].map(HBTranslation)
+cog_meta_mainland['HBCode']=cog_meta_mainland.loc[:, 'HBName'].map(HBCode_translation)
+
+## Proessing input csv ##
+
+HB_code=losca.adm2_to_centralHBCode(inputSamples['adm2'].str.upper().to_list(), HBTranslation, HBCode_translation)
+if HB_code is not None:
+    ## Get the localised regions ##
+    central, neighboring, submap = losca.central_surrounding_regions(HB_code, mainland_boards_final_W, mainland_boards)
+    ## Generate tabular data for each region ##
+    for each in [central, neighboring]:
+        for row, frame in each.iterrows():
+            losca.tabulateLins(frame['HBCode'], cog_meta_mainland, frame['HBName'])
+    ## Generated Mapping ##
+    #for each, region in [central, neighboring], ['Central Health Board', 'Neighboring Health Boards']:
+    show(losca.mapProduce(central, cog_meta_mainland, submap))
+
+    
+    #show(vegaobj)
+    
+```

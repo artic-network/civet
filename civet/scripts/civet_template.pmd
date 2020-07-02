@@ -296,7 +296,7 @@ if HB_code is not None:
     ## Generated Mapping ##
     for each, region in [central, neighboring], ['Central Health Board', 'Neighboring Health Boards']:
         print (region)
-        losca.mapProduce(each, cog_meta_mainland, submap)
+        losca.vegashow(losca.mapProduce(each, cog_meta_mainland, submap))
 
 ```
 
