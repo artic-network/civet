@@ -101,6 +101,9 @@ def display_name(tree, tree_name, tree_dir, query_id_dict, full_taxon_dict):
             #         k.traits["display"]=""
 
             # else:
+
+
+
 def find_colour_dict(query_dict, trait):
 
     attribute_options = set()
@@ -111,7 +114,8 @@ def find_colour_dict(query_dict, trait):
         colour_dict = {"Wales":"darkseagreen",
                 "England":"indianred",
                 "Scotland":"steelblue",
-                "Northern_Ireland":"skyblue"}
+                "Northern_Ireland":"skyblue",
+                "NA": "goldenrod"}
         return colour_dict
 
     else:
@@ -289,8 +293,10 @@ def make_all_of_the_trees(input_dir, taxon_dict, query_id_dict, query_dict, tree
                     tips.append(k.name)
             if len(tips) < 1000:
                 overall_tree_count += 1      
+                
                 if desired_fields == []:
                     colour_by = ["adm1"]
+                
                 else:
                     colour_by = desired_fields
             
@@ -373,16 +379,16 @@ def summarise_collapsed_node(tree_dir, focal_node, focal_tree, full_tax_dict):
 
 def make_legend(colour_dict):
     
-    fig,ax = plt.subplots(figsize=(3,3))
+    fig,ax = plt.subplots(figsize=(len(colour_dict)+1,1))
 
     plt.gca().set_aspect('equal', adjustable='box')
     plt.text
     
     x = 0
     for option in colour_dict.keys():
-        circle = plt.Circle((x, 0.5), 0.1, color=colour_dict[option])
+        circle = plt.Circle((x, 0.5), 0.05, color=colour_dict[option]) #((xloc, yloc), radius) relative to overall plot size
         ax.add_artist(circle)
-        plt.text(x-0.1,0.1,option, fontsize=5)
+        plt.text(x-0.1,0.3,option, fontsize=5)
         x += 1
         
         
@@ -400,3 +406,4 @@ def make_legend(colour_dict):
     plt.yticks([])
     plt.xticks([])
     plt.show()
+
