@@ -390,6 +390,11 @@ To run civet please either\n1) ssh into CLIMB and run with --CLIMB flag\n\
             sc_string = "\n".join(sc_list)
             sys.stderr.write(f'Error: sequencing centre must be one of the following:\n{sc_string}\n')
             sys.exit(-1)
+    else:
+        relative_file = os.path.join("data","headers","DEFAULT.png")
+        header = pkg_resources.resource_filename('civet', relative_file)
+        print(f"using header file from {header}\n")
+        config["sequencing_centre"] = header
 
     if args.distance:
         try:
