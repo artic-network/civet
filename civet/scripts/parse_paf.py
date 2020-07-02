@@ -56,7 +56,7 @@ def parse_paf_and_get_metadata():
             header_names.append("cog_id")
             header_names.append("query")
             header_names.append("closest")
-            writer = csv.DictWriter(fw, fieldnames=header_names)
+            writer = csv.DictWriter(fw, fieldnames=header_names,lineterminator='\n')
             writer.writeheader()
         
             for row in reader:
