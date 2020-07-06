@@ -121,10 +121,6 @@ if count_fails != 0 or count_missing != 0:
         print("The following seqs were not found in COG and a fasta file was not provided, so CIVET was unable to add them into phylogenies.")
         for i in failed_names:
             print(i.replace("'",""))
-
-    
-    
-
 ```
 
 ```python, name="early descriptions", echo=False, results='tex'
@@ -219,7 +215,18 @@ if too_tall_trees != []:
         print("Tree" + str(tree) + " is too large to be rendered here.")
 ```
 
+The following plots describe the data in the collapsed nodes in more detail.
+If more than one country was present, the bar chart describes the number of sequences present in each country. 
+Where there were 25 countries or more, the largest 25 have been taken. 
+If a UK sequence is present in the collapsed node, it is always shown in the plot.
 
+```python, name="tree_background", echo=False, include=False, fig=False
+bar_count = tree_viz.describe_tree_background(full_tax_dict, tree_dir)
+```
+```python, name="display bar charts", echo=False, results='raw'
+for i in range(bar_count):
+    print("![](" + figdir + "/" + name_stem + "_tree_background_" + str(i+1) + ".png)")
+```
 
 ## Appendix
 

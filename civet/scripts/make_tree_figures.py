@@ -17,6 +17,7 @@ import matplotlib.patches as mpatches
 
 import numpy as np
 from scipy.special import binom
+import math
 
 import itertools
 import requests
@@ -162,7 +163,6 @@ def make_scaled_tree_without_legend(My_Tree, tree_name, tree_dir, num_tips, colo
     tipsize = 40
     c_func=lambda k: 'dimgrey' ## colour of branches
     l_func=lambda k: 'lightgrey' ## colour of branches
-    cn_func = lambda k: 'fuchsia' if k.name in query_id_dict.keys() or k.name in query_dict.keys() else 'dimgrey'
     s_func = lambda k: tipsize*5 if k.name in query_id_dict.keys() or k.name in query_dict.keys() else tipsize
     z_func=lambda k: 100
     b_func=lambda k: 2.0 #branch width
@@ -174,6 +174,7 @@ def make_scaled_tree_without_legend(My_Tree, tree_name, tree_dir, num_tips, colo
     kwargs={'ha':'left','va':'center','size':12}
 
     #Colour by specified trait. If no trait is specified, they will be coloured by UK country
+    cn_func = lambda k: colour_dict[query_dict[k.name].attribute_dict[trait]] if k.name in query_id_dict.keys() or k.name in query_dict.keys() else 'dimgrey'
     co_func=lambda k: colour_dict[query_dict[k.name].attribute_dict[trait]] if k.name in query_id_dict.keys() or k.name in query_dict.keys() else 'dimgrey' 
     outline_colour_func = lambda k: colour_dict[query_dict[k.name].attribute_dict[trait]] if k.name in query_id_dict.keys() or k.name in query_dict.keys() else 'dimgrey' 
 
@@ -371,7 +372,10 @@ def summarise_collapsed_node(tree_dir, focal_node, focal_tree, full_tax_dict):
                 # max_date = str(max(dates))
                 #info = number_nodes + ", ranging from " + min_date + " to " + max_date + " in " + pretty_countries
 
-                info = number_nodes + " in " + pretty_countries
+                node_number = node_name.lstrip("inserted_node")
+                pretty_node_name = "Collapsed node " + node_number
+
+                info = pretty_node_name + ": " + number_nodes + " in " + pretty_countries
 
 
 
@@ -406,4 +410,107 @@ def make_legend(colour_dict):
     plt.yticks([])
     plt.xticks([])
     plt.show()
+
+def describe_tree_background(full_tax_dict, tree_dir):
+
+    tree_lst = sort_trees_index(tree_dir)
+
+    hidden_countries = defaultdict(list)
+
+    figure_count = 0
+
+    for fn in tree_lst:
+        focal_tree = "tree_" + str(fn)
+        focal_tree_file = tree_dir + "/" + focal_tree + ".txt"
+        pretty_focal = "Tree " + str(fn)
+
+        collapsed_dict = defaultdict(list)
+
+        with open(focal_tree_file) as f:
+            next(f)
+            for l in f:
+                toks = l.strip("\n").split("\t")
+                seqs = toks[1].split(",")
+
+                node_number = toks[0].lstrip("inserted_node")
+                new_name = "Collapsed node " + node_number
+                collapsed_dict[new_name] = seqs
+    
+            ndes_country_counts = defaultdict(dict)
+
+            for nde, seqs in collapsed_dict.items():
+                countries = []
+                for i in seqs:
+                    obj = full_tax_dict[i]
+                    countries.append(obj.attribute_dict["country"])
+
+                    country_counts = Counter(countries)
+                                
+                if len(country_counts) > 25:
+                    keep_countries = dict(country_counts.most_common(25))
+                    if "UK" in countries and "UK" not in keep_countries.keys():
+                        keep_countries["UK"] = country_counts["UK"]
+
+                    hidden_countries[focal_tree].append(nde)
+                    
+                else:
+                    keep_countries = country_counts
+                    
+                if len(country_counts) > 1:
+                    
+                    ndes_country_counts[nde] = keep_countries
+                            
+            if len(ndes_country_counts) > 1:
+                
+                count = 0
+                figure_count += 1
+                
+                rows = math.ceil(len(ndes_country_counts)/5)
+                
+                fig, axs = plt.subplots(rows,5, figsize=(20,5)) 
+                                
+                for nde, country_counts in ndes_country_counts.items():
+                                        
+                    x = country_counts.keys()
+                    y = country_counts.values()
+
+                    axs[count].bar(x,y, color="goldenrod")
+                    axs[count].set_title(nde)
+                    axs[count].set_xticklabels(x,rotation=90)
+                    
+                    fig.suptitle(pretty_focal)
+
+                    count += 1
+
+                if len(ndes_country_counts) != rows*5:
+                    number_empty_ones = rows*5 - len(ndes_country_counts)
+                    for_removal = [i for i in range((rows*5-number_empty_ones),rows*5)]
+
+                    for j in for_removal:
+                         fig.delaxes(axs.flatten()[j])
+
+                    
+            elif len(ndes_country_counts) == 1:
+                
+                figure_count += 1
+                plt.figure(figsize=(2,2))
+
+                for nde, country_counts in ndes_country_counts.items():
+                    
+                    x = country_counts.keys()
+                    y = country_counts.values()
+
+                    plt.bar(x,y, color="fuchsia")
+                    # plt.title(nde)
+                    plt.xticks(size=5, rotation=90)
+                    plt.yticks(size=5)
+
+
+
+                    plt.title(pretty_focal + ": " + nde, size=5)
+
+
+                    
+
+    return figure_count
 

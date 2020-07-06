@@ -140,30 +140,30 @@ def parse_input_csv(input_csv, query_id_dict, desired_fields, adm2_adm1_dict):
                         taxon.sample_date = sequence["sample_date"]
 
                 for col in col_names: #Add other metadata fields provided
-                    if desired_fields != []:
-                        if col != "name" and col in desired_fields:
-                            if sequence[col] == "":
-                                taxon.attribute_dict[col] = "NA"
+                    if col != "name" and col in desired_fields and col != "adm1":
+                        if sequence[col] == "":
+                            taxon.attribute_dict[col] = "NA"
+                        else:
+                            taxon.attribute_dict[col] = sequence[col]
+        
+                    if col == "adm1":
+                        if "UK" in sequence[col]:
+                            adm1_prep = sequence[col].split("-")[1]
+                            adm1 = contract_dict[adm1_prep]
+                        else:
+                            if sequence[col].upper() in cleaning.keys():
+                                adm1 = cleaning[sequence[col].upper()]
                             else:
-                                taxon.attribute_dict[col] = sequence[col]
-            
-                        elif col == "adm1":
-                            if "UK" in sequence[col]:
-                                adm1_prep = sequence[col].split("-")[1]
-                                adm1 = contract_dict[adm1_prep]
-                            else:
-                                if sequence[col].upper() in cleaning.keys():
-                                    adm1 = cleaning[sequence[col].upper()]
-                                else:
-                                    adm1 = sequence[col]
+                                adm1 = sequence[col]
 
+                        taxon.attribute_dict["adm1"] = adm1
+
+                    if col == "adm2" and "adm1" not in col_names: #or sequence["adm1"] == ""):
+                        if sequence[col] in adm2_adm1_dict.keys():
+                            adm1 = adm2_adm1_dict[sequence[col]]
                             taxon.attribute_dict["adm1"] = adm1
 
-                        if col == "adm2" and "adm1" not in col_names: #or sequence["adm1"] == ""):
-                            if sequence[col] in adm2_adm1_dict.keys():
-                                adm1 = adm2_adm1_dict[sequence[col]]
-                                taxon.attribute_dict["adm1"] = adm1
-
+                
                 new_query_dict[taxon.name] = taxon
             
             # else:

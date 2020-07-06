@@ -10,7 +10,6 @@ thisdir = os.path.abspath(os.path.dirname(__file__))
 def make_report(cog_metadata, input_csv, filtered_cog_metadata, outfile, outdir, treedir, figdir, fields, report_template, failed_seqs, no_seq, seq_centre):
 
     name_stem = ".".join(outfile.split(".")[:-1])
-
     with open(outfile, 'w') as pmd_file:
     
         md_template = report_template
