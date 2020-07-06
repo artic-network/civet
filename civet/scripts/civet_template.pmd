@@ -2,7 +2,8 @@
 import os
 figdir = "" ##CHANGE
 sequencing_centre = "" ##CHANGE
-if sequencing_centre != "":
+
+if sequencing_centre != "DEFAULT.png":
     header_file = os.path.join(figdir, sequencing_centre)
     print(f"![]({header_file})")
 
@@ -14,6 +15,7 @@ else:
     header_file = os.path.join(figdir, "DEFAULT.png")
     print(f"![]({header_file})")
 
+    sequencing_centre = ""
 
     print("# Cluster investigation")
 ```
@@ -71,6 +73,8 @@ font_props = font_manager.FontProperties(family="helveticaneue")
 #print(font_props)
 a = matplotlib.font_manager.FontManager()
 a.findfont(font_props, fallback_to_default=False)
+
+pyplot.rcParams.update({'figure.max_open_warning': 0})
 
 #mpl.rcParams['font.family'] = 'helveticaneue'
 mpl.rcParams['font.weight']=50

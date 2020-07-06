@@ -433,10 +433,11 @@ def describe_tree_background(full_tax_dict, tree_dir):
                 seqs = toks[1].split(",")
 
                 node_number = toks[0].lstrip("inserted_node")
-                new_name = "Collapsed node " + node_number
+                new_name = "Collapsed node" + node_number
                 collapsed_dict[new_name] = seqs
     
             ndes_country_counts = defaultdict(dict)
+            nodes = []
 
             for nde, seqs in collapsed_dict.items():
                 countries = []
@@ -446,8 +447,8 @@ def describe_tree_background(full_tax_dict, tree_dir):
 
                     country_counts = Counter(countries)
                                 
-                if len(country_counts) > 25:
-                    keep_countries = dict(country_counts.most_common(25))
+                if len(country_counts) > 10:
+                    keep_countries = dict(country_counts.most_common(10))
                     if "UK" in countries and "UK" not in keep_countries.keys():
                         keep_countries["UK"] = country_counts["UK"]
 
@@ -459,28 +460,63 @@ def describe_tree_background(full_tax_dict, tree_dir):
                 if len(country_counts) > 1:
                     
                     ndes_country_counts[nde] = keep_countries
+                    nodes.append(nde)
                             
             if len(ndes_country_counts) > 1:
                 
-                count = 0
                 figure_count += 1
+
+                plt.rc('ytick', labelsize=5)
                 
+                count = 0
+
                 rows = math.ceil(len(ndes_country_counts)/5)
                 
-                fig, axs = plt.subplots(rows,5, figsize=(20,5)) 
-                                
-                for nde, country_counts in ndes_country_counts.items():
-                                        
-                    x = country_counts.keys()
-                    y = country_counts.values()
+                # fig.tight_layout()
 
-                    axs[count].bar(x,y, color="goldenrod")
-                    axs[count].set_title(nde)
-                    axs[count].set_xticklabels(x,rotation=90)
+
+                if rows == 1:
+                    fig, axs = plt.subplots(rows,5, figsize=(10,2)) 
+
+                    fig.tight_layout()
+                    count = 0      
+                    for nde, country_counts in ndes_country_counts.items():
+
+                        x = country_counts.keys()
+                        y = country_counts.values()
+
+                        # print("1 counts" + str(count))
+                        axs[count].bar(x,y, color="goldenrod")
+                        axs[count].set_title(nde, size=8)
+                        axs[count].set_xticklabels(x,rotation=90, size=5)
+                        #axs[count].set_yticklabels(size=5)
+                        
+                        count += 1
+
+                    fig.suptitle(pretty_focal,y=1.1,x=0.05, size=10)
+                
+                else:
+                    fig, axs = plt.subplots(rows,5,figsize=(10,10))
+                    fig.subplots_adjust(hspace=1.0, wspace=0.7)
+                    # fig.tight_layout()
                     
-                    fig.suptitle(pretty_focal)
+                    
+                    for nrow in range(0,rows):
+                        for i in range(0,5):
+                            try:
+                                relevant_nde = nodes[(nrow*5) + i]
+                                
+                                x = ndes_country_counts[relevant_nde].keys()
+                                y = ndes_country_counts[relevant_nde].values()
 
-                    count += 1
+                                axs[nrow][i].bar(x,y, color="goldenrod")
+                                axs[nrow][i].set_title(relevant_nde, size=8)
+                                axs[nrow][i].set_xticklabels(x,rotation=70, size=5)
+                                # axs[nrow][i].set_yticklabels(y, size=5)
+                            except IndexError:
+                                continue
+
+                    fig.suptitle(pretty_focal,y=0.95,x=0.1, size=10)
 
                 if len(ndes_country_counts) != rows*5:
                     number_empty_ones = rows*5 - len(ndes_country_counts)
@@ -488,6 +524,9 @@ def describe_tree_background(full_tax_dict, tree_dir):
 
                     for j in for_removal:
                          fig.delaxes(axs.flatten()[j])
+
+                
+
 
                     
             elif len(ndes_country_counts) == 1:
@@ -500,7 +539,7 @@ def describe_tree_background(full_tax_dict, tree_dir):
                     x = country_counts.keys()
                     y = country_counts.values()
 
-                    plt.bar(x,y, color="fuchsia")
+                    plt.bar(x,y, color="goldenrod")
                     # plt.title(nde)
                     plt.xticks(size=5, rotation=90)
                     plt.yticks(size=5)
