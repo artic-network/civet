@@ -44,7 +44,7 @@ def main(sysargs = sys.argv[1:]):
     parser.add_argument('--fields', action="store",help="Comma separated string of fields to colour by in the report. Default: country")
     parser.add_argument('--search-field', action="store",help="Option to search COG database for a different id type. Default: COG-UK ID", dest="search_field",default="central_sample_id")
     parser.add_argument('--distance', action="store",help="Extraction from large tree radius. Default: 1", dest="distance",default=2)
-    parser.add_argument('--delay-tree-collapse',action="store_true",dest="delay_tree_collapse",help="Wait until after iqtree runs to collapse the polytomies. NOTE: This may result in large trees that take quite a while to run.")
+    # parser.add_argument('--delay-tree-collapse',action="store_true",dest="delay_tree_collapse",help="Wait until after iqtree runs to collapse the polytomies. NOTE: This may result in large trees that take quite a while to run.")
     parser.add_argument('-g','--global',action="store_true",dest="search_global",help="Search globally.")
     parser.add_argument('-n', '--dry-run', action='store_true',help="Go through the motions but don't actually run")
     parser.add_argument('--tempdir',action="store",help="Specify where you want the temp stuff to go. Default: $TMPDIR")
@@ -359,11 +359,11 @@ To run civet please either\n1) ssh into CLIMB and run with --CLIMB flag\n\
         config["global"]="False"
 
     # delay tree colapse
-    if args.delay_tree_collapse:
-        print("--delay-tree-collapse: Warning tree building may take a long time.")
-        config["delay_collapse"] = "True"
-    else:
-        config["delay_collapse"] = "False"
+    # if args.delay_tree_collapse:
+    #     print("--delay-tree-collapse: Warning tree building may take a long time.")
+    #     config["delay_collapse"] = "True"
+    # else:
+    config["delay_collapse"] = "False"
 
     # accessing package data and adding to config dict
     reference_fasta = pkg_resources.resource_filename('civet', 'data/reference.fasta')
