@@ -37,6 +37,8 @@ class taxon():
 
         self.attribute_dict["adm1"] = "NA"
 
+        self.tree = "NA"
+
 
 def prepping_adm2_adm1_data(full_metadata):
 
@@ -64,11 +66,13 @@ def prepping_adm2_adm1_data(full_metadata):
     return adm2_adm1
     
 
-def parse_reduced_metadata(metadata_file):
+def parse_reduced_metadata(metadata_file, tip_to_tree):
     
     query_dict = {}
     query_id_dict = {}
     present_lins = set()
+
+    tree_to_tip = defaultdict(list)
 
     contract_dict = {"SCT":"Scotland", "WLS": "Wales", "ENG":"England", "NIR": "Northern_Ireland"}
 
@@ -108,13 +112,18 @@ def parse_reduced_metadata(metadata_file):
                         new_taxon.attribute_dict["adm1"] = v
                 
             new_taxon.attribute_dict["country"] = "UK"
+
+            relevant_tree = tip_to_tree[query_name]
+            new_taxon.tree = relevant_tree
+
+            tree_to_tip[relevant_tree].append(new_taxon)
            
             query_dict[query_name] = new_taxon
             query_id_dict[query_id] = new_taxon
             
-    return query_dict, query_id_dict, present_lins
+    return query_dict, query_id_dict, present_lins, tree_to_tip
 
-def parse_input_csv(input_csv, query_id_dict, desired_fields, adm2_adm1_dict):
+def parse_input_csv(input_csv, query_id_dict, desired_fields, adm2_adm1_dict, cog_report):
 
     new_query_dict = {}
     contract_dict = {"SCT":"Scotland", "WLS": "Wales", "ENG":"England", "NIR": "Northern_Ireland"}
@@ -163,6 +172,10 @@ def parse_input_csv(input_csv, query_id_dict, desired_fields, adm2_adm1_dict):
                             adm1 = adm2_adm1_dict[sequence[col]]
                             taxon.attribute_dict["adm1"] = adm1
 
+                if cog_report:
+                    taxon.attribute_dict["adm2"] = sequence["adm2"]
+                    taxon.sample_date = sequence["collection_date"]
+
                 
                 new_query_dict[taxon.name] = taxon
             
@@ -175,13 +188,16 @@ def parse_input_csv(input_csv, query_id_dict, desired_fields, adm2_adm1_dict):
 def parse_tree_tips(tree_dir):
 
     tips = []
+    tip_to_tree = {}
 
     for fn in os.listdir(tree_dir):
         if fn.endswith("tree"):
+            tree_name = fn.split(".")[0]
             tree = bt.loadNewick(tree_dir + "/" + fn, absoluteTime=False)
             for k in tree.Objects:
                 if k.branchType == 'leaf' and "inserted" not in k.name:
                     tips.append(k.name)
+                    tip_to_tree[k.name] = tree_name
 
         elif fn.endswith(".txt"):
             with open(tree_dir + "/" + fn) as f:
@@ -190,7 +206,7 @@ def parse_tree_tips(tree_dir):
                     tip_list = tip_string.split(",")
                     tips.extend(tip_list)
 
-    return tips
+    return tips, tip_to_tree
 
 def parse_full_metadata(query_dict, full_metadata, present_lins, present_in_tree):
 
@@ -215,7 +231,6 @@ def parse_full_metadata(query_dict, full_metadata, present_lins, present_in_tree
                 if date == "":
                     date = "NA"
                 
-                
                 # new_taxon.attribute_dict["sample_date"] = date
                 new_taxon.sample_date = date
                 
@@ -224,34 +239,57 @@ def parse_full_metadata(query_dict, full_metadata, present_lins, present_in_tree
 
                 full_tax_dict[seq_name] = new_taxon
 
+            #There may be sequences not in COG tree but that are in the full metadata, so we want to pull out the additional information if it's not in the input csv
+            #Remember, then name has to match fully, so if it's not the x/y/z name this section won't work
+            if seq_name in query_dict.keys(): 
+                tax_object = query_dict[seq_name]
+                if tax_object.sample_date == "NA" and date != "":
+                    tax_object.sample_date = date
+                if "adm2" not in tax_object.attribute_dict.keys() and adm2 != "":
+                    tax_object.attribute_dict["adm2"] = adm2
+                
+                full_tax_dict[seq_name] = tax_object
+                    
     return full_tax_dict
+    
 
-def make_initial_table(query_dict, desired_fields):
+def make_initial_table(query_dict, desired_fields, cog_report):
 
     df_dict = defaultdict(list)
 
     for query in query_dict.values():
         
         df_dict["Query ID"].append(query.query_id.replace("|","\|"))
-        df_dict["Part of COG"].append(query.in_cog)
         
         if query.in_cog: 
-            df_dict["Sequence name in COG"].append(query.name)
+            df_dict["Sequence name in Tree"].append(query.name)
         else:
-            df_dict["Sequence name in COG"].append("NA")
+            df_dict["Sequence name in Tree"].append("NA")
+        
 
-        df_dict["Closest sequence in COG"].append(query.closest)
+        df_dict["Sample date"].append(query.sample_date)
+
+        if not cog_report:
+            df_dict["Closest sequence in Tree"].append(query.closest)
         
         df_dict["UK lineage"].append(query.uk_lin)
         df_dict["Global lineage"].append(query.global_lin)
         df_dict["Phylotype"].append(query.phylotype)
 
+        
+        if query.tree != "NA":
+            tree_number = query.tree.split("_")[1]
+            pretty_tree = "Tree " + str(tree_number)
+            df_dict["Tree"].append(pretty_tree)
+        else:
+            df_dict["Tree"].append("NA") #this should never happen, it's more error catching
+
         if desired_fields != []:
             for i in desired_fields:
                 df_dict[i].append(query.attribute_dict[i])
 
-        # for key, value in query.attribute_dict.items():
-        #     df_dict[key].append(value)
+        if cog_report:
+            df_dict['adm2'].append(query.attribute_dict["adm2"])
 
     df = pd.DataFrame(df_dict)
 

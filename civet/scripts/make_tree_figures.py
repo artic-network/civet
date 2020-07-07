@@ -29,6 +29,7 @@ from collections import defaultdict
 
 import datetime as dt
 from collections import Counter
+from collections import defaultdict
 
 
 thisdir = os.path.abspath(os.path.dirname(__file__))
@@ -73,35 +74,20 @@ def display_name(tree, tree_name, tree_dir, query_id_dict, full_taxon_dict):
                 collapsed_node_info = summarise_collapsed_node(tree_dir, name, tree_name, full_taxon_dict)
                 k.traits["display"] = collapsed_node_info
             else:
-                # taxon_obj = query_id_dict[name] #I think this isn't needed because the ones in COG will just have the full name in the tree
                 if name in full_taxon_dict:
                     taxon_obj = full_taxon_dict[name]
-                    if taxon_obj.sample_date != "NA":
-                        date = taxon_obj.sample_date
-                        k.traits["display"] = f"{name}|{date}"
-                    else:
-                        k.traits["display"] = name
+                
+                    date = taxon_obj.sample_date
+                    k.traits["display"] = f"{name}|{date}"
+                    
+                    if "adm2" in taxon_obj.attribute_dict.keys():
+                        adm2 = taxon_obj.attribute_dict["adm2"]
+                        k.traits["display"] = f"{name}|{adm2}|{date}"
+                
+                
                 else:
-                    #taxon_obj = ""
                     k.traits["display"] = name + "|" + "not in dict"
 
-                
-                
-                # if "county" in taxon_obj.attribute_dict.keys(): 
-                #     county = taxon_obj.attribute_dict["county"]
-                # elif "adm2" in taxon_obj.attribute_dict.keys():
-                #     county = taxon_obj.attribute_dict["adm2"]
-                # else:
-                #     county = country
-                
-            #     if "country" in k.traits: 
-            #             k.traits["display"]= f"{name}|{date}"
-            #         else:
-            #             k.traits["display"]=""
-            #     else:
-            #         k.traits["display"]=""
-
-            # else:
 
 
 
@@ -139,9 +125,9 @@ def find_colour_dict(query_dict, trait):
     
         return colour_dict
     
-def make_scaled_tree_without_legend(My_Tree, tree_name, tree_dir, num_tips, colour_dict, trait, tallest_height,lineage, taxon_dict, query_id_dict, query_dict, tree_to_query):
+def make_scaled_tree_without_legend(My_Tree, tree_name, tree_dir, num_tips, colour_dict, trait, tallest_height,lineage, taxon_dict, query_id_dict, query_dict):
 
-    display_name(My_Tree, tree_name, tree_dir, query_id_dict, taxon_dict) #this is id dict for when the ids are in the tree.
+    display_name(My_Tree, tree_name, tree_dir, query_id_dict, taxon_dict) 
     My_Tree.uncollapseSubtree()
 
     # closest_names = []
@@ -216,8 +202,8 @@ def make_scaled_tree_without_legend(My_Tree, tree_name, tree_dir, num_tips, colo
             ax2.text(tallest_height+space_offset+space_offset, y, name, size=font_size_func(k), ha="left", va="center", fontweight="ultralight")
             ax2.plot([x+space_offset,tallest_height+space_offset],[y,y],ls='--',lw=0.5,color=l_func(k))
 
-            if k.name in query_dict.keys() or k.name in query_id_dict.keys():
-                tree_to_query[lineage].append(k.name)
+            # if k.name in query_dict.keys() or k.name in query_id_dict.keys():
+            #     tree_to_query[tree_name].append(k.name)
 
     ax2.spines['top'].set_visible(False) ## make axes invisible
     ax2.spines['right'].set_visible(False)
@@ -233,8 +219,6 @@ def make_scaled_tree_without_legend(My_Tree, tree_name, tree_dir, num_tips, colo
 
     fig2.tight_layout()
 
-    return tree_to_query
-
 def sort_trees_index(tree_dir):
     b_list = []
     d_list = []
@@ -249,8 +233,8 @@ def sort_trees_index(tree_dir):
         
     return c
 
-def make_all_of_the_trees(input_dir, taxon_dict, query_id_dict, query_dict, tree_to_query, desired_fields, min_uk_taxa=3):
-    
+def make_all_of_the_trees(input_dir, taxon_dict, query_id_dict, query_dict, desired_fields, min_uk_taxa=3):
+
     tallest_height = find_tallest_tree(input_dir)
 
     too_tall_trees = []
@@ -304,12 +288,12 @@ def make_all_of_the_trees(input_dir, taxon_dict, query_id_dict, query_dict, tree
                 for trait in colour_by:
                     colour_dict = find_colour_dict(query_dict, trait)
                     colour_dict_dict[trait] = colour_dict
-                    tree_to_query = make_scaled_tree_without_legend(tree, treename, input_dir, len(tips), colour_dict, trait, tallest_height, lineage, taxon_dict, query_id_dict, query_dict, tree_to_query)     
+                    make_scaled_tree_without_legend(tree, treename, input_dir, len(tips), colour_dict, trait, tallest_height, lineage, taxon_dict, query_id_dict, query_dict)     
             else:
                 too_tall_trees.append(lineage)
                 continue
 
-    return too_tall_trees, overall_tree_count, tree_to_query, colour_dict_dict
+    return too_tall_trees, overall_tree_count, colour_dict_dict
 
 def summarise_collapsed_node(tree_dir, focal_node, focal_tree, full_tax_dict):
 
