@@ -3,4 +3,19 @@
 
 workspace/
 
+civet/tests/.~lock.test.csv#
+
+civet/scripts/testreport.html
+
+*.kate-swp
+
+civet/scripts/__pycache__/
+
+civet/scripts/utils/.ipynb_checkpoints/
+
+
+.idea/
+
+workspace/
+
 civet/scripts/__pycache__/
