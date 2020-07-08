@@ -58,6 +58,8 @@ else:
 desired_fields_input = "" ##CHANGE
 summary_dir = "" ##CHANGE
 
+clean_locs = "" ##CHANGE
+mapping_json_files = "" ##CHANGE
 
 desired_fields = []
 if desired_fields_input != "":

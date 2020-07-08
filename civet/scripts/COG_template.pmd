@@ -3,7 +3,7 @@ import os
 figdir = "" ##CHANGE
 sequencing_centre = "" ##CHANGE
 
-if sequencing_centre != "DEFAULT.png":
+if sequencing_centre != "":
     header_file = os.path.join(figdir, sequencing_centre)
     print(f"![]({header_file})")
 
@@ -24,6 +24,7 @@ import pandas as pd
 import os
 import data_parsing as dp
 import make_tree_figures as tree_viz
+import mapping as mapping
 import matplotlib.font_manager as font_manager
 import matplotlib as mpl
 from collections import defaultdict
@@ -57,6 +58,14 @@ else:
 
 desired_fields_input = "" ##CHANGE
 summary_dir = "" ##CHANGE
+
+clean_locs_file = "" ##CHANGE
+
+uk_map = "" ##CHANGE
+channels_map = "" ##CHANGE
+ni_map = "" ##CHANGE
+
+mapping_json_files = [uk_map, channels_map, ni_map]
 
 
 desired_fields = []
@@ -145,6 +154,17 @@ df = dp.make_initial_table(query_dict, desired_fields, True)
 
 ```
 
+Their location is shown on the following map.
+
+```python, name="make_map", echo=False, include=False
+#this is not working right now
+#map = mapping.run_map_functions(full_tax_dict, clean_locs_file, mapping_json_files)
+```
+
+```python, name="show_map", echo=False, results='raw'
+ #print("![](" + figdir + "/" + name_stem + "_make_map_1.png)")
+```
+
 ## Phylogenies
 
 The nearest neighbours of each of the query sequences are shown below in order to show their phylogenetic context.
@@ -183,6 +203,7 @@ if len(desired_fields) == 1:
         right_rows = df["Tree"]==tree_name
         relevant_df = df[right_rows].drop(columns=["Tree"])
         print(relevant_df.to_markdown())
+        print("  ")
         print("![](" + figdir + "/" + name_stem + "_make_trees_" + str(i) + ".png)")
 
         node_dict = overall_df_dict[lookup]

@@ -368,8 +368,13 @@ To run civet please either\n1) ssh into CLIMB and run with --CLIMB flag\n\
     # accessing package data and adding to config dict
     reference_fasta = pkg_resources.resource_filename('civet', 'data/reference.fasta')
     polytomy_figure = pkg_resources.resource_filename('civet', 'data/polytomies.png')
+    clean_locs = pkg_resources.resource_filename('civet', 'data/mapping_files/adm2_cleaning.csv')
+    map_input_1 = pkg_resources.resource_filename('civet', 'data/mapping_files/gadm36_GBR_2.json')
+    map_input_2 = pkg_resources.resource_filename('civet', 'data/mapping_files/channel_islands.json')  
+    map_input_3 = pkg_resources.resource_filename('civet', 'data/mapping_files/NI_counties.geojson')  
 
-    report_template = os.path.join(thisdir, 'scripts','civet_template.pmd')
+    #report_template = os.path.join(thisdir, 'scripts','civet_template.pmd')
+    report_template = os.path.join(thisdir, 'scripts','COG_template.pmd')
     if not os.path.exists(report_template):
         sys.stderr.write('Error: cannot find report_template at {}\n'.format(report_template))
         sys.exit(-1)
@@ -377,6 +382,10 @@ To run civet please either\n1) ssh into CLIMB and run with --CLIMB flag\n\
     config["reference_fasta"] = reference_fasta
     config["polytomy_figure"] = polytomy_figure
     config["report_template"] = report_template
+    config["clean_locs"] = clean_locs
+    config["uk_map"] = map_input_1
+    config["channels_map"] = map_input_2
+    config["ni_map"] = map_input_3
 
     sc_list = ["PHEC", 'LIVE', 'BIRM', 'PHWC', 'CAMB', 'NORW', 'GLAS', 'EDIN', 'SHEF',
                  'EXET', 'NOTT', 'PORT', 'OXON', 'NORT', 'NIRE', 'GSTT', 'LOND', 'SANG']

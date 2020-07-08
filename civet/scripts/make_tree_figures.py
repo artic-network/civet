@@ -376,11 +376,14 @@ def summarise_node_table(tree_dir, focal_tree, full_tax_dict):
         
             dates = []
             countries = []
+            adm2_present = []
             uk_present = False
 
             node_number = node_name.lstrip("inserted_node")
             
             member_list = members.split(",")
+
+           
 
             for tax in member_list:
                 if tax in full_tax_dict.keys():
@@ -392,6 +395,14 @@ def summarise_node_table(tree_dir, focal_tree, full_tax_dict):
                         dates.append(date)
                     
                     countries.append(taxon_obj.attribute_dict["country"])
+
+                    if taxon_obj.attribute_dict["country"] == "UK":
+                        if "adm2" in taxon_obj.attribute_dict.keys():
+                            if taxon_obj.attribute_dict["adm2"] != "":
+                                adm2_present.append(taxon_obj.attribute_dict["adm2"])
+            
+            if len(adm2_present) != 0:
+                adm2_counts = Counter(adm2_present)
 
             country_counts = Counter(countries)
 
@@ -407,9 +418,24 @@ def summarise_node_table(tree_dir, focal_tree, full_tax_dict):
                     elem = country + " (" + str(count) + ")"
                     country_str += elem
                 else:
-                    elem = country + " (" + str(count) + "),"
+                    elem = country + " (" + str(count) + "), "
                     country_str += elem
 
+            if len(adm2_present) != 0:
+                adm2_string = ""
+                elem_count = 0
+                for adm2, c in adm2_counts.items():
+                    elem_count += 1
+                    if elem_count == len(adm2_counts):
+                        elem = adm2 + " (" + str(c) + ")"
+                        adm2_string += elem
+                    else:
+                        elem = adm2 + " (" + str(c) + "), "
+                        adm2_string += elem
+
+            else:
+                adm2_string = "NA"
+                
 
             min_date = str(min(dates))
             max_date = str(max(dates))
@@ -424,10 +450,9 @@ def summarise_node_table(tree_dir, focal_tree, full_tax_dict):
             df_dict["Number of sequences"].append(size)
             df_dict["Date range"].append(min_date + " to " + max_date)
             df_dict["Countries"].append(country_str)
+            df_dict["Admin 2 regions"].append(adm2_string)
 
     return df_dict
-
-
 
 def make_legend(colour_dict):
     

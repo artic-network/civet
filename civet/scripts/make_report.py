@@ -7,7 +7,7 @@ import shutil
 
 thisdir = os.path.abspath(os.path.dirname(__file__))
 
-def make_report(cog_metadata, input_csv, filtered_cog_metadata, outfile, outdir, treedir, figdir, fields, report_template, failed_seqs, no_seq, seq_centre):
+def make_report(cog_metadata, input_csv, filtered_cog_metadata, outfile, outdir, treedir, figdir, fields, report_template, failed_seqs, no_seq, seq_centre, clean_locs, uk_map, channels_map, ni_map):
 
     name_stem = ".".join(outfile.split(".")[:-1])
     with open(outfile, 'w') as pmd_file:
@@ -43,6 +43,15 @@ def make_report(cog_metadata, input_csv, filtered_cog_metadata, outfile, outdir,
                         new_l = f'missing_seq_file = "{no_seq}"\n'
                     elif "sequencing_centre" in l:
                         new_l = f'sequencing_centre = "{seq_centre}"\n'
+                    elif "clean_locs_file" in l:
+                        new_l = f'clean_locs_file = "{clean_locs}"\n'
+                    elif "uk_map" in l:
+                        new_l = f'uk_map = "{uk_map}"\n'
+                    elif "channels_map" in l:
+                        new_l = f'channels_map = "{channels_map}"\n'
+                    elif "ni_map" in l:
+                        new_l = f'ni_map = "{ni_map}"\n'
+
                     
                 else:
                     new_l = l
@@ -70,9 +79,14 @@ def main():
     parser.add_argument("--outdir", help="output directory",dest="outdir")
     parser.add_argument("--figdir", help="output directory",dest="figdir")
 
+    parser.add_argument("--clean-locs", required=True, help="CSV for cleaning adm2 regions in metadata", dest="clean_locs")
+    parser.add_argument("--uk-map", required=True, help="shape file for uk counties", dest="uk_map")
+    parser.add_argument("--channels-map", required=True, help="shape file for channel islands", dest="channels_map")
+    parser.add_argument("--ni-map", required=True, help="shape file for northern irish counties", dest="ni_map")
+
     args = parser.parse_args()
 
-    make_report(args.cog_metadata, args.input_csv, args.filtered_cog_metadata, args.outfile, args.outdir, args.treedir, args.figdir,args.fields, args.report_template, args.failed_seqs,args.no_seq, args.sc)
+    make_report(args.cog_metadata, args.input_csv, args.filtered_cog_metadata, args.outfile, args.outdir, args.treedir, args.figdir,args.fields, args.report_template, args.failed_seqs,args.no_seq, args.sc, args.clean_locs, args.uk_map, args.channels_map, args.ni_map)
 
 
 if __name__ == "__main__":
