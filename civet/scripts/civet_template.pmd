@@ -67,8 +67,9 @@ if desired_fields_input != "":
 
 
 #font_list = font_manager.fontManager.addfont(font_file)
-font_props = font_manager.FontProperties(family="helveticaneue")
-#print(font_props)
+#font_props = font_manager.FontProperties(family="helvetica")
+font_props = font_manager.FontProperties(family=["helveticaneue","helvetica","definitelynotarial",'sans-serif'])
+
 a = matplotlib.font_manager.FontManager()
 a.findfont(font_props, fallback_to_default=False)
 
