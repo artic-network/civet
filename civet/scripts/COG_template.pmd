@@ -157,7 +157,7 @@ If you would like them to be coloured by specific metadata, please provide this 
 
 
 ```python, name="make_trees", echo=False, include=False, figure=False
-too_tall_trees, overall_tree_number, colour_dict_dict = tree_viz.make_all_of_the_trees(tree_dir, full_tax_dict, query_id_dict, query_dict, desired_fields)
+too_tall_trees, overall_tree_number, colour_dict_dict, overall_df_dict = tree_viz.make_all_of_the_trees(tree_dir, full_tax_dict, query_id_dict, query_dict, desired_fields)
 
 ```
 
@@ -174,6 +174,7 @@ for i, trait in enumerate(colour_dict_dict.keys()):
 if len(desired_fields) == 1:
     for i in range(1,overall_tree_number+1):
         tree_name = "Tree " + str(i)
+        print("### " + tree_name)
         lookup = "tree_" + str(i)
         if len(tree_to_tip[lookup]) == 1:
             print(str(len(tree_to_tip[lookup])) +  " sequence is in Tree " + str(i))
@@ -185,10 +186,16 @@ if len(desired_fields) == 1:
         print(relevant_df.to_markdown())
         print("![](" + figdir + "/" + name_stem + "_make_trees_" + str(i) + ".png)")
 
+        node_dict = overall_df_dict[lookup]
+        node_df = pd.DataFrame(node_dict)
+        node_df.set_index("Node number", inplace=True)
+        print(node_df.to_markdown())
+
 else:
     for i in range(1,overall_tree_number+1):
         tree_name = "Tree " + str(i)
         lookup = "tree_" + str(i)
+        print("### " + tree_name)
         if len(tree_to_tip[lookup]) == 1:
             print(str(len(tree_to_tip[lookup])) +  " sequence is in Tree " + str(i))
         else:
@@ -201,6 +208,12 @@ else:
             base_number = ((i)*len(desired_fields)) - 1
             print("   ")
             print("![](" + figdir + "/" + name_stem + "_make_trees_" + str(base_number + k) + ".png)")
+
+        node_dict = overall_df_dict[lookup]
+        node_df = pd.DataFrame(node_dict)
+        node_df.set_index("Node number", inplace=True)
+        print(node_df.to_markdown())
+
 
 
 ```
@@ -219,7 +232,7 @@ Where there were 10 countries or more, the largest 10 have been taken.
 If a UK sequence is present in the collapsed node, it is always shown in the plot.
 
 ```python, name="tree_background", echo=False, include=False, fig=False
-bar_count = tree_viz.describe_tree_background(full_tax_dict, tree_dir)
+bar_count, bar_dict = tree_viz.describe_tree_background(full_tax_dict, tree_dir)
 ```
 
 ```python, name="display bar charts", echo=False, results='raw'
