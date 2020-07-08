@@ -393,6 +393,23 @@ def summarise_node_table(tree_dir, focal_tree, full_tax_dict):
                     
                     countries.append(taxon_obj.attribute_dict["country"])
 
+            country_counts = Counter(countries)
+
+            most_commons = country_counts.most_common(5)
+
+            country_str = ""
+
+            elem_count = 0
+
+            for country, count in most_commons:
+                elem_count += 1
+                if elem_count == len(most_commons):
+                    elem = country + " (" + str(count) + ")"
+                    country_str += elem
+                else:
+                    elem = country + " (" + str(count) + "),"
+                    country_str += elem
+
 
             min_date = str(min(dates))
             max_date = str(max(dates))
@@ -406,6 +423,7 @@ def summarise_node_table(tree_dir, focal_tree, full_tax_dict):
             df_dict["UK present"].append(uk_present)
             df_dict["Number of sequences"].append(size)
             df_dict["Date range"].append(min_date + " to " + max_date)
+            df_dict["Countries"].append(country_str)
 
     return df_dict
 
@@ -526,6 +544,7 @@ def describe_tree_background(full_tax_dict, tree_dir):
                         
                         count += 1
 
+                 
                     fig.suptitle(pretty_focal,y=1.1,x=0.05, size=10)
                 
                 else:
@@ -549,6 +568,7 @@ def describe_tree_background(full_tax_dict, tree_dir):
                             except IndexError:
                                 continue
 
+               
                     fig.suptitle(pretty_focal,y=0.95,x=0.1, size=10)
 
                 if len(ndes_country_counts) != rows*5:

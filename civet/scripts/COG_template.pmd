@@ -158,7 +158,6 @@ If you would like them to be coloured by specific metadata, please provide this 
 
 ```python, name="make_trees", echo=False, include=False, figure=False
 too_tall_trees, overall_tree_number, colour_dict_dict, overall_df_dict = tree_viz.make_all_of_the_trees(tree_dir, full_tax_dict, query_id_dict, query_dict, desired_fields)
-
 ```
 
 ```python, name="make_legend", echo=False, include=False
@@ -215,29 +214,12 @@ else:
         print(node_df.to_markdown())
 
 
-
 ```
 
 ```python, name="Tree error checking", echo=False, results='raw'
 if too_tall_trees != []:
     for tree in too_tall_trees:
         print("Tree" + str(tree) + " is too large to be rendered here.")
-```
-
-## Tree background
-
-The following plots describe the data in the collapsed nodes in more detail.
-If more than one country was present, the bar chart describes the number of sequences present in each country. 
-Where there were 10 countries or more, the largest 10 have been taken. 
-If a UK sequence is present in the collapsed node, it is always shown in the plot.
-
-```python, name="tree_background", echo=False, include=False, fig=False
-bar_count, bar_dict = tree_viz.describe_tree_background(full_tax_dict, tree_dir)
-```
-
-```python, name="display bar charts", echo=False, results='raw'
-for i in range(bar_count):
-    print("![](" + figdir + "/" + name_stem + "_tree_background_" + str(i+1) + ".png)")
 ```
 
 ## Appendix

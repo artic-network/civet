@@ -332,4 +332,3 @@ def print_missing_seqs(missing_seqs_file):
 
     return failed_names
 
-
