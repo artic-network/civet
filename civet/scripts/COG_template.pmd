@@ -3,7 +3,7 @@ import os
 figdir = "" ##CHANGE
 sequencing_centre = "" ##CHANGE
 
-if sequencing_centre != "":
+if sequencing_centre != "DEFAULT.png":
     header_file = os.path.join(figdir, sequencing_centre)
     print(f"![]({header_file})")
 
