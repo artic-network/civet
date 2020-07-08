@@ -41,10 +41,13 @@ import scipy as sp
 
 from dateutil.relativedelta import relativedelta, FR
 
+<<<<<<< Updated upstream
 thisdir = os.path.abspath(os.path.dirname(__file__))
 cwd = os.getcwd()
 
 
+=======
+>>>>>>> Stashed changes
 filtered_cog_metadata = "" ##CHANGE
 input_csv = "" ##CHANGE
 full_metadata_file = "" ##CHANGE
@@ -60,6 +63,7 @@ input_directory = "" ##CHANGE
 output_directory = "" ##CHANGE
 name_stem_input = "" ##CHANGE
 
+<<<<<<< Updated upstream
 local_lineage = "" ##CHANGE
 date_restriction = "" ##CHANGE
 date_start= "" ##CHANGE
@@ -67,6 +71,8 @@ date_end = "" ##CHANGE
 date_window_size = "" ##CHANGE
 
 
+=======
+>>>>>>> Stashed changes
 if "/" in name_stem_input:
     name_stem = name_stem_input.split("/")[-1]
 else:
@@ -169,6 +175,10 @@ for colour_dict in colour_dict_dict.values():
 ```python,name="show_legend",echo=False,results='raw'
 for i, trait in enumerate(colour_dict_dict.keys()):
     print("The legend for " + trait + " is shown below.")
+<<<<<<< Updated upstream
+=======
+    print("   ")
+>>>>>>> Stashed changes
     print("![](" + figdir + "/" + name_stem + "_make_legend_" + str(i+1) + ".png)")
 ```
 
@@ -181,7 +191,11 @@ if len(desired_fields) == 1:
         else:
             print("Tree number " + str(i) + " contains queries: " + str(tree_to_query[i]).replace("[","").replace("]","").replace("'",""))
             print("There are multiple query sequences in this tree, and so transmission cannot be ruled out, but neither can it be confirmed. Therefore their relationship must be investigated further using epidemiological data.")
+<<<<<<< Updated upstream
     
+=======
+        print("   ")
+>>>>>>> Stashed changes
         print("![](" + figdir + "/" + name_stem + "_make_trees_" + str(i) + ".png)")
 
 else:
@@ -196,6 +210,10 @@ else:
         
         for k in range(len(desired_fields)):
             base_number = ((i)*len(desired_fields)) - 1
+<<<<<<< Updated upstream
+=======
+            print("   ")
+>>>>>>> Stashed changes
             print("![](" + figdir + "/" + name_stem + "_make_trees_" + str(base_number + k) + ".png)")
 
 
@@ -207,6 +225,7 @@ if too_tall_trees != []:
         print("Tree" + str(tree) + " is too large to be rendered here.")
 ```
 
+<<<<<<< Updated upstream
 ```
 
 ```
@@ -263,6 +282,9 @@ if HB_code is not None:
         losca.vegashow(losca.mapProduce(each, cog_meta_mainland, submap))
 
 ```
+=======
+
+>>>>>>> Stashed changes
 
 ## Appendix
 
