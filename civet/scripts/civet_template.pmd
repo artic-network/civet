@@ -256,31 +256,8 @@ for i in range(bar_count):
 
 ```
 
-##### Start Code Execution #####
-mapfile=os.path.join(thisdir, "data", "maps", "Mainland_HBs_gapclosed_simplified.geojson")
-mainland_boards=gp.read_file(mapfile)
-mainland_boards=update_adm15(mainland_boards)
-###Get contiguity neighbors for mainland
-mainland_boards_W=Queen.from_dataframe(mainland_boards, idVariable='HBCode')
-##Hacky fix to link Fife and Lothian
-mainland_boards_final_W=getForthBridge(mainland_boards,mainland_boards_W)
-###Create translation dict for board codes
-HBCode_translation=dict(zip(mainland_boards.HBName, mainland_boards.HBCode))
-##########Data loading###########
-##Get HB translation dict##
-translator=os.path.join(thisdir, "data", "maps", "HB_Translation.pkl")
-HBTranslation=pickle.load(f'{data}/maps/HB_Translation.pkl')
-### Load cog_data ###
-COGDATA=losca.getSampleData(full_metadata_file)
-### Load sample data ###
-inputSamples = pd.read_csv(input_csv)
-###Checking user defined dates###
-date_list=None
-if date_restriction == 'True':
-    if len(date_start) == 10 and len(date_end) == 10:
-        date_list={'start': date_start, 'end': date_end}
-    elif len(date_start) == 0 and len(date_end) == 0:
-        date_list=losca.defineDateRestriction(inputSamples, date_window_size)
+
+## Appendix
 
 cog_restricted = losca.getSampleData_final(COGDATA, date_restriction)
 
