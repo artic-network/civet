@@ -449,6 +449,7 @@ if Central_HB_code is not None:
                 f.write(f'### {HB_name}\n')
                 f.write(f'{MDTable}\n\n')
 # ~~~~~~~
+####  TARGET FILE WOULD COME FROM HERE; 'central_map_ukLink.vl.json'
 if Central_HB_code is not None:
     ## Get the localised regions ##
     central, neighboring, submap = central_surrounding_regions(Central_HB_code, mainland_W, mainland_boards)
@@ -459,3 +460,5 @@ if Central_HB_code is not None:
     for mapjson, location in zip([centralmapOUT,neighboringmapOUT,regionmapOUT],['central', 'neighboring', 'region']):
         with open(os.path.join(outDIR, f'{location}_map_ukLin.vl.json'), 'w') as f:
             json.dump(mapjson, f)
+            ##### Shell commands required
+            # subprocess.call(['npx', 'vl2png', f'{location}_map_ukLin.vl.json', f{location}_map_ukLin.png])
