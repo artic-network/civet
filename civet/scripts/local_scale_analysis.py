@@ -15,10 +15,11 @@ parser = argparse.ArgumentParser(description='Parse barcode info and minimap paf
 parser.add_argument("--date-restriction", default="False", action="store", type=str, dest="date_restriction")
 parser.add_argument("--date-pair-start", default="", action="store", type=str, dest="date_pair_start")
 parser.add_argument("--date-pair-end", default="", action="store", type=str, dest="date_pair_end")
-parser.add_argument("--cog-meta", action="store", type=str, dest="cog_metadata")
+parser.add_argument("--cog-meta-global", action="store", type=str, dest="cog_metadata")
 parser.add_argument("--user-sample-data", action="store", type=str, dest="user_sample_data")
 parser.add_argument("--date-window", action="store",required=False, type=int, dest="date_window")
 parser.add_argument("--output-base-dir", action="store", type=str, dest="output_base_dir")
+parser.add_argument("--civet-cat", action="store", type=str, dest="civet_cat_dir")
 
 argsIN=parser.parse_args()
 
@@ -30,14 +31,10 @@ outDIR=os.path.join(currentDir, 'GENERATEDOUTPUTDIR', 'figures', 'Mapping')
 civet_dir = "/mnt/e/Users/Stefan/GitKraken/civet"
 # Needed to pull metadata
 civet_cat_dir=os.path.join(currentDir, 'civet_cat')
-## testing
-civet_cat_dir='/mnt/e/Users/Stefan/GitKraken/civet/workspace/CIVETTESTING/civet-cat'
 
+### needs importation from installation of civet
 translator=os.path.join(civet_dir, "civet", "data", "maps", "HB_Translation.pkl")
 mapfile=f"{civet_dir}/civet/data/maps/Mainland_HBs_gapclosed_mapshaped_d3.json"
-user_sample_data = f"{civet_dir}/civet/tests/test.csv"
-cog_metadata = "/mnt/e/Users/Stefan/GitKraken/civet/workspace/cog_global_2020-06-19_metadata.csv"
-
 
 date_pair=[]
 for each in [argsIN.date_pair_start, argsIN.date_pair_end]:
