@@ -67,10 +67,11 @@ if desired_fields_input != "":
 
 
 #font_list = font_manager.fontManager.addfont(font_file)
-font_props = font_manager.FontProperties(family="helveticaneue")
+#font_props = font_manager.FontProperties(family="helveticaneue",'helvetica','sans-serif')
+font_props = font_manager.FontProperties(family=["sans-serif"])
 #print(font_props)
 a = matplotlib.font_manager.FontManager()
-a.findfont(font_props, fallback_to_default=False)
+a.findfont(font_props, fallback_to_default=True)
 
 pyplot.rcParams.update({'figure.max_open_warning': 0})
 
@@ -134,7 +135,7 @@ for tax in query_dict.values():
     else:
         not_in_cog_number += 1
 
-print(str(number_seqs) + " were sequenced recently by COG-UK members.")
+print(str(number_seqs) + " sequences were sequenced recently by COG-UK members.")
 
 ```
 
