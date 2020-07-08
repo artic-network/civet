@@ -35,10 +35,13 @@ import scipy as sp
 
 from dateutil.relativedelta import relativedelta, FR
 
+<<<<<<< Updated upstream
 thisdir = os.path.abspath(os.path.dirname(__file__))
 cwd = os.getcwd()
 
 
+=======
+>>>>>>> Stashed changes
 filtered_cog_metadata = "" ##CHANGE
 input_csv = "" ##CHANGE
 full_metadata_file = "" ##CHANGE
@@ -54,6 +57,7 @@ input_directory = "" ##CHANGE
 output_directory = "" ##CHANGE
 name_stem_input = "" ##CHANGE
 
+<<<<<<< Updated upstream
 local_lineage = "" ##CHANGE
 date_restriction = "" ##CHANGE
 date_start= "" ##CHANGE
@@ -61,6 +65,8 @@ date_end = "" ##CHANGE
 date_window_size = "" ##CHANGE
 
 
+=======
+>>>>>>> Stashed changes
 if "/" in name_stem_input:
     name_stem = name_stem_input.split("/")[-1]
 else:
@@ -299,6 +305,9 @@ if HB_code is not None:
         losca.vegashow(losca.mapProduce(each, cog_meta_mainland, submap))
 
 ```
+=======
+
+>>>>>>> Stashed changes
 
 ## Appendix
 
