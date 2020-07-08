@@ -10,3 +10,5 @@ civet/scripts/testreport.html
 *.kate-swp
 
 civet/scripts/__pycache__/
+
+civet/scripts/utils/.ipynb_checkpoints/
