@@ -345,7 +345,9 @@ To run civet please either\n1) ssh into CLIMB and run with --CLIMB flag\n\
             fw.write("name,reason_for_failure\n")
             for record in do_not_run:
                 desc = record.description.split(" ")
-                fw.write(f"{record.id},{desc[1]}\n")
+                for i in desc:
+                    if i.startswith("fail="):
+                        fw.write(f"{record.id},{i}\n")
 
         config["post_qc_query"] = post_qc_query
         config["qc_fail"] = qc_fail
