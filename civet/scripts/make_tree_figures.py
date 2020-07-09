@@ -492,8 +492,6 @@ def describe_tree_background(full_tax_dict, tree_dir):
 
     figure_count = 0
 
-    bar_dict = {}
-
     for fn in tree_lst:
         focal_tree = "tree_" + str(fn)
         focal_tree_file = tree_dir + "/" + focal_tree + ".txt"
@@ -540,7 +538,6 @@ def describe_tree_background(full_tax_dict, tree_dir):
             if len(ndes_country_counts) > 1:
                 
                 figure_count += 1
-                bar_dict[focal_tree] = figure_count
 
                 plt.rc('ytick', labelsize=5)
                 
@@ -610,7 +607,6 @@ def describe_tree_background(full_tax_dict, tree_dir):
             elif len(ndes_country_counts) == 1:
                 
                 figure_count += 1
-                bar_dict[focal_tree] = figure_count
                 plt.figure(figsize=(2,2))
 
                 for nde, country_counts in ndes_country_counts.items():
@@ -630,5 +626,5 @@ def describe_tree_background(full_tax_dict, tree_dir):
 
               
 
-    return figure_count, bar_dict
+    return figure_count
 
