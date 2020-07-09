@@ -408,7 +408,7 @@ To run civet please either\n1) ssh into CLIMB and run with --CLIMB flag\n\
 
     if args.distance:
         try:
-            distance = int(args.distance)
+            distance = int(args.distance) 
             config["distance"] = args.distance
         except:
             sys.stderr.write('Error: distance must be an integer\n')

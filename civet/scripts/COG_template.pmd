@@ -153,16 +153,14 @@ print(str(number_seqs) + " sequences were sequenced recently by COG-UK members."
 df = dp.make_initial_table(query_dict, desired_fields, True)
 
 ```
+Their location is shown on the following map, with dots sized by the number of sequences from each location.
 
-Their location is shown on the following map.
-
-```python, name="make_map", echo=False, include=False
-#this is not working right now
-#map = mapping.run_map_functions(full_tax_dict, clean_locs_file, mapping_json_files)
+```python, name="make_map", echo=False, include=False, results='tex'
+map = mapping.run_map_functions(query_dict, clean_locs_file, mapping_json_files)
 ```
 
 ```python, name="show_map", echo=False, results='raw'
- #print("![](" + figdir + "/" + name_stem + "_make_map_1.png)")
+print("![](" + figdir + "/" + name_stem + "_make_map_1.png)")
 ```
 
 ## Phylogenies

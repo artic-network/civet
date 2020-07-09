@@ -27,13 +27,15 @@ def prep_data(tax_dict, clean_locs_file):
             metadata_loc = toks[0]
             real_locs = toks[1:]   
             
-            if len(real_locs) == 1:
-                straight_map[metadata_loc] = real_locs[0].upper()
+            if metadata_loc == 'RHONDDA CYNON TAF':
+                straight_map[metadata_loc] = "RHONDDA, CYNON, TAFF" 
             else:
-                merged_locations[metadata_loc] = real_locs
-                for i in real_locs:
-                    metadata_multi_loc[i] = metadata_loc.upper()
-
+                if len(real_locs) == 1:
+                    straight_map[metadata_loc] = real_locs[0].upper()
+                else:
+                    for i in real_locs:
+                        metadata_multi_loc[i.upper()] = metadata_loc.upper()
+    
     return adm2s, metadata_multi_loc, straight_map
 
 def prep_mapping_data(mapping_input, metadata_multi_loc):
@@ -46,6 +48,8 @@ def prep_mapping_data(mapping_input, metadata_multi_loc):
     NI = geopandas.read_file(ni_file)
     channels = geopandas.read_file(channel_file)
 
+    ###GET NI COUNTIES
+
     ni_name = []
     for i in range(len(NI["CountyName"])):
         ni_name.append("Northern Ireland C")
@@ -55,6 +59,17 @@ def prep_mapping_data(mapping_input, metadata_multi_loc):
 
     all_uk = UK.append(channels).append(NI)
 
+    ###CAPITALISE GEOJSON DATA
+
+    uppers = []
+    for i in all_uk["NAME_2"]:
+        uppers.append(i.upper())
+        
+    all_uk["NAME_2"] = uppers
+
+    original = all_uk.copy()
+
+    ##DEAL WITH MERGED LOCATIONS EG WEST MIDLANDS
 
     for_merging = []
 
@@ -70,21 +85,30 @@ def prep_mapping_data(mapping_input, metadata_multi_loc):
 
     merged_locs = all_uk.dissolve(by="Multi_loc")
 
-    result = pd.merge(merged_locs, all_uk, how="outer")
+    mergeds = []
+    for multi_loc in merged_locs.index:
+        mergeds.append(multi_loc)
+
+    merged_locs["NAME_2"] = mergeds
+
+    ###ADD MERGED AND NON-MERGED DATABASES TOGETHER
+
+    result = pd.merge(merged_locs, original, how="outer")
+
 
     return all_uk, result
 
 
 def make_centroids(result,adm2s, straight_map):
+
+    not_mappable = ["WALES", "OTHER", "UNKNOWN", "UNKNOWN SOURCE", "NOT FOUND", "GIBRALTAR", "FALKLAND ISLANDS", "CITY CENTRE"]
     
     centroid_dict = {}
 
-    for name, bigger, geometry in zip(result["NAME_2"], result["Multi_loc"], result["geometry"]):
-        if type(bigger) != str:
-            centroid_dict[name.upper()] = geometry.centroid
-        else:
-            centroid_dict[bigger.upper()] = geometry.centroid
+    centroid_dict = {}
 
+    for name, geometry in zip(result["NAME_2"], result["geometry"]):
+        centroid_dict[name.upper()] = geometry.centroid
 
     centroids = []
 
@@ -93,12 +117,16 @@ def make_centroids(result,adm2s, straight_map):
     centroid_df = defaultdict(list)
 
     for adm2, count in centroid_counts.items():
-        if adm2 in straight_map.keys():
-            new = straight_map[adm2]
-            centroids = centroid_dict[new]
-        else:
-            centroid = centroid_dict[adm2]
-            
+        try:
+            if adm2 in straight_map.keys():
+                new = straight_map[adm2]
+                centroids = centroid_dict[new]
+            else:
+                centroid = centroid_dict[adm2]
+        except KeyError:
+            if adm2 != "" and adm2 not in not_mappable:
+                print(adm2 + " is not associated with an correct adm2 region so cannot be plotted yet.")
+                
         centroid_df["Adm2"].append(adm2)
         centroid_df["geometry"].append(centroid)
         centroid_df["seq_count"].append(count)
