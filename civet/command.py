@@ -145,10 +145,13 @@ def main(sysargs = sys.argv[1:]):
             print("No fields to colour by provided, will colour by adm1 by default.\n")
         else:
             desired_fields = args.fields.split(",")
-            for field in args.fields:
+            for field in desired_fields:
                 if field in reader.fieldnames:
                     fields.append(field)
-
+                else:
+                    sys.stderr.write(f"Error: {field} field not found in metadata file")
+                    sys.exit(-1)
+                    
         print("COG-UK ids to process:")
         for row in reader:
             queries.append(row["name"])
