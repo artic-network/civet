@@ -373,8 +373,8 @@ To run civet please either\n1) ssh into CLIMB and run with --CLIMB flag\n\
     map_input_2 = pkg_resources.resource_filename('civet', 'data/mapping_files/channel_islands.json')  
     map_input_3 = pkg_resources.resource_filename('civet', 'data/mapping_files/NI_counties.geojson')  
 
-    #report_template = os.path.join(thisdir, 'scripts','civet_template.pmd')
-    report_template = os.path.join(thisdir, 'scripts','COG_template.pmd')
+    report_template = os.path.join(thisdir, 'scripts','civet_template.pmd')
+    #report_template = os.path.join(thisdir, 'scripts','COG_template.pmd')
     if not os.path.exists(report_template):
         sys.stderr.write('Error: cannot find report_template at {}\n'.format(report_template))
         sys.exit(-1)
