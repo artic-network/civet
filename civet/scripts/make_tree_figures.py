@@ -29,6 +29,7 @@ from collections import defaultdict
 
 import datetime as dt
 from collections import Counter
+from collections import defaultdict
 
 
 thisdir = os.path.abspath(os.path.dirname(__file__))
@@ -70,39 +71,22 @@ def display_name(tree, tree_name, tree_dir, query_id_dict, full_taxon_dict):
             name = k.name
             
             if "inserted" in name:
-                collapsed_node_info = summarise_collapsed_node(tree_dir, name, tree_name, full_taxon_dict)
+                collapsed_node_info = summarise_collapsed_node_for_label(tree_dir, name, tree_name, full_taxon_dict)
                 k.traits["display"] = collapsed_node_info
             else:
-                # taxon_obj = query_id_dict[name] #I think this isn't needed because the ones in COG will just have the full name in the tree
                 if name in full_taxon_dict:
                     taxon_obj = full_taxon_dict[name]
-                    if taxon_obj.sample_date != "NA":
-                        date = taxon_obj.sample_date
-                        k.traits["display"] = f"{name}|{date}"
-                    else:
-                        k.traits["display"] = name
+                
+                    date = taxon_obj.sample_date
+                    k.traits["display"] = f"{name}|{date}"
+                    
+                    if "adm2" in taxon_obj.attribute_dict.keys():
+                        adm2 = taxon_obj.attribute_dict["adm2"]
+                        k.traits["display"] = f"{name}|{adm2}|{date}"
+                
+                
                 else:
-                    #taxon_obj = ""
                     k.traits["display"] = name + "|" + "not in dict"
-
-                
-                
-                # if "county" in taxon_obj.attribute_dict.keys(): 
-                #     county = taxon_obj.attribute_dict["county"]
-                # elif "adm2" in taxon_obj.attribute_dict.keys():
-                #     county = taxon_obj.attribute_dict["adm2"]
-                # else:
-                #     county = country
-                
-            #     if "country" in k.traits: 
-            #             k.traits["display"]= f"{name}|{date}"
-            #         else:
-            #             k.traits["display"]=""
-            #     else:
-            #         k.traits["display"]=""
-
-            # else:
-
 
 
 def find_colour_dict(query_dict, trait):
@@ -139,9 +123,9 @@ def find_colour_dict(query_dict, trait):
     
         return colour_dict
     
-def make_scaled_tree_without_legend(My_Tree, tree_name, tree_dir, num_tips, colour_dict, trait, tallest_height,lineage, taxon_dict, query_id_dict, query_dict, tree_to_query):
+def make_scaled_tree_without_legend(My_Tree, tree_name, tree_dir, num_tips, colour_dict, trait, tallest_height,lineage, taxon_dict, query_id_dict, query_dict):
 
-    display_name(My_Tree, tree_name, tree_dir, query_id_dict, taxon_dict) #this is id dict for when the ids are in the tree.
+    display_name(My_Tree, tree_name, tree_dir, query_id_dict, taxon_dict) 
     My_Tree.uncollapseSubtree()
 
     # closest_names = []
@@ -216,8 +200,8 @@ def make_scaled_tree_without_legend(My_Tree, tree_name, tree_dir, num_tips, colo
             ax2.text(tallest_height+space_offset+space_offset, y, name, size=font_size_func(k), ha="left", va="center", fontweight="ultralight")
             ax2.plot([x+space_offset,tallest_height+space_offset],[y,y],ls='--',lw=0.5,color=l_func(k))
 
-            if k.name in query_dict.keys() or k.name in query_id_dict.keys():
-                tree_to_query[lineage].append(k.name)
+            # if k.name in query_dict.keys() or k.name in query_id_dict.keys():
+            #     tree_to_query[tree_name].append(k.name)
 
     ax2.spines['top'].set_visible(False) ## make axes invisible
     ax2.spines['right'].set_visible(False)
@@ -233,7 +217,7 @@ def make_scaled_tree_without_legend(My_Tree, tree_name, tree_dir, num_tips, colo
 
     fig2.tight_layout()
 
-    return tree_to_query
+
 
 def sort_trees_index(tree_dir):
     b_list = []
@@ -249,12 +233,14 @@ def sort_trees_index(tree_dir):
         
     return c
 
-def make_all_of_the_trees(input_dir, taxon_dict, query_id_dict, query_dict, tree_to_query, desired_fields, min_uk_taxa=3):
-    
+def make_all_of_the_trees(input_dir, taxon_dict, query_id_dict, query_dict, desired_fields, min_uk_taxa=3):
+
     tallest_height = find_tallest_tree(input_dir)
 
     too_tall_trees = []
     colour_dict_dict = defaultdict(dict)
+
+    overall_df_dict = defaultdict(dict)
 
     overall_tree_count = 0
     
@@ -293,6 +279,11 @@ def make_all_of_the_trees(input_dir, taxon_dict, query_id_dict, query_dict, tree
                 if k.branchType == 'leaf':
                     tips.append(k.name)
             if len(tips) < 1000:
+
+                df_dict = summarise_node_table(input_dir, treename, taxon_dict)
+
+                overall_df_dict[treename] = df_dict
+
                 overall_tree_count += 1      
                 
                 if desired_fields == []:
@@ -304,15 +295,15 @@ def make_all_of_the_trees(input_dir, taxon_dict, query_id_dict, query_dict, tree
                 for trait in colour_by:
                     colour_dict = find_colour_dict(query_dict, trait)
                     colour_dict_dict[trait] = colour_dict
-                    tree_to_query = make_scaled_tree_without_legend(tree, treename, input_dir, len(tips), colour_dict, trait, tallest_height, lineage, taxon_dict, query_id_dict, query_dict, tree_to_query)     
+                    make_scaled_tree_without_legend(tree, treename, input_dir, len(tips), colour_dict, trait, tallest_height, lineage, taxon_dict, query_id_dict, query_dict)     
             else:
                 too_tall_trees.append(lineage)
                 continue
 
-    return too_tall_trees, overall_tree_count, tree_to_query, colour_dict_dict
+    return too_tall_trees, overall_tree_count, colour_dict_dict, overall_df_dict
 
-def summarise_collapsed_node(tree_dir, focal_node, focal_tree, full_tax_dict):
-
+def summarise_collapsed_node_for_label(tree_dir, focal_node, focal_tree, full_tax_dict): 
+    
     focal_tree_file = focal_tree + ".txt"
 
     with open(tree_dir + "/" + focal_tree_file) as f:
@@ -323,7 +314,6 @@ def summarise_collapsed_node(tree_dir, focal_node, focal_tree, full_tax_dict):
             members = toks[1]
         
             if node_name == focal_node:
-                dates = []
                 countries = []
                 
                 member_list = members.split(",")
@@ -332,17 +322,14 @@ def summarise_collapsed_node(tree_dir, focal_node, focal_tree, full_tax_dict):
                 for tax in member_list:
                     if tax in full_tax_dict.keys():
                         taxon_obj = full_tax_dict[tax]
-                    
-                        if taxon_obj.sample_date != "NA":
-                            date_string = taxon_obj.sample_date
-                            date = dt.datetime.strptime(date_string, "%Y-%m-%d").date()
-                            dates.append(date)
                         
                         countries.append(taxon_obj.attribute_dict["country"])
                     
-                    else:
-                        country = tax.split("/")[0]
-                        countries.append(country)
+                    else: #should always be in the full metadata now
+                        print("tax missing from full metadata")
+                    #     country = tax.split("/")[0]
+                    #     countries.append(country)
+                    
 
                 country_counts = Counter(countries)
 
@@ -367,19 +354,105 @@ def summarise_collapsed_node(tree_dir, focal_node, focal_tree, full_tax_dict):
                     pretty_countries = str(list(country_counts.keys())).lstrip("[").rstrip("]").replace("'", "")
 
 
-                #taken out for now until we can get dates for all the tips
-                # min_date = str(min(dates))
-                # max_date = str(max(dates))
-                #info = number_nodes + ", ranging from " + min_date + " to " + max_date + " in " + pretty_countries
-
                 node_number = node_name.lstrip("inserted_node")
                 pretty_node_name = "Collapsed node " + node_number
 
                 info = pretty_node_name + ": " + number_nodes + " in " + pretty_countries
 
-
-
     return info
+
+def summarise_node_table(tree_dir, focal_tree, full_tax_dict):
+
+    focal_tree_file = focal_tree + ".txt"
+
+    df_dict = defaultdict(list)
+
+    with open(tree_dir + "/" + focal_tree_file) as f:
+        next(f)
+        for l in f:
+            toks = l.strip("\n").split("\t")
+            node_name = toks[0]
+            members = toks[1]
+        
+            dates = []
+            countries = []
+            adm2_present = []
+            uk_present = False
+
+            node_number = node_name.lstrip("inserted_node")
+            
+            member_list = members.split(",")
+
+           
+
+            for tax in member_list:
+                if tax in full_tax_dict.keys():
+                    taxon_obj = full_tax_dict[tax]
+                
+                    if taxon_obj.sample_date != "NA":
+                        date_string = taxon_obj.sample_date
+                        date = dt.datetime.strptime(date_string, "%Y-%m-%d").date()
+                        dates.append(date)
+                    
+                    countries.append(taxon_obj.attribute_dict["country"])
+
+                    if taxon_obj.attribute_dict["country"] == "UK":
+                        if "adm2" in taxon_obj.attribute_dict.keys():
+                            if taxon_obj.attribute_dict["adm2"] != "":
+                                adm2_present.append(taxon_obj.attribute_dict["adm2"])
+            
+            if len(adm2_present) != 0:
+                adm2_counts = Counter(adm2_present)
+
+            country_counts = Counter(countries)
+
+            most_commons = country_counts.most_common(5)
+
+            country_str = ""
+
+            elem_count = 0
+
+            for country, count in most_commons:
+                elem_count += 1
+                if elem_count == len(most_commons):
+                    elem = country + " (" + str(count) + ")"
+                    country_str += elem
+                else:
+                    elem = country + " (" + str(count) + "), "
+                    country_str += elem
+
+            if len(adm2_present) != 0:
+                adm2_string = ""
+                elem_count = 0
+                for adm2, c in adm2_counts.items():
+                    elem_count += 1
+                    if elem_count == len(adm2_counts):
+                        elem = adm2 + " (" + str(c) + ")"
+                        adm2_string += elem
+                    else:
+                        elem = adm2 + " (" + str(c) + "), "
+                        adm2_string += elem
+
+            else:
+                adm2_string = "NA"
+                
+
+            min_date = str(min(dates))
+            max_date = str(max(dates))
+
+            if "UK" in countries:
+                uk_present = True
+
+            size = len(member_list)
+
+            df_dict["Node number"].append(node_number)
+            df_dict["UK present"].append(uk_present)
+            df_dict["Number of sequences"].append(size)
+            df_dict["Date range"].append(min_date + " to " + max_date)
+            df_dict["Countries"].append(country_str)
+            df_dict["Admin 2 regions"].append(adm2_string)
+
+    return df_dict
 
 def make_legend(colour_dict):
     
@@ -493,6 +566,7 @@ def describe_tree_background(full_tax_dict, tree_dir):
                         
                         count += 1
 
+                 
                     fig.suptitle(pretty_focal,y=1.1,x=0.05, size=10)
                 
                 else:
@@ -516,6 +590,7 @@ def describe_tree_background(full_tax_dict, tree_dir):
                             except IndexError:
                                 continue
 
+               
                     fig.suptitle(pretty_focal,y=0.95,x=0.1, size=10)
 
                 if len(ndes_country_counts) != rows*5:
@@ -549,7 +624,7 @@ def describe_tree_background(full_tax_dict, tree_dir):
                     plt.title(pretty_focal + ": " + nde, size=5)
 
 
-                    
+              
 
     return figure_count
 
