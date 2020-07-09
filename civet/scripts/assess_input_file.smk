@@ -253,7 +253,11 @@ rule make_report:
         cog_global_metadata = config["cog_global_metadata"],
         report_template = config["report_template"],
         polytomy_figure = config["polytomy_figure"],
-        no_seq = rules.get_closest_cog.output.not_processed
+        no_seq = rules.get_closest_cog.output.not_processed,
+        clean_locs = config["clean_locs"],
+        uk_map = config["uk_map"],
+        channels_map = config["channels_map"],
+        ni_map = config["ni_map"]
     params:
         treedir = os.path.join(config["outdir"],"local_trees"),
         outdir = config["rel_outdir"],
@@ -284,6 +288,10 @@ rule make_report:
         --report-template {input.report_template:q} \
         --filtered-cog-metadata {input.combined_metadata:q} \
         --cog-metadata {input.cog_global_metadata:q} \
+        --clean-locs {input.clean_locs} \
+        --uk-map {input.uk_map} \
+        --channels-map {input.channels_map} \
+        --ni-map {input.ni_map} \
         --outfile {output.outfile:q} \
         --outdir {params.outdir:q} 
         """)

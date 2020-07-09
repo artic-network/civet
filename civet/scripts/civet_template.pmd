@@ -3,7 +3,7 @@ import os
 figdir = "" ##CHANGE
 sequencing_centre = "" ##CHANGE
 
-if sequencing_centre != "DEFAULT.png":
+if sequencing_centre != "":
     header_file = os.path.join(figdir, sequencing_centre)
     print(f"![]({header_file})")
 
@@ -57,7 +57,6 @@ else:
 
 desired_fields_input = "" ##CHANGE
 summary_dir = "" ##CHANGE
-
 
 desired_fields = []
 if desired_fields_input != "":
@@ -171,7 +170,7 @@ If you would like them to be coloured by specific metadata, please provide this 
 
 
 ```python, name="make_trees", echo=False, include=False, figure=False
-too_tall_trees, overall_tree_number, colour_dict_dict = tree_viz.make_all_of_the_trees(tree_dir, full_tax_dict, query_id_dict, query_dict, desired_fields)
+too_tall_trees, overall_tree_number, colour_dict_dict, overall_df_dict = tree_viz.make_all_of_the_trees(tree_dir, full_tax_dict, query_id_dict, query_dict, desired_fields)
 ```
 ```python, name="make_legend", echo=False, include=False
 for colour_dict in colour_dict_dict.values():

@@ -17,6 +17,7 @@ dependencies:
     - dendropy>=4.4.0
     - tabulate>=0.8.7
     - grip>=4.5.2
+    - descartes>=1.1.0
     - git+https://github.com/cov-ert/datafunk.git
     - git+https://github.com/cov-ert/clusterfunk.git
 

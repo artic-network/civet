@@ -3,7 +3,7 @@ import os
 figdir = "" ##CHANGE
 sequencing_centre = "" ##CHANGE
 
-if sequencing_centre != "DEFAULT.png":
+if sequencing_centre != "":
     header_file = os.path.join(figdir, sequencing_centre)
     print(f"![]({header_file})")
 
@@ -24,6 +24,7 @@ import pandas as pd
 import os
 import data_parsing as dp
 import make_tree_figures as tree_viz
+import mapping as mapping
 import matplotlib.font_manager as font_manager
 import matplotlib as mpl
 from collections import defaultdict
@@ -57,6 +58,14 @@ else:
 
 desired_fields_input = "" ##CHANGE
 summary_dir = "" ##CHANGE
+
+clean_locs_file = "" ##CHANGE
+
+uk_map = "" ##CHANGE
+channels_map = "" ##CHANGE
+ni_map = "" ##CHANGE
+
+mapping_json_files = [uk_map, channels_map, ni_map]
 
 
 desired_fields = []
@@ -144,6 +153,15 @@ print(str(number_seqs) + " sequences were sequenced recently by COG-UK members."
 df = dp.make_initial_table(query_dict, desired_fields, True)
 
 ```
+Their location is shown on the following map, with dots sized by the number of sequences from each location.
+
+```python, name="make_map", echo=False, include=False, results='tex'
+map = mapping.run_map_functions(query_dict, clean_locs_file, mapping_json_files)
+```
+
+```python, name="show_map", echo=False, results='raw'
+print("![](" + figdir + "/" + name_stem + "_make_map_1.png)")
+```
 
 ## Phylogenies
 
@@ -157,8 +175,7 @@ If you would like them to be coloured by specific metadata, please provide this 
 
 
 ```python, name="make_trees", echo=False, include=False, figure=False
-too_tall_trees, overall_tree_number, colour_dict_dict = tree_viz.make_all_of_the_trees(tree_dir, full_tax_dict, query_id_dict, query_dict, desired_fields)
-
+too_tall_trees, overall_tree_number, colour_dict_dict, overall_df_dict = tree_viz.make_all_of_the_trees(tree_dir, full_tax_dict, query_id_dict, query_dict, desired_fields)
 ```
 
 ```python, name="make_legend", echo=False, include=False
@@ -174,6 +191,7 @@ for i, trait in enumerate(colour_dict_dict.keys()):
 if len(desired_fields) == 1:
     for i in range(1,overall_tree_number+1):
         tree_name = "Tree " + str(i)
+        print("### " + tree_name)
         lookup = "tree_" + str(i)
         if len(tree_to_tip[lookup]) == 1:
             print(str(len(tree_to_tip[lookup])) +  " sequence is in Tree " + str(i))
@@ -183,12 +201,19 @@ if len(desired_fields) == 1:
         right_rows = df["Tree"]==tree_name
         relevant_df = df[right_rows].drop(columns=["Tree"])
         print(relevant_df.to_markdown())
+        print("  ")
         print("![](" + figdir + "/" + name_stem + "_make_trees_" + str(i) + ".png)")
+
+        node_dict = overall_df_dict[lookup]
+        node_df = pd.DataFrame(node_dict)
+        node_df.set_index("Node number", inplace=True)
+        print(node_df.to_markdown())
 
 else:
     for i in range(1,overall_tree_number+1):
         tree_name = "Tree " + str(i)
         lookup = "tree_" + str(i)
+        print("### " + tree_name)
         if len(tree_to_tip[lookup]) == 1:
             print(str(len(tree_to_tip[lookup])) +  " sequence is in Tree " + str(i))
         else:
@@ -202,6 +227,11 @@ else:
             print("   ")
             print("![](" + figdir + "/" + name_stem + "_make_trees_" + str(base_number + k) + ".png)")
 
+        node_dict = overall_df_dict[lookup]
+        node_df = pd.DataFrame(node_dict)
+        node_df.set_index("Node number", inplace=True)
+        print(node_df.to_markdown())
+
 
 ```
 
@@ -209,22 +239,6 @@ else:
 if too_tall_trees != []:
     for tree in too_tall_trees:
         print("Tree" + str(tree) + " is too large to be rendered here.")
-```
-
-## Tree background
-
-The following plots describe the data in the collapsed nodes in more detail.
-If more than one country was present, the bar chart describes the number of sequences present in each country. 
-Where there were 10 countries or more, the largest 10 have been taken. 
-If a UK sequence is present in the collapsed node, it is always shown in the plot.
-
-```python, name="tree_background", echo=False, include=False, fig=False
-bar_count = tree_viz.describe_tree_background(full_tax_dict, tree_dir)
-```
-
-```python, name="display bar charts", echo=False, results='raw'
-for i in range(bar_count):
-    print("![](" + figdir + "/" + name_stem + "_tree_background_" + str(i+1) + ".png)")
 ```
 
 ## Appendix
