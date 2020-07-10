@@ -113,16 +113,17 @@ if count_fails != 0 or count_missing != 0:
     if count_fails != 0:
         fail_dict = dp.investigate_QC_fails(QC_fail_file)
         if len(fail_dict) > 0:
-            print("The following sequences have failed QC\n")
+            print("The following sequences have failed QC:\n")
             for seq, reason in fail_dict.items():
                 pretty_name = seq.replace("'","")
                 pretty_reason = reason.replace("'","")
-                print(pretty_name, pretty_reason)
+                print(" - " + pretty_name, pretty_reason)
     if count_missing != 0:
+        print("\n")
         failed_names = dp.print_missing_seqs(missing_seq_file)
-        print("The following seqs were not found in COG and a fasta file was not provided, so CIVET was unable to add them into phylogenies.")
+        print("The following seqs were not found in COG and a fasta file was not provided, so CIVET was unable to add them into phylogenies:\n")
         for i in failed_names:
-            print(i.replace("'",""))
+            print(" - " + i.replace("'","")) 
 ```
 
 ```python, name="early descriptions", echo=False, results='tex'
@@ -178,8 +179,9 @@ for colour_dict in colour_dict_dict.values():
 ```
 ```python,name="show_legend",echo=False,results='raw'
 for i, trait in enumerate(colour_dict_dict.keys()):
-    print("The legend for " + trait + " is shown below.")
+    print("The legend for " + trait + " is shown below.\n")
     print("![](" + figdir + "/" + name_stem + "_make_legend_" + str(i+1) + ".png)")
+    print("\n")
 ```
 ```python, name="show_trees", echo=False, results='raw'
 if len(desired_fields) == 1:
@@ -197,6 +199,8 @@ if len(desired_fields) == 1:
 
 else:
     for i in range(1,overall_tree_number+1):
+        tree_name = "Tree " + str(i)
+        lookup = "tree_" + str(i)
         if len(tree_to_tip[lookup]) == 1:
             print("Tree number " + str(i) + " contains " + str(len(tree_to_tip[lookup])) + " query.")
             print("Given that there are no other sequences in the query dataset that are in this tree, transmission between this sequence and other queries can be ruled out.")
