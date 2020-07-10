@@ -6,6 +6,7 @@ from tabulate import tabulate
 import baltic as bt
 import os
 import datetime as dt
+import math
 
 
 class taxon():
@@ -313,7 +314,7 @@ def investigate_QC_fails(QC_file):
                 final_reason = "Sequence too short: only " + length + " bases."
             elif "N_content" in reason:
                 n_content = reason.split(":")[1]
-                final_reason = "Sequence has too many Ns: " + str(float(n_content)*100) + "\% of bases"
+                final_reason = "Sequence has too many Ns: " + str(float(round(float(n_content)*100))) + "\% of bases"
 
             fail_dict[name] = final_reason
 
