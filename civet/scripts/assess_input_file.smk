@@ -253,6 +253,7 @@ rule make_report:
         cog_global_metadata = config["cog_global_metadata"],
         report_template = config["report_template"],
         polytomy_figure = config["polytomy_figure"],
+        footer = config["footer"],
         no_seq = rules.get_closest_cog.output.not_processed,
         clean_locs = config["clean_locs"],
         uk_map = config["uk_map"],
@@ -270,13 +271,15 @@ rule make_report:
         failure = config["qc_fail"]
     output:
         poly_fig = os.path.join(config["outdir"],"figures","polytomies.png"),
+        footer_fig = os.path.join(config["outdir"], "figures", "footer.png"),
         outfile = os.path.join(config["outdir"], "civet_report.md")
     run:
         if params.sc != "":
             shell("cp {params.sc_source:q} {params.sc:q}")
         shell(
         """
-        cp {input.polytomy_figure:q} {output.poly_fig:q} 
+        cp {input.polytomy_figure:q} {output.poly_fig:q}
+        cp {input.footer:q} {output.footer_fig:q}
         make_report.py \
         --input-csv {input.query:q} \
         -f {params.fields:q} \
