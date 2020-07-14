@@ -55,10 +55,10 @@ def main(sysargs = sys.argv[1:]):
     parser.add_argument('--max-ambig', action="store", default=0.5, type=float,help="Maximum proportion of Ns allowed to attempt analysis. Default: 0.5",dest="maxambig")
     parser.add_argument('--min-length', action="store", default=10000, type=int,help="Minimum query length allowed to attempt analysis. Default: 10000",dest="minlen")
     ###Added
-    parser.add_argument('--local-lineages',action="store_true",dest="local_lineages",help="Contextualise the cluster lineages at local regional scale. Requires at least one adm2 value in query csv.")
-    parser.add_argument('--date-restriction',action="store_true",dest="date_restriction",help="Chose whether to date-restrict comparative sequences at regional-scale.")
-    parser.add_argument('--date-range-start',action="store",default=None, type=str, dest="date_range_start", help="Define the start date from which sequences will COG sequences will be used for local context. YYYY-MM-DD format required.")
-    parser.add_argument('--date-range-end', action="store", default=None, type=str, dest="date_range_end", help="Define the end date from which sequences will COG sequences will be used for local context. YYYY-MM-DD format required.")
+    parser.add_argument('--local-lineages',action="store_true",dest="local_lineages",help="Contextualise the cluster lineages at local regional scale. Requires at least one adm2 value in query csv.", default=False)
+    parser.add_argument('--date-restriction',action="store_true",dest="date_restriction",help="Chose whether to date-restrict comparative sequences at regional-scale.", default=False)
+    parser.add_argument('--date-range-start',action="store",default="", type=str, dest="date_range_start", help="Define the start date from which sequences will COG sequences will be used for local context. YYYY-MM-DD format required.")
+    parser.add_argument('--date-range-end', action="store", default="", type=str, dest="date_range_end", help="Define the end date from which sequences will COG sequences will be used for local context. YYYY-MM-DD format required.")
     parser.add_argument('--date-window',action="store",default=7, type=int, dest="date_window",help="Define the window +- either side of cluster sample collection date-range. Default is 7 days.")
     parser.add_argument("-v","--version", action='version', version=f"civet {__version__}")
 
@@ -185,13 +185,19 @@ def main(sysargs = sys.argv[1:]):
         "rel_outdir":rel_outdir,
         "search_field":args.search_field,
         "force":"True",
-        "local_lins":"local_lineages",
-        "date_restriction":"date_restriction",
-        "date_range_start":"date_range_start",
-        "date_range_end": "date_range_end",
-        "date_window":"date_window"
+        "date_range_start":args.date_range_start,
+        "date_range_end":args.date_range_end,
+        "date_window":args.date_window
         }
+    if args.local_lineages:
+        config['local_lins'] = "True"
+    else:
+        config['local_lins'] = "False"
 
+    if args.date_restriction:
+        config['date_restriction'] = "True"
+    else:
+        config['date_restriction'] = "False"
     """ 
     QC steps:
     1) check csv header
