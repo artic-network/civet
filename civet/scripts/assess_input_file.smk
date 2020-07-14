@@ -180,6 +180,7 @@ rule process_catchments:
         query_seqs = rules.get_closest_cog.output.aligned_query, #datafunk-processed seqs
         catchment_prompt = rules.prune_out_catchments.output.txt,
         all_cog_seqs = config["all_cog_seqs"],
+        outgroup_fasta = config["outgroup_fasta"],
         cog_global_seqs = config["cog_global_seqs"]
         # not_cog_csv = rules.check_cog_all.output.not_cog
     params:
@@ -226,6 +227,7 @@ rule process_catchments:
                         f"catchment_str={catchment_str} "
                         "outdir={params.outdir:q} "
                         "tempdir={params.tempdir:q} "
+                        "outgroup_fasta={input.outgroup_fasta:q} "
                         "aligned_query_seqs={input.query_seqs:q} "
                         "all_cog_seqs={input.all_cog_seqs:q} "
                         "cog_global_seqs={input.cog_global_seqs:q} "
