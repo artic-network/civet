@@ -98,6 +98,7 @@ rule gather_fasta_seqs:
         collapsed_nodes = os.path.join(config["tempdir"],"collapsed_trees","{tree}_representatives.fasta"),
         aligned_query_seqs = config["aligned_query_seqs"],
         cog_seqs = config["all_cog_seqs"],
+        outgroup_fasta = config["outgroup_fasta"],
         combined_metadata = config["combined_metadata"],
         tree_taxa = rules.extract_taxa.output.tree_taxa
     output:
@@ -119,6 +120,9 @@ rule gather_fasta_seqs:
 
         added_seqs = []
         with open(output.aln, "w") as fw:
+            for record in SeqIO.parse(input.outgroup_fasta, "fasta"):
+                fw.write(f">{record.description}\n{record.seq}\n")
+                added_seqs.append(record.id)
 
             for record in SeqIO.parse(input.aligned_query_seqs, "fasta"):
                 if record.id in queries.values() or record.id in queries.keys():
@@ -148,9 +152,13 @@ rule hash_for_iqtree:
         with open(output.hashed_aln, "w") as fseq:
             for record in SeqIO.parse(input.aln, "fasta"):
                 hash_count +=1
-                without_str = record.id.rstrip("'").lstrip("'")
-                fw.write(f"{without_str},_taxon_{hash_count}_,taxon_{hash_count}\n")
-                fseq.write(f">'taxon_{hash_count}'\n{record.seq}\n")
+                if record.id == "'outgroup'":
+                    fw.write(f"outgroup,_outgroup_,outgroup\n")
+                    fseq.write(f">'outgroup'\n{record.seq}\n")
+                else:
+                    without_str = record.id.rstrip("'").lstrip("'")
+                    fw.write(f"{without_str},_taxon_{hash_count}_,taxon_{hash_count}\n")
+                f   seq.write(f">'taxon_{hash_count}'\n{record.seq}\n")
         fw.close()
 
 rule hash_tax_labels:
@@ -177,7 +185,7 @@ rule iqtree_catchment:
     output:
         tree = os.path.join(config["tempdir"], "renamed_trees","{tree}.query.aln.fasta.treefile")
     shell:
-        "iqtree -s {input.aln:q} -au -m HKY -nt 1 -redo"
+        "iqtree -s {input.aln:q} -au -m HKY -nt 1 -redo -o 'outgroup'"
 
 
 rule restore_tip_names:
@@ -198,11 +206,26 @@ rule restore_tip_names:
         --out-format newick
         """
 
+rule prune_outgroup:
+    input:
+        tree = os.path.join(config["tempdir"],"almost_restored_trees","{tree}.tree"),
+        prune = config["outgroup_fasta"]
+    output:
+        tree = os.path.join(config["tempdir"],"outgroup_pruned","{tree}.tree")
+    shell:
+        """
+        clusterfunk prune -i {input.tree:q} \
+        -o {output.tree:q} \
+        --fasta {input.prune:q} \
+        --in-format newick \
+        --out-format newick
+        """
+
 rule remove_str_for_baltic:
     input:
-        tree = os.path.join(config["tempdir"],"almost_restored_trees","{tree}.tree")
+        tree = os.path.join(config["tempdir"],"outgroup_pruned","{tree}.tree")
     output:
-        tree = os.path.join(config["tempdir"],"almost_restored_trees","{tree}.newick")
+        tree = os.path.join(config["tempdir"],"outgroup_pruned","{tree}.newick")
     run:
         with open(output.tree,"w") as fw:
             with open(input.tree, "r") as f:
