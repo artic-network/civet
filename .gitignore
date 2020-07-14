@@ -3,6 +3,7 @@
 
 workspace/
 
+<<<<<<< HEAD
 <<<<<<< refs/remotes/COG-UK/master
 civet/scripts/__pycache__/
 =======
@@ -11,6 +12,9 @@ civet/tests/.~lock.test.csv#
 >>>>>>> Finalising integration
 =======
 >>>>>>> Editing ignores
+=======
+civet/tests/.~lock.test.csv#
+>>>>>>> dev-s
 
 civet/scripts/testreport.html
 
@@ -19,3 +23,13 @@ civet/scripts/testreport.html
 civet/scripts/__pycache__/
 
 civet/scripts/utils/.ipynb_checkpoints/
+<<<<<<< HEAD
+=======
+
+
+.idea/
+
+workspace/
+
+civet/scripts/__pycache__/
+>>>>>>> dev-s
