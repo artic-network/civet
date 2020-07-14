@@ -152,13 +152,13 @@ rule hash_for_iqtree:
         with open(output.hashed_aln, "w") as fseq:
             for record in SeqIO.parse(input.aln, "fasta"):
                 hash_count +=1
-                if record.id == "'outgroup'":
-                    fw.write(f"outgroup,_outgroup_,outgroup\n")
-                    fseq.write(f">'outgroup'\n{record.seq}\n")
+                if record.id == "outgroup":
+                    fw.write(f"outgroup,outgroup,outgroup\n")
+                    fseq.write(f">outgroup\n{record.seq}\n")
                 else:
                     without_str = record.id.rstrip("'").lstrip("'")
                     fw.write(f"{without_str},_taxon_{hash_count}_,taxon_{hash_count}\n")
-                f   seq.write(f">'taxon_{hash_count}'\n{record.seq}\n")
+                    fseq.write(f">'taxon_{hash_count}'\n{record.seq}\n")
         fw.close()
 
 rule hash_tax_labels:
@@ -185,7 +185,7 @@ rule iqtree_catchment:
     output:
         tree = os.path.join(config["tempdir"], "renamed_trees","{tree}.query.aln.fasta.treefile")
     shell:
-        "iqtree -s {input.aln:q} -au -m HKY -nt 1 -redo -o 'outgroup'"
+        "iqtree -s {input.aln:q} -au -m HKY -nt 1 -redo -o outgroup"
 
 
 rule restore_tip_names:
@@ -236,7 +236,7 @@ rule remove_str_for_baltic:
 
 rule to_nexus:
     input:
-        tree = os.path.join(config["tempdir"],"almost_restored_trees","{tree}.newick")
+        tree = os.path.join(config["tempdir"],"outgroup_pruned","{tree}.newick")
     output:
         tree = os.path.join(config["outdir"],"local_trees","{tree}.tree")
     run:
