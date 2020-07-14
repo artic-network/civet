@@ -372,6 +372,7 @@ To run civet please either\n1) ssh into CLIMB and run with --CLIMB flag\n\
 
     # accessing package data and adding to config dict
     reference_fasta = pkg_resources.resource_filename('civet', 'data/reference.fasta')
+    outgroup_fasta = pkg_resources.resource_filename('civet', 'data/outgroup.fasta')
     polytomy_figure = pkg_resources.resource_filename('civet', 'data/polytomies.png')
     footer_fig = pkg_resources.resource_filename('civet', 'data/footer.png')
     clean_locs = pkg_resources.resource_filename('civet', 'data/mapping_files/adm2_cleaning.csv')
@@ -386,6 +387,7 @@ To run civet please either\n1) ssh into CLIMB and run with --CLIMB flag\n\
         sys.exit(-1)
 
     config["reference_fasta"] = reference_fasta
+    config["outgroup_fasta"] = outgroup_fasta
     config["polytomy_figure"] = polytomy_figure
     config["footer"] = footer_fig
     config["report_template"] = report_template
