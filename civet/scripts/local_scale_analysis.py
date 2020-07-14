@@ -8,7 +8,7 @@ import json
 #from vega import VegaLite
 import argparse
 warnings.filterwarnings("ignore")
-
+print("running local scale analysis")
 # ~~~~~~~ Define input variables ~~~~~~~~~~
 
 parser = argparse.ArgumentParser(description='Parse barcode info and minimap paf file, create report.')
@@ -20,21 +20,26 @@ parser.add_argument("--user-sample-data", action="store", type=str, dest="user_s
 parser.add_argument("--date-window", action="store",required=False, type=int, dest="date_window")
 parser.add_argument("--output-base-dir", action="store", type=str, dest="output_base_dir")
 parser.add_argument("--civet-cat", action="store", type=str, dest="civet_cat_dir")
+parser.add_argument("--hb-translation", action="store", type=str, dest="hb_translation")
+parser.add_argument("--uk-map", action="store", type=str, dest="uk_map")
+#parser.add_argument("--uk-map", action="store", type=str, dest="")
 
 argsIN=parser.parse_args()
 
 currentDir=os.getcwd()
 #####    NOTE ------- NEEEDS TO KNOW WHAT THE GENERATED OUTPUT DIR IS
-outDIR=os.path.join(currentDir, 'GENERATEDOUTPUTDIR', 'figures', 'Mapping')
+outDIR=argsIN.output_base_dir
+#os.path.join(currentDir, 'GENERATEDOUTPUTDIR', 'figures', 'Mapping')
 
 ## Needed temporarily to point to correct additional data files (map, pkl)
-civet_dir = "/mnt/e/Users/Stefan/GitKraken/civet"
+#civet_dir = "/mnt/e/Users/Stefan/GitKraken/civet"
 # Needed to pull metadata
-civet_cat_dir=os.path.join(currentDir, 'civet_cat')
+#civet_cat_dir=os.path.join(currentDir, 'civet_cat')
 
 ### needs importation from installation of civet
-translator=os.path.join(civet_dir, "civet", "data", "maps", "HB_Translation.pkl")
-mapfile=f"{civet_dir}/civet/data/maps/Mainland_HBs_gapclosed_mapshaped_d3.json"
+translator=argsIN.hb_translation
+mapfile=argsIN.uk_map
+#f"{civet_dir}/civet/data/maps/Mainland_HBs_gapclosed_mapshaped_d3.json"
 
 date_pair=[]
 for each in [argsIN.date_pair_start, argsIN.date_pair_end]:
