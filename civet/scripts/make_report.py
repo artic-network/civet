@@ -52,18 +52,6 @@ def make_report(cog_metadata, input_csv, filtered_cog_metadata, outfile, outdir,
                     elif "ni_map" in l:
                         new_l = f'ni_map = "{ni_map}"\n'
 
-                    ### Added
-                    elif "local_lineage" in l:
-                        new_l = f'local_lineage = "{local_lin}"\n'
-                    elif "date_restriction" in l:
-                        new_l = f'date_restriction = "{date_restrict}"\n'
-                    elif "date_start" in l:
-                        new_l = f'date_start = "{date_start}"\n'
-                    elif "date_end" in l:
-                        new_l = f'date_end = "{date_end}"\n'
-                    elif "date_window_size" in l:
-                        new_l = f'date_window_size = "{date_window}"\n'
-                    
                 else:
                     new_l = l
 
@@ -89,12 +77,6 @@ def main():
     parser.add_argument("-o","--outfile", default="civet_report.pmd", help="output name stem as a string",dest="outfile")
     parser.add_argument("--outdir", help="output directory",dest="outdir")
     parser.add_argument("--figdir", help="output directory",dest="figdir")
-    ##Added
-    parser.add_argument("--local-lin", default="False", help="Whether to produce localised lineages",dest="local_lin")
-    parser.add_argument("--date-restrict", default="False", help="Whether to restrict dates",dest="date_restrict")
-    parser.add_argument("--date-start", help="Start for date filter",dest="date_start")
-    parser.add_argument("--date-end", help="End for date filter",dest="date_end")
-    parser.add_argument("--date-window", help="Window for date filtering",dest="date_window")
 
     parser.add_argument("--clean-locs", required=True, help="CSV for cleaning adm2 regions in metadata", dest="clean_locs")
     parser.add_argument("--uk-map", required=True, help="shape file for uk counties", dest="uk_map")
