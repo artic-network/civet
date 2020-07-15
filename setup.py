@@ -67,8 +67,7 @@ setup(name='civet',
             "pweave>=0.30.3",
             "scipy>=1.4.1",
             "numpy>=1.13.3",
-            "geopandas>=0.7.0",
-            "libpysal>=4.3.0"
+            "geopandas>=0.7.0"
         ],
       cmdclass={
         'npm_install': NPMInstall
