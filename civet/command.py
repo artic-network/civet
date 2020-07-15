@@ -190,9 +190,9 @@ def main(sysargs = sys.argv[1:]):
         "date_window":args.date_window
         }
     if args.local_lineages:
-        config['local_lins'] = "True"
+        config['local_lineages'] = "True"
     else:
-        config['local_lins'] = "False"
+        config['local_lineages'] = "False"
 
     if args.date_restriction:
         config['date_restriction'] = "True"

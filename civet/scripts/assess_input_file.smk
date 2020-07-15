@@ -247,28 +247,26 @@ rule process_catchments:
                             "combined_metadata={input.combined_metadata:q} "
                             "--cores {params.cores}")
 
-
-
-if config['local_lins'] == 'True':
-    rule regional_mapping:
-        input:
-            query = config['query'],
-            combined_metadata = os.path.join(config["outdir"],"combined_metadata.csv"),
-            cog_global_metadata = config["cog_global_metadata"],
-            #no_seq = rules.get_closest_cog.output.not_processed,
-        params:
-            mapfile = config['uk_map_d3'],
-            hbtrans = config['HB_translations'],
-            daterestrict = config["date_restriction"],
-            datestart = config["date_range_start"],
-            dateend = config["date_range_end"],
-            datewindow = config["date_window"],
-            cogmeta = config["all_cog_metadata"],
-            outdir = config["rel_outdir"],
-            figdir = os.path.join(config["outdir"],"mapping_figures")
-        output:
-            outfile = os.path.join(config["outdir"], "mapping_figures", "out.vl.json")
-        run:
+rule regional_mapping:
+    input:
+        query = config['query'],
+        combined_metadata = os.path.join(config["outdir"],"combined_metadata.csv"),
+        cog_global_metadata = config["cog_global_metadata"]
+    params:
+        local_lineages = config["local_lineages"],
+        mapfile = config['uk_map_d3'],
+        hbtrans = config['HB_translations'],
+        daterestrict = config["date_restriction"],
+        datestart = config["date_range_start"],
+        dateend = config["date_range_end"],
+        datewindow = config["date_window"],
+        cogmeta = config["all_cog_metadata"],
+        outdir = config["rel_outdir"],
+        figdir = os.path.join(config["outdir"],"mapping_figures")
+    output:
+        outfile = os.path.join(config["outdir"], "mapping_figures", "out.vl.json")
+    run:
+        if params.local_lineages:
             shell(
             """
         local_scale_analysis.py \
@@ -282,117 +280,66 @@ if config['local_lins'] == 'True':
         --user-sample-data {input.query:q} \
         --output-base-dir {params.outdir:q}
             """)
-    rule make_report_with_locals:
-        input:
-            lineage_trees = rules.process_catchments.output.tree_summary,
-            query = config["query"],
-            combined_metadata = os.path.join(config["outdir"],"combined_metadata.csv"),
-            cog_global_metadata = config["cog_global_metadata"],
-            report_template = config["report_template"],
-            polytomy_figure = config["polytomy_figure"],
-            footer = config["footer"],
-            no_seq = rules.get_closest_cog.output.not_processed,
-            clean_locs = config["clean_locs"],
-            uk_map = config["uk_map"],
-            channels_map = config["channels_map"],
-            ni_map = config["ni_map"]
-        params:
-            treedir = os.path.join(config["outdir"],"local_trees"),
-            outdir = config["rel_outdir"],
-            fields = config["fields"],
-            sc_source = config["sequencing_centre"],
-            sc = config["sequencing_centre_file"],
-            sc_flag = config["sequencing_centre_flag"],
-            rel_figdir = os.path.join(".","figures"),
-            figdir = os.path.join(config["outdir"],"figures"),
-            failure = config["qc_fail"]
-        output:
-            poly_fig = os.path.join(config["outdir"],"figures","polytomies.png"),
-            footer_fig = os.path.join(config["outdir"], "figures", "footer.png"),
-            outfile = os.path.join(config["outdir"], "civet_report.md")
-        run:
-            if params.sc != "":
-                shell("cp {params.sc_source:q} {params.sc:q}")
-            shell(
-            """
-            cp {input.polytomy_figure:q} {output.poly_fig:q}
-            cp {input.footer:q} {output.footer_fig:q}
-            make_report.py \
-            --input-csv {input.query:q} \
-            -f {params.fields:q} \
-            --figdir {params.rel_figdir:q} \
-            {params.sc_flag} \
-            {params.failure} \
-            --no-seq-provided {input.no_seq} \
-            --treedir {params.treedir:q} \
-            --report-template {input.report_template:q} \
-            --filtered-cog-metadata {input.combined_metadata:q} \
-            --cog-metadata {input.cog_global_metadata:q} \
-            --clean-locs {input.clean_locs} \
-            --uk-map {input.uk_map} \
-            --channels-map {input.channels_map} \
-            --ni-map {input.ni_map} \
-            --outfile {output.outfile:q} \
-            --outdir {params.outdir:q} 
-            """)
-            #--region_mapping_dir {input.region_map_dir}
-elif config['local_lins'] == 'False':
-    print(config['local_lins'])
-    rule make_report:
-        input:
-            lineage_trees = rules.process_catchments.output.tree_summary,
-            query = config["query"],
-            combined_metadata = os.path.join(config["outdir"],"combined_metadata.csv"),
-            cog_global_metadata = config["cog_global_metadata"],
-            report_template = config["report_template"],
-            polytomy_figure = config["polytomy_figure"],
-            footer = config["footer"],
-            no_seq = rules.get_closest_cog.output.not_processed,
-            clean_locs = config["clean_locs"],
-            uk_map = config["uk_map"],
-            channels_map = config["channels_map"],
-            ni_map = config["ni_map"]
-        params:
-            treedir = os.path.join(config["outdir"],"local_trees"),
-            outdir = config["rel_outdir"],
-            fields = config["fields"],
-            sc_source = config["sequencing_centre"],
-            sc = config["sequencing_centre_file"],
-            sc_flag = config["sequencing_centre_flag"],
-            rel_figdir = os.path.join(".","figures"),
-            figdir = os.path.join(config["outdir"],"figures"),
-            failure = config["qc_fail"]
-        output:
-            poly_fig = os.path.join(config["outdir"],"figures","polytomies.png"),
-            footer_fig = os.path.join(config["outdir"], "figures", "footer.png"),
-            outfile = os.path.join(config["outdir"], "civet_report.md")
-        run:
-            if params.sc != "":
-                shell("cp {params.sc_source:q} {params.sc:q}")
-            shell(
-            """
-            cp {input.polytomy_figure:q} {output.poly_fig:q}
-            cp {input.footer:q} {output.footer_fig:q}
-            make_report.py \
-            --input-csv {input.query:q} \
-            -f {params.fields:q} \
-            --figdir {params.rel_figdir:q} \
-            {params.sc_flag} \
-            {params.failure} \
-            --no-seq-provided {input.no_seq} \
-            --treedir {params.treedir:q} \
-            --report-template {input.report_template:q} \
-            --filtered-cog-metadata {input.combined_metadata:q} \
-            --cog-metadata {input.cog_global_metadata:q} \
-            --clean-locs {input.clean_locs} \
-            --uk-map {input.uk_map} \
-            --channels-map {input.channels_map} \
-            --ni-map {input.ni_map} \
-            --outfile {output.outfile:q} \
-            --outdir {params.outdir:q} 
-            """)
+        else:
+            shell("touch {output.outfile}")
 
-
+rule make_report:
+    input:
+        lineage_trees = rules.process_catchments.output.tree_summary,
+        query = config["query"],
+        combined_metadata = os.path.join(config["outdir"],"combined_metadata.csv"),
+        cog_global_metadata = config["cog_global_metadata"],
+        report_template = config["report_template"],
+        polytomy_figure = config["polytomy_figure"],
+        footer = config["footer"],
+        no_seq = rules.get_closest_cog.output.not_processed,
+        clean_locs = config["clean_locs"],
+        uk_map = config["uk_map"],
+        channels_map = config["channels_map"],
+        ni_map = config["ni_map"],
+        local_lineages_output = rules.regional_mapping.output.outfile
+    params:
+        treedir = os.path.join(config["outdir"],"local_trees"),
+        outdir = config["rel_outdir"],
+        fields = config["fields"],
+        sc_source = config["sequencing_centre"],
+        sc = config["sequencing_centre_file"],
+        sc_flag = config["sequencing_centre_flag"],
+        rel_figdir = os.path.join(".","figures"),
+        figdir = os.path.join(config["outdir"],"figures"),
+        failure = config["qc_fail"],
+        local_lineages = config["local_lineages"]
+    output:
+        poly_fig = os.path.join(config["outdir"],"figures","polytomies.png"),
+        footer_fig = os.path.join(config["outdir"], "figures", "footer.png"),
+        outfile = os.path.join(config["outdir"], "civet_report.md")
+    run:
+        if params.sc != "":
+            shell("cp {params.sc_source:q} {params.sc:q}")
+        if params.local_lineages:
+            #change the relevant bits here
+        shell(
+        """
+        cp {input.polytomy_figure:q} {output.poly_fig:q}
+        cp {input.footer:q} {output.footer_fig:q}
+        make_report.py \
+        --input-csv {input.query:q} \
+        -f {params.fields:q} \
+        --figdir {params.rel_figdir:q} \
+        {params.sc_flag} \
+        {params.failure} \
+        --no-seq-provided {input.no_seq} \
+        --treedir {params.treedir:q} \
+        --report-template {input.report_template:q} \
+        --filtered-cog-metadata {input.combined_metadata:q} \
+        --cog-metadata {input.cog_global_metadata:q} \
+        --clean-locs {input.clean_locs} \
+        --uk-map {input.uk_map} \
+        --channels-map {input.channels_map} \
+        --ni-map {input.ni_map} \
+        --outfile {output.outfile:q} \
+        --outdir {params.outdir:q} 
+        """)
 
 rule launch_grip:
     input:
