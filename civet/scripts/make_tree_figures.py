@@ -123,7 +123,7 @@ def find_colour_dict(query_dict, trait):
     
         return colour_dict
     
-def make_scaled_tree_without_legend(My_Tree, tree_name, tree_dir, num_tips, colour_dict, trait, tallest_height,lineage, taxon_dict, query_id_dict, query_dict):
+def make_scaled_tree_without_legend(My_Tree, tree_name, tree_dir, num_tips, colour_dict_dict, desired_fields, tallest_height,lineage, taxon_dict, query_id_dict, query_dict):
 
     display_name(My_Tree, tree_name, tree_dir, query_id_dict, taxon_dict) 
     My_Tree.uncollapseSubtree()
@@ -144,6 +144,7 @@ def make_scaled_tree_without_legend(My_Tree, tree_name, tree_dir, num_tips, colo
     space_offset = tallest_height/10
     absolute_x_axis_size = tallest_height+space_offset+space_offset + tallest_height #changed from /3 
     
+
     tipsize = 40
     c_func=lambda k: 'dimgrey' ## colour of branches
     l_func=lambda k: 'lightgrey' ## colour of branches
@@ -158,10 +159,23 @@ def make_scaled_tree_without_legend(My_Tree, tree_name, tree_dir, num_tips, colo
     kwargs={'ha':'left','va':'center','size':12}
 
     #Colour by specified trait. If no trait is specified, they will be coloured by UK country
+    ###HERE
+    #so if only one, just colour the dots the same as before
+    #if len(desired_fields) == 1: 
+    trait = desired_fields[0] #so always have the first trait as the first colour dot
+    colour_dict = colour_dict_dict[trait]
     cn_func = lambda k: colour_dict[query_dict[k.name].attribute_dict[trait]] if k.name in query_id_dict.keys() or k.name in query_dict.keys() else 'dimgrey'
     co_func=lambda k: colour_dict[query_dict[k.name].attribute_dict[trait]] if k.name in query_id_dict.keys() or k.name in query_dict.keys() else 'dimgrey' 
     outline_colour_func = lambda k: colour_dict[query_dict[k.name].attribute_dict[trait]] if k.name in query_id_dict.keys() or k.name in query_dict.keys() else 'dimgrey' 
+ 
+        # cn_func = lambda k: 'dimgrey'
+        # co_func = lambda k:'dimgrey'
+        # outline_colour_func = lambda k:'dimgrey'
+    ####
 
+    #now add the others in - we'll need to do desired_fields[1:]
+
+    #going to need to do stuff with this - because the x may need to grow
     x_attr=lambda k: k.height + offset
     y_attr=lambda k: k.y
 
@@ -174,21 +188,19 @@ def make_scaled_tree_without_legend(My_Tree, tree_name, tree_dir, num_tips, colo
     min_y,max_y = y_values[0]-vertical_spacer,y_values[-1]+vertical_spacer
     
     
+    
     fig2,ax2 = plt.subplots(figsize=(20,page_height),facecolor='w',frameon=False, dpi=100)
     
 
     My_Tree.plotTree(ax2, colour_function=c_func, x_attr=x_attr, y_attr=y_attr, branchWidth=b_func)
+    
     My_Tree.plotPoints(ax2, x_attr=x_attr, colour_function=cn_func,y_attr=y_attr, size_function=s_func, outline_colour=outline_colour_func)
     My_Tree.plotPoints(ax2, x_attr=x_attr, colour_function=co_func, y_attr=y_attr, size_function=so_func, outline_colour=outline_colour_func)
 
 
     for k in My_Tree.Objects:
         
-        # if k.branchType == 'leaf': 
-        #     if k.name in query_dict.keys():
-        #         print(k.name)
-        # if "country" in k.traits: #don't need these for now because we're only doing UK trees
-        #     if k.traits["country"] in colour_dict:
+        ###PROBABLY HERE?###
         if "display" in k.traits:
             name=k.traits["display"]
 
@@ -246,6 +258,10 @@ def make_all_of_the_trees(input_dir, taxon_dict, query_id_dict, query_dict, desi
     
     lst = sort_trees_index(input_dir)
 
+    for trait in desired_fields:
+        colour_dict = find_colour_dict(query_dict, trait)
+        colour_dict_dict[trait] = colour_dict
+
     for fn in lst:
         lineage = fn
         treename = "tree_" + str(fn)
@@ -286,16 +302,8 @@ def make_all_of_the_trees(input_dir, taxon_dict, query_id_dict, query_dict, desi
 
                 overall_tree_count += 1      
                 
-                if desired_fields == []:
-                    colour_by = ["adm1"]
-                
-                else:
-                    colour_by = desired_fields
+                make_scaled_tree_without_legend(tree, treename, input_dir, len(tips), colour_dict_dict, desired_fields, tallest_height, lineage, taxon_dict, query_id_dict, query_dict)     
             
-                for trait in colour_by:
-                    colour_dict = find_colour_dict(query_dict, trait)
-                    colour_dict_dict[trait] = colour_dict
-                    make_scaled_tree_without_legend(tree, treename, input_dir, len(tips), colour_dict, trait, tallest_height, lineage, taxon_dict, query_id_dict, query_dict)     
             else:
                 too_tall_trees.append(lineage)
                 continue
@@ -326,7 +334,7 @@ def summarise_collapsed_node_for_label(tree_dir, focal_node, focal_tree, full_ta
                         countries.append(taxon_obj.attribute_dict["country"])
                     
                     else: #should always be in the full metadata now
-                        print("tax missing from full metadata")
+                        print(tax + " not found in the full metadata")
                     #     country = tax.split("/")[0]
                     #     countries.append(country)
                     
@@ -515,10 +523,11 @@ def describe_tree_background(full_tax_dict, tree_dir):
             for nde, seqs in collapsed_dict.items():
                 countries = []
                 for i in seqs:
-                    obj = full_tax_dict[i]
-                    countries.append(obj.attribute_dict["country"])
+                    if i in full_tax_dict.keys():
+                        obj = full_tax_dict[i]
+                        countries.append(obj.attribute_dict["country"])
 
-                    country_counts = Counter(countries)
+                        country_counts = Counter(countries)
                                 
                 if len(country_counts) > 10:
                     keep_countries = dict(country_counts.most_common(10))

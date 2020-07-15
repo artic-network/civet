@@ -184,7 +184,7 @@ for i, trait in enumerate(colour_dict_dict.keys()):
     print("\n")
 ```
 ```python, name="show_trees", echo=False, results='raw'
-if len(desired_fields) == 1:
+
     for i in range(1,overall_tree_number+1):
         tree_name = "Tree " + str(i)
         lookup = "tree_" + str(i)
@@ -196,22 +196,6 @@ if len(desired_fields) == 1:
             print("There are multiple query sequences in this tree, and so transmission cannot be ruled out, but neither can it be confirmed. Therefore their relationship must be investigated further using epidemiological data.")
         print("   ")
         print("![](" + figdir + "/" + name_stem + "_make_trees_" + str(i) + ".png)")
-
-else:
-    for i in range(1,overall_tree_number+1):
-        tree_name = "Tree " + str(i)
-        lookup = "tree_" + str(i)
-        if len(tree_to_tip[lookup]) == 1:
-            print("Tree number " + str(i) + " contains " + str(len(tree_to_tip[lookup])) + " query.")
-            print("Given that there are no other sequences in the query dataset that are in this tree, transmission between this sequence and other queries can be ruled out.")
-        else:            
-            print("Tree number " + str(i) + " contains " + str(len(tree_to_tip[lookup])) + " queries.")
-            print("There are multiple query sequences in this tree, and so transmission cannot be ruled out, but neither can it be confirmed. Therefore their relationship must be investigated further using epidemiological data.")
-        
-        for k in range(len(desired_fields)):
-            base_number = ((i)*len(desired_fields)) - 1
-            print("   ")
-            print("![](" + figdir + "/" + name_stem + "_make_trees_" + str(base_number + k) + ".png)")
 
 
 ```
