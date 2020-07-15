@@ -282,7 +282,6 @@ if config['local_lins'] == 'True':
         --user-sample-data {input.query:q} \
         --output-base-dir {params.outdir:q}
             """)
-<<<<<<< HEAD
     rule make_report:
         input:
             lineage_trees = rules.process_catchments.output.tree_summary,
