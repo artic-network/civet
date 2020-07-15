@@ -43,7 +43,7 @@ def main(sysargs = sys.argv[1:]):
     parser.add_argument('--datadir', action="store",help="Local directory that contains the data files")
     parser.add_argument('--fields', action="store",help="Comma separated string of fields to colour by in the report. Default: country")
     parser.add_argument('--search-field', action="store",help="Option to search COG database for a different id type. Default: COG-UK ID", dest="search_field",default="central_sample_id")
-    parser.add_argument('--distance', action="store",help="Extraction from large tree radius. Default: 1", dest="distance",default=2)
+    parser.add_argument('--distance', action="store",help="Extraction from large tree radius. Default: 2", dest="distance",default=2)
     # parser.add_argument('--delay-tree-collapse',action="store_true",dest="delay_tree_collapse",help="Wait until after iqtree runs to collapse the polytomies. NOTE: This may result in large trees that take quite a while to run.")
     parser.add_argument('-g','--global',action="store_true",dest="search_global",help="Search globally.")
     parser.add_argument('-n', '--dry-run', action='store_true',help="Go through the motions but don't actually run")
@@ -390,7 +390,9 @@ To run civet please either\n1) ssh into CLIMB and run with --CLIMB flag\n\
 
     # accessing package data and adding to config dict
     reference_fasta = pkg_resources.resource_filename('civet', 'data/reference.fasta')
+    outgroup_fasta = pkg_resources.resource_filename('civet', 'data/outgroup.fasta')
     polytomy_figure = pkg_resources.resource_filename('civet', 'data/polytomies.png')
+    footer_fig = pkg_resources.resource_filename('civet', 'data/footer.png')
     clean_locs = pkg_resources.resource_filename('civet', 'data/mapping_files/adm2_cleaning.csv')
     map_input_1 = pkg_resources.resource_filename('civet', 'data/mapping_files/gadm36_GBR_2.json')
     map_input_2 = pkg_resources.resource_filename('civet', 'data/mapping_files/channel_islands.json')  
@@ -405,7 +407,9 @@ To run civet please either\n1) ssh into CLIMB and run with --CLIMB flag\n\
         sys.exit(-1)
 
     config["reference_fasta"] = reference_fasta
+    config["outgroup_fasta"] = outgroup_fasta
     config["polytomy_figure"] = polytomy_figure
+    config["footer"] = footer_fig
     config["report_template"] = report_template
     config["clean_locs"] = clean_locs
     config["uk_map"] = map_input_1

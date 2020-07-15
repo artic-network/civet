@@ -180,6 +180,7 @@ rule process_catchments:
         query_seqs = rules.get_closest_cog.output.aligned_query, #datafunk-processed seqs
         catchment_prompt = rules.prune_out_catchments.output.txt,
         all_cog_seqs = config["all_cog_seqs"],
+        outgroup_fasta = config["outgroup_fasta"],
         cog_global_seqs = config["cog_global_seqs"]
         # not_cog_csv = rules.check_cog_all.output.not_cog
     params:
@@ -226,6 +227,7 @@ rule process_catchments:
                         f"catchment_str={catchment_str} "
                         "outdir={params.outdir:q} "
                         "tempdir={params.tempdir:q} "
+                        "outgroup_fasta={input.outgroup_fasta:q} "
                         "aligned_query_seqs={input.query_seqs:q} "
                         "all_cog_seqs={input.all_cog_seqs:q} "
                         "cog_global_seqs={input.cog_global_seqs:q} "
@@ -245,6 +247,59 @@ rule process_catchments:
                             "combined_metadata={input.combined_metadata:q} "
                             "--cores {params.cores}")
 
+rule make_report:
+    input:
+        lineage_trees = rules.process_catchments.output.tree_summary,
+        query = config["query"],
+        combined_metadata = os.path.join(config["outdir"],"combined_metadata.csv"),
+        cog_global_metadata = config["cog_global_metadata"],
+        report_template = config["report_template"],
+        polytomy_figure = config["polytomy_figure"],
+        footer = config["footer"],
+        no_seq = rules.get_closest_cog.output.not_processed,
+        clean_locs = config["clean_locs"],
+        uk_map = config["uk_map"],
+        channels_map = config["channels_map"],
+        ni_map = config["ni_map"]
+    params:
+        treedir = os.path.join(config["outdir"],"local_trees"),
+        outdir = config["rel_outdir"],
+        fields = config["fields"],
+        sc_source = config["sequencing_centre"],
+        sc = config["sequencing_centre_file"],
+        sc_flag = config["sequencing_centre_flag"],
+        rel_figdir = os.path.join(".","figures"),
+        figdir = os.path.join(config["outdir"],"figures"),
+        failure = config["qc_fail"]
+    output:
+        poly_fig = os.path.join(config["outdir"],"figures","polytomies.png"),
+        footer_fig = os.path.join(config["outdir"], "figures", "footer.png"),
+        outfile = os.path.join(config["outdir"], "civet_report.md")
+    run:
+        if params.sc != "":
+            shell("cp {params.sc_source:q} {params.sc:q}")
+        shell(
+        """
+        cp {input.polytomy_figure:q} {output.poly_fig:q}
+        cp {input.footer:q} {output.footer_fig:q}
+        make_report.py \
+        --input-csv {input.query:q} \
+        -f {params.fields:q} \
+        --figdir {params.rel_figdir:q} \
+        {params.sc_flag} \
+        {params.failure} \
+        --no-seq-provided {input.no_seq} \
+        --treedir {params.treedir:q} \
+        --report-template {input.report_template:q} \
+        --filtered-cog-metadata {input.combined_metadata:q} \
+        --cog-metadata {input.cog_global_metadata:q} \
+        --clean-locs {input.clean_locs} \
+        --uk-map {input.uk_map} \
+        --channels-map {input.channels_map} \
+        --ni-map {input.ni_map} \
+        --outfile {output.outfile:q} \
+        --outdir {params.outdir:q} 
+        """)
 
 if config['local_lins'] == 'True':
     rule regional_mapping:

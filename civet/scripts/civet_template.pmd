@@ -351,7 +351,7 @@ print("No version number for Baltic")
 
 todays_date = dt.date.today()
 
-#This just takes last Friday so if a more continuous pipeline is implemented this will have to be cleverer.
+#This just takes last Friday so if a more continuous pipeline is implemented this will have to be cleverer. #We're now at that point
 last_friday = todays_date + relativedelta(weekday=FR(-1))
 print("The COG data used here was submitted in batch on " + str(last_friday))
 
@@ -368,3 +368,6 @@ We also use some background data from GISAID (https://www.gisaid.org/) in the ph
 
 Tree data was visualised using baltic (https://github.com/evogytis/baltic)
 
+```python, name="footer", echo=False, results='raw'
+print("![](" + figdir + "/footer.png)")
+```
