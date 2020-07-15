@@ -326,7 +326,7 @@ def summarise_collapsed_node_for_label(tree_dir, focal_node, focal_tree, full_ta
                         countries.append(taxon_obj.attribute_dict["country"])
                     
                     else: #should always be in the full metadata now
-                        print("tax missing from full metadata")
+                        print(tax + " not present in full metadata")
                     #     country = tax.split("/")[0]
                     #     countries.append(country)
                     
@@ -515,10 +515,13 @@ def describe_tree_background(full_tax_dict, tree_dir):
             for nde, seqs in collapsed_dict.items():
                 countries = []
                 for i in seqs:
-                    obj = full_tax_dict[i]
-                    countries.append(obj.attribute_dict["country"])
+                    if i in full_tax_dict.keys():
+                        obj = full_tax_dict[i]
+                        countries.append(obj.attribute_dict["country"])
+                    else:
+                        pass
 
-                    country_counts = Counter(countries)
+                country_counts = Counter(countries)
                                 
                 if len(country_counts) > 10:
                     keep_countries = dict(country_counts.most_common(10))
