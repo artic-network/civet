@@ -35,13 +35,6 @@ import scipy as sp
 
 from dateutil.relativedelta import relativedelta, FR
 
-<<<<<<< Updated upstream
-thisdir = os.path.abspath(os.path.dirname(__file__))
-cwd = os.getcwd()
-
-
-=======
->>>>>>> Stashed changes
 filtered_cog_metadata = "" ##CHANGE
 input_csv = "" ##CHANGE
 full_metadata_file = "" ##CHANGE
@@ -57,16 +50,6 @@ input_directory = "" ##CHANGE
 output_directory = "" ##CHANGE
 name_stem_input = "" ##CHANGE
 
-<<<<<<< Updated upstream
-local_lineage = "" ##CHANGE
-date_restriction = "" ##CHANGE
-date_start= "" ##CHANGE
-date_end = "" ##CHANGE
-date_window_size = "" ##CHANGE
-
-
-=======
->>>>>>> Stashed changes
 if "/" in name_stem_input:
     name_stem = name_stem_input.split("/")[-1]
 else:
@@ -211,11 +194,7 @@ if len(desired_fields) == 1:
         else:
             print("Tree number " + str(i) + " contains " + str(len(tree_to_tip[lookup])) + " queries.")
             print("There are multiple query sequences in this tree, and so transmission cannot be ruled out, but neither can it be confirmed. Therefore their relationship must be investigated further using epidemiological data.")
-<<<<<<< Updated upstream
-    
-=======
         print("   ")
->>>>>>> Stashed changes
         print("![](" + figdir + "/" + name_stem + "_make_trees_" + str(i) + ".png)")
 
 else:
@@ -231,10 +210,7 @@ else:
         
         for k in range(len(desired_fields)):
             base_number = ((i)*len(desired_fields)) - 1
-<<<<<<< Updated upstream
-=======
             print("   ")
->>>>>>> Stashed changes
             print("![](" + figdir + "/" + name_stem + "_make_trees_" + str(base_number + k) + ".png)")
 
 
@@ -247,8 +223,10 @@ if too_tall_trees != []:
 ```
 ## Tree background
 
-<<<<<<< Updated upstream
-```
+The following plots describe the data in the collapsed nodes in more detail.
+If more than one country was present, the bar chart describes the number of sequences present in each country. 
+Where there were 10 countries or more, the largest 10 have been taken. 
+If a UK sequence is present in the collapsed node, it is always shown in the plot.
 
 ```python, name="tree_background", echo=False, include=False, fig=False
 bar_count = tree_viz.describe_tree_background(full_tax_dict, tree_dir)
@@ -257,40 +235,6 @@ bar_count = tree_viz.describe_tree_background(full_tax_dict, tree_dir)
 for i in range(bar_count):
     print("![](" + figdir + "/" + name_stem + "_tree_background_" + str(i+1) + ".png)")
 ```
-## Regional-scale Lineage context
-
-```
-
-
-## Appendix
-
-cog_restricted = losca.getSampleData_final(COGDATA, date_restriction)
-
-###Preparing cog_meta for spatial filtering & processing
-cog_meta_mainland=cog_restricted.loc[cog_restricted['adm1'].isin(['UK-SCT', 'UK-ENG', 'UK-WAL'])]
-cog_meta_mainland['HBName']=cog_meta_mainland.loc[:, 'adm2'].map(HBTranslation)
-cog_meta_mainland['HBCode']=cog_meta_mainland.loc[:, 'HBName'].map(HBCode_translation)
-## Proessing input csv ##
-
-HB_code=losca.adm2_to_centralHBCode(inputSamples['adm2'].to_list())
-if HB_code is not None:
-    ## Get the localised regions ##
-    central, neighboring, submap = losca.central_surrounding_regions(HB_code, mainland_boards_final_W, mainland_boards)
-    ## Generate tabular data for each region ##
-    for each in [central, neighboring]:
-        for row, frame in each.iterrows():
-            print(frame['HBName'])
-            losca.tabulateLins(frame['HBCode'], cog_meta_mainland)
-    ## Generated Mapping ##
-    for each, region in [central, neighboring], ['Central Health Board', 'Neighboring Health Boards']:
-        print (region)
-        losca.vegashow(losca.mapProduce(each, cog_meta_mainland, submap))
-
-```
-=======
-
->>>>>>> Stashed changes
-
 
 ## Appendix
 
