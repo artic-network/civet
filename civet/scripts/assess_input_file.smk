@@ -255,20 +255,17 @@ rule regional_mapping:
         cog_global_metadata = config["cog_global_metadata"]
     params:
         local_lineages = config["local_lineages"],
-        mapfile = config['uk_map_d3'],
-        hbtrans = config['HB_translations'],
         daterestrict = config["date_restriction"],
         datestart = config["date_range_start"],
         dateend = config["date_range_end"],
         datewindow = config["date_window"],
-        cogmeta = config["all_cog_metadata"],
         outdir = config["rel_outdir"],
         tempdir = config['tempdir'],
         figdir = os.path.join(config["outdir"],'figures', "regional_mapping")
     output:
-        outschema = expand(os.path.join(config["tempdir"], "{focal}_map_ukLin.vl.json"), focal=['central', 'neighboring', 'region'])
-        #outmd = os.path.join(config["outdir"], 'figures', "regional_mapping", "{location}_lineageTable.md")
-
+        central = os.path.join(config["tempdir"], "central_map_ukLin.vl.json"),
+        neighboring = os.path.join(config["tempdir"], "neighboring_map_ukLin.vl.json"),
+        region = os.path.join(config["tempdir"], "region_map_ukLin.vl.json")
     run:
         if params.local_lineages:
             shell("""
@@ -277,7 +274,7 @@ rule regional_mapping:
             shell(
             """
         local_scale_analysis.py \
-        --uk-map {params.mapfile} \
+        --uk-map {params.mapfile:q} \
         --hb-translation {params.hbtrans} \
         --date-restriction {params.daterestrict:q} \
         --date-pair-start {params.datestart:q} \
@@ -289,28 +286,44 @@ rule regional_mapping:
         --output-temp-dir {params.tempdir:q}
             """)
         else:
-            shell("touch {output.outschema}")
+            shell("touch {output.outschema:q}")
 
 rule regional_map_rendering:
     input:
-        vl_in = expand(os.path.join(config["tempdir"], "{focal}_map_ukLin.vl.json"), focal=['central', 'neighboring', 'region'])
+        central = os.path.join(config["tempdir"], "central_map_ukLin.vl.json"),
+        neighboring = os.path.join(config["tempdir"], "neighboring_map_ukLin.vl.json"),
+        region = os.path.join(config["tempdir"], "region_map_ukLin.vl.json")
     params:
         outdir = config["rel_outdir"],
         local_lineages = config["local_lineages"],
-        tempVGschema = expand(os.path.join(config["tempdir"], "{focal}_map_ukLin.vg.json"), focal=['central', 'neighboring', 'region'])
+        central = os.path.join(config["tempdir"], "central_map_ukLin.vg.json"),
+        neighboring = os.path.join(config["tempdir"], "neighboring_map_ukLin.vg.json"),
+        region = os.path.join(config["tempdir"], "region_map_ukLin.vg.json")
     output:
-        outpng=expand(os.path.join(config["outdir"], 'figures', "regional_mapping", "{focal}_map_ukLin.png"), focal=['central', 'neighboring', 'region'])
-
+        central = os.path.join(config["outdir"], 'figures', "regional_mapping", "central_map_ukLin.png"),
+        neighboring = os.path.join(config["outdir"], 'figures', "regional_mapping", "neighboring_map_ukLin.png"),
+        region = os.path.join(config["outdir"], 'figures', "regional_mapping", "region_map_ukLin.png")
     run:
         if params.local_lineages:
             shell(
             """
-            npx -p vega-lite vl2vg {input.vl_in} {params.tempVGschema}
-            npx -p vega-cli vg2png {params.tempVGschema} {output.outpng}
+            npx -p vega-lite vl2vg {input.central} {params.central}
+            npx -p vega-cli vg2png {params.central} {output.central}
+            """)
+            shell(
+            """
+            npx -p vega-lite vl2vg {input.neighboring} {params.neighboring}
+            npx -p vega-cli vg2png {params.neighboring} {output.neighboring}
+            """)
+            shell(
+            """
+            npx -p vega-lite vl2vg {input.region} {params.region}
+            npx -p vega-cli vg2png {params.region} {output.region}
             """)
         else:
-            shell("touch {output.outpng}")
-            #shell("touch {output.outmd}")
+            shell("touch {output.central}")
+            shell("touch {output.neighboring}")
+            shell("touch {output.region}")
 
 
 rule make_report:
