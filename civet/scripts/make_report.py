@@ -88,9 +88,9 @@ def main():
     parser.add_argument("--channels-map", required=True, help="shape file for channel islands", dest="channels_map")
     parser.add_argument("--ni-map", required=True, help="shape file for northern irish counties", dest="ni_map")
 
-    parser.add_argument("--local_lineages", default='False', action='store_true',help="List of rendered .png files for local lineage analysis. ';' delimited.", dest="local_lineages")
-    parser.add_argument("--local_lin_maps", default='None', action='store',help="List of rendered .png files for local lineage analysis. ';' delimited.", dest="local_lin_maps")
-    parser.add_argument("--local_lin_tables", default='None', action='store', help="List of .md tables for local lineage analysis. ';' delimited. ", dest="local_lin_tables")
+    parser.add_argument("--local-lineages", default='False', action='store_true',help="List of rendered .png files for local lineage analysis. ';' delimited.", dest="local_lineages")
+    parser.add_argument("--local-lin-maps", default='None', action='store',help="List of rendered .png files for local lineage analysis. ';' delimited.", dest="local_lin_maps")
+    parser.add_argument("--local-lin-tables", default='None', action='store', help="List of .md tables for local lineage analysis. ';' delimited. ", dest="local_lin_tables")
 
 
     args = parser.parse_args()

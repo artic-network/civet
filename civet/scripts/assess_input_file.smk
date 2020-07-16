@@ -342,8 +342,9 @@ rule make_report:
         uk_map = config["uk_map"],
         channels_map = config["channels_map"],
         ni_map = config["ni_map"],
-        local_lineages_png = rules.regional_map_rendering.output.outpng,
-
+        central = os.path.join(config["outdir"], 'figures', "regional_mapping", "central_map_ukLin.png"),
+        neighboring = os.path.join(config["outdir"], 'figures', "regional_mapping", "neighboring_map_ukLin.png"),
+        region = os.path.join(config["outdir"], 'figures', "regional_mapping", "region_map_ukLin.png")
     params:
         treedir = os.path.join(config["outdir"],"local_trees"),
         outdir = config["rel_outdir"],
@@ -354,10 +355,7 @@ rule make_report:
         rel_figdir = os.path.join(".","figures"),
         figdir = os.path.join(config["outdir"],"figures"),
         failure = config["qc_fail"],
-        local_lineages = config["local_lineages"],
-        local_lineages_tables = os.path.join(config["outdir"], 'figures', "regional_mapping", "{wildcards.location}_lineageTable.md")
-        #localLinMaps = {input.local_lineages_png},
-        #localLinTables = {input.local_lineages_tables}
+        local_lineages = config["local_lineages"]
     output:
         poly_fig = os.path.join(config["outdir"],"figures","polytomies.png"),
         footer_fig = os.path.join(config["outdir"], "figures", "footer.png"),
@@ -366,60 +364,47 @@ rule make_report:
         if params.sc != "":
             shell("cp {params.sc_source:q} {params.sc:q}")
         if params.local_lineages:
-            #change the relevant bits here
-            print({input.local_lineages_png})
-            print({input.local_lineages_tables})
-            #localLinMaps = ';'.join(list({input.local_lineages_png}))
-            #localLinTables = ';'.join({input.local_lineages_tables})
-            shell(
-            """
-                cp {input.polytomy_figure:q} {output.poly_fig:q}
-                cp {input.footer:q} {output.footer_fig:q}
-                make_report.py \
-                --input-csv {input.query:q} \
-                -f {params.fields:q} \
-                --figdir {params.rel_figdir:q} \
-                {params.sc_flag} \
-                {params.failure} \
-                --no-seq-provided {input.no_seq} \
-                --treedir {params.treedir:q} \
-                --report-template {input.report_template:q} \
-                --filtered-cog-metadata {input.combined_metadata:q} \
-                --cog-metadata {input.cog_global_metadata:q} \
-                --clean-locs {input.clean_locs} \
-                --uk-map {input.uk_map} \
-                --channels-map {input.channels_map} \
-                --ni-map {input.ni_map} \
-                --local_lineages
+            lineage_tables = []
+            for r,d,f in os.walk(os.path.join(config["outdir"], 'figures', "regional_mapping")):
+                for fn in f:
+                    if fn.endswith("_lineageTable.md"):
+                        lineage_tables.append(os.path.join(config["outdir"], 'figures', "regional_mapping", fn))
+            lineage_maps = [input.central, input.neighboring, input.region]
 
-                --outfile {output.outfile:q} \
-                --outdir {params.outdir:q} 
-                """)
-                            #--local_lin_maps {localLinMaps:q} \
-                #--local_lin_tables {localLinTables:q} \
+            lineage_table_string = ";".join(lineage_tables)
+            lineage_map_string = ";".join(lineage_maps)
+
+            local_lineage_flag = "--local-lineages "
+            lineage_map_flag = f"--local-lin-maps '{lineage_map_string}' "
+            lineage_table_flag = f"--local-lin-tables '{lineage_table_string}' "
         else:
-            shell(
-            """
-                cp {input.polytomy_figure:q} {output.poly_fig:q}
-                cp {input.footer:q} {output.footer_fig:q}
-                make_report.py \
-                --input-csv {input.query:q} \
-                -f {params.fields:q} \
-                --figdir {params.rel_figdir:q} \
-                {params.sc_flag} \
-                {params.failure} \
-                --no-seq-provided {input.no_seq} \
-                --treedir {params.treedir:q} \
-                --report-template {input.report_template:q} \
-                --filtered-cog-metadata {input.combined_metadata:q} \
-                --cog-metadata {input.cog_global_metadata:q} \
-                --clean-locs {input.clean_locs} \
-                --uk-map {input.uk_map} \
-                --channels-map {input.channels_map} \
-                --ni-map {input.ni_map} \
-                --outfile {output.outfile:q} \
-                --outdir {params.outdir:q} 
-                """)
+            local_lineage_flag = ""
+            lineage_map_flag = ""
+            lineage_table_flag = ""
+        shell(
+        """
+            cp {input.polytomy_figure:q} {output.poly_fig:q}
+            cp {input.footer:q} {output.footer_fig:q}
+        """
+        shell("""
+            make_report.py \
+            --input-csv {input.query:q} \
+            -f {params.fields:q} \
+            --figdir {params.rel_figdir:q} \
+            {params.sc_flag} \
+            {params.failure} \
+            --no-seq-provided {input.no_seq} \
+            --treedir {params.treedir:q} \
+            --report-template {input.report_template:q} \
+            --filtered-cog-metadata {input.combined_metadata:q} \
+            --cog-metadata {input.cog_global_metadata:q} \
+            --clean-locs {input.clean_locs} \
+            --uk-map {input.uk_map} \
+            --channels-map {input.channels_map} \
+            --ni-map {input.ni_map} \
+            --outfile {output.outfile:q} \
+            --outdir {params.outdir:q}  """ +
+            f"{local_lineage_flag} {lineage_map_flag} {lineage_table_flag}")
 
 rule launch_grip:
     input:
