@@ -50,6 +50,10 @@ input_directory = "" ##CHANGE
 output_directory = "" ##CHANGE
 name_stem_input = "" ##CHANGE
 
+local_lineages = "" ##CHANGE
+local_lin_maps = "" ##CHANGE
+local_lin_tables = "" ##CHANGE
+
 if "/" in name_stem_input:
     name_stem = name_stem_input.split("/")[-1]
 else:
