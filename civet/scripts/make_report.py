@@ -51,7 +51,12 @@ def make_report(cog_metadata, input_csv, filtered_cog_metadata, outfile, outdir,
                         new_l = f'channels_map = "{channels_map}"\n'
                     elif "ni_map" in l:
                         new_l = f'ni_map = "{ni_map}"\n'
-
+                    elif "local_lineages" in l:
+                        new_l = f'local_lineages = "{local_lineages}"\n'
+                    elif "local_lin_maps" in l:
+                        new_l = f'local_lin_maps = "{local_lin_maps}"\n'
+                    elif "local_lin_tables" in l:
+                        new_l = f'local_lin_tables = "{local_lin_tables}"\n'
                 else:
                     new_l = l
 
@@ -82,6 +87,11 @@ def main():
     parser.add_argument("--uk-map", required=True, help="shape file for uk counties", dest="uk_map")
     parser.add_argument("--channels-map", required=True, help="shape file for channel islands", dest="channels_map")
     parser.add_argument("--ni-map", required=True, help="shape file for northern irish counties", dest="ni_map")
+
+    parser.add_argument("--local_lineages", default='False', action='store_true',help="List of rendered .png files for local lineage analysis. ';' delimited.", dest="local_lineages")
+    parser.add_argument("--local_lin_maps", default='None', action='store',help="List of rendered .png files for local lineage analysis. ';' delimited.", dest="local_lin_maps")
+    parser.add_argument("--local_lin_tables", default='None', action='store', help="List of .md tables for local lineage analysis. ';' delimited. ", dest="local_lin_tables")
+
 
     args = parser.parse_args()
 
