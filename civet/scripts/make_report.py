@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 import os
-from pweave import *
+from pweave import weave
 import argparse
 import shutil
 
@@ -57,7 +57,7 @@ def make_report(cog_metadata, input_csv, filtered_cog_metadata, outfile, outdir,
                     new_l = l
 
                 pmd_file.write(new_l)
-
+    
     weave(outfile, doctype = "pandoc", figdir=figdir)
 
 def main():
