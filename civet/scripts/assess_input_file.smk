@@ -114,7 +114,7 @@ rule get_closest_cog:
                         "--config "
                         "tempdir={params.tempdir:q} "
                         "seq_db={input.seq_db:q} "
-                        "to_find_closest={output.combined_query} "
+                        "to_find_closest={output.combined_query:q} "
                         "search_field={params.search_field} "
                         "trim_start={params.trim_start} "
                         "trim_end={params.trim_end} "
