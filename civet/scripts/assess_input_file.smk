@@ -293,10 +293,11 @@ rule regional_mapping:
 
 rule regional_map_rendering:
     input:
-        expand(os.path.join(config["tempdir"], "{focal}_map_ukLin.vl.json"), focal=['central', 'neighboring', 'region'])
+        vl_in = expand(os.path.join(config["tempdir"], "{focal}_map_ukLin.vl.json"), focal=['central', 'neighboring', 'region'])
     params:
         outdir = config["rel_outdir"],
-        tempVGschema = os.path.join(config["tempdir"], "{focus}_map_ukLin.vg.json")
+        local_lineages = config["local_lineages"],
+        tempVGschema = expand(os.path.join(config["tempdir"], "{focal}_map_ukLin.vg.json"), focal=['central', 'neighboring', 'region'])
     output:
         outpng=expand(os.path.join(config["outdir"], 'figures', "regional_mapping", "{focal}_map_ukLin.png"), focal=['central', 'neighboring', 'region'])
 
