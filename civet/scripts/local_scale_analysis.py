@@ -1,3 +1,4 @@
+#!/usr/bin/env python3
 import os
 import warnings
 import pickle
@@ -19,10 +20,10 @@ parser.add_argument("--cog-meta-global", action="store", type=str, dest="cog_met
 parser.add_argument("--user-sample-data", action="store", type=str, dest="user_sample_data")
 parser.add_argument("--date-window", action="store",required=False, type=int, dest="date_window")
 parser.add_argument("--output-base-dir", action="store", type=str, dest="output_base_dir")
-parser.add_argument("--civet-cat", action="store", type=str, dest="civet_cat_dir")
+parser.add_argument("--output-temp-dir", action="store", type=str, dest="output_temp_dir")
 parser.add_argument("--hb-translation", action="store", type=str, dest="hb_translation")
 parser.add_argument("--uk-map", action="store", type=str, dest="uk_map")
-#parser.add_argument("--uk-map", action="store", type=str, dest="")
+#parser.add_argument("--civet-cat", action="store", type=str, dest="civet_cat_dir")
 
 argsIN=parser.parse_args()
 
@@ -39,11 +40,10 @@ outDIR=argsIN.output_base_dir
 ### needs importation from installation of civet
 translator=argsIN.hb_translation
 mapfile=argsIN.uk_map
-#f"{civet_dir}/civet/data/maps/Mainland_HBs_gapclosed_mapshaped_d3.json"
 
 date_pair=[]
 for each in [argsIN.date_pair_start, argsIN.date_pair_end]:
-    if each != "":
+    if each != "None":
         date_pair.append(each)
 
 
@@ -403,8 +403,8 @@ blank_json = """{
 # ~~~~~~~~
 
 HBTranslation=pickle.load(open(translator, 'rb'))
-COGDATA=pd.read_csv(os.path.join(civet_cat_dir, 'cog_metadata_all.csv'))
-inputSamples = pd.read_csv(user_sample_data)
+COGDATA=pd.read_csv(argsIN.cog_metadata)
+inputSamples = pd.read_csv(argsIN.user_sample_data)
 mainland_boards=gp.read_file(mapfile)
 if len(date_pair) == 2:
     date_start=date_pair[0]
@@ -463,7 +463,7 @@ if Central_HB_code is not None:
     neighboringmapOUT=mapProduce(neighboring, cog_final, submap)
     regionmapOUT=mapProduce(submap, cog_final, submap, Central_HB_code)
     for mapjson, location in zip([centralmapOUT,neighboringmapOUT,regionmapOUT],['central', 'neighboring', 'region']):
-        with open(os.path.join(outDIR, f'{location}_map_ukLin.vl.json'), 'w') as f:
+        with open(os.path.join(argsIN.output_temp_dir, f'{location}_map_ukLin.vl.json'), 'w') as f:
             json.dump(mapjson, f)
             ##### Shell commands required
             # subprocess.call(['npx', 'vl2png', f'{location}_map_ukLin.vl.json', f{location}_map_ukLin.png])
