@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 import os
-from pweave import *
+from pweave import weave
 import argparse
 import shutil
 
