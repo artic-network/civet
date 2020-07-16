@@ -137,7 +137,7 @@ for tax in query_dict.values():
     else:
         not_in_cog_number += 1
 
-print("You provided " + str(number_seqs) + " sequences in total.")
+print(str(number_seqs) + " sequences were provided in total.")
 
 if cog_number != 0 and not_in_cog_number != 0:
     print(str(cog_number) + " were found in the COG database, leaving " + str(not_in_cog_number) + " which were not.")
@@ -148,9 +148,9 @@ elif not_in_cog_number == 0:
 
 ```
 
-The table below is a summary of these sequences provided with your metadata, along with their associated UK lineage and global lineage. 
+The table below is a summary of these sequences provided with metadata, along with their associated UK lineage and global lineage. 
 
-If you have provided additional information in the input csv, and specified that you would like it included in the analysis, it will also be displayed here.
+If additional information was provided in the input csv, and it was specified that it should be included in the analysis, it will also be displayed here.
 
 ```python, name="first_table", echo=False, results="tex"
 
@@ -163,11 +163,11 @@ print(df.to_markdown())
 
 The nearest neighbours of each of the query sequences are shown below in order to show their phylogenetic context.
 
-They are coloured by the input field you have specified. 
+They are coloured by the input field specified. 
 If no fields were specified, they are coloured by Adm1. 
 
 If there was no geographical information provided (either adm1 or adm2), the sequences are left uncoloured. 
-If you would like them to be coloured by specific metadata, please provide this names of the appropriate metadata columns on the command line.
+In order to generate trees coloured by specific metadata, please provide this names of the appropriate metadata columns on the command line.
 
 
 ```python, name="make_trees", echo=False, include=False, figure=False
@@ -229,7 +229,7 @@ For each query sequence, CIVET either finds them in the COG database, or matches
 
 Key points for interpreting this information:
 
- - This type of analysis is not able to infer direct transmission between two samples. Even identical sequences may be unrelated as SARS-COV2 is relatively slow evolving for an RNA virus. Our analysis has shown that samples taken over 100 days apart can be identical. 
+ - This type of analysis is not able to infer direct transmission between two samples. Even identical sequences may be unrelated as SARS-COV2 is relatively slow evolving for an RNA virus. Previous analysis has shown that samples taken over 100 days apart can be identical. 
  - If sequences have different global or UK lineage designations, we can rule out close epidemiological linkage.
  - If sequences have different phylotypes it’s very unlikely that they are direct transmissions. 
  - If sequences share the same lineage and the same phylotype, transmission cannot be ruled out and also cannot be confirmed.

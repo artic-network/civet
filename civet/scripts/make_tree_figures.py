@@ -122,16 +122,52 @@ def find_colour_dict(query_dict, trait):
             count += 1
     
         return colour_dict
+
+# def get_y_coords(tree, query_dict):
+#     lineage_coords = {}
+#     # lineage_y = defaultdict(list)
+#     for k in tree.Objects:
+#         if k.branchType == 'leaf' and k.name in query_dict.keys():
+#             lineage_coords[k.name] = k.y
+
+#     return lineage_coords
+
+
+def get_x_depth(tree, height, desired_fields, query_dict):
+    
+    lineage_coords = {}
+    rect_coords = defaultdict(dict)
+    trait_coords = {}
+    lineage_x = defaultdict(list)
+    max_depth = 0
+    depths = []
+    
+    max_depth = len(desired_fields)
+    
+    for k in tree.Objects:
+        if k.branchType == 'leaf' and k.name in query_dict.keys():
+            count = 0
+            trait_coords = {}
+            for trait in desired_fields:
+                count += 1
+                depth = max_depth - count
+
+                scaled_depth = (height +height*0.02 + (depth * height*0.07))
+                
+                trait_coords[trait] = [scaled_depth, scaled_depth]
+                
+    # for i in desired_fields:
+    #     s = sorted(tip_coords[i])
+    #     scaled = tip_coords[i][1]
+
+    #     rect_coords[i] = [s[0],scaled]
+
+    return trait_coords
     
 def make_scaled_tree_without_legend(My_Tree, tree_name, tree_dir, num_tips, colour_dict_dict, desired_fields, tallest_height,lineage, taxon_dict, query_id_dict, query_dict):
 
     display_name(My_Tree, tree_name, tree_dir, query_id_dict, taxon_dict) 
     My_Tree.uncollapseSubtree()
-
-    # closest_names = []
-
-    # for query in query_id_dict.values():
-    #     closest_names.append(query.closest)
 
     if num_tips < 10:
         #page_height = num_tips/2
@@ -186,7 +222,11 @@ def make_scaled_tree_without_legend(My_Tree, tree_name, tree_dir, num_tips, colo
     vertical_spacer = 0.5 
     full_page = page_height + vertical_spacer + vertical_spacer
     min_y,max_y = y_values[0]-vertical_spacer,y_values[-1]+vertical_spacer
-    
+
+    x_values = []
+    for k in My_Tree.Objects:
+        x_values.append(x_attr(k))
+    max_x = max(x_values)
     
     
     fig2,ax2 = plt.subplots(figsize=(20,page_height),facecolor='w',frameon=False, dpi=100)
@@ -197,10 +237,10 @@ def make_scaled_tree_without_legend(My_Tree, tree_name, tree_dir, num_tips, colo
     My_Tree.plotPoints(ax2, x_attr=x_attr, colour_function=cn_func,y_attr=y_attr, size_function=s_func, outline_colour=outline_colour_func)
     My_Tree.plotPoints(ax2, x_attr=x_attr, colour_function=co_func, y_attr=y_attr, size_function=so_func, outline_colour=outline_colour_func)
 
+    print(len(desired_fields))
 
     for k in My_Tree.Objects:
-        
-        ###PROBABLY HERE?###
+            
         if "display" in k.traits:
             name=k.traits["display"]
 
@@ -208,24 +248,60 @@ def make_scaled_tree_without_legend(My_Tree, tree_name, tree_dir, num_tips, colo
             y=y_attr(k)
         
             height = My_Tree.treeHeight+offset
+            # if len(desired_fields) > 1:
+            text_start = tallest_height+space_offset+space_offset
             
-            ax2.text(tallest_height+space_offset+space_offset, y, name, size=font_size_func(k), ha="left", va="center", fontweight="ultralight")
-            ax2.plot([x+space_offset,tallest_height+space_offset],[y,y],ls='--',lw=0.5,color=l_func(k))
+            division = (text_start - tallest_height)/(len(desired_fields))
+            
+            tip_point = tallest_height+space_offset
+
+            if k.name in query_dict.keys() and len(desired_fields) > 1:
+                
+                count = 0
+                
+                for trait in desired_fields:
+                    
+                    x_value = tip_point + count
+                    count += division
+
+                    option = query_dict[k.name].attribute_dict[trait]
+                    colour_dict = colour_dict_dict[trait]
+                    trait_blob = ax2.scatter(x_value, y, tipsize*5, color=colour_dict[option])  
+
+                ax2.text(tallest_height+space_offset+space_offset+division, y, name, size=font_size_func(k), ha="left", va="center", fontweight="ultralight")
+                # ax2.plot([x+space_offset,tallest_height+space_offset-final_point],[y,y],ls='--',lw=5,color=l_func(k))
+                # ax2.plot([x+space_offset,tallest_height+space_offset],[y,y],ls='--',lw=5,color=l_func(k))
+                if x != max_x:
+                    ax2.plot([x+space_offset,tallest_height],[y,y],ls='--',lw=5,color=l_func(k))
+
+            elif k.name not in query_dict.keys() and len(desired_fields) > 1:
+
+                ax2.text(tallest_height+space_offset+space_offset+division, y, name, size=font_size_func(k), ha="left", va="center", fontweight="ultralight")
+                # ax2.plot([x+space_offset,tallest_height+space_offset-final_point],[y,y],ls='--',lw=5,color=l_func(k))
+                # ax2.plot([x+space_offset,tallest_height+space_offset],[y,y],ls='--',lw=5,color=l_func(k))
+                if x != max_x:
+                    ax2.plot([x+space_offset,tallest_height],[y,y],ls='--',lw=5,color=l_func(k))
+
+            else:
+                print("are we ever here")
+                ax2.text(tallest_height+space_offset+space_offset, y, name, size=font_size_func(k), ha="left", va="center", fontweight="ultralight")
+                ax2.plot([x+space_offset,tallest_height+space_offset],[y,y],ls='--',lw=0.5,color=l_func(k))
+
 
             # if k.name in query_dict.keys() or k.name in query_id_dict.keys():
             #     tree_to_query[tree_name].append(k.name)
 
-    ax2.spines['top'].set_visible(False) ## make axes invisible
-    ax2.spines['right'].set_visible(False)
-    ax2.spines['left'].set_visible(False)
-    ax2.spines['bottom'].set_visible(False)
+    # ax2.spines['top'].set_visible(False) ## make axes invisible
+    # ax2.spines['right'].set_visible(False)
+    # ax2.spines['left'].set_visible(False)
+    # ax2.spines['bottom'].set_visible(False)
     
     ax2.set_xlim(-space_offset,absolute_x_axis_size)
     ax2.set_ylim(min_y,max_y)
 
-    plt.yticks([])
-    plt.xticks([])
-    #plt.title(lineage, size=25)
+    #plt.yticks([])
+    #plt.xticks([])
+    # plt.title(lineage, size=25)
 
     fig2.tight_layout()
 
