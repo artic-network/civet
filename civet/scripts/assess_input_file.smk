@@ -2,6 +2,7 @@ import csv
 from Bio import SeqIO
 import os
 import collections
+
 #print(config)
 rule check_cog_db:
     input:
@@ -262,26 +263,54 @@ rule regional_mapping:
         datewindow = config["date_window"],
         cogmeta = config["all_cog_metadata"],
         outdir = config["rel_outdir"],
-        figdir = os.path.join(config["outdir"],"mapping_figures")
+        tempdir = config['tempdir'],
+        figdir = os.path.join(config["outdir"],'figures', "regional_mapping")
     output:
-        outfile = os.path.join(config["outdir"], "mapping_figures", "out.vl.json")
+        outschema = expand(os.path.join(config["tempdir"], "{focal}_map_ukLin.vl.json"), focal=['central', 'neighboring', 'region'])
+        #outmd = os.path.join(config["outdir"], 'figures', "regional_mapping", "{location}_lineageTable.md")
+
     run:
         if params.local_lineages:
+            shell("""
+            mkdir {params.figdir} -p
+            """)
             shell(
             """
         local_scale_analysis.py \
         --uk-map {params.mapfile} \
-        --hb-translation {params.hbtrans}, \
+        --hb-translation {params.hbtrans} \
         --date-restriction {params.daterestrict:q} \
         --date-pair-start {params.datestart:q} \
         --date-pair-end {params.dateend:q} \
         --date-window {params.datewindow:q} \
         --cog-meta-global {input.cog_global_metadata:q} \
         --user-sample-data {input.query:q} \
-        --output-base-dir {params.outdir:q}
+        --output-base-dir {params.figdir:q} \
+        --output-temp-dir {params.tempdir:q}
             """)
         else:
-            shell("touch {output.outfile}")
+            shell("touch {output.outschema}")
+
+rule regional_map_rendering:
+    input:
+        expand(os.path.join(config["tempdir"], "{focal}_map_ukLin.vl.json"), focal=['central', 'neighboring', 'region'])
+    params:
+        outdir = config["rel_outdir"],
+        tempVGschema = os.path.join(config["tempdir"], "{focus}_map_ukLin.vg.json")
+    output:
+        outpng=expand(os.path.join(config["outdir"], 'figures', "regional_mapping", "{focal}_map_ukLin.png"), focal=['central', 'neighboring', 'region'])
+
+    run:
+        if params.local_lineages:
+            shell(
+            """
+            npx -p vega-lite vl2vg {input.vl_in} {params.tempVGschema}
+            npx -p vega-cli vg2png {params.tempVGschema} {output.outpng}
+            """)
+        else:
+            shell("touch {output.outpng}")
+            #shell("touch {output.outmd}")
+
 
 rule make_report:
     input:
@@ -297,7 +326,8 @@ rule make_report:
         uk_map = config["uk_map"],
         channels_map = config["channels_map"],
         ni_map = config["ni_map"],
-        local_lineages_output = rules.regional_mapping.output.outfile
+        local_lineages_png = rules.regional_map_rendering.output.outpng,
+
     params:
         treedir = os.path.join(config["outdir"],"local_trees"),
         outdir = config["rel_outdir"],
@@ -308,7 +338,10 @@ rule make_report:
         rel_figdir = os.path.join(".","figures"),
         figdir = os.path.join(config["outdir"],"figures"),
         failure = config["qc_fail"],
-        local_lineages = config["local_lineages"]
+        local_lineages = config["local_lineages"],
+        local_lineages_tables = os.path.join(config["outdir"], 'figures', "regional_mapping", "{wildcards.location}_lineageTable.md")
+        #localLinMaps = {input.local_lineages_png},
+        #localLinTables = {input.local_lineages_tables}
     output:
         poly_fig = os.path.join(config["outdir"],"figures","polytomies.png"),
         footer_fig = os.path.join(config["outdir"], "figures", "footer.png"),
@@ -318,28 +351,59 @@ rule make_report:
             shell("cp {params.sc_source:q} {params.sc:q}")
         if params.local_lineages:
             #change the relevant bits here
-        shell(
-        """
-        cp {input.polytomy_figure:q} {output.poly_fig:q}
-        cp {input.footer:q} {output.footer_fig:q}
-        make_report.py \
-        --input-csv {input.query:q} \
-        -f {params.fields:q} \
-        --figdir {params.rel_figdir:q} \
-        {params.sc_flag} \
-        {params.failure} \
-        --no-seq-provided {input.no_seq} \
-        --treedir {params.treedir:q} \
-        --report-template {input.report_template:q} \
-        --filtered-cog-metadata {input.combined_metadata:q} \
-        --cog-metadata {input.cog_global_metadata:q} \
-        --clean-locs {input.clean_locs} \
-        --uk-map {input.uk_map} \
-        --channels-map {input.channels_map} \
-        --ni-map {input.ni_map} \
-        --outfile {output.outfile:q} \
-        --outdir {params.outdir:q} 
-        """)
+            print({input.local_lineages_png})
+            print({input.local_lineages_tables})
+            #localLinMaps = ';'.join(list({input.local_lineages_png}))
+            #localLinTables = ';'.join({input.local_lineages_tables})
+            shell(
+            """
+                cp {input.polytomy_figure:q} {output.poly_fig:q}
+                cp {input.footer:q} {output.footer_fig:q}
+                make_report.py \
+                --input-csv {input.query:q} \
+                -f {params.fields:q} \
+                --figdir {params.rel_figdir:q} \
+                {params.sc_flag} \
+                {params.failure} \
+                --no-seq-provided {input.no_seq} \
+                --treedir {params.treedir:q} \
+                --report-template {input.report_template:q} \
+                --filtered-cog-metadata {input.combined_metadata:q} \
+                --cog-metadata {input.cog_global_metadata:q} \
+                --clean-locs {input.clean_locs} \
+                --uk-map {input.uk_map} \
+                --channels-map {input.channels_map} \
+                --ni-map {input.ni_map} \
+                --local_lineages
+
+                --outfile {output.outfile:q} \
+                --outdir {params.outdir:q} 
+                """)
+                            #--local_lin_maps {localLinMaps:q} \
+                #--local_lin_tables {localLinTables:q} \
+        else:
+            shell(
+            """
+                cp {input.polytomy_figure:q} {output.poly_fig:q}
+                cp {input.footer:q} {output.footer_fig:q}
+                make_report.py \
+                --input-csv {input.query:q} \
+                -f {params.fields:q} \
+                --figdir {params.rel_figdir:q} \
+                {params.sc_flag} \
+                {params.failure} \
+                --no-seq-provided {input.no_seq} \
+                --treedir {params.treedir:q} \
+                --report-template {input.report_template:q} \
+                --filtered-cog-metadata {input.combined_metadata:q} \
+                --cog-metadata {input.cog_global_metadata:q} \
+                --clean-locs {input.clean_locs} \
+                --uk-map {input.uk_map} \
+                --channels-map {input.channels_map} \
+                --ni-map {input.ni_map} \
+                --outfile {output.outfile:q} \
+                --outdir {params.outdir:q} 
+                """)
 
 rule launch_grip:
     input:
