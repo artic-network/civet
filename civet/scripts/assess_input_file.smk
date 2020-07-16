@@ -275,7 +275,7 @@ rule regional_mapping:
             """
         local_scale_analysis.py \
         --uk-map {params.mapfile:q} \
-        --hb-translation {params.hbtrans} \
+        --hb-translation {params.hbtrans:q} \
         --date-restriction {params.daterestrict:q} \
         --date-pair-start {params.datestart:q} \
         --date-pair-end {params.dateend:q} \
@@ -286,7 +286,9 @@ rule regional_mapping:
         --output-temp-dir {params.tempdir:q}
             """)
         else:
-            shell("touch {output.outschema:q}")
+            shell("touch {output.central:q}")
+            shell("touch {output.neighbouring:q}")
+            shell("touch {output.region:q}")
 
 rule regional_map_rendering:
     input:
