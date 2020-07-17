@@ -42,6 +42,7 @@ def main(sysargs = sys.argv[1:]):
     parser.add_argument('-b','--launch-browser', action="store_true",help="Optionally launch md viewer in the browser using grip",dest="launch_browser")
     parser.add_argument('--datadir', action="store",help="Local directory that contains the data files")
     parser.add_argument('--fields', action="store",help="Comma separated string of fields to colour by in the report. Default: country")
+    parser.add_argument('--label-fields', action="store", help="Comma separated string of fields to add to tree report labels.", dest="label_fields")
     parser.add_argument('--search-field', action="store",help="Option to search COG database for a different id type. Default: COG-UK ID", dest="search_field",default="central_sample_id")
     parser.add_argument('--distance', action="store",help="Extraction from large tree radius. Default: 2", dest="distance",default=2)
     # parser.add_argument('--delay-tree-collapse',action="store_true",dest="delay_tree_collapse",help="Wait until after iqtree runs to collapse the polytomies. NOTE: This may result in large trees that take quite a while to run.")
@@ -132,6 +133,7 @@ def main(sysargs = sys.argv[1:]):
 
     # parse the input csv, check col headers and get fields if fields specified
     fields = []
+    labels = []
     queries = []
     with open(query, newline="") as f:
         reader = csv.DictReader(f)
@@ -151,6 +153,21 @@ def main(sysargs = sys.argv[1:]):
                 else:
                     sys.stderr.write(f"Error: {field} field not found in metadata file")
                     sys.exit(-1)
+
+        
+        if not args.label_fields:
+            labels.append("NONE")
+        else:
+            label_fields = args.label_fields.split(",")
+            for label_f in label_fields:
+                if label_f in reader.fieldnames:
+                    labels.append(label_f)
+                else:
+                    sys.stderr.write(f"Error: {label_f} field not found in metadata file")
+                    sys.exit(-1)
+        
+            
+
                     
         print("COG-UK ids to process:")
         for row in reader:
@@ -170,6 +187,7 @@ def main(sysargs = sys.argv[1:]):
     config = {
         "query":query,
         "fields":",".join(fields),
+        "label_fields":",".join(labels),
         "outdir":outdir,
         "tempdir":tempdir,
         "trim_start":265,   # where to pad to using datafunk
