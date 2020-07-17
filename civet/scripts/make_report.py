@@ -10,49 +10,38 @@ thisdir = os.path.abspath(os.path.dirname(__file__))
 def make_report(cog_metadata, input_csv, filtered_cog_metadata, outfile, outdir, treedir, figdir, fields, report_template, failed_seqs, no_seq, seq_centre, clean_locs, uk_map, channels_map, ni_map):
 
     name_stem = ".".join(outfile.split(".")[:-1])
+                        
     with open(outfile, 'w') as pmd_file:
     
         md_template = report_template
         summary_dir = os.path.join(outdir, "summary_files")
+
+        change_line_dict = {
+                            "output_directory": f'output_directory = "{outdir}"\n',
+                            "name_stem_input": f'name_stem_input = "{name_stem}"\n',
+                            "full_metadata_file": f'full_metadata_file = "{cog_metadata}"\n',
+                            "filtered_cog_metadata": f'filtered_cog_metadata = "{filtered_cog_metadata}"\n',
+                            "input_csv": f'input_csv = "{input_csv}"\n',
+                            "input_directory": f'input_directory = "{treedir}"\n',
+                            "desired_fields_input": f'desired_fields_input = "{fields}"\n',
+                            "figdir": f'figdir = "{figdir}"\n',
+                            "tree_dir": f'tree_dir = "{treedir}"\n',
+                            "summary_dir": f'summary_dir = "{summary_dir}"\n',
+                            "QC_fail_file": f'QC_fail_file = "{failed_seqs}"\n',
+                            "missing_seq_file": f'missing_seq_file = "{no_seq}"\n',
+                            "sequencing_centre": f'sequencing_centre = "{seq_centre}"\n',
+                            "clean_locs_file": f'clean_locs_file = "{clean_locs}"\n',
+                            "uk_map": f'uk_map = "{uk_map}"\n',
+                            "channels_map": f'channels_map = "{channels_map}"\n',
+                            "ni_map": f'ni_map = "{ni_map}"\n'
+                            }
         with open(md_template) as f:
             for l in f:
                 if "##CHANGE" in l:
-                    if "output_directory" in l:
-                        new_l = f'output_directory = "{outdir}"\n'
-                    elif "name_stem_input" in l:
-                        new_l = f'name_stem_input = "{name_stem}"\n'
-                    elif "full_metadata_file" in l:
-                        new_l = f'full_metadata_file = "{cog_metadata}"\n'
-                    elif "filtered_cog_metadata" in l:
-                        new_l = f'filtered_cog_metadata = "{filtered_cog_metadata}"\n'
-                    elif "input_csv" in l:
-                        new_l = f'input_csv = "{input_csv}"\n'
-                    elif "input_directory" in l:
-                        new_l = f'input_directory = "{treedir}"\n'
-                    elif "desired_fields_input" in l:
-                        new_l = f'desired_fields_input = "{fields}"\n'
-                    elif "figdir" in l:
-                        new_l = f'figdir = "{figdir}"\n'
-                    elif "tree_dir" in l:
-                        new_l = f'tree_dir = "{treedir}"\n'
-                    elif "summary_dir" in l:
-                        new_l = f'summary_dir = "{summary_dir}"\n'
-                    elif "QC_fail_file" in l:
-                        new_l = f'QC_fail_file = "{failed_seqs}"\n'
-                    elif "missing_seq_file" in l:
-                        new_l = f'missing_seq_file = "{no_seq}"\n'
-                    elif "sequencing_centre" in l:
-                        new_l = f'sequencing_centre = "{seq_centre}"\n'
-                    elif "clean_locs_file" in l:
-                        new_l = f'clean_locs_file = "{clean_locs}"\n'
-                    elif "uk_map" in l:
-                        new_l = f'uk_map = "{uk_map}"\n'
-                    elif "channels_map" in l:
-                        new_l = f'channels_map = "{channels_map}"\n'
-                    elif "ni_map" in l:
-                        new_l = f'ni_map = "{ni_map}"\n'
+                    for key in change_line_dict:
+                        if key in l:
+                            new_l = change_line_dict[key]
 
-                    
                 else:
                     new_l = l
 
