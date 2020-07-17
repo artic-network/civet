@@ -165,7 +165,7 @@ If additional information was provided in the input csv, and it was specified th
 
 ```python, name="first_table", echo=False, results="tex"
 
-df = dp.make_initial_table(query_dict, desired_fields, False)
+df = dp.make_initial_table(query_dict, desired_fields, label_fields,False)
 
 print(df.to_markdown())
 ```

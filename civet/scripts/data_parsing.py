@@ -253,7 +253,7 @@ def parse_full_metadata(query_dict, full_metadata, present_lins, present_in_tree
     return full_tax_dict
     
 
-def make_initial_table(query_dict, desired_fields, cog_report):
+def make_initial_table(query_dict, desired_fields, label_fields, cog_report):
 
     df_dict = defaultdict(list)
 
@@ -286,6 +286,10 @@ def make_initial_table(query_dict, desired_fields, cog_report):
 
         if desired_fields != []:
             for i in desired_fields:
+                df_dict[i].append(query.attribute_dict[i])
+        
+        if label_fields != []:
+            for i in label_fields and i not in desired_fields:
                 df_dict[i].append(query.attribute_dict[i])
 
         if cog_report:
