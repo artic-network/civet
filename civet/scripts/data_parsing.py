@@ -123,9 +123,9 @@ def parse_reduced_metadata(metadata_file, tip_to_tree):
             query_id_dict[query_id] = new_taxon
             
     return query_dict, query_id_dict, present_lins, tree_to_tip
+    
 
 def parse_input_csv(input_csv, query_id_dict, desired_fields, adm2_adm1_dict, cog_report):
-
     new_query_dict = {}
     contract_dict = {"SCT":"Scotland", "WLS": "Wales", "ENG":"England", "NIR": "Northern_Ireland"}
     cleaning = {"SCOTLAND":"Scotland", "WALES":"Wales", "ENGLAND":"England", "NORTHERN_IRELAND": "Northern_Ireland", "NORTHERN IRELAND": "Northern_Ireland"}

@@ -65,7 +65,7 @@ def find_tallest_tree(input_dir):
     max_height = sorted(tree_heights, reverse=True)[0]
     return max_height
 
-def display_name(tree, tree_name, tree_dir, query_id_dict, full_taxon_dict):
+def display_name(tree, tree_name, tree_dir, full_taxon_dict):
     for k in tree.Objects:
         if k.branchType == 'leaf':
             name = k.name
@@ -123,50 +123,10 @@ def find_colour_dict(query_dict, trait):
     
         return colour_dict
 
-# def get_y_coords(tree, query_dict):
-#     lineage_coords = {}
-#     # lineage_y = defaultdict(list)
-#     for k in tree.Objects:
-#         if k.branchType == 'leaf' and k.name in query_dict.keys():
-#             lineage_coords[k.name] = k.y
-
-#     return lineage_coords
-
-
-def get_x_depth(tree, height, desired_fields, query_dict):
     
-    lineage_coords = {}
-    rect_coords = defaultdict(dict)
-    trait_coords = {}
-    lineage_x = defaultdict(list)
-    max_depth = 0
-    depths = []
-    
-    max_depth = len(desired_fields)
-    
-    for k in tree.Objects:
-        if k.branchType == 'leaf' and k.name in query_dict.keys():
-            count = 0
-            trait_coords = {}
-            for trait in desired_fields:
-                count += 1
-                depth = max_depth - count
+def make_scaled_tree_without_legend(My_Tree, tree_name, tree_dir, num_tips, colour_dict_dict, desired_fields, tallest_height,lineage, taxon_dict, query_dict):
 
-                scaled_depth = (height +height*0.02 + (depth * height*0.07))
-                
-                trait_coords[trait] = [scaled_depth, scaled_depth]
-                
-    # for i in desired_fields:
-    #     s = sorted(tip_coords[i])
-    #     scaled = tip_coords[i][1]
-
-    #     rect_coords[i] = [s[0],scaled]
-
-    return trait_coords
-    
-def make_scaled_tree_without_legend(My_Tree, tree_name, tree_dir, num_tips, colour_dict_dict, desired_fields, tallest_height,lineage, taxon_dict, query_id_dict, query_dict):
-
-    display_name(My_Tree, tree_name, tree_dir, query_id_dict, taxon_dict) 
+    display_name(My_Tree, tree_name, tree_dir, taxon_dict) 
     My_Tree.uncollapseSubtree()
 
     if num_tips < 10:
@@ -184,14 +144,14 @@ def make_scaled_tree_without_legend(My_Tree, tree_name, tree_dir, num_tips, colo
     tipsize = 40
     c_func=lambda k: 'dimgrey' ## colour of branches
     l_func=lambda k: 'lightgrey' ## colour of dotted lines
-    s_func = lambda k: tipsize*5 if k.name in query_id_dict.keys() or k.name in query_dict.keys() else tipsize
+    s_func = lambda k: tipsize*5 if k.name in query_dict.keys() else tipsize
     z_func=lambda k: 100
     b_func=lambda k: 2.0 #branch width
-    so_func=lambda k: tipsize*5 if k.name in query_id_dict.keys() or k.name in query_dict.keys() else 0
+    so_func=lambda k: tipsize*5 if k.name in query_dict.keys() else 0
     zo_func=lambda k: 99
     zb_func=lambda k: 98
     zt_func=lambda k: 97
-    font_size_func = lambda k: 25 if k.name in query_id_dict.keys() or k.name in query_dict.keys() else 15
+    font_size_func = lambda k: 25 if k.name in query_dict.keys() else 15
     kwargs={'ha':'left','va':'center','size':12}
 
     #Colour by specified trait. If no trait is specified, they will be coloured by UK country
@@ -199,9 +159,9 @@ def make_scaled_tree_without_legend(My_Tree, tree_name, tree_dir, num_tips, colo
     
     trait = desired_fields[0] #so always have the first trait as the first colour dot
     colour_dict = colour_dict_dict[trait]
-    cn_func = lambda k: colour_dict[query_dict[k.name].attribute_dict[trait]] if k.name in query_id_dict.keys() or k.name in query_dict.keys() else 'dimgrey'
-    co_func=lambda k: colour_dict[query_dict[k.name].attribute_dict[trait]] if k.name in query_id_dict.keys() or k.name in query_dict.keys() else 'dimgrey' 
-    outline_colour_func = lambda k: colour_dict[query_dict[k.name].attribute_dict[trait]] if k.name in query_id_dict.keys() or k.name in query_dict.keys() else 'dimgrey' 
+    cn_func = lambda k: colour_dict[query_dict[k.name].attribute_dict[trait]] if k.name in query_dict.keys() else 'dimgrey'
+    co_func=lambda k: colour_dict[query_dict[k.name].attribute_dict[trait]] if k.name in query_dict.keys() else 'dimgrey' 
+    outline_colour_func = lambda k: colour_dict[query_dict[k.name].attribute_dict[trait]] if k.name in query_dict.keys() else 'dimgrey' 
 
     x_attr=lambda k: k.height + offset
     y_attr=lambda k: k.y
@@ -333,7 +293,7 @@ def sort_trees_index(tree_dir):
         
     return c
 
-def make_all_of_the_trees(input_dir, taxon_dict, query_id_dict, query_dict, desired_fields, min_uk_taxa=3):
+def make_all_of_the_trees(input_dir, taxon_dict, query_dict, desired_fields, min_uk_taxa=3):
 
     tallest_height = find_tallest_tree(input_dir)
 
@@ -390,7 +350,7 @@ def make_all_of_the_trees(input_dir, taxon_dict, query_id_dict, query_dict, desi
 
                 overall_tree_count += 1      
                 
-                make_scaled_tree_without_legend(tree, treename, input_dir, len(tips), colour_dict_dict, desired_fields, tallest_height, lineage, taxon_dict, query_id_dict, query_dict)     
+                make_scaled_tree_without_legend(tree, treename, input_dir, len(tips), colour_dict_dict, desired_fields, tallest_height, lineage, taxon_dict, query_dict)     
             
             else:
                 too_tall_trees.append(lineage)
@@ -696,9 +656,6 @@ def describe_tree_background(full_tax_dict, tree_dir):
 
                     for j in for_removal:
                          fig.delaxes(axs.flatten()[j])
-
-                
-
 
                     
             elif len(ndes_country_counts) == 1:
