@@ -114,7 +114,7 @@ rule get_closest_cog:
                         "--config "
                         "tempdir={params.tempdir:q} "
                         "seq_db={input.seq_db:q} "
-                        "to_find_closest={output.combined_query} "
+                        "to_find_closest={output.combined_query:q} "
                         "search_field={params.search_field} "
                         "trim_start={params.trim_start} "
                         "trim_end={params.trim_end} "
@@ -123,7 +123,7 @@ rule get_closest_cog:
                         "--cores {params.cores}")
 
         else:
-            shell("touch {output.closest_cog:q} && touch {output.aligned_query} ")
+            shell("touch {output.closest_cog:q} && touch {output.aligned_query:q} ")
 
         with open(output.not_processed, "w") as fw:
             for query in list(set(query_with_no_seq)):
@@ -293,10 +293,10 @@ rule make_report:
         --report-template {input.report_template:q} \
         --filtered-cog-metadata {input.combined_metadata:q} \
         --cog-metadata {input.cog_global_metadata:q} \
-        --clean-locs {input.clean_locs} \
-        --uk-map {input.uk_map} \
-        --channels-map {input.channels_map} \
-        --ni-map {input.ni_map} \
+        --clean-locs {input.clean_locs:q} \
+        --uk-map {input.uk_map:q} \
+        --channels-map {input.channels_map:q} \
+        --ni-map {input.ni_map:q} \
         --outfile {output.outfile:q} \
         --outdir {params.outdir:q} 
         """)
