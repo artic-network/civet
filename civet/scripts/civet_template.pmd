@@ -56,6 +56,7 @@ else:
     name_stem = name_stem_input
 
 desired_fields_input = "" ##CHANGE
+label_fields_input = "" ##CHANGE
 summary_dir = "" ##CHANGE
 
 desired_fields = []
@@ -63,6 +64,12 @@ if desired_fields_input != "":
     options = desired_fields_input.split(",")
     for i in options: 
         desired_fields.append(i)
+
+label_fields= []
+if label_fields_input != "NONE":
+    options = label_fields_input.split(",")
+    for i in options: 
+        label_fields.append(i)
 
 
 #font_list = font_manager.fontManager.addfont(font_file)
@@ -90,7 +97,7 @@ query_dict, query_id_dict, present_lins, tree_to_tip = dp.parse_reduced_metadata
 
 if input_csv != '':
     adm2_to_adm1 = dp.prepping_adm2_adm1_data(full_metadata_file)
-    query_dict = dp.parse_input_csv(input_csv, query_id_dict, desired_fields, adm2_to_adm1, False) #Any query information they have provided
+    query_dict = dp.parse_input_csv(input_csv, query_id_dict, desired_fields, label_fields, adm2_to_adm1, False) #Any query information they have provided
 
 full_tax_dict = dp.parse_full_metadata(query_dict, full_metadata_file, present_lins, present_in_tree)
 ```
@@ -172,7 +179,7 @@ In order to generate trees coloured by specific metadata, please provide this na
 
 
 ```python, name="make_trees", echo=False, include=False, figure=False
-too_tall_trees, overall_tree_number, colour_dict_dict, overall_df_dict = tree_viz.make_all_of_the_trees(tree_dir, full_tax_dict, query_dict, desired_fields)
+too_tall_trees, overall_tree_number, colour_dict_dict, overall_df_dict = tree_viz.make_all_of_the_trees(tree_dir, full_tax_dict, query_dict, desired_fields, label_fields)
 ```
 ```python, name="make_legend", echo=False, include=False, results='tex'
 for trait, colour_dict in colour_dict_dict.items():

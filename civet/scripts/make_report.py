@@ -7,7 +7,7 @@ import shutil
 
 thisdir = os.path.abspath(os.path.dirname(__file__))
 
-def make_report(cog_metadata, input_csv, filtered_cog_metadata, outfile, outdir, treedir, figdir, fields, report_template, failed_seqs, no_seq, seq_centre, clean_locs, uk_map, channels_map, ni_map):
+def make_report(cog_metadata, input_csv, filtered_cog_metadata, outfile, outdir, treedir, figdir, colour_fields, label_fields, report_template, failed_seqs, no_seq, seq_centre, clean_locs, uk_map, channels_map, ni_map):
 
     name_stem = ".".join(outfile.split(".")[:-1])
     with open(outfile, 'w') as pmd_file:
@@ -30,7 +30,9 @@ def make_report(cog_metadata, input_csv, filtered_cog_metadata, outfile, outdir,
                     elif "input_directory" in l:
                         new_l = f'input_directory = "{treedir}"\n'
                     elif "desired_fields_input" in l:
-                        new_l = f'desired_fields_input = "{fields}"\n'
+                        new_l = f'desired_fields_input = "{colour_fields}"\n'
+                    elif "label_fields_input" in l:
+                        new_l = f'label_fields_input = "{label_fields}"\n'
                     elif "figdir" in l:
                         new_l = f'figdir = "{figdir}"\n'
                     elif "tree_dir" in l:
@@ -63,7 +65,9 @@ def make_report(cog_metadata, input_csv, filtered_cog_metadata, outfile, outdir,
 def main():
     parser = argparse.ArgumentParser(description="Report generator script")
     parser.add_argument("-i","--input-csv", required=False, help="path to input file",dest="input_csv")
-    parser.add_argument("-f", "--fields",default="", help="desired fields for report. Default=date and UK country",dest="fields")
+    parser.add_argument("-f", "--fields",default="", help="desired fields for report. Default=date and UK country",dest="colour_fields")
+    parser.add_argument("-l", "--label_fields", default="", help="fields to add into labels in report trees. Default is adm2 and date", dest='label_fields')
+
     parser.add_argument("-sc", "--sequencing-centre",default="", help="Sequencing centre", dest="sc")
 
     parser.add_argument("--filtered-cog-metadata", required=False, help="path to combined metadata file",dest="filtered_cog_metadata")
@@ -86,7 +90,7 @@ def main():
 
     args = parser.parse_args()
 
-    make_report(args.cog_metadata, args.input_csv, args.filtered_cog_metadata, args.outfile, args.outdir, args.treedir, args.figdir,args.fields, args.report_template, args.failed_seqs,args.no_seq, args.sc, args.clean_locs, args.uk_map, args.channels_map, args.ni_map)
+    make_report(args.cog_metadata, args.input_csv, args.filtered_cog_metadata, args.outfile, args.outdir, args.treedir, args.figdir,args.colour_fields, args.label_fields, args.report_template, args.failed_seqs,args.no_seq, args.sc, args.clean_locs, args.uk_map, args.channels_map, args.ni_map)
 
 
 if __name__ == "__main__":

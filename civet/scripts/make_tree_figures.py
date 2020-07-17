@@ -65,7 +65,7 @@ def find_tallest_tree(input_dir):
     max_height = sorted(tree_heights, reverse=True)[0]
     return max_height
 
-def display_name(tree, tree_name, tree_dir, full_taxon_dict):
+def display_name(tree, tree_name, tree_dir, full_taxon_dict, query_dict, custom_tip_fields):
     for k in tree.Objects:
         if k.branchType == 'leaf':
             name = k.name
@@ -83,6 +83,11 @@ def display_name(tree, tree_name, tree_dir, full_taxon_dict):
                     if "adm2" in taxon_obj.attribute_dict.keys():
                         adm2 = taxon_obj.attribute_dict["adm2"]
                         k.traits["display"] = f"{name}|{adm2}|{date}"
+
+                    if name in query_dict.keys():
+                        if len(custom_tip_fields) > 0: #what does no custom tip labels look like
+                            for label_element in custom_tip_fields:
+                                k.traits["display"] = k.traits["display"] + "|" + taxon_obj.attribute_dict[label_element]
                 
                 
                 else:
@@ -124,9 +129,9 @@ def find_colour_dict(query_dict, trait):
         return colour_dict
 
     
-def make_scaled_tree_without_legend(My_Tree, tree_name, tree_dir, num_tips, colour_dict_dict, desired_fields, tallest_height,lineage, taxon_dict, query_dict):
+def make_scaled_tree_without_legend(My_Tree, tree_name, tree_dir, num_tips, colour_dict_dict, desired_fields, tallest_height, taxon_dict, query_dict, custom_tip_labels):
 
-    display_name(My_Tree, tree_name, tree_dir, taxon_dict) 
+    display_name(My_Tree, tree_name, tree_dir, taxon_dict, query_dict, custom_tip_labels) 
     My_Tree.uncollapseSubtree()
 
     if num_tips < 10:
@@ -260,9 +265,6 @@ def make_scaled_tree_without_legend(My_Tree, tree_name, tree_dir, num_tips, colo
 
             ax2.text(x,y,trait, rotation=45, size=15)
 
-                
-
-
     ax2.spines['top'].set_visible(False) ## make axes invisible
     ax2.spines['right'].set_visible(False)
     ax2.spines['left'].set_visible(False)
@@ -293,7 +295,7 @@ def sort_trees_index(tree_dir):
         
     return c
 
-def make_all_of_the_trees(input_dir, taxon_dict, query_dict, desired_fields, min_uk_taxa=3):
+def make_all_of_the_trees(input_dir, taxon_dict, query_dict, desired_fields, custom_tip_labels, min_uk_taxa=3):
 
     tallest_height = find_tallest_tree(input_dir)
 
@@ -350,7 +352,7 @@ def make_all_of_the_trees(input_dir, taxon_dict, query_dict, desired_fields, min
 
                 overall_tree_count += 1      
                 
-                make_scaled_tree_without_legend(tree, treename, input_dir, len(tips), colour_dict_dict, desired_fields, tallest_height, lineage, taxon_dict, query_dict)     
+                make_scaled_tree_without_legend(tree, treename, input_dir, len(tips), colour_dict_dict, desired_fields, tallest_height, taxon_dict, query_dict, custom_tip_labels)     
             
             else:
                 too_tall_trees.append(lineage)

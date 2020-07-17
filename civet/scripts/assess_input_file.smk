@@ -265,6 +265,7 @@ rule make_report:
         treedir = os.path.join(config["outdir"],"local_trees"),
         outdir = config["rel_outdir"],
         fields = config["fields"],
+        label_fields = config["label_fields"],
         sc_source = config["sequencing_centre"],
         sc = config["sequencing_centre_file"],
         sc_flag = config["sequencing_centre_flag"],
@@ -285,6 +286,7 @@ rule make_report:
         make_report.py \
         --input-csv {input.query:q} \
         -f {params.fields:q} \
+        --label_fields {params.label_fields:q} \
         --figdir {params.rel_figdir:q} \
         {params.sc_flag} \
         {params.failure} \
