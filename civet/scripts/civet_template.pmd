@@ -33,6 +33,9 @@ import csv
 import numpy as np
 import scipy as sp
 
+import warnings
+warnings.filterwarnings("ignore")
+
 from dateutil.relativedelta import relativedelta, FR
 
 filtered_cog_metadata = "" ##CHANGE
