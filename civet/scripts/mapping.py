@@ -127,9 +127,12 @@ def make_centroids(result,adm2s, straight_map):
             if adm2 != "" and adm2 not in not_mappable:
                 print(adm2 + " is not associated with an correct adm2 region so cannot be plotted yet.")
                 
-        centroid_df["Adm2"].append(adm2)
-        centroid_df["geometry"].append(centroid)
-        centroid_df["seq_count"].append(count)
+        try:
+            centroid_df["Adm2"].append(adm2)
+            centroid_df["geometry"].append(centroid)
+            centroid_df["seq_count"].append(count)
+        except UnboundLocalError:
+            return
         
         
     centroid_geo = geopandas.GeoDataFrame(centroid_df)
@@ -159,5 +162,8 @@ def run_map_functions(tax_dict, clean_locs_file, mapping_json_files):
     all_uk, result = prep_mapping_data(mapping_json_files, metadata_multi_loc)
 
     centroid_geo = make_centroids(result, adm2s, straight_map)
+    if not centroid_geo:
+        print("None of the sequences provided have adequate adm2 data and so cannot be mapped")
+        return
 
     make_map(centroid_geo, all_uk)

@@ -194,14 +194,13 @@ def make_scaled_tree_without_legend(My_Tree, tree_name, tree_dir, num_tips, colo
     My_Tree.plotPoints(ax2, x_attr=x_attr, colour_function=cn_func,y_attr=y_attr, size_function=s_func, outline_colour=outline_colour_func)
     My_Tree.plotPoints(ax2, x_attr=x_attr, colour_function=co_func, y_attr=y_attr, size_function=so_func, outline_colour=outline_colour_func)
 
-    blob_locs = set()
+    blob_dict = {}
 
     for k in My_Tree.Objects:
             
         if "display" in k.traits:
             name=k.traits["display"]
             
-
             x=x_attr(k)
             y=y_attr(k)
         
@@ -225,8 +224,8 @@ def make_scaled_tree_without_legend(My_Tree, tree_name, tree_dir, num_tips, colo
                         option = query_dict[k.name].attribute_dict[trait]
                         colour_dict = colour_dict_dict[trait]
                         trait_blob = ax2.scatter(x_value, y, tipsize*5, color=colour_dict[option])  
-
-                        blob_locs.add(x_value)
+                        
+                        blob_dict[trait] = x_value
 
                     ax2.text(text_start+division, y, name, size=font_size_func(k), ha="left", va="center", fontweight="light")
                     if x != max_x:
@@ -239,7 +238,7 @@ def make_scaled_tree_without_legend(My_Tree, tree_name, tree_dir, num_tips, colo
                         ax2.plot([x+space_offset,tallest_height],[y,y],ls='--',lw=1,color=l_func(k))
 
                 
-                for blob_x in blob_locs:
+                for blob_x in blob_dict.values():
 
                     line_x = blob_x - (division/2)
 
@@ -252,13 +251,10 @@ def make_scaled_tree_without_legend(My_Tree, tree_name, tree_dir, num_tips, colo
 
         
     if len(desired_fields) > 1:
+
+        blob_dict[desired_fields[0]] = tallest_height
         
-        blob_list = []
-        blob_list.append(tallest_height)
-        for i in blob_locs:
-            blob_list.append(i)
-        
-        for trait, blob_x in zip(desired_fields, blob_list):
+        for trait, blob_x in blob_dict.items():
 
             y = max_y
             x = blob_x
