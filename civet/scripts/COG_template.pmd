@@ -57,6 +57,7 @@ else:
     name_stem = name_stem_input
 
 desired_fields_input = "" ##CHANGE
+label_fields_input = "" ##CHANGE
 summary_dir = "" ##CHANGE
 
 clean_locs_file = "" ##CHANGE
@@ -73,6 +74,12 @@ if desired_fields_input != "":
     options = desired_fields_input.split(",")
     for i in options: 
         desired_fields.append(i)
+
+label_fields= []
+if label_fields_input != "":
+    options = label_fields_input.split(",")
+    for i in options: 
+        label_fields.append(i)
 
 
 #font_list = font_manager.fontManager.addfont(font_file)
@@ -97,7 +104,7 @@ present_in_tree, tip_to_tree = dp.parse_tree_tips(tree_dir)
 query_dict, query_id_dict, present_lins, tree_to_tip = dp.parse_reduced_metadata(filtered_cog_metadata, tip_to_tree) #Just the lines with their queries plus the closest match in COG
 if input_csv != '':
     adm2_to_adm1 = dp.prepping_adm2_adm1_data(full_metadata_file)
-    query_dict = dp.parse_input_csv(input_csv, query_id_dict, desired_fields, adm2_to_adm1, True) #Any query information they have provided
+    query_dict = dp.parse_input_csv(input_csv, query_id_dict, desired_fields, label_fields, adm2_to_adm1, True) #Any query information they have provided
 
 full_tax_dict = dp.parse_full_metadata(query_dict, full_metadata_file, present_lins, present_in_tree)
 ```
@@ -121,16 +128,17 @@ if count_fails != 0 or count_missing != 0:
     if count_fails != 0:
         fail_dict = dp.investigate_QC_fails(QC_fail_file)
         if len(fail_dict) > 0:
-            print("The following sequences have failed QC\n")
+            print("The following sequences have failed QC:\n")
             for seq, reason in fail_dict.items():
                 pretty_name = seq.replace("'","")
                 pretty_reason = reason.replace("'","")
-                print(pretty_name, pretty_reason)
+                print(" - " + pretty_name, pretty_reason)
     if count_missing != 0:
+        print("\n")
         failed_names = dp.print_missing_seqs(missing_seq_file)
-        print("The following seqs were not found in COG and a fasta file was not provided, so CIVET was unable to add them into phylogenies.")
+        print("The following seqs were not found in COG and a fasta file was not provided, so CIVET was unable to add them into phylogenies:\n")
         for i in failed_names:
-            print(i.replace("'",""))
+            print(" - " + i.replace("'","")) 
 ```
 
 ```python, name="early descriptions", echo=False, results='tex'
@@ -171,68 +179,48 @@ They are coloured by the input field you have specified.
 If no fields were specified, they are coloured by Adm1. 
 
 If there was no geographical information provided (either adm1 or adm2), the sequences are left uncoloured. 
-If you would like them to be coloured by specific metadata, please provide this names of the appropriate metadata columns on the command line.
+In order to generate trees coloured by specific metadata, please provide this names of the appropriate metadata columns on the command line.
 
 
 ```python, name="make_trees", echo=False, include=False, figure=False
-too_tall_trees, overall_tree_number, colour_dict_dict, overall_df_dict = tree_viz.make_all_of_the_trees(tree_dir, full_tax_dict, query_id_dict, query_dict, desired_fields)
+too_tall_trees, overall_tree_number, colour_dict_dict, overall_df_dict = tree_viz.make_all_of_the_trees(tree_dir, full_tax_dict, query_dict, desired_fields, label_fields)
 ```
 
-```python, name="make_legend", echo=False, include=False
-for colour_dict in colour_dict_dict.values():
+```python, name="make_legend", echo=False, include=False, results='tex'
+for trait, colour_dict in colour_dict_dict.items():
     tree_viz.make_legend(colour_dict)
+    number_of_options = len(colour_dict)
+    if number_of_options > 15:
+        print("WARNING: There are more than 15 options to colour by for " + trait + ", which will make it difficult to see the differences between colours. Consider adding the trait to the taxon labels on the tree by using the flag _--label-fields_ when calling CIVET.")
 ```
 ```python,name="show_legend",echo=False,results='raw'
 for i, trait in enumerate(colour_dict_dict.keys()):
     print("The legend for " + trait + " is shown below.")
     print("![](" + figdir + "/" + name_stem + "_make_legend_" + str(i+1) + ".png)")
+    print("\n")
 ```
 ```python, name="show_trees", echo=False, results='raw'
-if len(desired_fields) == 1:
-    for i in range(1,overall_tree_number+1):
-        tree_name = "Tree " + str(i)
-        print("### " + tree_name)
-        lookup = "tree_" + str(i)
-        if len(tree_to_tip[lookup]) == 1:
-            print(str(len(tree_to_tip[lookup])) +  " sequence is in Tree " + str(i))
-        else:
-            print(str(len(tree_to_tip[lookup])) +  " sequences are in Tree " + str(i))
-        print("   ")
-        right_rows = df["Tree"]==tree_name
-        relevant_df = df[right_rows].drop(columns=["Tree"])
-        print(relevant_df.to_markdown())
-        print("  ")
-        print("![](" + figdir + "/" + name_stem + "_make_trees_" + str(i) + ".png)")
 
-        node_dict = overall_df_dict[lookup]
-        node_df = pd.DataFrame(node_dict)
-        node_df.set_index("Node number", inplace=True)
-        print(node_df.to_markdown())
+for i in range(1,overall_tree_number+1):
+    tree_name = "Tree " + str(i)
+    print("### " + tree_name)
+    lookup = "tree_" + str(i)
+    if len(tree_to_tip[lookup]) == 1:
+        print(str(len(tree_to_tip[lookup])) +  " sequence is in Tree " + str(i))
+    else:
+        print(str(len(tree_to_tip[lookup])) +  " sequences are in Tree " + str(i))
+    print("   ")
+    
+    right_rows = df["Tree"]==tree_name
+    relevant_df = df[right_rows].drop(columns=["Tree"])
+    print(relevant_df.to_markdown())
+    print("  ")
+    print("![](" + figdir + "/" + name_stem + "_make_trees_" + str(i) + ".png)")
 
-else:
-    for i in range(1,overall_tree_number+1):
-        tree_name = "Tree " + str(i)
-        lookup = "tree_" + str(i)
-        print("### " + tree_name)
-        if len(tree_to_tip[lookup]) == 1:
-            print(str(len(tree_to_tip[lookup])) +  " sequence is in Tree " + str(i))
-        else:
-             print(str(len(tree_to_tip[lookup])) +  " sequences are in Tree " + str(i))
-        right_rows = df["Tree"]==tree_name
-        relevant_df = df[right_rows].drop(columns=["Tree"])
-        print(relevant_df.to_markdown())
-                    
-        for k in range(len(desired_fields)):
-            base_number = ((i)*len(desired_fields)) - 1
-            print("   ")
-            print("![](" + figdir + "/" + name_stem + "_make_trees_" + str(base_number + k) + ".png)")
-
-        node_dict = overall_df_dict[lookup]
-        node_df = pd.DataFrame(node_dict)
-        node_df.set_index("Node number", inplace=True)
-        print(node_df.to_markdown())
-
-
+    node_dict = overall_df_dict[lookup]
+    node_df = pd.DataFrame(node_dict)
+    node_df.set_index("Node number", inplace=True)
+    print(node_df.to_markdown())
 ```
 
 ```python, name="Tree error checking", echo=False, results='raw'
