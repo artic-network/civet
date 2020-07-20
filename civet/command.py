@@ -56,11 +56,6 @@ def main(sysargs = sys.argv[1:]):
     parser.add_argument("--verbose",action="store_true",help="Print lots of stuff to screen")
     parser.add_argument('--max-ambig', action="store", default=0.5, type=float,help="Maximum proportion of Ns allowed to attempt analysis. Default: 0.5",dest="maxambig")
     parser.add_argument('--min-length', action="store", default=10000, type=int,help="Minimum query length allowed to attempt analysis. Default: 10000",dest="minlen")
-    parser.add_argument('--local-lineages',action="store_true",dest="local_lineages",help="Contextualise the cluster lineages at local regional scale. Requires at least one adm2 value in query csv.", default=False)
-    parser.add_argument('--date-restriction',action="store_true",dest="date_restriction",help="Chose whether to date-restrict comparative sequences at regional-scale.", default=False)
-    parser.add_argument('--date-range-start',action="store",default="None", type=str, dest="date_range_start", help="Define the start date from which sequences will COG sequences will be used for local context. YYYY-MM-DD format required.")
-    parser.add_argument('--date-range-end', action="store", default="None", type=str, dest="date_range_end", help="Define the end date from which sequences will COG sequences will be used for local context. YYYY-MM-DD format required.")
-    parser.add_argument('--date-window',action="store",default=7, type=int, dest="date_window",help="Define the window +- either side of cluster sample collection date-range. Default is 7 days.")
     parser.add_argument("-v","--version", action='version', version=f"civet {__version__}")
 
     # Exit with help menu if no args supplied
@@ -182,7 +177,6 @@ def main(sysargs = sys.argv[1:]):
             print(row["name"])
         print(f"Total: {len(queries)}")
     print('\n')
-
     # how many threads to pass
     if args.threads:
         threads = args.threads
@@ -202,20 +196,9 @@ def main(sysargs = sys.argv[1:]):
         "fasta":fasta,
         "rel_outdir":rel_outdir,
         "search_field":args.search_field,
-        "force":"True",
-        "date_range_start":args.date_range_start,
-        "date_range_end":args.date_range_end,
-        "date_window":args.date_window
+        "force":"True"
         }
-    if args.local_lineages:
-        config['local_lineages'] = "True"
-    else:
-        config['local_lineages'] = "False"
 
-    if args.date_restriction:
-        config['date_restriction'] = "True"
-    else:
-        config['date_restriction'] = "False"
     """ 
     QC steps:
     1) check csv header
@@ -413,12 +396,9 @@ To run civet please either\n1) ssh into CLIMB and run with --CLIMB flag\n\
     footer_fig = pkg_resources.resource_filename('civet', 'data/footer.png')
     clean_locs = pkg_resources.resource_filename('civet', 'data/mapping_files/adm2_cleaning.csv')
     map_input_1 = pkg_resources.resource_filename('civet', 'data/mapping_files/gadm36_GBR_2.json')
-    map_input_2 = pkg_resources.resource_filename('civet', 'data/mapping_files/channel_islands.json')
-    map_input_3 = pkg_resources.resource_filename('civet', 'data/mapping_files/NI_counties.geojson')
-    map_input_4 = pkg_resources.resource_filename('civet', 'data/mapping_files/Mainland_HBs_gapclosed_mapshaped_d3.json')
-    spatial_translations_1 = pkg_resources.resource_filename('civet', 'data/mapping_files/HB_Translation.pkl')
-    spatial_translations_2 = pkg_resources.resource_filename('civet', 'data/mapping_files/adm2_regions_to_coords.csv')
-    report_template = os.path.join(thisdir, 'scripts','civet_template.pmd')
+    map_input_2 = pkg_resources.resource_filename('civet', 'data/mapping_files/channel_islands.json')  
+    map_input_3 = pkg_resources.resource_filename('civet', 'data/mapping_files/NI_counties.geojson')  
+
     if args.cog_report:
         report_template = os.path.join(thisdir, 'scripts','COG_template.pmd')
     else:
@@ -437,9 +417,6 @@ To run civet please either\n1) ssh into CLIMB and run with --CLIMB flag\n\
     config["uk_map"] = map_input_1
     config["channels_map"] = map_input_2
     config["ni_map"] = map_input_3
-    config["uk_map_d3"] = map_input_4
-    config["HB_translations"] = spatial_translations_1
-    config["PC_translations"] = spatial_translations_2
 
     sc_list = ["PHEC", 'LIVE', 'BIRM', 'PHWC', 'CAMB', 'NORW', 'GLAS', 'EDIN', 'SHEF',
                  'EXET', 'NOTT', 'PORT', 'OXON', 'NORT', 'NIRE', 'GSTT', 'LOND', 'SANG']
