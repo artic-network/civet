@@ -36,6 +36,7 @@ def main(sysargs = sys.argv[1:]):
     parser.add_argument('--fasta', action="store",help="Optional fasta query.", dest="fasta")
     parser.add_argument('-sc',"--sequencing-centre", action="store",help="Customise report with logos from sequencing centre.", dest="sequencing_centre")
     parser.add_argument('--CLIMB', action="store_true",dest="climb",help="Indicates you're running CIVET from within CLIMB, uses default paths in CLIMB to access data")
+    parser.add_argument('--cog-report', action="store_true",help="Run summary cog report. Default: outbreak investigation",dest="cog_report")
     parser.add_argument("-r",'--remote-sync', action="store_true",dest="remote",help="Remotely access lineage trees from CLIMB, need to also supply -uun,--your-user-name")
     parser.add_argument("-uun","--your-user-name", action="store", help="Your CLIMB COG-UK username. Required if running with --remote-sync flag", dest="uun")
     parser.add_argument('-o','--outdir', action="store",help="Output directory. Default: current working directory")
@@ -398,8 +399,11 @@ To run civet please either\n1) ssh into CLIMB and run with --CLIMB flag\n\
     map_input_2 = pkg_resources.resource_filename('civet', 'data/mapping_files/channel_islands.json')  
     map_input_3 = pkg_resources.resource_filename('civet', 'data/mapping_files/NI_counties.geojson')  
 
-    report_template = os.path.join(thisdir, 'scripts','civet_template.pmd')
-    #report_template = os.path.join(thisdir, 'scripts','COG_template.pmd')
+    if args.cog_report:
+        report_template = os.path.join(thisdir, 'scripts','COG_template.pmd')
+    else:
+        report_template = os.path.join(thisdir, 'scripts','civet_template.pmd')
+    
     if not os.path.exists(report_template):
         sys.stderr.write('Error: cannot find report_template at {}\n'.format(report_template))
         sys.exit(-1)
