@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 import os
-from pweave import *
+from pweave import weave
 import argparse
 import shutil
 
@@ -10,64 +10,54 @@ thisdir = os.path.abspath(os.path.dirname(__file__))
 def make_report(cog_metadata, input_csv, filtered_cog_metadata, outfile, outdir, treedir, figdir, fields, report_template, failed_seqs, no_seq, seq_centre, clean_locs, uk_map, channels_map, ni_map, local_lineages, local_lin_maps, local_lin_tables):
 
     name_stem = ".".join(outfile.split(".")[:-1])
+                        
     with open(outfile, 'w') as pmd_file:
     
         md_template = report_template
         summary_dir = os.path.join(outdir, "summary_files")
+
+        change_line_dict = {
+                            "output_directory": f'output_directory = "{outdir}"\n',
+                            "name_stem_input": f'name_stem_input = "{name_stem}"\n',
+                            "full_metadata_file": f'full_metadata_file = "{cog_metadata}"\n',
+                            "filtered_cog_metadata": f'filtered_cog_metadata = "{filtered_cog_metadata}"\n',
+                            "input_csv": f'input_csv = "{input_csv}"\n',
+                            "input_directory": f'input_directory = "{treedir}"\n',
+                            "desired_fields_input": f'desired_fields_input = "{colour_fields}"\n',
+                            "label_fields_input": f'label_fields_input = "{label_fields}"\n',
+                            "figdir": f'figdir = "{figdir}"\n',
+                            "tree_dir": f'tree_dir = "{treedir}"\n',
+                            "summary_dir": f'summary_dir = "{summary_dir}"\n',
+                            "QC_fail_file": f'QC_fail_file = "{failed_seqs}"\n',
+                            "missing_seq_file": f'missing_seq_file = "{no_seq}"\n',
+                            "sequencing_centre": f'sequencing_centre = "{seq_centre}"\n',
+                            "clean_locs_file": f'clean_locs_file = "{clean_locs}"\n',
+                            "uk_map": f'uk_map = "{uk_map}"\n',
+                            "channels_map": f'channels_map = "{channels_map}"\n',
+                            "ni_map": f'ni_map = "{ni_map}"\n',
+                            "local_lineages" : f'local_lineages = "{local_lineages}"\n',
+                            "local_lin_maps" : f'local_lin_maps = "{local_lin_maps}"\n',
+                            "local_lin_tables" : f'local_lin_tables = "{local_lin_tables}"\n'
+                            }
         with open(md_template) as f:
             for l in f:
                 if "##CHANGE" in l:
-                    if "output_directory" in l:
-                        new_l = f'output_directory = "{outdir}"\n'
-                    elif "name_stem_input" in l:
-                        new_l = f'name_stem_input = "{name_stem}"\n'
-                    elif "full_metadata_file" in l:
-                        new_l = f'full_metadata_file = "{cog_metadata}"\n'
-                    elif "filtered_cog_metadata" in l:
-                        new_l = f'filtered_cog_metadata = "{filtered_cog_metadata}"\n'
-                    elif "input_csv" in l:
-                        new_l = f'input_csv = "{input_csv}"\n'
-                    elif "input_directory" in l:
-                        new_l = f'input_directory = "{treedir}"\n'
-                    elif "desired_fields_input" in l:
-                        new_l = f'desired_fields_input = "{fields}"\n'
-                    elif "figdir" in l:
-                        new_l = f'figdir = "{figdir}"\n'
-                    elif "tree_dir" in l:
-                        new_l = f'tree_dir = "{treedir}"\n'
-                    elif "summary_dir" in l:
-                        new_l = f'summary_dir = "{summary_dir}"\n'
-                    elif "QC_fail_file" in l:
-                        new_l = f'QC_fail_file = "{failed_seqs}"\n'
-                    elif "missing_seq_file" in l:
-                        new_l = f'missing_seq_file = "{no_seq}"\n'
-                    elif "sequencing_centre" in l:
-                        new_l = f'sequencing_centre = "{seq_centre}"\n'
-                    elif "clean_locs_file" in l:
-                        new_l = f'clean_locs_file = "{clean_locs}"\n'
-                    elif "uk_map" in l:
-                        new_l = f'uk_map = "{uk_map}"\n'
-                    elif "channels_map" in l:
-                        new_l = f'channels_map = "{channels_map}"\n'
-                    elif "ni_map" in l:
-                        new_l = f'ni_map = "{ni_map}"\n'
-                    elif "local_lineages" in l:
-                        new_l = f'local_lineages = "{local_lineages}"\n'
-                    elif "local_lin_maps" in l:
-                        new_l = f'local_lin_maps = "{local_lin_maps}"\n'
-                    elif "local_lin_tables" in l:
-                        new_l = f'local_lin_tables = "{local_lin_tables}"\n'
+                    for key in change_line_dict:
+                        if key in l:
+                            new_l = change_line_dict[key]
                 else:
                     new_l = l
 
                 pmd_file.write(new_l)
-
+    
     weave(outfile, doctype = "pandoc", figdir=figdir)
 
 def main():
     parser = argparse.ArgumentParser(description="Report generator script")
     parser.add_argument("-i","--input-csv", required=False, help="path to input file",dest="input_csv")
-    parser.add_argument("-f", "--fields",default="", help="desired fields for report. Default=date and UK country",dest="fields")
+    parser.add_argument("-f", "--fields",default="", help="desired fields for report. Default=date and UK country",dest="colour_fields")
+    parser.add_argument("-l", "--label_fields", default="", help="fields to add into labels in report trees. Default is adm2 and date", dest='label_fields')
+
     parser.add_argument("-sc", "--sequencing-centre",default="", help="Sequencing centre", dest="sc")
 
     parser.add_argument("--filtered-cog-metadata", required=False, help="path to combined metadata file",dest="filtered_cog_metadata")

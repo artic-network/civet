@@ -123,9 +123,9 @@ def parse_reduced_metadata(metadata_file, tip_to_tree):
             query_id_dict[query_id] = new_taxon
             
     return query_dict, query_id_dict, present_lins, tree_to_tip
+    
 
-def parse_input_csv(input_csv, query_id_dict, desired_fields, adm2_adm1_dict, cog_report):
-
+def parse_input_csv(input_csv, query_id_dict, desired_fields, label_fields, adm2_adm1_dict, cog_report):
     new_query_dict = {}
     contract_dict = {"SCT":"Scotland", "WLS": "Wales", "ENG":"England", "NIR": "Northern_Ireland"}
     cleaning = {"SCOTLAND":"Scotland", "WALES":"Wales", "ENGLAND":"England", "NORTHERN_IRELAND": "Northern_Ireland", "NORTHERN IRELAND": "Northern_Ireland"}
@@ -150,7 +150,7 @@ def parse_input_csv(input_csv, query_id_dict, desired_fields, adm2_adm1_dict, co
                         taxon.sample_date = sequence["sample_date"]
 
                 for col in col_names: #Add other metadata fields provided
-                    if col != "name" and col in desired_fields and col != "adm1":
+                    if col != "name" and (col in desired_fields or col in label_fields) and col != "adm1":
                         if sequence[col] == "":
                             taxon.attribute_dict[col] = "NA"
                         else:
@@ -177,7 +177,6 @@ def parse_input_csv(input_csv, query_id_dict, desired_fields, adm2_adm1_dict, co
                     taxon.attribute_dict["adm2"] = sequence["adm2"]
                     taxon.sample_date = sequence["collection_date"]
 
-                
                 new_query_dict[taxon.name] = taxon
             
             # else:
@@ -254,7 +253,7 @@ def parse_full_metadata(query_dict, full_metadata, present_lins, present_in_tree
     return full_tax_dict
     
 
-def make_initial_table(query_dict, desired_fields, cog_report):
+def make_initial_table(query_dict, desired_fields, label_fields, cog_report):
 
     df_dict = defaultdict(list)
 
@@ -287,6 +286,10 @@ def make_initial_table(query_dict, desired_fields, cog_report):
 
         if desired_fields != []:
             for i in desired_fields:
+                df_dict[i].append(query.attribute_dict[i])
+        
+        if label_fields != []:
+            for i in label_fields and i not in desired_fields:
                 df_dict[i].append(query.attribute_dict[i])
 
         if cog_report:

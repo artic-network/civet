@@ -101,6 +101,8 @@ optional arguments:
   --datadir DATADIR     Local directory that contains the data files
   --fields FIELDS       Comma separated string of fields to colour by in the
                         report. Default: country
+  --label-fields        Comma separated string of fields to add to tree label
+                        in the report. Default: adm2 and sample date.
   --search-field 
   SEARCH_FIELD
                         Option to search COG database for a different id type.

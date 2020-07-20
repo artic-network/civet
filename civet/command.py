@@ -36,12 +36,14 @@ def main(sysargs = sys.argv[1:]):
     parser.add_argument('--fasta', action="store",help="Optional fasta query.", dest="fasta")
     parser.add_argument('-sc',"--sequencing-centre", action="store",help="Customise report with logos from sequencing centre.", dest="sequencing_centre")
     parser.add_argument('--CLIMB', action="store_true",dest="climb",help="Indicates you're running CIVET from within CLIMB, uses default paths in CLIMB to access data")
+    parser.add_argument('--cog-report', action="store_true",help="Run summary cog report. Default: outbreak investigation",dest="cog_report")
     parser.add_argument("-r",'--remote-sync', action="store_true",dest="remote",help="Remotely access lineage trees from CLIMB, need to also supply -uun,--your-user-name")
     parser.add_argument("-uun","--your-user-name", action="store", help="Your CLIMB COG-UK username. Required if running with --remote-sync flag", dest="uun")
     parser.add_argument('-o','--outdir', action="store",help="Output directory. Default: current working directory")
     parser.add_argument('-b','--launch-browser', action="store_true",help="Optionally launch md viewer in the browser using grip",dest="launch_browser")
     parser.add_argument('--datadir', action="store",help="Local directory that contains the data files")
     parser.add_argument('--fields', action="store",help="Comma separated string of fields to colour by in the report. Default: country")
+    parser.add_argument('--label-fields', action="store", help="Comma separated string of fields to add to tree report labels.", dest="label_fields")
     parser.add_argument('--search-field', action="store",help="Option to search COG database for a different id type. Default: COG-UK ID", dest="search_field",default="central_sample_id")
     parser.add_argument('--distance', action="store",help="Extraction from large tree radius. Default: 2", dest="distance",default=2)
     # parser.add_argument('--delay-tree-collapse',action="store_true",dest="delay_tree_collapse",help="Wait until after iqtree runs to collapse the polytomies. NOTE: This may result in large trees that take quite a while to run.")
@@ -137,6 +139,7 @@ def main(sysargs = sys.argv[1:]):
 
     # parse the input csv, check col headers and get fields if fields specified
     fields = []
+    labels = []
     queries = []
     with open(query, newline="") as f:
         reader = csv.DictReader(f)
@@ -156,6 +159,21 @@ def main(sysargs = sys.argv[1:]):
                 else:
                     sys.stderr.write(f"Error: {field} field not found in metadata file")
                     sys.exit(-1)
+
+        
+        if not args.label_fields:
+            labels.append("NONE")
+        else:
+            label_fields = args.label_fields.split(",")
+            for label_f in label_fields:
+                if label_f in reader.fieldnames:
+                    labels.append(label_f)
+                else:
+                    sys.stderr.write(f"Error: {label_f} field not found in metadata file")
+                    sys.exit(-1)
+        
+            
+
                     
         print("COG-UK ids to process:")
         for row in reader:
@@ -176,6 +194,7 @@ def main(sysargs = sys.argv[1:]):
     config = {
         "query":query,
         "fields":",".join(fields),
+        "label_fields":",".join(labels),
         "outdir":outdir,
         "tempdir":tempdir,
         "trim_start":265,   # where to pad to using datafunk
@@ -400,7 +419,11 @@ To run civet please either\n1) ssh into CLIMB and run with --CLIMB flag\n\
     spatial_translations_1 = pkg_resources.resource_filename('civet', 'data/mapping_files/HB_Translation.pkl')
     spatial_translations_2 = pkg_resources.resource_filename('civet', 'data/mapping_files/adm2_regions_to_coords.csv')
     report_template = os.path.join(thisdir, 'scripts','civet_template.pmd')
-    #report_template = os.path.join(thisdir, 'scripts','COG_template.pmd')
+    if args.cog_report:
+        report_template = os.path.join(thisdir, 'scripts','COG_template.pmd')
+    else:
+        report_template = os.path.join(thisdir, 'scripts','civet_template.pmd')
+    
     if not os.path.exists(report_template):
         sys.stderr.write('Error: cannot find report_template at {}\n'.format(report_template))
         sys.exit(-1)

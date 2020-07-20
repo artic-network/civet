@@ -65,7 +65,7 @@ def find_tallest_tree(input_dir):
     max_height = sorted(tree_heights, reverse=True)[0]
     return max_height
 
-def display_name(tree, tree_name, tree_dir, query_id_dict, full_taxon_dict):
+def display_name(tree, tree_name, tree_dir, full_taxon_dict, query_dict, custom_tip_fields):
     for k in tree.Objects:
         if k.branchType == 'leaf':
             name = k.name
@@ -83,6 +83,11 @@ def display_name(tree, tree_name, tree_dir, query_id_dict, full_taxon_dict):
                     if "adm2" in taxon_obj.attribute_dict.keys():
                         adm2 = taxon_obj.attribute_dict["adm2"]
                         k.traits["display"] = f"{name}|{adm2}|{date}"
+
+                    if name in query_dict.keys():
+                        if len(custom_tip_fields) > 0: #what does no custom tip labels look like
+                            for label_element in custom_tip_fields:
+                                k.traits["display"] = k.traits["display"] + "|" + taxon_obj.attribute_dict[label_element]
                 
                 
                 else:
@@ -122,16 +127,12 @@ def find_colour_dict(query_dict, trait):
             count += 1
     
         return colour_dict
+
     
-def make_scaled_tree_without_legend(My_Tree, tree_name, tree_dir, num_tips, colour_dict, trait, tallest_height,lineage, taxon_dict, query_id_dict, query_dict):
+def make_scaled_tree_without_legend(My_Tree, tree_name, tree_dir, num_tips, colour_dict_dict, desired_fields, tallest_height, taxon_dict, query_dict, custom_tip_labels):
 
-    display_name(My_Tree, tree_name, tree_dir, query_id_dict, taxon_dict) 
+    display_name(My_Tree, tree_name, tree_dir, taxon_dict, query_dict, custom_tip_labels) 
     My_Tree.uncollapseSubtree()
-
-    # closest_names = []
-
-    # for query in query_id_dict.values():
-    #     closest_names.append(query.closest)
 
     if num_tips < 10:
         #page_height = num_tips/2
@@ -144,23 +145,28 @@ def make_scaled_tree_without_legend(My_Tree, tree_name, tree_dir, num_tips, colo
     space_offset = tallest_height/10
     absolute_x_axis_size = tallest_height+space_offset+space_offset + tallest_height #changed from /3 
     
+
     tipsize = 40
     c_func=lambda k: 'dimgrey' ## colour of branches
-    l_func=lambda k: 'lightgrey' ## colour of branches
-    s_func = lambda k: tipsize*5 if k.name in query_id_dict.keys() or k.name in query_dict.keys() else tipsize
+    l_func=lambda k: 'lightgrey' ## colour of dotted lines
+    s_func = lambda k: tipsize*5 if k.name in query_dict.keys() else tipsize
     z_func=lambda k: 100
     b_func=lambda k: 2.0 #branch width
-    so_func=lambda k: tipsize*5 if k.name in query_id_dict.keys() or k.name in query_dict.keys() else 0
+    so_func=lambda k: tipsize*5 if k.name in query_dict.keys() else 0
     zo_func=lambda k: 99
     zb_func=lambda k: 98
     zt_func=lambda k: 97
-    font_size_func = lambda k: 25 if k.name in query_id_dict.keys() or k.name in query_dict.keys() else 15
+    font_size_func = lambda k: 25 if k.name in query_dict.keys() else 15
     kwargs={'ha':'left','va':'center','size':12}
 
     #Colour by specified trait. If no trait is specified, they will be coloured by UK country
-    cn_func = lambda k: colour_dict[query_dict[k.name].attribute_dict[trait]] if k.name in query_id_dict.keys() or k.name in query_dict.keys() else 'dimgrey'
-    co_func=lambda k: colour_dict[query_dict[k.name].attribute_dict[trait]] if k.name in query_id_dict.keys() or k.name in query_dict.keys() else 'dimgrey' 
-    outline_colour_func = lambda k: colour_dict[query_dict[k.name].attribute_dict[trait]] if k.name in query_id_dict.keys() or k.name in query_dict.keys() else 'dimgrey' 
+    #The first trait will colour the tips, and additional dots are added to the right of the tip
+    
+    trait = desired_fields[0] #so always have the first trait as the first colour dot
+    colour_dict = colour_dict_dict[trait]
+    cn_func = lambda k: colour_dict[query_dict[k.name].attribute_dict[trait]] if k.name in query_dict.keys() else 'dimgrey'
+    co_func=lambda k: colour_dict[query_dict[k.name].attribute_dict[trait]] if k.name in query_dict.keys() else 'dimgrey' 
+    outline_colour_func = lambda k: colour_dict[query_dict[k.name].attribute_dict[trait]] if k.name in query_dict.keys() else 'dimgrey' 
 
     x_attr=lambda k: k.height + offset
     y_attr=lambda k: k.y
@@ -168,40 +174,92 @@ def make_scaled_tree_without_legend(My_Tree, tree_name, tree_dir, num_tips, colo
     y_values = []
     for k in My_Tree.Objects:
         y_values.append(y_attr(k))
-    y_values = sorted(y_values)
+    min_y_prep = min(y_values)
+    max_y_prep = max(y_values)
     vertical_spacer = 0.5 
     full_page = page_height + vertical_spacer + vertical_spacer
-    min_y,max_y = y_values[0]-vertical_spacer,y_values[-1]+vertical_spacer
+    min_y,max_y = min_y_prep-vertical_spacer,max_y_prep+vertical_spacer
+
+    x_values = []
+    for k in My_Tree.Objects:
+        x_values.append(x_attr(k))
+    max_x = max(x_values)
     
     
     fig2,ax2 = plt.subplots(figsize=(20,page_height),facecolor='w',frameon=False, dpi=100)
     
 
     My_Tree.plotTree(ax2, colour_function=c_func, x_attr=x_attr, y_attr=y_attr, branchWidth=b_func)
+    
     My_Tree.plotPoints(ax2, x_attr=x_attr, colour_function=cn_func,y_attr=y_attr, size_function=s_func, outline_colour=outline_colour_func)
     My_Tree.plotPoints(ax2, x_attr=x_attr, colour_function=co_func, y_attr=y_attr, size_function=so_func, outline_colour=outline_colour_func)
 
+    blob_dict = {}
 
     for k in My_Tree.Objects:
-        
-        # if k.branchType == 'leaf': 
-        #     if k.name in query_dict.keys():
-        #         print(k.name)
-        # if "country" in k.traits: #don't need these for now because we're only doing UK trees
-        #     if k.traits["country"] in colour_dict:
+            
         if "display" in k.traits:
             name=k.traits["display"]
-
+            
             x=x_attr(k)
             y=y_attr(k)
         
             height = My_Tree.treeHeight+offset
-            
-            ax2.text(tallest_height+space_offset+space_offset, y, name, size=font_size_func(k), ha="left", va="center", fontweight="ultralight")
-            ax2.plot([x+space_offset,tallest_height+space_offset],[y,y],ls='--',lw=0.5,color=l_func(k))
+            text_start = tallest_height+space_offset+space_offset
 
-            # if k.name in query_dict.keys() or k.name in query_id_dict.keys():
-            #     tree_to_query[tree_name].append(k.name)
+            if len(desired_fields) > 1:
+                
+                division = (text_start - tallest_height)/(len(desired_fields))
+                tip_point = tallest_height+space_offset
+
+                if k.name in query_dict.keys():
+                    
+                    count = 0
+                    
+                    for trait in desired_fields[1:]:
+                        
+                        x_value = tip_point + count
+                        count += division
+
+                        option = query_dict[k.name].attribute_dict[trait]
+                        colour_dict = colour_dict_dict[trait]
+                        trait_blob = ax2.scatter(x_value, y, tipsize*5, color=colour_dict[option])  
+                        
+                        blob_dict[trait] = x_value
+
+                    ax2.text(text_start+division, y, name, size=font_size_func(k), ha="left", va="center", fontweight="light")
+                    if x != max_x:
+                        ax2.plot([x+space_offset,tallest_height],[y,y],ls='--',lw=1,color=l_func(k))
+
+                else:
+
+                    ax2.text(text_start+division, y, name, size=font_size_func(k), ha="left", va="center", fontweight="light")
+                    if x != max_x:
+                        ax2.plot([x+space_offset,tallest_height],[y,y],ls='--',lw=1,color=l_func(k))
+
+                
+                for blob_x in blob_dict.values():
+
+                    line_x = blob_x - (division/2)
+
+                    ax2.plot([line_x,line_x],[min_y,max_y],ls='--',lw=3,color=l_func(k))
+            
+            
+            else:
+                ax2.text(text_start, y, name, size=font_size_func(k), ha="left", va="center", fontweight="ultralight")
+                ax2.plot([x+space_offset,tallest_height+space_offset],[y,y],ls='--',lw=1,color=l_func(k))
+
+        
+    if len(desired_fields) > 1:
+
+        blob_dict[desired_fields[0]] = tallest_height
+        
+        for trait, blob_x in blob_dict.items():
+
+            y = max_y
+            x = blob_x
+
+            ax2.text(x,y,trait, rotation=45, size=15)
 
     ax2.spines['top'].set_visible(False) ## make axes invisible
     ax2.spines['right'].set_visible(False)
@@ -213,7 +271,7 @@ def make_scaled_tree_without_legend(My_Tree, tree_name, tree_dir, num_tips, colo
 
     plt.yticks([])
     plt.xticks([])
-    #plt.title(lineage, size=25)
+    # plt.title(lineage, size=25)
 
     fig2.tight_layout()
 
@@ -233,7 +291,7 @@ def sort_trees_index(tree_dir):
         
     return c
 
-def make_all_of_the_trees(input_dir, taxon_dict, query_id_dict, query_dict, desired_fields, min_uk_taxa=3):
+def make_all_of_the_trees(input_dir, taxon_dict, query_dict, desired_fields, custom_tip_labels, min_uk_taxa=3):
 
     tallest_height = find_tallest_tree(input_dir)
 
@@ -245,6 +303,10 @@ def make_all_of_the_trees(input_dir, taxon_dict, query_id_dict, query_dict, desi
     overall_tree_count = 0
     
     lst = sort_trees_index(input_dir)
+
+    for trait in desired_fields:
+        colour_dict = find_colour_dict(query_dict, trait)
+        colour_dict_dict[trait] = colour_dict
 
     for fn in lst:
         lineage = fn
@@ -286,16 +348,8 @@ def make_all_of_the_trees(input_dir, taxon_dict, query_id_dict, query_dict, desi
 
                 overall_tree_count += 1      
                 
-                if desired_fields == []:
-                    colour_by = ["adm1"]
-                
-                else:
-                    colour_by = desired_fields
+                make_scaled_tree_without_legend(tree, treename, input_dir, len(tips), colour_dict_dict, desired_fields, tallest_height, taxon_dict, query_dict, custom_tip_labels)     
             
-                for trait in colour_by:
-                    colour_dict = find_colour_dict(query_dict, trait)
-                    colour_dict_dict[trait] = colour_dict
-                    make_scaled_tree_without_legend(tree, treename, input_dir, len(tips), colour_dict, trait, tallest_height, lineage, taxon_dict, query_id_dict, query_dict)     
             else:
                 too_tall_trees.append(lineage)
                 continue
@@ -326,7 +380,9 @@ def summarise_collapsed_node_for_label(tree_dir, focal_node, focal_tree, full_ta
                         countries.append(taxon_obj.attribute_dict["country"])
                     
                     else: #should always be in the full metadata now
-                        print("tax missing from full metadata")
+
+                        print(tax + " not present in full metadata")
+
                     #     country = tax.split("/")[0]
                     #     countries.append(country)
                     
@@ -515,10 +571,15 @@ def describe_tree_background(full_tax_dict, tree_dir):
             for nde, seqs in collapsed_dict.items():
                 countries = []
                 for i in seqs:
-                    obj = full_tax_dict[i]
-                    countries.append(obj.attribute_dict["country"])
+                    if i in full_tax_dict.keys():
+                        obj = full_tax_dict[i]
+                        countries.append(obj.attribute_dict["country"])
 
-                    country_counts = Counter(countries)
+                    else:
+                        pass
+
+                country_counts = Counter(countries)
+
                                 
                 if len(country_counts) > 10:
                     keep_countries = dict(country_counts.most_common(10))
@@ -599,9 +660,6 @@ def describe_tree_background(full_tax_dict, tree_dir):
 
                     for j in for_removal:
                          fig.delaxes(axs.flatten()[j])
-
-                
-
 
                     
             elif len(ndes_country_counts) == 1:

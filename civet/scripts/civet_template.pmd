@@ -33,6 +33,9 @@ import csv
 import numpy as np
 import scipy as sp
 
+import warnings
+warnings.filterwarnings("ignore")
+
 from dateutil.relativedelta import relativedelta, FR
 
 filtered_cog_metadata = "" ##CHANGE
@@ -60,6 +63,7 @@ else:
     name_stem = name_stem_input
 
 desired_fields_input = "" ##CHANGE
+label_fields_input = "" ##CHANGE
 summary_dir = "" ##CHANGE
 
 desired_fields = []
@@ -67,6 +71,12 @@ if desired_fields_input != "":
     options = desired_fields_input.split(",")
     for i in options: 
         desired_fields.append(i)
+
+label_fields= []
+if label_fields_input != "NONE":
+    options = label_fields_input.split(",")
+    for i in options: 
+        label_fields.append(i)
 
 
 #font_list = font_manager.fontManager.addfont(font_file)
@@ -91,9 +101,10 @@ mpl.rcParams['axes.labelweight']=50
 present_in_tree, tip_to_tree = dp.parse_tree_tips(tree_dir)
 
 query_dict, query_id_dict, present_lins, tree_to_tip = dp.parse_reduced_metadata(filtered_cog_metadata, tip_to_tree) #Just the lines with their queries plus the closest match in COG
+
 if input_csv != '':
     adm2_to_adm1 = dp.prepping_adm2_adm1_data(full_metadata_file)
-    query_dict = dp.parse_input_csv(input_csv, query_id_dict, desired_fields, adm2_to_adm1, False) #Any query information they have provided
+    query_dict = dp.parse_input_csv(input_csv, query_id_dict, desired_fields, label_fields, adm2_to_adm1, False) #Any query information they have provided
 
 full_tax_dict = dp.parse_full_metadata(query_dict, full_metadata_file, present_lins, present_in_tree)
 ```
@@ -141,7 +152,7 @@ for tax in query_dict.values():
     else:
         not_in_cog_number += 1
 
-print("You provided " + str(number_seqs) + " sequences in total.")
+print(str(number_seqs) + " sequences were provided in total.")
 
 if cog_number != 0 and not_in_cog_number != 0:
     print(str(cog_number) + " were found in the COG database, leaving " + str(not_in_cog_number) + " which were not.")
@@ -152,13 +163,13 @@ elif not_in_cog_number == 0:
 
 ```
 
-The table below is a summary of these sequences provided with your metadata, along with their associated UK lineage and global lineage. 
+The table below is a summary of these sequences provided with metadata, along with their associated UK lineage and global lineage. 
 
-If you have provided additional information in the input csv, and specified that you would like it included in the analysis, it will also be displayed here.
+If additional information was provided in the input csv, and it was specified that it should be included in the analysis, it will also be displayed here.
 
 ```python, name="first_table", echo=False, results="tex"
 
-df = dp.make_initial_table(query_dict, desired_fields, False)
+df = dp.make_initial_table(query_dict, desired_fields, label_fields,False)
 
 print(df.to_markdown())
 ```
@@ -167,19 +178,22 @@ print(df.to_markdown())
 
 The nearest neighbours of each of the query sequences are shown below in order to show their phylogenetic context.
 
-They are coloured by the input field you have specified. 
+They are coloured by the input field specified. 
 If no fields were specified, they are coloured by Adm1. 
 
 If there was no geographical information provided (either adm1 or adm2), the sequences are left uncoloured. 
-If you would like them to be coloured by specific metadata, please provide this names of the appropriate metadata columns on the command line.
+In order to generate trees coloured by specific metadata, please provide this names of the appropriate metadata columns on the command line.
 
 
 ```python, name="make_trees", echo=False, include=False, figure=False
-too_tall_trees, overall_tree_number, colour_dict_dict, overall_df_dict = tree_viz.make_all_of_the_trees(tree_dir, full_tax_dict, query_id_dict, query_dict, desired_fields)
+too_tall_trees, overall_tree_number, colour_dict_dict, overall_df_dict = tree_viz.make_all_of_the_trees(tree_dir, full_tax_dict, query_dict, desired_fields, label_fields)
 ```
-```python, name="make_legend", echo=False, include=False
-for colour_dict in colour_dict_dict.values():
+```python, name="make_legend", echo=False, include=False, results='tex'
+for trait, colour_dict in colour_dict_dict.items():
     tree_viz.make_legend(colour_dict)
+    number_of_options = len(colour_dict)
+    if number_of_options > 15:
+        print("WARNING: There are more than 15 options to colour by for " + trait + ", which will make it difficult to see the differences between colours. Consider adding the trait to the taxon labels on the tree by using the flag _--label-fields_ when calling CIVET.")
 ```
 ```python,name="show_legend",echo=False,results='raw'
 for i, trait in enumerate(colour_dict_dict.keys()):
@@ -188,7 +202,7 @@ for i, trait in enumerate(colour_dict_dict.keys()):
     print("\n")
 ```
 ```python, name="show_trees", echo=False, results='raw'
-if len(desired_fields) == 1:
+
     for i in range(1,overall_tree_number+1):
         tree_name = "Tree " + str(i)
         lookup = "tree_" + str(i)
@@ -200,22 +214,6 @@ if len(desired_fields) == 1:
             print("There are multiple query sequences in this tree, and so transmission cannot be ruled out, but neither can it be confirmed. Therefore their relationship must be investigated further using epidemiological data.")
         print("   ")
         print("![](" + figdir + "/" + name_stem + "_make_trees_" + str(i) + ".png)")
-
-else:
-    for i in range(1,overall_tree_number+1):
-        tree_name = "Tree " + str(i)
-        lookup = "tree_" + str(i)
-        if len(tree_to_tip[lookup]) == 1:
-            print("Tree number " + str(i) + " contains " + str(len(tree_to_tip[lookup])) + " query.")
-            print("Given that there are no other sequences in the query dataset that are in this tree, transmission between this sequence and other queries can be ruled out.")
-        else:            
-            print("Tree number " + str(i) + " contains " + str(len(tree_to_tip[lookup])) + " queries.")
-            print("There are multiple query sequences in this tree, and so transmission cannot be ruled out, but neither can it be confirmed. Therefore their relationship must be investigated further using epidemiological data.")
-        
-        for k in range(len(desired_fields)):
-            base_number = ((i)*len(desired_fields)) - 1
-            print("   ")
-            print("![](" + figdir + "/" + name_stem + "_make_trees_" + str(base_number + k) + ".png)")
 
 
 ```
@@ -281,7 +279,7 @@ For each query sequence, CIVET either finds them in the COG database, or matches
 
 Key points for interpreting this information:
 
- - This type of analysis is not able to infer direct transmission between two samples. Even identical sequences may be unrelated as SARS-COV2 is relatively slow evolving for an RNA virus. Our analysis has shown that samples taken over 100 days apart can be identical. 
+ - This type of analysis is not able to infer direct transmission between two samples. Even identical sequences may be unrelated as SARS-COV2 is relatively slow evolving for an RNA virus. Previous analysis has shown that samples taken over 100 days apart can be identical. 
  - If sequences have different global or UK lineage designations, we can rule out close epidemiological linkage.
  - If sequences have different phylotypes it’s very unlikely that they are direct transmissions. 
  - If sequences share the same lineage and the same phylotype, transmission cannot be ruled out and also cannot be confirmed.

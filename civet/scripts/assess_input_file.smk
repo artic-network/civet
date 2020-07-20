@@ -115,7 +115,7 @@ rule get_closest_cog:
                         "--config "
                         "tempdir={params.tempdir:q} "
                         "seq_db={input.seq_db:q} "
-                        "to_find_closest={output.combined_query} "
+                        "to_find_closest={output.combined_query:q} "
                         "search_field={params.search_field} "
                         "trim_start={params.trim_start} "
                         "trim_end={params.trim_end} "
@@ -124,7 +124,7 @@ rule get_closest_cog:
                         "--cores {params.cores}")
 
         else:
-            shell("touch {output.closest_cog:q} && touch {output.aligned_query} ")
+            shell("touch {output.closest_cog:q} && touch {output.aligned_query:q} ")
 
         with open(output.not_processed, "w") as fw:
             for query in list(set(query_with_no_seq)):
@@ -351,6 +351,7 @@ rule make_report:
         treedir = os.path.join(config["outdir"],"local_trees"),
         outdir = config["rel_outdir"],
         fields = config["fields"],
+        label_fields = config["label_fields"],
         sc_source = config["sequencing_centre"],
         sc = config["sequencing_centre_file"],
         sc_flag = config["sequencing_centre_flag"],
