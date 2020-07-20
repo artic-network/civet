@@ -393,6 +393,7 @@ rule make_report:
             "make_report.py "
             "--input-csv {input.query:q} "
             "-f {params.fields:q} "
+            "-l {params.label_fields} "
             "--figdir {params.rel_figdir:q} "
             "{params.sc_flag} "
             "{params.failure} "
