@@ -447,9 +447,21 @@ if Central_HB_code is not None:
     ## Get the localised regions ##
     central, neighboring, submap = central_surrounding_regions(Central_HB_code, mainland_W, mainland_boards)
     ## Generate tabular data for each region ##
+    for row, frame in central.iterrows():
+        HB_name, MDTable = tableget(frame, cog_final)
+        with open(os.path.join(outDIR, f'{HB_name}_central_lineageTable.md'), 'w') as f:
+            f.write(f'### {HB_name}\n')
+            f.write(f'{MDTable}\n\n')
+    for row, frame in neighboring.iterrows():
+        HB_name, MDTable = tableget(frame, cog_final)
+        with open(os.path.join(outDIR, f'{HB_name}_neighboring_lineageTable.md'), 'w') as f:
+            f.write(f'### {HB_name}\n')
+            f.write(f'{MDTable}\n\n')
+
     for each in [central, neighboring]:
         for row, frame in each.iterrows():
             HB_name, MDTable = tableget(frame, cog_final)
+
             with open(os.path.join(outDIR, f'{HB_name}_lineageTable.md'), 'w') as f:
                 f.write(f'### {HB_name}\n')
                 f.write(f'{MDTable}\n\n')
