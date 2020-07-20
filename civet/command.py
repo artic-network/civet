@@ -92,14 +92,21 @@ def main(sysargs = sys.argv[1:]):
     if args.outdir:
         rel_outdir = args.outdir #for report weaving
         outdir = os.path.join(cwd, args.outdir)
-        
+        figdir = os.path.join(outdir, "figures")
         if not os.path.exists(outdir):
             os.mkdir(outdir)
+        if not os.path.exists(figdir):
+            os.mkdir(figdir)
+            
     else:
         timestamp = str(datetime.now().isoformat(timespec='milliseconds')).replace(":","").replace(".","").replace("T","-")
         outdir = os.path.join(cwd, timestamp)
+        figdir = os.path.join(outdir, "figures")
         if not os.path.exists(outdir):
             os.mkdir(outdir)
+        if not os.path.exists(figdir):
+            os.mkdir(figdir)
+        
         rel_outdir = os.path.join(".",timestamp)
     
     print(f"Output files will be written to {outdir}\n")

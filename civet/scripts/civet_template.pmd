@@ -264,9 +264,6 @@ if local_lineages != 'False':
         with open(each) as file:
             contents = file.read()
             print (contents)
-
-else:
-    print(f'\n*Regional scale lineage analysis and plotting was not carried out; this can be optionally run with the --local-lineages flag and corresponding adm2-scale cluster metadata.*\n\n')
 ```
 
 

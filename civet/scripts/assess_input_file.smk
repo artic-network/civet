@@ -263,16 +263,13 @@ rule regional_mapping:
         datewindow = config["date_window"],
         outdir = config["rel_outdir"],
         tempdir = config['tempdir'],
-        figdir = os.path.join(config["outdir"],'figures', "regional_mapping")
+        figdir = os.path.join(config["outdir"],'figures')
     output:
         central = os.path.join(config["tempdir"], "central_map_ukLin.vl.json"),
         neighboring = os.path.join(config["tempdir"], "neighboring_map_ukLin.vl.json"),
         region = os.path.join(config["tempdir"], "region_map_ukLin.vl.json")
     run:
         if params.local_lineages:
-            shell("""
-            mkdir {params.figdir} -p
-            """)
             shell(
             """
         local_scale_analysis.py \
@@ -304,9 +301,9 @@ rule regional_map_rendering:
         neighboring = os.path.join(config["tempdir"], "neighboring_map_ukLin.vg.json"),
         region = os.path.join(config["tempdir"], "region_map_ukLin.vg.json")
     output:
-        central = os.path.join(config["outdir"], 'figures', "regional_mapping", "central_map_ukLin.png"),
-        neighboring = os.path.join(config["outdir"], 'figures', "regional_mapping", "neighboring_map_ukLin.png"),
-        region = os.path.join(config["outdir"], 'figures', "regional_mapping", "region_map_ukLin.png")
+        central = os.path.join(config["outdir"], 'figures', "central_map_ukLin.png"),
+        neighboring = os.path.join(config["outdir"], 'figures', "neighboring_map_ukLin.png"),
+        region = os.path.join(config["outdir"], 'figures', "region_map_ukLin.png")
     run:
         if params.local_lineages:
             shell(
@@ -344,9 +341,9 @@ rule make_report:
         uk_map = config["uk_map"],
         channels_map = config["channels_map"],
         ni_map = config["ni_map"],
-        central = os.path.join(config["outdir"], 'figures', "regional_mapping", "central_map_ukLin.png"),
-        neighboring = os.path.join(config["outdir"], 'figures', "regional_mapping", "neighboring_map_ukLin.png"),
-        region = os.path.join(config["outdir"], 'figures', "regional_mapping", "region_map_ukLin.png")
+        central = os.path.join(config["outdir"], 'figures', "central_map_ukLin.png"),
+        neighboring = os.path.join(config["outdir"], 'figures', "neighboring_map_ukLin.png"),
+        region = os.path.join(config["outdir"], 'figures', "region_map_ukLin.png")
     params:
         treedir = os.path.join(config["outdir"],"local_trees"),
         outdir = config["rel_outdir"],
@@ -368,10 +365,10 @@ rule make_report:
             shell("cp {params.sc_source:q} {params.sc:q}")
         if params.local_lineages:
             lineage_tables = []
-            for r,d,f in os.walk(os.path.join(config["outdir"], 'figures', "regional_mapping")):
+            for r,d,f in os.walk(os.path.join(config["outdir"], 'figures')):
                 for fn in f:
                     if fn.endswith("_lineageTable.md"):
-                        lineage_tables.append(os.path.join(config["outdir"], 'figures', "regional_mapping", fn))
+                        lineage_tables.append(os.path.join(config["outdir"], 'figures', fn))
             lineage_maps = [input.central, input.neighboring, input.region]
 
             lineage_table_string = ";".join(lineage_tables)
