@@ -11,8 +11,6 @@ dependencies:
   - pip=19.3.1
   - python=3.6
   - snakemake-minimal=5.13
-  - libpysal=4.3.0
-  - nodejs=14.5.0
   - pip:
     - pandas==1.0.1
     - pytools==2020.1

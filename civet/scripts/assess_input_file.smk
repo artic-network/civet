@@ -3,7 +3,6 @@ from Bio import SeqIO
 import os
 import collections
 
-#print(config)
 rule check_cog_db:
     input:
         query = config["query"],
@@ -248,88 +247,6 @@ rule process_catchments:
                             "combined_metadata={input.combined_metadata:q} "
                             "--cores {params.cores}")
 
-rule regional_mapping:
-    input:
-        query = config['query'],
-        combined_metadata = os.path.join(config["outdir"],"combined_metadata.csv"),
-        cog_global_metadata = config["cog_global_metadata"]
-    params:
-        mapfile = config["uk_map_d3"],
-        hb_trans = config["HB_translations"],
-        local_lineages = config["local_lineages"],
-        daterestrict = config["date_restriction"],
-        datestart = config["date_range_start"],
-        dateend = config["date_range_end"],
-        datewindow = config["date_window"],
-        outdir = config["rel_outdir"],
-        tempdir = config['tempdir'],
-        figdir = os.path.join(config["outdir"],'figures', "regional_mapping")
-    output:
-        central = os.path.join(config["tempdir"], "central_map_ukLin.vl.json"),
-        neighboring = os.path.join(config["tempdir"], "neighboring_map_ukLin.vl.json"),
-        region = os.path.join(config["tempdir"], "region_map_ukLin.vl.json")
-    run:
-        if params.local_lineages:
-            shell("""
-            mkdir {params.figdir} -p
-            """)
-            shell(
-            """
-        local_scale_analysis.py \
-        --uk-map {params.mapfile:q} \
-        --hb-translation {params.hb_trans:q} \
-        --date-restriction {params.daterestrict:q} \
-        --date-pair-start {params.datestart:q} \
-        --date-pair-end {params.dateend:q} \
-        --date-window {params.datewindow:q} \
-        --cog-meta-global {input.cog_global_metadata:q} \
-        --user-sample-data {input.query:q} \
-        --output-base-dir {params.figdir:q} \
-        --output-temp-dir {params.tempdir:q}
-            """)
-        else:
-            shell("touch {output.central:q}")
-            shell("touch {output.neighbouring:q}")
-            shell("touch {output.region:q}")
-
-rule regional_map_rendering:
-    input:
-        central = os.path.join(config["tempdir"], "central_map_ukLin.vl.json"),
-        neighboring = os.path.join(config["tempdir"], "neighboring_map_ukLin.vl.json"),
-        region = os.path.join(config["tempdir"], "region_map_ukLin.vl.json")
-    params:
-        outdir = config["rel_outdir"],
-        local_lineages = config["local_lineages"],
-        central = os.path.join(config["tempdir"], "central_map_ukLin.vg.json"),
-        neighboring = os.path.join(config["tempdir"], "neighboring_map_ukLin.vg.json"),
-        region = os.path.join(config["tempdir"], "region_map_ukLin.vg.json")
-    output:
-        central = os.path.join(config["outdir"], 'figures', "regional_mapping", "central_map_ukLin.png"),
-        neighboring = os.path.join(config["outdir"], 'figures', "regional_mapping", "neighboring_map_ukLin.png"),
-        region = os.path.join(config["outdir"], 'figures', "regional_mapping", "region_map_ukLin.png")
-    run:
-        if params.local_lineages:
-            shell(
-            """
-            npx -p vega-lite vl2vg {input.central} {params.central}
-            npx -p vega-cli vg2png {params.central} {output.central}
-            """)
-            shell(
-            """
-            npx -p vega-lite vl2vg {input.neighboring} {params.neighboring}
-            npx -p vega-cli vg2png {params.neighboring} {output.neighboring}
-            """)
-            shell(
-            """
-            npx -p vega-lite vl2vg {input.region} {params.region}
-            npx -p vega-cli vg2png {params.region} {output.region}
-            """)
-        else:
-            shell("touch {output.central}")
-            shell("touch {output.neighboring}")
-            shell("touch {output.region}")
-
-
 rule make_report:
     input:
         lineage_trees = rules.process_catchments.output.tree_summary,
@@ -343,10 +260,7 @@ rule make_report:
         clean_locs = config["clean_locs"],
         uk_map = config["uk_map"],
         channels_map = config["channels_map"],
-        ni_map = config["ni_map"],
-        central = os.path.join(config["outdir"], 'figures', "regional_mapping", "central_map_ukLin.png"),
-        neighboring = os.path.join(config["outdir"], 'figures', "regional_mapping", "neighboring_map_ukLin.png"),
-        region = os.path.join(config["outdir"], 'figures', "regional_mapping", "region_map_ukLin.png")
+        ni_map = config["ni_map"]
     params:
         treedir = os.path.join(config["outdir"],"local_trees"),
         outdir = config["rel_outdir"],
@@ -357,8 +271,7 @@ rule make_report:
         sc_flag = config["sequencing_centre_flag"],
         rel_figdir = os.path.join(".","figures"),
         figdir = os.path.join(config["outdir"],"figures"),
-        failure = config["qc_fail"],
-        local_lineages = config["local_lineages"]
+        failure = config["qc_fail"]
     output:
         poly_fig = os.path.join(config["outdir"],"figures","polytomies.png"),
         footer_fig = os.path.join(config["outdir"], "figures", "footer.png"),
@@ -366,49 +279,29 @@ rule make_report:
     run:
         if params.sc != "":
             shell("cp {params.sc_source:q} {params.sc:q}")
-        if params.local_lineages:
-            lineage_tables = []
-            for r,d,f in os.walk(os.path.join(config["outdir"], 'figures', "regional_mapping")):
-                for fn in f:
-                    if fn.endswith("_lineageTable.md"):
-                        lineage_tables.append(os.path.join(config["outdir"], 'figures', "regional_mapping", fn))
-            lineage_maps = [input.central, input.neighboring, input.region]
-
-            lineage_table_string = ";".join(lineage_tables)
-            lineage_map_string = ";".join(lineage_maps)
-
-            local_lineage_flag = "--local-lineages "
-            lineage_map_flag = f"--local-lin-maps '{lineage_map_string}' "
-            lineage_table_flag = f"--local-lin-tables '{lineage_table_string}' "
-        else:
-            local_lineage_flag = ""
-            lineage_map_flag = ""
-            lineage_table_flag = ""
         shell(
         """
-            cp {input.polytomy_figure:q} {output.poly_fig:q}
-            cp {input.footer:q} {output.footer_fig:q}
+        cp {input.polytomy_figure:q} {output.poly_fig:q}
+        cp {input.footer:q} {output.footer_fig:q}
+        make_report.py \
+        --input-csv {input.query:q} \
+        -f {params.fields:q} \
+        --label_fields {params.label_fields:q} \
+        --figdir {params.rel_figdir:q} \
+        {params.sc_flag} \
+        {params.failure} \
+        --no-seq-provided {input.no_seq} \
+        --treedir {params.treedir:q} \
+        --report-template {input.report_template:q} \
+        --filtered-cog-metadata {input.combined_metadata:q} \
+        --cog-metadata {input.cog_global_metadata:q} \
+        --clean-locs {input.clean_locs:q} \
+        --uk-map {input.uk_map:q} \
+        --channels-map {input.channels_map:q} \
+        --ni-map {input.ni_map:q} \
+        --outfile {output.outfile:q} \
+        --outdir {params.outdir:q} 
         """)
-        shell(
-            "make_report.py "
-            "--input-csv {input.query:q} "
-            "-f {params.fields:q} "
-            "-l {params.label_fields} "
-            "--figdir {params.rel_figdir:q} "
-            "{params.sc_flag} "
-            "{params.failure} "
-            "--no-seq-provided {input.no_seq} "
-            "--treedir {params.treedir:q} "
-            "--report-template {input.report_template:q} "
-            "--filtered-cog-metadata {input.combined_metadata:q} "
-            "--cog-metadata {input.cog_global_metadata:q} "
-            "--clean-locs {input.clean_locs} "
-            "--uk-map {input.uk_map} "
-            "--channels-map {input.channels_map} "
-            "--ni-map {input.ni_map} "
-            "--outfile {output.outfile:q} "
-            "--outdir {params.outdir:q} "  
-            f"{{local_lineage_flag}} {{lineage_map_flag}} {{lineage_table_flag}}")
 
 rule launch_grip:
     input:
