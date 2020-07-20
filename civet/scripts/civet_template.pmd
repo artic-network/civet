@@ -53,6 +53,10 @@ input_directory = "" ##CHANGE
 output_directory = "" ##CHANGE
 name_stem_input = "" ##CHANGE
 
+local_lineages = "" ##CHANGE
+local_lin_maps = "" ##CHANGE
+local_lin_tables = "" ##CHANGE
+
 if "/" in name_stem_input:
     name_stem = name_stem_input.split("/")[-1]
 else:
@@ -233,6 +237,38 @@ bar_count = tree_viz.describe_tree_background(full_tax_dict, tree_dir)
 for i in range(bar_count):
     print("![](" + figdir + "/" + name_stem + "_tree_background_" + str(i+1) + ".png)")
 ```
+## Regional-scale background UK-lineage mapping
+
+```python, name='Regional-scale', echo=False, results='raw'
+if local_lineages != 'False':
+    centralLoc = [ t for t in local_lin_tables.split(';') if "_central_" in t]
+    centralName = centralLoc[0].split('/')[-1].split("_")[0]
+    linmapList=[f'./{"/".join(p.split("/")[-3:])}' for p in local_lin_maps.split(';')]
+    tableList=[t for t in local_lin_tables.split(';') if "_central_" not in t]
+
+    print(f'Based on the sample density for submitted sequences with adm2 metadata, **{centralName}** was determined to be the focal NHS Health-board for region-scale UK-lineage analysis.')
+
+    print(f'The below figure visualises the relative proportion of assigned UK-Lineages for samples collected and sequenced within the central healthboard region for the defined time-frame.')
+    print ("![]("+linmapList[0]+")")
+    print('\n')
+    print(f'The below figure visualises the relative proportion of assigned UK-Lineages for samples collected and sequenced within neighbouring healthboard regions for the defined time-frame.')
+    print ("![]("+linmapList[1]+")")
+    print('\n')
+    print(f'Tabulated lineage data for the **central** health-board region:')
+    with open(centralLoc[0]) as file:
+        contents = file.read()
+        print (contents)
+    print(f'Tabulated lineage data for the **neighbouring** health-board regions:')
+
+    for each in tableList:
+        with open(each) as file:
+            contents = file.read()
+            print (contents)
+
+else:
+    print(f'\n*Regional scale lineage analysis and plotting was not carried out; this can be optionally run with the --local-lineages flag and corresponding adm2-scale cluster metadata.*\n\n')
+```
+
 
 ## Appendix
 
