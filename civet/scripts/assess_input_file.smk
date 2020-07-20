@@ -254,6 +254,8 @@ rule regional_mapping:
         combined_metadata = os.path.join(config["outdir"],"combined_metadata.csv"),
         cog_global_metadata = config["cog_global_metadata"]
     params:
+        mapfile = config["uk_map_d3"],
+        hb_trans = config["HB_translations"],
         local_lineages = config["local_lineages"],
         daterestrict = config["date_restriction"],
         datestart = config["date_range_start"],
@@ -275,7 +277,7 @@ rule regional_mapping:
             """
         local_scale_analysis.py \
         --uk-map {params.mapfile:q} \
-        --hb-translation {params.hbtrans:q} \
+        --hb-translation {params.hb_trans:q} \
         --date-restriction {params.daterestrict:q} \
         --date-pair-start {params.datestart:q} \
         --date-pair-end {params.dateend:q} \
@@ -385,26 +387,26 @@ rule make_report:
         """
             cp {input.polytomy_figure:q} {output.poly_fig:q}
             cp {input.footer:q} {output.footer_fig:q}
-        """
-        shell("""
-            make_report.py \
-            --input-csv {input.query:q} \
-            -f {params.fields:q} \
-            --figdir {params.rel_figdir:q} \
-            {params.sc_flag} \
-            {params.failure} \
-            --no-seq-provided {input.no_seq} \
-            --treedir {params.treedir:q} \
-            --report-template {input.report_template:q} \
-            --filtered-cog-metadata {input.combined_metadata:q} \
-            --cog-metadata {input.cog_global_metadata:q} \
-            --clean-locs {input.clean_locs} \
-            --uk-map {input.uk_map} \
-            --channels-map {input.channels_map} \
-            --ni-map {input.ni_map} \
-            --outfile {output.outfile:q} \
-            --outdir {params.outdir:q}  """ +
-            f"{local_lineage_flag} {lineage_map_flag} {lineage_table_flag}")
+        """)
+        shell(
+            "make_report.py "
+            "--input-csv {input.query:q} "
+            "-f {params.fields:q} "
+            "--figdir {params.rel_figdir:q} "
+            "{params.sc_flag} "
+            "{params.failure} "
+            "--no-seq-provided {input.no_seq} "
+            "--treedir {params.treedir:q} "
+            "--report-template {input.report_template:q} "
+            "--filtered-cog-metadata {input.combined_metadata:q} "
+            "--cog-metadata {input.cog_global_metadata:q} "
+            "--clean-locs {input.clean_locs} "
+            "--uk-map {input.uk_map} "
+            "--channels-map {input.channels_map} "
+            "--ni-map {input.ni_map} "
+            "--outfile {output.outfile:q} "
+            "--outdir {params.outdir:q} "  
+            f"{{local_lineage_flag}} {{lineage_map_flag}} {{lineage_table_flag}}")
 
 rule launch_grip:
     input:
