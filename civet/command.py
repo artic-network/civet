@@ -1,5 +1,6 @@
 #!/usr/bin/env python3
 from civet import __version__
+import setuptools
 import argparse
 import os.path
 import snakemake
@@ -9,7 +10,6 @@ import tempfile
 import pprint
 import json
 import csv
-import setuptools
 import os
 from datetime import datetime
 from Bio import SeqIO
