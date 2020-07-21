@@ -458,13 +458,6 @@ if Central_HB_code is not None:
             f.write(f'### {HB_name}\n')
             f.write(f'{MDTable}\n\n')
 
-    for each in [central, neighboring]:
-        for row, frame in each.iterrows():
-            HB_name, MDTable = tableget(frame, cog_final)
-
-            with open(os.path.join(outDIR, f'{HB_name}_lineageTable.md'), 'w') as f:
-                f.write(f'### {HB_name}\n')
-                f.write(f'{MDTable}\n\n')
 # ~~~~~~~
 ####  TARGET FILE WOULD COME FROM HERE; 'central_map_ukLink.vl.json'
 if Central_HB_code is not None:
