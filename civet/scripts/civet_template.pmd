@@ -239,7 +239,7 @@ for i in range(bar_count):
 if local_lineages != 'False':
     centralLoc = [ t for t in local_lin_tables.split(';') if "_central_" in t]
     centralName = centralLoc[0].split('/')[-1].split("_")[0]
-    linmapList=[f'./{"/".join(p.split("/")[-3:])}' for p in local_lin_maps.split(';')]
+    linmapList=[f'./{"/".join(p.split("/")[-2:])}' for p in local_lin_maps.split(';')]
     tableList=[t for t in local_lin_tables.split(';') if "_central_" not in t]
 
     print(f'Based on the sample density for submitted sequences with adm2 metadata, **{centralName}** was determined to be the focal NHS Health-board for region-scale UK-lineage analysis.')
