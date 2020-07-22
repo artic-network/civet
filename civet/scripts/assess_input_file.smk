@@ -303,7 +303,7 @@ rule regional_map_rendering:
         neighboring = os.path.join(config["outdir"], 'figures', "neighboring_map_ukLin.png"),
         region = os.path.join(config["outdir"], 'figures', "region_map_ukLin.png")
     run:
-        if params.local_lineages:
+        if params.local_lineages == "True":
             shell(
             """
             npx -p vega-lite vl2vg {input.central} {params.central}
@@ -360,7 +360,7 @@ rule make_report:
     run:
         if params.sc != "":
             shell("cp {params.sc_source:q} {params.sc:q}")
-        if params.local_lineages:
+        if params.local_lineages == "True":
             lineage_tables = []
             for r,d,f in os.walk(os.path.join(config["outdir"], 'figures')):
                 for fn in f:
