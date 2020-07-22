@@ -213,7 +213,6 @@ def main(sysargs = sys.argv[1:]):
         "date_range_end":args.date_range_end,
         "date_window":args.date_window
         }
-        }
 
     if args.local_lineages:
         config['local_lineages'] = "True"
@@ -449,7 +448,7 @@ To run civet please either\n1) ssh into CLIMB and run with --CLIMB flag\n\
     config["uk_map_d3"] = map_input_4
     config["HB_translations"] = spatial_translations_1
     config["PC_translations"] = spatial_translations_2
-    
+
     sc_list = ["PHEC", 'LIVE', 'BIRM', 'PHWC', 'CAMB', 'NORW', 'GLAS', 'EDIN', 'SHEF',
                  'EXET', 'NOTT', 'PORT', 'OXON', 'NORT', 'NIRE', 'GSTT', 'LOND', 'SANG']
 
