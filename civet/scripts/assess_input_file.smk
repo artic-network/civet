@@ -284,7 +284,7 @@ rule regional_mapping:
             """)
         else:
             shell("touch {output.central:q}")
-            shell("touch {output.neighbouring:q}")
+            shell("touch {output.neighboring:q}")
             shell("touch {output.region:q}")
 
 rule regional_map_rendering:
