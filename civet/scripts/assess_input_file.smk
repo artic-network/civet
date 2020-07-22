@@ -351,6 +351,7 @@ rule make_report:
         sc = config["sequencing_centre_file"],
         sc_flag = config["sequencing_centre_flag"],
         rel_figdir = os.path.join(".","figures"),
+        local_lineages = config["local_lineages"],
         figdir = os.path.join(config["outdir"],"figures"),
         failure = config["qc_fail"]
     output:
