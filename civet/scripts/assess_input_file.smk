@@ -268,9 +268,8 @@ rule regional_mapping:
         neighboring = os.path.join(config["tempdir"], "neighboring_map_ukLin.vl.json"),
         region = os.path.join(config["tempdir"], "region_map_ukLin.vl.json")
     run:
-        if params.local_lineages:
-            shell(
-            """
+        if params.local_lineages == "True":
+            shell("""
         local_scale_analysis.py \
         --uk-map {params.mapfile:q} \
         --hb-translation {params.hb_trans:q} \
