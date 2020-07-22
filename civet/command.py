@@ -216,6 +216,12 @@ def main(sysargs = sys.argv[1:]):
 
     if args.local_lineages:
         config['local_lineages'] = "True"
+        with open(query, newline="") as f:
+            reader = csv.DictReader(f)
+            header = reader.fieldnames
+            if not "adm2" in header:
+                sys.stderr.write(f"Error: --local-lineages argument called, but input csv file doesn't have an adm2 column. Please provide that to have local lineage analysis.\n")
+                sys.exit(-1)
     else:
         config['local_lineages'] = "False"
 
