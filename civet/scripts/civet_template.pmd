@@ -74,6 +74,10 @@ if label_fields_input != "NONE":
     for i in options: 
         label_fields.append(i)
 
+local_lineages = "" ##CHANGE
+local_lin_maps = "" ##CHANGE
+local_lin_tables = "" ##CHANGE
+
 
 #font_list = font_manager.fontManager.addfont(font_file)
 font_props = font_manager.FontProperties(family=["sans-serif"])
@@ -233,10 +237,11 @@ bar_count = tree_viz.describe_tree_background(full_tax_dict, tree_dir)
 for i in range(bar_count):
     print("![](" + figdir + "/" + name_stem + "_tree_background_" + str(i+1) + ".png)")
 ```
-## Regional-scale background UK-lineage mapping
+
 
 ```python, name='Regional-scale', echo=False, results='raw'
-if local_lineages != 'False':
+if local_lineages != '':
+    print("## Regional-scale background UK lineage mapping")
     centralLoc = [ t for t in local_lin_tables.split(';') if "_central_" in t]
     centralName = centralLoc[0].split('/')[-1].split("_")[0]
     linmapList=[f'./{"/".join(p.split("/")[-2:])}' for p in local_lin_maps.split(';')]

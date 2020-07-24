@@ -400,7 +400,8 @@ rule make_report:
         --channels-map {input.channels_map:q} \
         --ni-map {input.ni_map:q} \
         --outfile {output.outfile:q} \
-        --outdir {params.outdir:q} 
+        --outdir {params.outdir:q} \
+        f"{{local_lineage_flag}} {{lineage_map_flag}} {{lineage_table_flag}}"
         """)
 
 rule launch_grip:

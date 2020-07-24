@@ -7,7 +7,7 @@ import shutil
 
 thisdir = os.path.abspath(os.path.dirname(__file__))
 
-def make_report(cog_metadata, input_csv, filtered_cog_metadata, outfile, outdir, treedir, figdir, colour_fields, label_fields, report_template, failed_seqs, no_seq, seq_centre, clean_locs, uk_map, channels_map, ni_map):
+def make_report(cog_metadata, input_csv, filtered_cog_metadata, outfile, outdir, treedir, figdir, colour_fields, label_fields, report_template, failed_seqs, no_seq, seq_centre, clean_locs, uk_map, channels_map, ni_map, local_lineages, local_lin_maps, local_lin_tables):
 
     name_stem = ".".join(outfile.split(".")[:-1])
                         
@@ -34,7 +34,10 @@ def make_report(cog_metadata, input_csv, filtered_cog_metadata, outfile, outdir,
                             "clean_locs_file": f'clean_locs_file = "{clean_locs}"\n',
                             "uk_map": f'uk_map = "{uk_map}"\n',
                             "channels_map": f'channels_map = "{channels_map}"\n',
-                            "ni_map": f'ni_map = "{ni_map}"\n'
+                            "ni_map": f'ni_map = "{ni_map}"\n',
+                            "local_lineages":f'local_lineages = "{local_lineages}"\n',
+                            "local_lin_maps" : f'local_lin_maps = "{local_lin_maps}"\n',
+                            "local_lin_tables" : f'local_lin_tables = "{local_lin_tables}"\n'
                             }
         with open(md_template) as f:
             for l in f:
@@ -75,9 +78,13 @@ def main():
     parser.add_argument("--channels-map", required=True, help="shape file for channel islands", dest="channels_map")
     parser.add_argument("--ni-map", required=True, help="shape file for northern irish counties", dest="ni_map")
 
+    parser.add_argument("--local-lineages", default="", action='store_true',help="List of rendered .png files for local lineage analysis", dest="local_lineages")
+    parser.add_argument("--local-lin-maps", default="", action='store',help="List of rendered .png files for local lineage analysis", dest="local_lin_maps")
+    parser.add_argument("--local-lin-tables", default="", action='store', help="List of .md tables for local lineage analysis", dest="local_lin_tables")
+
     args = parser.parse_args()
 
-    make_report(args.cog_metadata, args.input_csv, args.filtered_cog_metadata, args.outfile, args.outdir, args.treedir, args.figdir,args.colour_fields, args.label_fields, args.report_template, args.failed_seqs,args.no_seq, args.sc, args.clean_locs, args.uk_map, args.channels_map, args.ni_map)
+    make_report(args.cog_metadata, args.input_csv, args.filtered_cog_metadata, args.outfile, args.outdir, args.treedir, args.figdir,args.colour_fields, args.label_fields, args.report_template, args.failed_seqs,args.no_seq, args.sc, args.clean_locs, args.uk_map, args.channels_map, args.ni_map, args.local_lineages, args.local_lin_maps, args.local_lin_tables)
 
 
 if __name__ == "__main__":
