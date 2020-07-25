@@ -74,6 +74,8 @@ Example usage:
 
 Full usage:
 ```
+usage: civet <query> [options]
+
 civet: Cluster Investivation & Virus Epidemiology Tool
 
 positional arguments:
@@ -87,42 +89,59 @@ optional arguments:
                         with one or more query ids. Example:
                         `EDB3588,EDB3589`.
   --fasta FASTA         Optional fasta query.
+  -sc SEQUENCING_CENTRE, --sequencing-centre SEQUENCING_CENTRE
+                        Customise report with logos from sequencing centre.
   --CLIMB               Indicates you're running CIVET from within CLIMB, uses
                         default paths in CLIMB to access data
+  --cog-report          Run summary cog report. Default: outbreak
+                        investigation
   -r, --remote-sync     Remotely access lineage trees from CLIMB, need to also
                         supply -uun,--your-user-name
-  -uun UUN, 
-  --your-user-name UUN
+  -uun UUN, --your-user-name UUN
                         Your CLIMB COG-UK username. Required if running with
                         --remote-sync flag
-  -o OUTDIR, 
-  --outdir OUTDIR
+  -o OUTDIR, --outdir OUTDIR
                         Output directory. Default: current working directory
+  -b, --launch-browser  Optionally launch md viewer in the browser using grip
   --datadir DATADIR     Local directory that contains the data files
   --fields FIELDS       Comma separated string of fields to colour by in the
                         report. Default: country
-  --label-fields        Comma separated string of fields to add to tree label
-                        in the report. Default: adm2 and sample date.
-  --search-field 
-  SEARCH_FIELD
+  --label-fields LABEL_FIELDS
+                        Comma separated string of fields to add to tree report
+                        labels.
+  --search-field SEARCH_FIELD
                         Option to search COG database for a different id type.
                         Default: COG-UK ID
-  --delay-tree-collapse
-                        Wait until after iqtree runs to collapse the
-                        polytomies. NOTE: This may result in large trees that
-                        take quite a while to run.
+  --distance DISTANCE   Extraction from large tree radius. Default: 2
+  -g, --global          Search globally.
   -n, --dry-run         Go through the motions but don't actually run
   --tempdir TEMPDIR     Specify where you want the temp stuff to go. Default:
                         $TMPDIR
   --no-temp             Output all intermediate files, for dev purposes.
-  -t THREADS, 
-  --threads THREADS
+  --collapse-threshold THRESHOLD
+                        Minimum number of nodes to collapse on. Default: 1
+  -t THREADS, --threads THREADS
                         Number of threads
   --verbose             Print lots of stuff to screen
   --max-ambig MAXAMBIG  Maximum proportion of Ns allowed to attempt analysis.
                         Default: 0.5
   --min-length MINLEN   Minimum query length allowed to attempt analysis.
                         Default: 10000
+  --local-lineages      Contextualise the cluster lineages at local regional
+                        scale. Requires at least one adm2 value in query csv.
+  --date-restriction    Chose whether to date-restrict comparative sequences
+                        at regional-scale.
+  --date-range-start DATE_RANGE_START
+                        Define the start date from which sequences will COG
+                        sequences will be used for local context. YYYY-MM-DD
+                        format required.
+  --date-range-end DATE_RANGE_END
+                        Define the end date from which sequences will COG
+                        sequences will be used for local context. YYYY-MM-DD
+                        format required.
+  --date-window DATE_WINDOW
+                        Define the window +- either side of cluster sample
+                        collection date-range. Default is 7 days.
   -v, --version         show program's version number and exit
 
 ```
