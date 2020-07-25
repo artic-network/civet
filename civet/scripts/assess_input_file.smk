@@ -149,6 +149,28 @@ rule combine_metadata:
                     else:
                         fw.write(l + '\n')
 
+# rule prune_out_catchments:
+#     input:
+#         tree = config["cog_tree"],
+#         metadata = rules.combine_metadata.output.combined_csv
+#     params:
+#         outdir = os.path.join(config["tempdir"],"catchment_trees"),
+#         distance = config["distance"]
+#     output:
+#         txt = os.path.join(config["tempdir"],"catchment_trees","catchment_tree_summary.txt")
+#     shell:
+#         """
+#         clusterfunk find_catchments -i {input.tree:q} \
+#         -o {params.outdir:q} \
+#         --metadata {input.metadata:q} \
+#         --index-column closest \
+#         --threshold {params.distance} \
+#         --branch-count \
+#         --out-format newick \
+#         && touch {output.txt:q} 
+
+#         """
+
 rule prune_out_catchments:
     input:
         tree = config["cog_tree"],
@@ -157,18 +179,19 @@ rule prune_out_catchments:
         outdir = os.path.join(config["tempdir"],"catchment_trees"),
         distance = config["distance"]
     output:
-        txt = os.path.join(config["tempdir"],"catchment_trees","catchment_tree_summary.txt")
+        txt = os.path.join(config["tempdir"],"catchment_trees","catchment_trees_prompt.txt")
     shell:
         """
-        clusterfunk find_catchments -i {input.tree:q} \
+        jclusterfunk context \
+        -i {input.tree:q} \
         -o {params.outdir:q} \
-        --metadata {input.metadata:q} \
-        --index-column closest \
-        --threshold {params.distance} \
-        --branch-count \
-        --out-format newick \
+        --max-parent {params.distance} \
+        -f newick \
+        -p tree \
+        --ignore-missing \
+        -m {input.metadata:q} \
+        --id-column closest \
         && touch {output.txt:q} 
-
         """
 
 rule process_catchments:
@@ -202,7 +225,7 @@ rule process_catchments:
         catchment_trees = []
         for r,d,f in os.walk(params.tree_dir):
             for fn in f:
-                if fn.endswith(".tree"):
+                if fn.endswith(".newick"):
                     file_stem = ".".join(fn.split(".")[:-1])
                     catchment_trees.append(file_stem)
         catchment_str = ",".join(catchment_trees) #to pass to snakemake pipeline
@@ -379,30 +402,29 @@ rule make_report:
             local_lineage_flag = ""
             lineage_map_flag = ""
             lineage_table_flag = ""
+        shell("""
+        cp {input.polytomy_figure:q} {output.poly_fig:q} &&
+        cp {input.footer:q} {output.footer_fig:q}""")
         shell(
-        """
-        cp {input.polytomy_figure:q} {output.poly_fig:q}
-        cp {input.footer:q} {output.footer_fig:q}
-        make_report.py \
-        --input-csv {input.query:q} \
-        -f {params.fields:q} \
-        --label_fields {params.label_fields:q} \
-        --figdir {params.rel_figdir:q} \
-        {params.sc_flag} \
-        {params.failure} \
-        --no-seq-provided {input.no_seq} \
-        --treedir {params.treedir:q} \
-        --report-template {input.report_template:q} \
-        --filtered-cog-metadata {input.combined_metadata:q} \
-        --cog-metadata {input.cog_global_metadata:q} \
-        --clean-locs {input.clean_locs:q} \
-        --uk-map {input.uk_map:q} \
-        --channels-map {input.channels_map:q} \
-        --ni-map {input.ni_map:q} \
-        --outfile {output.outfile:q} \
-        --outdir {params.outdir:q} \
-        f"{{local_lineage_flag}} {{lineage_map_flag}} {{lineage_table_flag}}"
-        """)
+        "make_report.py "
+        "--input-csv {input.query:q} "
+        "-f {params.fields:q} "
+        "--label_fields {params.label_fields:q} "
+        "--figdir {params.rel_figdir:q} "
+        "{params.sc_flag} "
+        "{params.failure} "
+        "--no-seq-provided {input.no_seq} "
+        "--treedir {params.treedir:q} "
+        "--report-template {input.report_template:q} "
+        "--filtered-cog-metadata {input.combined_metadata:q} "
+        "--cog-metadata {input.cog_global_metadata:q} "
+        "--clean-locs {input.clean_locs:q} "
+        "--uk-map {input.uk_map:q} "
+        "--channels-map {input.channels_map:q} "
+        "--ni-map {input.ni_map:q} "
+        "--outfile {output.outfile:q} "
+        "--outdir {params.outdir:q} "
+        f"{local_lineage_flag} {lineage_map_flag} {lineage_table_flag}")
 
 rule launch_grip:
     input:

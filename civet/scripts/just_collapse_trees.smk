@@ -31,7 +31,7 @@ rule all:
 
 rule summarise_polytomies:
     input:
-        tree = os.path.join(config["tempdir"], "catchment_trees","{tree}.tree"),
+        tree = os.path.join(config["tempdir"], "catchment_trees","{tree}.newick"),
         metadata = config["combined_metadata"]
     params:
         tree_dir = os.path.join(config["tempdir"],"catchment_trees")

@@ -13,6 +13,8 @@ dependencies:
   - snakemake-minimal=5.13
   - libpysal=4.3.0
   - nodejs=10.12.0
+  - openjdk
+  - cov-ert::jclusterfunk
   - pip:
     - pandas==1.0.1
     - pytools==2020.1
