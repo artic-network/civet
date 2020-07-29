@@ -62,11 +62,13 @@ desired_fields_input = "" ##CHANGE
 label_fields_input = "" ##CHANGE
 summary_dir = "" ##CHANGE
 
+
 desired_fields = []
 if desired_fields_input != "":
     options = desired_fields_input.split(",")
     for i in options: 
         desired_fields.append(i)
+
 
 label_fields= []
 if label_fields_input != "NONE":
@@ -137,7 +139,7 @@ if count_fails != 0 or count_missing != 0:
         print("\n")
         failed_names = dp.print_missing_seqs(missing_seq_file)
         print("The following seqs were not found in COG and a fasta file was not provided, so CIVET was unable to add them into phylogenies:\n")
-        for i in failed_names:
+        for i in failed_names: 
             print(" - " + i.replace("'","")) 
 ```
 

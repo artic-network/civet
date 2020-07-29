@@ -289,8 +289,9 @@ def make_initial_table(query_dict, desired_fields, label_fields, cog_report):
                 df_dict[i].append(query.attribute_dict[i])
         
         if label_fields != []:
-            for i in label_fields and i not in desired_fields:
-                df_dict[i].append(query.attribute_dict[i])
+            for i in label_fields: 
+                if i not in desired_fields:
+                    df_dict[i].append(query.attribute_dict[i])
 
         if cog_report:
             df_dict['adm2'].append(query.attribute_dict["adm2"])
