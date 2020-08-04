@@ -146,8 +146,9 @@ optional arguments:
                         y-col and input-crs.
   --x-col X_COL         Name of column in input csv containing x coordinates of sequences for mapping.
   --y-col Y_COL         Name of column in input csv containing x coordinates of sequences for mapping.
-  --input-crs           Coordinate system of sequence coordinates eg EPSG:4326 is WGS84 (lat/long)
-                        For more information see https://geopandas.org/projections.html
+  --input-crs           Coordinate system of sequence coordinates in EPSG numbers eg World Mercator (WGS84) is EPSG:4326, 
+                        and ordnance survey is EPSG:27700.
+                        For more information see https://geopandas.org/projections.html and https://spatialreference.org/ref/epsg/
   --mapping-trait MAPPING_TRAIT
                         Trait to colour by on the map. Must match a column header in the input csv.
   -v, --version         Show program's version number and exit
