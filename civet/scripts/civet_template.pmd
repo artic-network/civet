@@ -270,6 +270,7 @@ if map_sequences != "False":
         print("This is shown in the map below, with urban centres shown in the darker grey")
 ```
 ```python, name="show_map", echo=False, results='raw'
+if map_sequences != "False":
     print("![](" + figdir + "/" + name_stem + "_map_sequences_1.png)")
 ```
 
