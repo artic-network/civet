@@ -1,5 +1,6 @@
 #!/usr/bin/env python3
 from collections import defaultdict
+from collections import Counter
 import pandas as pd
 import csv
 from tabulate import tabulate
@@ -7,7 +8,7 @@ import baltic as bt
 import os
 import datetime as dt
 import math
-
+import matplotlib.pyplot as plt
 
 class taxon():
 
@@ -177,6 +178,7 @@ def parse_input_csv(input_csv, query_id_dict, desired_fields, label_fields, adm2
                     taxon.attribute_dict["adm2"] = sequence["adm2"]
                     taxon.sample_date = sequence["collection_date"]
 
+
                 new_query_dict[taxon.name] = taxon
             
             # else:
@@ -231,7 +233,6 @@ def parse_full_metadata(query_dict, full_metadata, present_lins, present_in_tree
                 if date == "":
                     date = "NA"
                 
-                # new_taxon.attribute_dict["sample_date"] = date
                 new_taxon.sample_date = date
                 
                 new_taxon.attribute_dict["adm2"] = adm2
@@ -336,4 +337,5 @@ def print_missing_seqs(missing_seqs_file):
             failed_names.append(name)
 
     return failed_names
+
 

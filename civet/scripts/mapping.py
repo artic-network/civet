@@ -4,6 +4,9 @@ import math
 from collections import Counter
 from collections import defaultdict
 import matplotlib.pyplot as plt
+from shapely.geometry.point import Point
+import csv
+import adjustText as aT
 
 
 def prep_data(tax_dict, clean_locs_file):
@@ -38,7 +41,7 @@ def prep_data(tax_dict, clean_locs_file):
     
     return adm2s, metadata_multi_loc, straight_map
 
-def prep_mapping_data(mapping_input, metadata_multi_loc):
+def generate_all_uk_dataframe(mapping_input):
 
     uk_file = mapping_input[0]
     channel_file = mapping_input[1]
@@ -59,6 +62,12 @@ def prep_mapping_data(mapping_input, metadata_multi_loc):
 
     all_uk = UK.append(channels).append(NI)
 
+    return all_uk
+
+def prep_mapping_data(mapping_input, metadata_multi_loc):
+
+    all_uk = generate_all_uk_dataframe(mapping_input)
+    
     ###CAPITALISE GEOJSON DATA
 
     uppers = []
@@ -155,15 +164,139 @@ def make_map(centroid_geo, all_uk):
     ax.axis("off")
 
 
-def run_map_functions(tax_dict, clean_locs_file, mapping_json_files):
+def run_map_functions(tax_dict, clean_locs_file, mapping_json_files): #So this takes adm2s and plots them onto the whole UK
 
     adm2s, metadata_multi_loc, straight_map = prep_data(tax_dict, clean_locs_file)
 
     all_uk, result = prep_mapping_data(mapping_json_files, metadata_multi_loc)
 
     centroid_geo = make_centroids(result, adm2s, straight_map)
+    
     if not centroid_geo:
         print("None of the sequences provided have adequate adm2 data and so cannot be mapped")
         return
 
     make_map(centroid_geo, all_uk)
+
+def map_traits(input_csv, input_crs, colour_map_trait, x_col, y_col, mapping_json_files, urban_centres):
+
+    all_uk = generate_all_uk_dataframe(mapping_json_files)
+    all_uk = all_uk.to_crs("EPSG:3395")
+
+    urban = geopandas.read_file(urban_centres)
+
+    ##READ IN TRAITS##
+
+    name_to_coords = {}
+    name_to_trait = {}
+
+    with open(input_csv) as f:
+        reader = csv.DictReader(f)
+        data = [r for r in reader]
+        
+        for seq in data:
+            name = seq["name"]
+            x = seq[x_col]
+            y = seq[y_col]
+            
+            if colour_map_trait != "False":
+                trait = seq[colour_map_trait]
+            
+            if x != "" and y != "":
+            
+                name_to_coords[name] = (((float(x)/200)-2.2,(float(y)/200)+55)) #just for now, will change to just x and y in a bit
+                
+                if colour_map_trait != "False":
+                    name_to_trait[name] = trait
+
+    ##MAKE DATAFRAME##
+
+    df_dict = defaultdict(list)
+
+    for name, point in name_to_coords.items():
+        df_dict["geometry"].append(Point(point))
+        if colour_map_trait != "False":
+            df_dict[colour_map_trait].append(name_to_trait[name])
+        
+    crs = {'init':input_crs}
+        
+    df = geopandas.GeoDataFrame(df_dict, crs=crs)    
+    df_final = df.to_crs(all_uk.crs)
+
+    ##IDENTIFY WHICH ADM2 ARE PRESENT##
+
+    adm2_present = []
+
+    for i in df_final["geometry"]:
+        for l,j in zip(all_uk["NAME_2"], all_uk["geometry"]):
+            if j.contains(i):
+                adm2_present.append(l)
+
+    adm2_counter = Counter(adm2_present)
+
+    total=len(adm2_present)
+
+    adm2_percentages = {}
+
+    for adm2, count in adm2_counter.items():
+        adm2_percentages[adm2] = round(((count/total)*100),2)
+
+    ##PREP THE DIFFERENT LAYERS##
+
+    filtered = all_uk[all_uk.NAME_2.isin(list(adm2_counter.keys()))]
+
+    filtered_shape = filtered.dissolve(by="NAME_0")
+    filtered_urban = urban[(urban["geometry"].bounds["minx"] > float(filtered_shape["geometry"].bounds.minx)) & (urban["geometry"].bounds["maxx"] < float(filtered_shape["geometry"].bounds.maxx)) & (urban["geometry"].bounds["miny"] > float(filtered_shape["geometry"].bounds.miny)) & (urban["geometry"].bounds["maxy"] < float(filtered_shape["geometry"].bounds.maxy))]
+
+    expanded_filter = all_uk[(all_uk["geometry"].bounds["minx"] > float(filtered_shape["geometry"].bounds.minx)) & (all_uk["geometry"].bounds["maxx"] < float(filtered_shape["geometry"].bounds.maxx)) & (all_uk["geometry"].bounds["miny"] > float(filtered_shape["geometry"].bounds.miny)) & (all_uk["geometry"].bounds["maxy"] < float(filtered_shape["geometry"].bounds.maxy))]
+
+    ##MAKE MAP##
+
+    fig, ax = plt.subplots(1, 1)
+    fig.set_size_inches(10, 10)
+
+    base = filtered.plot(ax=ax, color="whitesmoke", edgecolor="darkgrey")
+    expanded_filter.plot(ax=base, color="whitesmoke", edgecolor="darkgrey")
+    filtered_urban.plot(ax=base, color="lightgrey")
+
+    if colour_map_trait != "False":
+        df_final.plot(ax=base, column=colour_map_trait, legend=True, markersize=10, legend_kwds={"fontsize":10, "bbox_to_anchor":(1.8,1), 'title':colour_map_trait, 'title_fontsize':10})
+    else:
+        df_final.plot(ax=base, markersize=10)
+
+    ##ADD TEXT##
+
+    filtered["rep"] = filtered["geometry"].representative_point()
+    filtered_wth_centre = filtered.copy()
+    filtered_wth_centre.set_geometry("rep", inplace=True)
+
+    texts = []
+    adm2s_already = []
+
+    for x, y, label in zip(filtered_wth_centre.geometry.x, filtered_wth_centre.geometry.y, filtered_wth_centre["NAME_2"]):
+        texts.append(plt.text(x, y, label, fontsize = 15))
+        adm2s_already.append(label)
+
+    expanded_filter["rep"] = expanded_filter["geometry"].representative_point()
+    filtered_wth_centre2 = expanded_filter.copy()
+    filtered_wth_centre2.set_geometry("rep", inplace=True)
+
+    for x, y, label in zip(filtered_wth_centre2.geometry.x, filtered_wth_centre2.geometry.y, filtered_wth_centre2["NAME_2"]):
+        if label not in adm2s_already:
+            texts.append(plt.text(x, y, label, fontsize = 15))
+
+    aT.adjust_text(texts, force_points=0.3, force_text=0.8, expand_points=(1,1), expand_text=(1,1))
+                # arrowprops=dict(arrowstyle="-", color='grey', lw=0.5))
+
+
+    ax.axis("off") 
+
+    return adm2_counter, adm2_percentages
+
+
+        
+
+
+
+    
+

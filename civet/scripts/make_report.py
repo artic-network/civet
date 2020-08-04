@@ -7,7 +7,7 @@ import shutil
 
 thisdir = os.path.abspath(os.path.dirname(__file__))
 
-def make_report(cog_metadata, input_csv, filtered_cog_metadata, outfile, outdir, treedir, figdir, colour_fields, label_fields, report_template, failed_seqs, no_seq, seq_centre, clean_locs, uk_map, channels_map, ni_map, local_lineages, local_lin_maps, local_lin_tables):
+def make_report(cog_metadata, input_csv, filtered_cog_metadata, outfile, outdir, treedir, figdir, colour_fields, label_fields, report_template, failed_seqs, no_seq, seq_centre, clean_locs, uk_map, channels_map, ni_map, local_lineages, local_lin_maps, local_lin_tables,map_sequences,x_col,y_col, input_crs,mapping_trait,urban_centres):
 
     name_stem = ".".join(outfile.split(".")[:-1])
                         
@@ -37,7 +37,13 @@ def make_report(cog_metadata, input_csv, filtered_cog_metadata, outfile, outdir,
                             "ni_map": f'ni_map = "{ni_map}"\n',
                             "local_lineages":f'local_lineages = "{local_lineages}"\n',
                             "local_lin_maps" : f'local_lin_maps = "{local_lin_maps}"\n',
-                            "local_lin_tables" : f'local_lin_tables = "{local_lin_tables}"\n'
+                            "local_lin_tables" : f'local_lin_tables = "{local_lin_tables}"\n',
+                            "map_sequences":f'map_sequences = "{map_sequences}"\n', 
+                            "x_col":f'x_col = "{x_col}"\n',
+                            "y_col":f'y_col = "{y_col}"\n',
+                            "mapping_trait":f'mapping_trait = "{mapping_trait}"\n',
+                            "input_crs":f'input_crs = "{input_crs}"\n',
+                            "urban_centres":f'urban_centres = "{urban_centres}"\n'
                             }
         with open(md_template) as f:
             for l in f:
@@ -56,7 +62,7 @@ def main():
     parser = argparse.ArgumentParser(description="Report generator script")
     parser.add_argument("-i","--input-csv", required=False, help="path to input file",dest="input_csv")
     parser.add_argument("-f", "--fields",default="", help="desired fields for report. Default=date and UK country",dest="colour_fields")
-    parser.add_argument("-l", "--label_fields", default="", help="fields to add into labels in report trees. Default is adm2 and date", dest='label_fields')
+    parser.add_argument("-l", "--label-fields", default="", help="fields to add into labels in report trees. Default is adm2 and date", dest='label_fields')
 
     parser.add_argument("-sc", "--sequencing-centre",default="", help="Sequencing centre", dest="sc")
 
@@ -78,13 +84,20 @@ def main():
     parser.add_argument("--channels-map", required=True, help="shape file for channel islands", dest="channels_map")
     parser.add_argument("--ni-map", required=True, help="shape file for northern irish counties", dest="ni_map")
 
+    parser.add_argument("--map-sequences", required=True, help="Bool for whether mapping of sequences by trait is required", dest="map_sequences")
+    parser.add_argument("--x-col", default="", help="column name in input csv which contains x coords for mapping", dest="x_col")
+    parser.add_argument("--y-col", default="", help="column name in input csv which contains y coords for mapping", dest="y_col")
+    parser.add_argument("--input-crs", default="", help="coordinate reference system that x and y inputs are in", dest="input_crs")
+    parser.add_argument("--mapping-trait", default="", help="trait to map sequences by", dest="mapping_trait")
+    parser.add_argument("--urban-centres", default="", help="geojson for plotting urban centres", dest="urban_centres")
+
     parser.add_argument("--local-lineages", default="", action='store_true',help="List of rendered .png files for local lineage analysis", dest="local_lineages")
     parser.add_argument("--local-lin-maps", default="", action='store',help="List of rendered .png files for local lineage analysis", dest="local_lin_maps")
     parser.add_argument("--local-lin-tables", default="", action='store', help="List of .md tables for local lineage analysis", dest="local_lin_tables")
 
     args = parser.parse_args()
 
-    make_report(args.cog_metadata, args.input_csv, args.filtered_cog_metadata, args.outfile, args.outdir, args.treedir, args.figdir,args.colour_fields, args.label_fields, args.report_template, args.failed_seqs,args.no_seq, args.sc, args.clean_locs, args.uk_map, args.channels_map, args.ni_map, args.local_lineages, args.local_lin_maps, args.local_lin_tables)
+    make_report(args.cog_metadata, args.input_csv, args.filtered_cog_metadata, args.outfile, args.outdir, args.treedir, args.figdir,args.colour_fields, args.label_fields, args.report_template, args.failed_seqs,args.no_seq, args.sc, args.clean_locs, args.uk_map, args.channels_map, args.ni_map, args.local_lineages, args.local_lin_maps, args.local_lin_tables,args.map_sequences, args.x_col, args.y_col, args.input_crs, args.mapping_trait, args.urban_centres)
 
 
 if __name__ == "__main__":

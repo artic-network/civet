@@ -24,6 +24,7 @@ import pandas as pd
 import os
 import data_parsing as dp
 import make_tree_figures as tree_viz
+import mapping as mapping
 import matplotlib.font_manager as font_manager
 import matplotlib as mpl
 from collections import defaultdict
@@ -64,11 +65,10 @@ summary_dir = "" ##CHANGE
 
 
 desired_fields = []
-if desired_fields_input != "":
-    options = desired_fields_input.split(",")
-    for i in options: 
-        desired_fields.append(i)
 
+options = desired_fields_input.split(",")
+for i in options: 
+    desired_fields.append(i)
 
 label_fields= []
 if label_fields_input != "NONE":
@@ -79,6 +79,18 @@ if label_fields_input != "NONE":
 local_lineages = "" ##CHANGE
 local_lin_maps = "" ##CHANGE
 local_lin_tables = "" ##CHANGE
+
+map_sequences = "" ##CHANGE #going to be true or false
+x_col = "" ##CHANGE
+y_col = "" ##CHANGE
+mapping_trait = "" ##CHANGE
+input_crs = "" ##CHANGE
+uk_map = "" ##CHANGE
+channels_map = "" ##CHANGE
+ni_map = "" ##CHANGE
+urban_centres = "" ##CHANGE
+
+mapping_json_files = [uk_map, channels_map, ni_map]
 
 
 #font_list = font_manager.fontManager.addfont(font_file)
@@ -204,18 +216,17 @@ for i, trait in enumerate(colour_dict_dict.keys()):
     print("\n")
 ```
 ```python, name="show_trees", echo=False, results='raw'
-
-    for i in range(1,overall_tree_number+1):
-        tree_name = "Tree " + str(i)
-        lookup = "tree_" + str(i)
-        if len(tree_to_tip[lookup]) == 1:
-            print("Tree number " + str(i) + " contains " + str(len(tree_to_tip[lookup])) + " query.")
-            print("Given that there are no other sequences in the query dataset that are in this tree, transmission between this sequence and other queries can be ruled out.")
-        else:
-            print("Tree number " + str(i) + " contains " + str(len(tree_to_tip[lookup])) + " queries.")
-            print("There are multiple query sequences in this tree, and so transmission cannot be ruled out, but neither can it be confirmed. Therefore their relationship must be investigated further using epidemiological data.")
-        print("   ")
-        print("![](" + figdir + "/" + name_stem + "_make_trees_" + str(i) + ".png)")
+for i in range(1,overall_tree_number+1):
+    tree_name = "Tree " + str(i)
+    lookup = "tree_" + str(i)
+    if len(tree_to_tip[lookup]) == 1:
+        print("Tree number " + str(i) + " contains " + str(len(tree_to_tip[lookup])) + " query.")
+        print("Given that there are no other sequences in the query dataset that are in this tree, transmission between this sequence and other queries can be ruled out.")
+    else:
+        print("Tree number " + str(i) + " contains " + str(len(tree_to_tip[lookup])) + " queries.")
+        print("There are multiple query sequences in this tree, and so transmission cannot be ruled out, but neither can it be confirmed. Therefore their relationship must be investigated further using epidemiological data.")
+    print("   ")
+    print("![](" + figdir + "/" + name_stem + "_make_trees_" + str(i) + ".png)")
 
 
 ```
@@ -225,6 +236,8 @@ if too_tall_trees != []:
     for tree in too_tall_trees:
         print("Tree" + str(tree) + " is too large to be rendered here.")
 ```
+
+
 ## Tree background
 
 The following plots describe the data in the collapsed nodes in more detail.
@@ -239,6 +252,28 @@ bar_count = tree_viz.describe_tree_background(full_tax_dict, tree_dir)
 for i in range(bar_count):
     print("![](" + figdir + "/" + name_stem + "_tree_background_" + str(i+1) + ".png)")
 ```
+
+```python, name="map_sequences", echo=False, results='raw', include=False
+if map_sequences != "False":
+    print("## Plotting sequences")
+    adm2_in_map, adm2_percentages = mapping.map_traits(input_csv, input_crs, mapping_trait, x_col, y_col, mapping_json_files, urban_centres)
+
+    print("There are sequences from " + str(len(adm2_in_map)) + " admin2 regions.")
+
+    print("This is divided into:")
+    for adm2, percentage in adm2_percentages.items():
+        print(str(percentage) + "% (" + str(adm2_in_map[adm2]) + ") in " + adm2)
+
+    if mapping_trait != "False":
+        print("This is shown in the map below, and is coloured by " + mapping_trait + " and urban centres are shown in the darker grey")
+    else:
+        print("This is shown in the map below, with urban centres shown in the darker grey")
+```
+```python, name="show_map", echo=False, results='raw'
+    print("![](" + figdir + "/" + name_stem + "_map_sequences_1.png)")
+```
+
+
 
 
 ```python, name='Regional-scale', echo=False, results='raw'
@@ -268,7 +303,6 @@ if local_lineages != '':
             contents = file.read()
             print (contents)
 ```
-
 
 ## Appendix
 

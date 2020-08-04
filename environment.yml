@@ -22,6 +22,7 @@ dependencies:
     - tabulate>=0.8.7
     - grip>=4.5.2
     - descartes>=1.1.0
+    - adjustText>=0.7.3
     - git+https://github.com/cov-ert/datafunk.git
     - git+https://github.com/cov-ert/clusterfunk.git
 

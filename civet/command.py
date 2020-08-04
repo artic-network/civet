@@ -63,6 +63,14 @@ def main(sysargs = sys.argv[1:]):
     parser.add_argument('--date-window',action="store",default=7, type=int, dest="date_window",help="Define the window +- either side of cluster sample collection date-range. Default is 7 days.")
     parser.add_argument("-v","--version", action='version', version=f"civet {__version__}")
 
+    parser.add_argument("--map-sequences", action="store_true", dest="map_sequences", help="Map the coordinate points of sequences, coloured by a triat.")
+    parser.add_argument("--x-col", required=False, dest="x_col", help="column containing x coordinate for mapping sequences")
+    parser.add_argument("--y-col", required=False, dest="y_col", help="column containing y coordinate for mapping sequences")
+    parser.add_argument("--input-crs", required=False, dest="input_crs", help="Coordinate reference system of sequence coordinates")
+    parser.add_argument("--mapping-trait", required=False, dest="mapping_trait", help="Column to colour mapped sequences by")
+
+
+
     # Exit with help menu if no args supplied
     if len(sysargs)<1: 
         parser.print_help()
@@ -148,6 +156,7 @@ def main(sysargs = sys.argv[1:]):
     fields = []
     labels = []
     queries = []
+
     with open(query, newline="") as f:
         reader = csv.DictReader(f)
         column_names = reader.fieldnames
@@ -179,9 +188,6 @@ def main(sysargs = sys.argv[1:]):
                     sys.stderr.write(f"Error: {label_f} field not found in metadata file")
                     sys.exit(-1)
         
-            
-
-                    
         print("COG-UK ids to process:")
         for row in reader:
             queries.append(row["name"])
@@ -213,6 +219,41 @@ def main(sysargs = sys.argv[1:]):
         "date_range_end":args.date_range_end,
         "date_window":args.date_window
         }
+
+    if args.map_sequences:
+        config["map_sequences"] = True
+        if not args.x_col or not args.y_col:
+            sys.stderr.write('Error: coordinates not supplied for mapping sequences. Please provide --x-col and --y-col')
+            sys.exit(-1)
+        elif not args.input_crs:
+            sys.stderr.write('Error: input coordinate system not provided for mapping. Please provide --input-crs eg EPSG:3395')
+            sys.exit(-1)
+        else:
+            config["x_col"] = args.x_col
+            config["y_col"] = args.y_col
+            config["input_crs"] = args.input_crs
+
+        with open(query, newline="") as f:
+            reader = csv.DictReader(f)
+            column_names = reader.fieldnames
+            relevant_cols = [args.x_col, args.y_col, args.mapping_trait]
+            for map_arg in relevant_cols:
+
+                if map_arg and map_arg not in reader.fieldnames:
+                    sys.stderr.write(f"Error: {map_arg} field not found in metadata file")
+                    sys.exit(-1)
+
+        if args.mapping_trait:
+            config["mapping_trait"] = args.mapping_trait
+        else:
+            config["mapping_trait"] = False
+            
+    else:
+        config["map_sequences"] = False
+        config["x_col"] = False
+        config["y_col"] = False
+        config["input_crs"] = False
+        config["mapping_trait"] = False
 
     if args.local_lineages:
         config['local_lineages'] = "True"
@@ -430,6 +471,7 @@ To run civet please either\n1) ssh into CLIMB and run with --CLIMB flag\n\
     map_input_2 = pkg_resources.resource_filename('civet', 'data/mapping_files/channel_islands.json')  
     map_input_3 = pkg_resources.resource_filename('civet', 'data/mapping_files/NI_counties.geojson')  
     map_input_4 = pkg_resources.resource_filename('civet', 'data/mapping_files/Mainland_HBs_gapclosed_mapshaped_d3.json')
+    map_input_5 = pkg_resources.resource_filename('civet', 'data/mapping_files/urban_areas_UK.geojson')
     spatial_translations_1 = pkg_resources.resource_filename('civet', 'data/mapping_files/HB_Translation.pkl')
     spatial_translations_2 = pkg_resources.resource_filename('civet', 'data/mapping_files/adm2_regions_to_coords.csv')
 
@@ -452,6 +494,7 @@ To run civet please either\n1) ssh into CLIMB and run with --CLIMB flag\n\
     config["channels_map"] = map_input_2
     config["ni_map"] = map_input_3
     config["uk_map_d3"] = map_input_4
+    config["urban_centres"] = map_input_5
     config["HB_translations"] = spatial_translations_1
     config["PC_translations"] = spatial_translations_2
 

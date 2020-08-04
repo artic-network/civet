@@ -362,6 +362,7 @@ rule make_report:
         uk_map = config["uk_map"],
         channels_map = config["channels_map"],
         ni_map = config["ni_map"],
+        urban_centres = config["urban_centres"],
         central = os.path.join(config["outdir"], 'figures', "central_map_ukLin.png"),
         neighboring = os.path.join(config["outdir"], 'figures', "neighboring_map_ukLin.png"),
         region = os.path.join(config["outdir"], 'figures', "region_map_ukLin.png")
@@ -376,7 +377,13 @@ rule make_report:
         rel_figdir = os.path.join(".","figures"),
         local_lineages = config["local_lineages"],
         figdir = os.path.join(config["outdir"],"figures"),
-        failure = config["qc_fail"]
+        failure = config["qc_fail"],
+        map_sequences = config["map_sequences"],
+        x_col = config["x_col"],
+        y_col = config["y_col"],
+        input_crs = config["input_crs"],
+        mapping_trait = config["mapping_trait"]
+
     output:
         poly_fig = os.path.join(config["outdir"],"figures","polytomies.png"),
         footer_fig = os.path.join(config["outdir"], "figures", "footer.png"),
@@ -409,7 +416,7 @@ rule make_report:
         "make_report.py "
         "--input-csv {input.query:q} "
         "-f {params.fields:q} "
-        "--label_fields {params.label_fields:q} "
+        "--label-fields {params.label_fields:q} "
         "--figdir {params.rel_figdir:q} "
         "{params.sc_flag} "
         "{params.failure} "
@@ -424,6 +431,12 @@ rule make_report:
         "--ni-map {input.ni_map:q} "
         "--outfile {output.outfile:q} "
         "--outdir {params.outdir:q} "
+        "--map-sequences {params.map_sequences} "
+        "--x-col {params.x_col} "
+        "--y-col {params.y_col} "
+        "--input-crs {params.input_crs} "
+        "--mapping-trait {params.mapping_trait} "
+        "--urban-centres {input.urban_centres} "
         f"{local_lineage_flag} {lineage_map_flag} {lineage_table_flag}")
 
 rule launch_grip:
