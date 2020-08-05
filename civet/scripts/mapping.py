@@ -204,8 +204,9 @@ def map_traits(input_csv, input_crs, colour_map_trait, x_col, y_col, mapping_jso
             
             if x != "" and y != "":
             
-                name_to_coords[name] = (((float(x)/200)-2.2,(float(y)/200)+55)) #just for now, will change to just x and y in a bit
-                
+                #name_to_coords[name] = (((float(x)/200)-2.2,(float(y)/200)+55)) #just for now, will change to just x and y in a bit
+                name_to_ccords[name] = (float(x),float(y))
+
                 if colour_map_trait != "False":
                     name_to_trait[name] = trait
 

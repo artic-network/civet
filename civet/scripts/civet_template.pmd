@@ -381,6 +381,8 @@ We also use some background data from GISAID (https://www.gisaid.org/) in the ph
 
 Tree data was visualised using baltic (https://github.com/evogytis/baltic)
 
+Mapping data was downloaded from the Global Administrative Database (https://gadm.org/) and Natural Earth (https://www.naturalearthdata.com/)
+
 ```python, name="footer", echo=False, results='raw'
 print("![](" + figdir + "/footer.png)")
 ```
