@@ -4,6 +4,8 @@
 
 <img src="./docs/civet_logo.png" width="450">
 
+civet is a tool developed with 'real-time' genomics in mind. With the large phylogeny available through the COG-UK infrastructure on CLIMB, civet will generate a report for a set of sequences of interest i.e. an outbreak investigation. If the sequences are already on CLIMB and part of the large tree, civet will pull out the local context of those sequences, merging the smaller local trees as appropriate. If sequences haven't yet been uploaded to CLIMB, for instance if they have just been sequenced, civet will find the closest sequence in the COG-UK database on climb, pull the local tree of that sequence out and add your sequence in. The local trees then get collapsed to display in detail only the sequences of interest so as not to inform investigations beyond what was suggested by epidemiological data. 
+
 ## Quick links
 
   * [Requirements](#requirements)
