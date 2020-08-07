@@ -48,12 +48,12 @@ class lineage():
         self.name = name
         self.taxa = taxa
         self.dates = []
-        self.global_lins = []
+        self.global_lins = set()
         
         for tax in taxa:
             if tax.sample_date != "NA":
                 self.dates.append(tax.date_dt)
-            self.global_lins.append(tax.global_lin)
+            self.global_lins.add(tax.global_lin)
                 
         if self.dates == []:
             self.first_date = "NA"
@@ -412,7 +412,7 @@ def find_new_introductions(query_dict, min_date): #will only be called for the C
 
     new_lins = []
     for i in df["Global lineage"]:
-        new_lin = str(i).strip("[").strip("]").replace("'","")
+        new_lin = str(i).strip("{").strip("}").replace("'","")
         new_lins.append(new_lin)
     df["Global lineage"] = new_lins
 
