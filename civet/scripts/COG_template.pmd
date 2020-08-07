@@ -180,7 +180,7 @@ df = dp.make_initial_table(query_dict, desired_fields, label_fields, True)
 new_intros, new_intro_df = dp.find_new_introductions(query_dict, date_min)
 
 if len(new_intros) != 0:
-    print("There are " + str(len(new_intros)) + " potential new introductions in this timeframe. Information about them is shown below.")
+    print("There are " + str(len(new_intros)) + " potential new introductions in this timeframe.")
 
     print(new_intro_df.to_markdown())
 
@@ -204,12 +204,9 @@ print("![](" + figdir + "/" + name_stem + "_make_map_1.png)")
 
 The nearest neighbours of each of the query sequences are shown below in order to show their phylogenetic context.
 
-They are coloured by the input field you have specified. 
-If no fields were specified, they are coloured by Adm1. 
+If no fields were specified using "--fields", tips are coloured by Adm1. 
 
 If there was no geographical information provided (either adm1 or adm2), the sequences are left uncoloured. 
-In order to generate trees coloured by specific metadata, please provide this names of the appropriate metadata columns on the command line.
-
 
 ```python, name="make_trees", echo=False, include=False, figure=False
 too_tall_trees, overall_tree_number, colour_dict_dict, overall_df_dict = tree_viz.make_all_of_the_trees(tree_dir, full_tax_dict, query_dict, desired_fields, label_fields)
