@@ -111,8 +111,6 @@ def prep_mapping_data(mapping_input, metadata_multi_loc):
 def make_centroids(result,adm2s, straight_map):
 
     not_mappable = ["WALES", "OTHER", "UNKNOWN", "UNKNOWN SOURCE", "NOT FOUND", "GIBRALTAR", "FALKLAND ISLANDS", "CITY CENTRE"]
-    
-    centroid_dict = {}
 
     centroid_dict = {}
 
@@ -141,7 +139,7 @@ def make_centroids(result,adm2s, straight_map):
             centroid_df["geometry"].append(centroid)
             centroid_df["seq_count"].append(count)
         except UnboundLocalError:
-            return
+            return False
         
         
     centroid_geo = geopandas.GeoDataFrame(centroid_df)
@@ -172,7 +170,7 @@ def run_map_functions(tax_dict, clean_locs_file, mapping_json_files): #So this t
 
     centroid_geo = make_centroids(result, adm2s, straight_map)
     
-    if not centroid_geo:
+    if type(centroid_geo) == bool:
         print("None of the sequences provided have adequate adm2 data and so cannot be mapped")
         return
 

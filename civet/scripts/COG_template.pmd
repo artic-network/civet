@@ -15,7 +15,7 @@ else:
     header_file = os.path.join(figdir, "DEFAULT.png")
     print(f"![]({header_file})")
 
-    print("# COG recent sequences report")
+    print("# COG situation report")
 ```
 
 ```python, name="import dependencies", echo=False
@@ -70,13 +70,13 @@ mapping_json_files = [uk_map, channels_map, ni_map]
 
 
 desired_fields = []
-if desired_fields_input != "":
-    options = desired_fields_input.split(",")
-    for i in options: 
-        desired_fields.append(i)
+
+options = desired_fields_input.split(",")
+for i in options: 
+    desired_fields.append(i)
 
 label_fields= []
-if label_fields_input != "":
+if label_fields_input != "NONE":
     options = label_fields_input.split(",")
     for i in options: 
         label_fields.append(i)
@@ -107,6 +107,7 @@ if input_csv != '':
     query_dict = dp.parse_input_csv(input_csv, query_id_dict, desired_fields, label_fields, adm2_to_adm1, True) #Any query information they have provided
 
 full_tax_dict = dp.parse_full_metadata(query_dict, full_metadata_file, present_lins, present_in_tree)
+
 ```
 
 ```python, name="QC fails", echo=False, results="raw"
@@ -152,15 +153,43 @@ for tax in query_dict.values():
     else:
         not_in_cog_number += 1
 
-print(str(number_seqs) + " sequences were sequenced recently by COG-UK members.")
+all_dates = []
+
+for i in query_dict.values():
+    if i.sample_date != "NA":
+        all_dates.append(i.date_dt)
+        
+date_min = min(all_dates)
+date_max = max(all_dates)
+
+min_string = date_min.strftime("%Y-%m-%d")
+max_string = date_max.strftime("%Y-%m-%d")
+
+print(str(number_seqs) + " sequences were collected between " + min_string + " and " + max_string +  " by COG-UK members.")
 
 ```
+
 
 ```python, name="first_table", echo=False, results="tex"
+df = dp.make_initial_table(query_dict, desired_fields, label_fields, True)
+```
+## New introductions
 
-df = dp.make_initial_table(query_dict, desired_fields, True)
+```python, name="new_introductions", echo=False, results='tex'
+
+new_intros, new_intro_df = dp.find_new_introductions(query_dict, date_min)
+
+if len(new_intros) != 0:
+    print("There are " + str(len(new_intros)) + " potential new introductions in this timeframe. Information about them is shown below.")
+
+    print(new_intro_df.to_markdown())
+
+
+else:
+    print("There are no deltrans lineages with their earliest sampling date in this timeframe.")
 
 ```
+
 Their location is shown on the following map, with dots sized by the number of sequences from each location.
 
 ```python, name="make_map", echo=False, include=False, results='tex'
