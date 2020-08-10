@@ -374,6 +374,7 @@ def find_new_introductions(query_dict, min_date): #will only be called for the C
     df_dict = defaultdict(list)
     new_intros = []
     lin_dict = {}
+
     df = "" #so that if there are no new ones then it returns an empty string
 
     for taxon in query_dict.values():
@@ -391,10 +392,13 @@ def find_new_introductions(query_dict, min_date): #will only be called for the C
 
     for intro in new_intros:
         adm2s = []
+        trees = set()
         for i in intro.taxa:
             if i.attribute_dict["adm2"] != "":
                 adm2s.append(i.attribute_dict["adm2"])
                 
+            trees.add(i.tree)
+
         adm2_counts = Counter(adm2s)
 
 
@@ -407,6 +411,8 @@ def find_new_introductions(query_dict, min_date): #will only be called for the C
         df_dict["Size"].append(len(intro.taxa))
         df_dict["Locations"].append(place_string)
         df_dict["Global lineage"].append(intro.global_lins)
+        df_dict["Trees"].append(trees)
+        
 
     df = pd.DataFrame(df_dict)
 
@@ -415,6 +421,12 @@ def find_new_introductions(query_dict, min_date): #will only be called for the C
         new_lin = str(i).strip("{").strip("}").replace("'","")
         new_lins.append(new_lin)
     df["Global lineage"] = new_lins
+
+    new_trees = []
+    for i in df["Trees"]:
+        new_tree = str(i).strip("{").strip("}").replace("'","")
+        new_trees.append(new_tree)
+    df["Trees"] = new_trees
 
     df.set_index("Name", inplace=True)
 
