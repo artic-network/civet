@@ -196,7 +196,7 @@ def parse_input_csv(input_csv, query_id_dict, desired_fields, label_fields, adm2
                             taxon.attribute_dict["adm1"] = adm1
 
                 if cog_report:
-                    taxon.adm2 = sequence["adm2"] #or change back to attribute dict?
+                    taxon.attribute_dict["adm2"]= sequence["adm2"] 
                     if "collection_date" in reader.fieldnames:
                         date_string = sequence["collection_date"]
                     else:
@@ -392,8 +392,8 @@ def find_new_introductions(query_dict, min_date): #will only be called for the C
     for intro in new_intros:
         adm2s = []
         for i in intro.taxa:
-            if i.adm2 != "":
-                adm2s.append(i.adm2)
+            if i.attribute_dict["adm2"] != "":
+                adm2s.append(i.attribute_dict["adm2"])
                 
         adm2_counts = Counter(adm2s)
 
