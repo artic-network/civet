@@ -41,6 +41,27 @@ class taxon():
 
         self.tree = "NA"
 
+class lineage():
+    
+    def __init__(self, name, taxa):
+        
+        self.name = name
+        self.taxa = taxa
+        self.dates = []
+        self.global_lins = set()
+        
+        for tax in taxa:
+            if tax.sample_date != "NA":
+                self.dates.append(tax.date_dt)
+            self.global_lins.add(tax.global_lin)
+                
+        if self.dates == []:
+            self.first_date = "NA"
+        else:
+            self.first_date = min(self.dates)
+
+        
+
 
 def prepping_adm2_adm1_data(full_metadata):
 
@@ -175,8 +196,16 @@ def parse_input_csv(input_csv, query_id_dict, desired_fields, label_fields, adm2
                             taxon.attribute_dict["adm1"] = adm1
 
                 if cog_report:
-                    taxon.attribute_dict["adm2"] = sequence["adm2"]
-                    taxon.sample_date = sequence["collection_date"]
+                    taxon.attribute_dict["adm2"]= sequence["adm2"] 
+                    if "collection_date" in reader.fieldnames:
+                        date_string = sequence["collection_date"]
+                    else:
+                        date_string = sequence["sample_date"]
+
+                    taxon.sample_date = date_string
+                    
+                    bits = date_string.split("-")
+                    taxon.date_dt = dt.date(int(bits[0]),int(bits[1]), int(bits[2])) 
 
 
                 new_query_dict[taxon.name] = taxon
@@ -337,5 +366,76 @@ def print_missing_seqs(missing_seqs_file):
             failed_names.append(name)
 
     return failed_names
+
+def find_new_introductions(query_dict, min_date): #will only be called for the COG sitrep, and the query dict will already be filtered to the most recent sequences
+
+    lin_to_tax = defaultdict(list)
+    intro_to_regions = defaultdict(dict)
+    df_dict = defaultdict(list)
+    new_intros = []
+    lin_dict = {}
+
+    df = "" #so that if there are no new ones then it returns an empty string
+
+    for taxon in query_dict.values():
+        lin = taxon.uk_lin
+        lin_to_tax[lin].append(taxon)
+
+    for k,v in lin_to_tax.items():
+        new_lin = lineage(k,v)
+        lin_dict[k] = new_lin    
+
+    for key, value in lin_dict.items():
+        if value.first_date > min_date:
+            new_intros.append(value)
+
+
+    for intro in new_intros:
+        adm2s = []
+        trees = set()
+        for i in intro.taxa:
+            if i.attribute_dict["adm2"] != "":
+                adm2s.append(i.attribute_dict["adm2"])
+                
+            trees.add(i.tree)
+
+        adm2_counts = Counter(adm2s)
+
+
+        place_string = ""
+        for place, count in adm2_counts.items():
+            place_string += place + " (" + str(count) + ") "  
+        
+
+        df_dict["Name"].append(intro.name)
+        df_dict["Size"].append(len(intro.taxa))
+        df_dict["Locations"].append(place_string)
+        df_dict["Global lineage"].append(intro.global_lins)
+        df_dict["Trees"].append(trees)
+        
+
+    df = pd.DataFrame(df_dict)
+
+    new_lins = []
+    for i in df["Global lineage"]:
+        new_lin = str(i).strip("{").strip("}").replace("'","")
+        new_lins.append(new_lin)
+    df["Global lineage"] = new_lins
+
+    new_trees = []
+    for i in df["Trees"]:
+        new_tree = str(i).strip("{").strip("}").replace("'","")
+        new_trees.append(new_tree)
+    df["Trees"] = new_trees
+
+    df.set_index("Name", inplace=True)
+
+    return new_intros, df
+                
+
+
+
+
+
 
 

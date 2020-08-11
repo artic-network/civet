@@ -111,8 +111,6 @@ def prep_mapping_data(mapping_input, metadata_multi_loc):
 def make_centroids(result,adm2s, straight_map):
 
     not_mappable = ["WALES", "OTHER", "UNKNOWN", "UNKNOWN SOURCE", "NOT FOUND", "GIBRALTAR", "FALKLAND ISLANDS", "CITY CENTRE"]
-    
-    centroid_dict = {}
 
     centroid_dict = {}
 
@@ -141,7 +139,7 @@ def make_centroids(result,adm2s, straight_map):
             centroid_df["geometry"].append(centroid)
             centroid_df["seq_count"].append(count)
         except UnboundLocalError:
-            return
+            return False
         
         
     centroid_geo = geopandas.GeoDataFrame(centroid_df)
@@ -172,7 +170,7 @@ def run_map_functions(tax_dict, clean_locs_file, mapping_json_files): #So this t
 
     centroid_geo = make_centroids(result, adm2s, straight_map)
     
-    if not centroid_geo:
+    if type(centroid_geo) == bool:
         print("None of the sequences provided have adequate adm2 data and so cannot be mapped")
         return
 
@@ -204,8 +202,9 @@ def map_traits(input_csv, input_crs, colour_map_trait, x_col, y_col, mapping_jso
             
             if x != "" and y != "":
             
-                name_to_coords[name] = (((float(x)/200)-2.2,(float(y)/200)+55)) #just for now, will change to just x and y in a bit
-                
+                #name_to_coords[name] = (((float(x)/200)-2.2,(float(y)/200)+55)) #just for now, will change to just x and y in a bit
+                name_to_ccords[name] = (float(x),float(y))
+
                 if colour_map_trait != "False":
                     name_to_trait[name] = trait
 
