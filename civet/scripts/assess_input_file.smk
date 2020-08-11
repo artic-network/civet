@@ -44,7 +44,8 @@ rule check_cog_all:
                         --field {params.field_to_match} \
                         --in-metadata {output.cog:q} \
                         --in-seqs {output.cog_seqs:q} \
-                        --not-in-cog {output.not_cog:q}
+                        --not-in-cog {output.not_cog:q} \
+                        --all-cog
         """
 
 rule get_closest_cog:
