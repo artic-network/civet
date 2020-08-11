@@ -68,6 +68,7 @@ def parse_paf_and_get_metadata():
                         new_row["query"]=query
                         new_row["closest"]=row["sequence_name"]
 
+
                         writer.writerow(new_row)
 
 
