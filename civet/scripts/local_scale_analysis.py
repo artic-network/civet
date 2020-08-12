@@ -87,19 +87,6 @@ def dateRestriction(DFin, dateDict):
     return DFout
 
 
-def uk_lineage_json(HBCODE, cog_mainland_daterestricted):
-    lineage_uk = cog_mainland_daterestricted.loc[cog_mainland_daterestricted['HBCode'] == HBCODE][
-                     'uk_lineage'].value_counts()[:10].to_frame()
-    lineage_global = cog_mainland_daterestricted.loc[cog_mainland_daterestricted['HBCode'] == HBCODE][
-                         'lineage'].value_counts()[:10].to_frame()
-    lineage_uk = lineage_uk.reset_index()
-    lineage_global = lineage_global.reset_index()
-    lineage_uk.columns = ['UK_Lineage', 'Count']
-    # lothian_lineage_uk['UK_Lineage']=lothian_lineage_uk['UK_Lineage'].str.replace('UK','')
-    lineage_global.columns = ['UK_Lineage', 'Count']
-    lineage_uk_json = lineage_uk.to_json(orient='records')
-    lineage_global_json = lineage_global.to_json(orient='records')
-    return lineage_uk_json
 
 
 def update_adm15(combinedMAP):
@@ -166,65 +153,164 @@ def tabulateLins(HBCODE, DF, HBNAME):
     return HBNAME, MDout
 
 
+def uk_lineage_json(HBCODE, cog_mainland_daterestricted):
+    lineage_uk = cog_mainland_daterestricted.loc[cog_mainland_daterestricted['HBCode'] == HBCODE][
+                     'uk_lineage'].value_counts()[:10].to_frame()
+    lineage_global = cog_mainland_daterestricted.loc[cog_mainland_daterestricted['HBCode'] == HBCODE][
+                         'lineage'].value_counts()[:10].to_frame()
+    lineage_uk = lineage_uk.reset_index()
+    lineage_global = lineage_global.reset_index()
+    lineage_uk.columns = ['UK_Lineage', 'Count']
+    lin_list = lineage_uk['UK_Lineage'].to_list()
+    regionName = HBname_code_translation[HBCODE]
+    lineage_uk['region'] = regionName
+    # lothian_lineage_uk['UK_Lineage']=lothian_lineage_uk['UK_Lineage'].str.replace('UK','')
+    lineage_global.columns = ['UK_Lineage', 'Count']
+    lineage_uk_json = lineage_uk.to_json(orient='records')
+    lineage_global_json = lineage_global.to_json(orient='records')
+    return lineage_uk_json, lin_list
+
+
+def lineageRanking(DFin, HBSet, centralCode):
+    DF = DFin.copy()
+    linsOut = ''
+    colsOut = ''
+    sortedcounts = DF.value_counts(subset=['HBCode', 'uk_lineage']).to_frame().reset_index().sort_values(by=0,
+                                                                                                                ascending=False)
+    if centralCode is not None:
+        centralloc = [centralCode]
+        noncentrallocs = HBSet.query('HBCode not in @centralloc')
+        region = HBSet['HBCode'].to_list()
+        filteredregionalcounts = sortedcounts.query('HBCode in @region')
+        filteredcentralcounts = sortedcounts.query('HBCode in @centralloc')
+        filterednoncentralcounts = sortedcounts.query('HBCode in @noncentrallocs')
+        topLinlist = filteredcentralcounts['uk_lineage'][:10].to_list()
+        restLinlist = list(filterednoncentralcounts.query('uk_lineage not in @topLinlist')['uk_lineage'].unique())
+        regionalList = topLinlist + restLinlist
+        filler = [graphcolourFiller for i in range(len(regionalList) - 10)]
+        linsOut = topLinlist + regionalList
+        colsOut = graphcoloursBase + filler
+    else:
+        region = HBSet['HBCode'].to_list()
+        filteredregionalcounts = sortedcounts.query('HBCode in @region')
+        topLinlist = filteredregionalcounts['uk_lineage'][:10].to_list()
+        restLinlist = list(filteredregionalcounts.query('uk_lineage not in @topLinlist')['uk_lineage'].unique())
+        regionalList = topLinlist + restLinlist
+        filler = [graphcolourFiller for i in range(len(regionalList) - 10)]
+        linsOut = topLinlist + regionalList
+        colsOut = graphcoloursBase + filler
+    return linsOut, colsOut
+
+
 def mapProduce(HBSet, DF, region, centralCode=None):
-    singlemapPIE = json.loads(singlemappie_blank)
-    multimapPIE = json.loads(multimappie_blank)
+    ##base schema
+    canvasJSON = json.loads(multimappie_blank)
     # print(type(mapPIE))
     # multimapPIE=json.loads(multimappie())
     HBSet_json = HBSet.to_json()
     HBSet_json = json.loads(HBSet_json)
     region_json = region.to_json()
     region_json = json.loads(region_json)
-    # print(HBSet.features)
     if len(HBSet) == 1:
+        # holds JSON-ified
+        datacollated = []
+        subfigs = []
+        centralLins = ""
         for row, frame in HBSet.iterrows():
             code = frame['HBCode']
+            regionName = HBname_code_translation[code]
+            # gather dataset and easily processed desc. stats from pandas-based functions
+            data, lin_list = uk_lineage_json(code, DF)
+            # Append this dataset - allowing for multiple regions
+            datacollated.append(data)
+            # gather encoding for chart positioning
             lat = HBSet.loc[HBSet.index == row].centroid.y.item()
             long = HBSet.loc[HBSet.index == row].centroid.x.item()
-            tempJSON = json.loads(blank_json)
-            data = uk_lineage_json(code, DF)
-            # print(data)
-            tempJSON['data']['values'] = data
-            tempJSON['encoding']['longitude']['datum'] = long
-            tempJSON['encoding']['latitude']['datum'] = lat
-            singlemapPIE['layer'].append(tempJSON)
-        singlemapPIE['layer'][0]['data']['values'] = region_json['features']
-        singlemapPIE['layer'][1]['data']['values'] = HBSet_json['features']
-        #VegaLite(singlemapPIE)
-        return singlemapPIE
+            # load in the subgraph schema
+            subfig = json.loads(blank_subfig_json)
+            subfig['encoding']['longitude']['datum'] = long
+            subfig['encoding']['latitude']['datum'] = lat
+            # give subfig appropriate filter to correctly pull from primary dataset
+            subfig['layer'][0]['transform'][0]['filter'] = f"datum.region == '{regionName}'"
+            subfig['layer'][1]['transform'][0]['filter'] = f"datum.region == '{regionName}'"
+            subfigs.append(json.dumps(subfig))
+            # Determine lineages of central interest
+            centralLins = lin_list
+        # load in dataset base spec
+        dataJSON = json.loads(blank_data_json)
+        for each in datacollated:
+            # json obj status lost with change in scope
+            currentList = dataJSON['mainSet']
+            updatedList = currentList + json.loads(each)
+            dataJSON['mainSet'] = updatedList
+        templayer = json.loads("{}")
+        # gathering sub-graphs
+        for each in subfigs:
+            templayer.update(json.loads(each))
+        # changing encoding schema; assign colour to focal lineages & allow for greyed out lineages outside this scope
+        encodingJSON = json.loads(blank_data_encoding)
+        encodingJSON['color']['scale']['domain'] = centralLins
+        encodingJSON['color']['scale']['range'] = graphcoloursBase[:10]
+        # amending elements on base schema
+        canvasJSON['layer'].append(templayer)
+        canvasJSON['datasets'] = dataJSON
+        canvasJSON['encoding'] = encodingJSON
+        canvasJSON['layer'][0]['data']['values'] = region_json['features']
+        canvasJSON['layer'][1]['data']['values'] = HBSet_json['features']
+        # VegaLite(singlemapPIE)
+        return canvasJSON
+
+
+
     elif len(HBSet) > 1:
+        # holds JSON-ified data
+        datacollated = []
+        subfigs = []
+        listLins = ""
         for row, frame in HBSet.iterrows():
             code = frame['HBCode']
+            regionName = HBname_code_translation[code]
+            # gather dataset and easily processed desc. stats from pandas-based functions
+            data, lin_list = uk_lineage_json(code, DF)
+            # Append this dataset - allowing for multiple regions
+            datacollated.append(data)
+            # gather encoding for chart positioning
             lat = HBSet.loc[HBSet.index == row].centroid.y.item()
             long = HBSet.loc[HBSet.index == row].centroid.x.item()
-            tempJSON = json.loads(blank_json)
-            data = uk_lineage_json(code, DF)
-            tempJSON['data']['values'] = data
-            tempJSON['encoding']['longitude']['datum'] = long
-            tempJSON['encoding']['latitude']['datum'] = lat
-            multimapPIE['layer'].append(tempJSON)
-        multimapPIE['layer'][0]['data']['values'] = region_json['features']
-        multimapPIE['layer'][1]['data']['values'] = HBSet_json['features']
-        #VegaLite(multimapPIE)
-        return multimapPIE
-    if centralCode is not None:
-        newDF1 = HBSet.loc[HBSet['HBCode' == centralCode]].copy()
-        newDF2 = HBSet.loc[HBSet['HBCode'] != centralCode].copy()
-        newDF3 = pd.concat([newDF1, newDF2])
-        for row, frame in newDF3.iterrows():
-            code = frame['HBCode']
-            lat = newDF3.loc[newDF3.index == row].centroid.y.item()
-            long = newDF3.loc[newDF3.index == row].centroid.x.item()
-            tempJSON = json.loads(blank_json)
-            data = uk_lineage_json(code, DF)
-            tempJSON['data']['values'] = data
-            tempJSON['encoding']['longitude']['datum'] = long
-            tempJSON['encoding']['latitude']['datum'] = lat
-            multimapPIE['layer'].append(tempJSON)
-        multimapPIE['layer'][0]['data']['values'] = region_json['features']
-        multimapPIE['layer'][1]['data']['values'] = HBSet_json['features']
-        #VegaLite(multimapPIE)
-        return multimapPIE
+            # load in the subgraph schema
+            subfig = json.loads(blank_subfig_json)
+            subfig['encoding']['longitude']['datum'] = long
+            subfig['encoding']['latitude']['datum'] = lat
+            # give subfig appropriate filter to correctly pull from primary dataset
+            subfig['layer'][0]['transform'][0]['filter'] = f"datum.region == '{regionName}'"
+            subfig['layer'][1]['transform'][0]['filter'] = f"datum.region == '{regionName}'"
+            subfigs.append(json.dumps(subfig))
+            # load in dataset base spec
+        dataJSON = json.loads(blank_data_json)
+        for each in datacollated:
+            # json obj status lost with change in scope
+            currentList = dataJSON['mainSet']
+            updatedList = currentList + json.loads(each)
+            dataJSON['mainSet'] = updatedList
+        templayer = json.loads("{}")
+        # gathering sub-graphs
+        for each in subfigs:
+            canvasJSON['layer'].append(json.loads(each))
+        # changing encoding schema; assign colour to focal lineages & allow for greyed out lineages outside this scope
+        encodingJSON = json.loads(blank_data_encoding)
+        linmap, colmap = lineageRanking(DF, HBSet, centralCode)
+        print(json.dumps(linmap))
+        encodingJSON['color']['scale']['domain'] = linmap
+        encodingJSON['color']['scale']['range'] = colmap
+        print(encodingJSON)
+        # amending elements on base schema
+        #       canvasJSON['layer'].append(templayer)
+        canvasJSON['datasets'] = dataJSON
+        canvasJSON['encoding'] = encodingJSON
+        canvasJSON['layer'][0]['data']['values'] = region_json['features']
+        canvasJSON['layer'][1]['data']['values'] = HBSet_json['features']
+        # VegaLite(singlemapPIE)
+        return canvasJSON
 
 
 def getSampleData_final(MetadataDF, HBTranslation, HBCode_translation):
@@ -313,91 +399,161 @@ def do_date_restriction(cogDF, samplecsv, start, end, window=7, restriction_bool
 def tableget(subFrame, cogDF):
     return (tabulateLins(subFrame['HBCode'], cogDF, subFrame['HBName']))
 
+
+
+def hbname_hbcode_translation(mapDF):
+    ## Create translation dict for HB codes and names
+    translation = dict(zip(mapDF.HBCode, mapDF.HBName))
+    return translation
+
 # ~~~~~~~~~~  JSON definitions  ~~~~~~~~~~~~~
 
-singlemappie_blank = '''{
+singlemappie_blank = '''
+{
   "$schema": "https://vega.github.io/schema/vega-lite/v4.13.1.json",
-    "width": 1000,
-    "height": 1500,
-    "projection": {"type":"mercator"},
-    "layer": [
-      {
-          "data": {
-          "values":""
-          },
-
-        "mark": {"type":"geoshape", "fill": "#DCE1DE", "stroke": "white"}
-    },
-      {
-          "data": {
-          "values":""
-          },
-
-        "mark": {"type":"geoshape", "fill": "#9CC5A1", "stroke": "white"}
-    }
-
-    ],
-    "resolve": {"scale":{"color":"independent", "radius":"independent", "scale":"independent", "theta":"independent"} }
-    }
-    '''
-
-multimappie_blank = """{
-"$schema": "https://vega.github.io/schema/vega-lite/v4.13.1.json",
-"width": 1000,
-"height": 1500,
-"projection": {"type":"mercator"},
-"layer": [
-  {
-      "data": {
-      "values":""
-      },
-
-    "mark": {"type":"geoshape", "fill": "#DCE1DE", "stroke": "white"}
-},
-  {
-      "data": {
-      "values":""
-      },
-
-    "mark": {"type":"geoshape", "fill": "#BFD9C2", "stroke": "white"}
-}
-],
-"resolve": {"scale":{"color":"shared", "radius":"shared", "scale":"independent", "theta":"independent"} }
-}
-"""
-
-blank_json = """{
-  "data": {
-    "values": ""
-  },
-
+  "width": 1000,
+  "height": 1500,
+  "datasets":{},
+  "projection": {"type": "mercator"},
   "layer": [
     {
-    "mark": {"type": "arc", "innerRadius": 15, "cornerRadius":0.5,"padAngle":0.05, "stroke": "white","strokeWidth":0.5, "thetaOffset":-1.5},
-    "encoding": { 
-    "text": {"field": "UK_Lineage", "type": "nominal"}
-        }
+      "data": {"values": ""},
+      "mark": {"type": "geoshape", "fill": "#DCE1DE", "stroke": "white"}
     },
-        {
-    "mark": {"type": "text", "radiusOffset": 30, "radius":30, "fill":"black", "fontWeight":"bold", "fontSize":15, "font":"Helvetica Neue","angle":0,"align":"center", "thetaOffset":-1.5, "stroke":"white", "strokeWidth":0.01},
-    "transform":[{"window": [{"op": "rank","as": "rank"}],
-                  "sort": [{ "field": "Count", "order": "descending" }]
-    }, 
-    {"filter": "datum.rank <= 5"}
-    ],
-    "encoding": { 
-      "text": {"field": "UK_Lineage", "type": "nominal"}
-        }
+    {
+      "data": {"values": ""},
+      "mark": {"type": "geoshape", "fill": "#BFD9C2", "stroke": "white"}
     }
-],
-  "encoding": {
-    "theta": {"field": "Count", "type": "quantitative", "sort":"descending", "stack": true},
-    "radius": {"field": "Count", "type": "quantitative", "scale": {"type": "sqrt", "zero": true, "range": [10, 100]}},
-    "color": {"field": "UK_Lineage", "sort":"", "type": "ordinal", "scale":{"range": ["#51A3A3", "#095D45", "#F58300", "#313B72", "#5B8E7D", "#504D56", "#605D65", "#6E6C73", "#7B7980","#87858C"]}},
-      "latitude" : {"datum":""},
-      "longitude":{"datum":""}
+  ],
+  "resolve": {
+    "scale": {
+      "color": "shared",
+      "radius": "shared",
+      "scale": "independent",
+      "theta": "independent"
+    }
+  }
+}
+'''
+
+multimappie_blank = """{
+  "$schema": "https://vega.github.io/schema/vega-lite/v4.13.1.json",
+  "width": 1000,
+  "height": 1500,
+  "datasets": {},
+  "encoding": {},
+  "projection": {"type": "mercator"},
+  "layer": [
+    {
+      "data": {"values": ""},
+      "mark": {"type": "geoshape", "fill": "#DCE1DE", "stroke": "white"}
+    },
+    {
+      "data": {"values": ""},
+      "mark": {"type": "geoshape", "fill": "#BFD9C2", "stroke": "white"}
+    }
+  ],
+  "resolve": {
+    "scale": {
+      "color": "shared",
+      "radius": "shared",
+      "theta": "independent"
+    }
+  }
+}
+"""
+##move datasets to outside layers
+blank_data_json = """
+{
+    "mainSet": [],
+    "data": {"name": "mainSet"}
+
+  }
+"""
+
+blank_data_encoding = """
+{
+      "color": {
+        "field": "UK_Lineage",
+        "type": "ordinal",
+        "scale": {
+          "domain": ["ordered UK_lin list here"],
+          "range": ["colour range + filler greys here"]
         }
-}"""
+      }
+}
+
+"""
+
+blank_subfig_json = """
+{
+      "layer": [
+        {
+          "mark": {
+            "type": "arc",
+            "innerRadius": 15,
+            "cornerRadius": 0.5,
+            "padAngle": 0.05,
+            "stroke": "white",
+            "strokeWidth": 0.5,
+            "thetaOffset": -1.5
+          },
+          "transform": [{"filter": "datum.Region == 'region goes here'"}],
+          "data": {"name": "mainSet"}
+        },
+        {
+          "data": {"name": "mainSet"},
+          "mark": {
+            "type": "text",
+            "radiusOffset": 30,
+            "radius": 30,
+            "fill": "black",
+            "fontWeight": "bold",
+            "fontSize": 15,
+            "font": "Roboto",
+            "angle": 0,
+            "align": "center",
+            "thetaOffset": -1.5,
+            "stroke": "white",
+            "strokeWidth": 0.01
+          },
+          "transform": [
+            {"filter":"datum.region == 'region goes here'"},
+            {
+              "window": [{"op": "rank", "as": "rank"}],
+              "sort": [{"field": "Count", "order": "descending"}]
+            },
+            {"filter": "datum.rank <= 5"}
+          ],
+          "encoding": {"text": {"field": "UK_Lineage", "type": "nominal"}}
+        }
+      ],
+      "encoding": {
+        "theta": {
+          "field": "Count",
+          "type": "quantitative",
+          "sort": "descending",
+          "stack": true
+        },
+        "radius": {
+          "field": "Count",
+          "type": "quantitative",
+          "scale": {"type": "sqrt", "zero": true, "range": [10, 100]}
+        },
+        "latitude": {
+          "datum": ""
+        },
+        "longitude": {
+          "datum": ""
+        }
+      },
+      "resolve": {"scale":{"theta":"independent"}}
+}      
+"""
+
+graphcoloursBase = ["#51A3A3", "#536B78", "#FFA552", "#313B72", "#5B8E7D", "#ACCBE1", "#504D56", "#605D65", "#6E6C73",
+                    "#7B7980"]
+graphcolourFiller = "#87858C"
 
 # ~~~~~~~~~~~  Code execution ~~~~~~~~~~~~~~~
 # ~~~~~~~~
@@ -422,10 +578,10 @@ if len(date_pair) == 0:
 # ~~~~~~~
 mainland_W=finaliseMapping(mainland_boards)
 HBCode_name_translation=hbcode_hbname_translation(mainland_boards)
-
-# ~~~~~~~
+# ~~~~~~~~
 mainland_W=finaliseMapping(mainland_boards)
 HBCode_name_translation=hbcode_hbname_translation(mainland_boards)
+HBname_code_translation=hbname_hbcode_translation(mainland_boards)
 
 # ~~~~~~~
 #mainland_boards=update_adm15(mainland_boards)
@@ -459,7 +615,6 @@ if Central_HB_code is not None:
             f.write(f'{MDTable}\n\n')
 
 # ~~~~~~~
-####  TARGET FILE WOULD COME FROM HERE; 'central_map_ukLink.vl.json'
 if Central_HB_code is not None:
     ## Get the localised regions ##
     central, neighboring, submap = central_surrounding_regions(Central_HB_code, mainland_W, mainland_boards)
@@ -469,6 +624,6 @@ if Central_HB_code is not None:
     regionmapOUT=mapProduce(submap, cog_final, submap, Central_HB_code)
     for mapjson, location in zip([centralmapOUT,neighboringmapOUT,regionmapOUT],['central', 'neighboring', 'region']):
         with open(os.path.join(argsIN.output_temp_dir, f'{location}_map_ukLin.vl.json'), 'w') as f:
-            json.dump(mapjson, f)
+            json.dump(mapjson, f, indent=True)
             ##### Shell commands required
             # subprocess.call(['npx', 'vl2png', f'{location}_map_ukLin.vl.json', f{location}_map_ukLin.png])

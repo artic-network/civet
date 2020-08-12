@@ -1,0 +1,60 @@
+{
+"layer": [
+    {
+      "layer": [
+        {
+          "mark": {
+            "type": "arc",
+            "innerRadius": 15,
+            "cornerRadius": 0.5,
+            "padAngle": 0.05,
+            "stroke": "white",
+            "strokeWidth": 0.5,
+            "thetaOffset": -1.5
+          },
+          "transform": [{"filter": "datum.Region == ''"}],
+          "data": {"name": "mainSet"},
+          "encoding": {"text": {"field": "UK_Lineage", "type": "nominal"}}
+        },
+        {
+          "data": {"name": "mainSet"},
+          "mark": {
+            "type": "text",
+            "radiusOffset": 30,
+            "radius": 30,
+            "fill": "black",
+            "fontWeight": "bold",
+            "fontSize": 15,
+            "font": "Helvetica Neue",
+            "angle": 0,
+            "align": "center",
+            "thetaOffset": -1.5,
+            "stroke": "white",
+            "strokeWidth": 0.01
+          },
+          "transform": [
+            {
+              "window": [{"op": "rank", "as": "rank"}],
+              "sort": [{"field": "Count", "order": "descending"}]
+            },
+            {"filter": "datum.rank <= 5"}
+          ],
+          "encoding": {"text": {"field": "UK_Lineage", "type": "nominal"}}
+        }
+      ],
+      "encoding": {
+        "theta": {
+          "field": "Count",
+          "type": "quantitative",
+          "sort": "descending",
+          "stack": true
+        },
+        "radius": {
+          "field": "Count",
+          "type": "quantitative",
+          "scale": {"type": "sqrt", "zero": true, "range": [10, 100]}
+        }
+      }
+    }
+  ]
+}
