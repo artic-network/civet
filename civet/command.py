@@ -499,7 +499,7 @@ To run civet please either\n1) ssh into CLIMB and run with --CLIMB flag\n\
     config["PC_translations"] = spatial_translations_2
 
     sc_list = ["PHEC", 'LIVE', 'BIRM', 'PHWC', 'CAMB', 'NORW', 'GLAS', 'EDIN', 'SHEF',
-                 'EXET', 'NOTT', 'PORT', 'OXON', 'NORT', 'NIRE', 'GSTT', 'LOND', 'SANG']
+                 'EXET', 'NOTT', 'PORT', 'OXON', 'NORT', 'NIRE', 'GSTT', 'LOND', 'SANG',"NIRE"]
 
     if args.sequencing_centre:
         if args.sequencing_centre in sc_list:
