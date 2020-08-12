@@ -286,13 +286,16 @@ if local_lineages != '':
     tableList=[t for t in local_lin_tables.split(';') if "_central_" not in t]
 
     print(f'Based on the sample density for submitted sequences with adm2 metadata, **{centralName}** was determined to be the focal NHS Health-board for region-scale UK-lineage analysis.')
-
+    print('\n')
     print(f'The below figure visualises the relative proportion of assigned UK-Lineages for samples collected and sequenced within the central healthboard region for the defined time-frame.')
     print ("![]("+linmapList[0]+")")
     print('\n')
-    print(f'The below figure visualises the relative proportion of assigned UK-Lineages for samples collected and sequenced within neighbouring healthboard regions for the defined time-frame.')
-    print ("![]("+linmapList[1]+")")
+    print(f'The below figure visualises the relative proportions of assigned UK-Lineages for samples collected from the focal, and neighboring healthboard regions for the defined time-frame within the regional context. Plot-size demonstrates relative numbers of sequences across given NHS healthboards.')
+    print ("![]("+linmapList[2]+")")
     print('\n')
+    #print(f'The below figure visualises the relative proportion of assigned UK-Lineages for samples collected and sequenced within neighbouring healthboard regions for the defined time-frame.')
+    #print ("![]("+linmapList[1]+")")
+    #print('\n')
     print(f'Tabulated lineage data for the **central** health-board region:')
     with open(centralLoc[0]) as file:
         contents = file.read()

@@ -204,15 +204,14 @@ def lineageRanking(DFin, HBSet, centralCode):
 
 def mapProduce(HBSet, DF, region, centralCode=None):
     ##base schema
-    canvasJSON = json.loads(multimappie_blank)
-    # print(type(mapPIE))
-    # multimapPIE=json.loads(multimappie())
+    singlecanvasJSON = json.loads(multimappie_blank)
+    multicanvasJSON = json.loads(multimappie_blank)
     HBSet_json = HBSet.to_json()
     HBSet_json = json.loads(HBSet_json)
     region_json = region.to_json()
     region_json = json.loads(region_json)
     if len(HBSet) == 1:
-        # holds JSON-ified
+        # holds JSON-ified data
         datacollated = []
         subfigs = []
         centralLins = ""
@@ -252,13 +251,13 @@ def mapProduce(HBSet, DF, region, centralCode=None):
         encodingJSON['color']['scale']['domain'] = centralLins
         encodingJSON['color']['scale']['range'] = graphcoloursBase[:10]
         # amending elements on base schema
-        canvasJSON['layer'].append(templayer)
-        canvasJSON['datasets'] = dataJSON
-        canvasJSON['encoding'] = encodingJSON
-        canvasJSON['layer'][0]['data']['values'] = region_json['features']
-        canvasJSON['layer'][1]['data']['values'] = HBSet_json['features']
+        singlecanvasJSON['layer'].append(templayer)
+        singlecanvasJSON['datasets'] = dataJSON
+        singlecanvasJSON['encoding'] = encodingJSON
+        singlecanvasJSON['layer'][0]['data']['values'] = region_json['features']
+        singlecanvasJSON['layer'][1]['data']['values'] = HBSet_json['features']
         # VegaLite(singlemapPIE)
-        return canvasJSON
+        return singlecanvasJSON
 
 
 
@@ -285,32 +284,27 @@ def mapProduce(HBSet, DF, region, centralCode=None):
             subfig['layer'][0]['transform'][0]['filter'] = f"datum.region == '{regionName}'"
             subfig['layer'][1]['transform'][0]['filter'] = f"datum.region == '{regionName}'"
             subfigs.append(json.dumps(subfig))
-            # load in dataset base spec
+        # load in dataset base spec
         dataJSON = json.loads(blank_data_json)
         for each in datacollated:
             # json obj status lost with change in scope
             currentList = dataJSON['mainSet']
             updatedList = currentList + json.loads(each)
             dataJSON['mainSet'] = updatedList
-        templayer = json.loads("{}")
         # gathering sub-graphs
         for each in subfigs:
-            canvasJSON['layer'].append(json.loads(each))
+            multicanvasJSON['layer'].append(json.loads(each))
         # changing encoding schema; assign colour to focal lineages & allow for greyed out lineages outside this scope
         encodingJSON = json.loads(blank_data_encoding)
         linmap, colmap = lineageRanking(DF, HBSet, centralCode)
-        #print(json.dumps(linmap))
         encodingJSON['color']['scale']['domain'] = linmap
         encodingJSON['color']['scale']['range'] = colmap
-        #print(encodingJSON)
-        # amending elements on base schema
-        #       canvasJSON['layer'].append(templayer)
-        canvasJSON['datasets'] = dataJSON
-        canvasJSON['encoding'] = encodingJSON
-        canvasJSON['layer'][0]['data']['values'] = region_json['features']
-        canvasJSON['layer'][1]['data']['values'] = HBSet_json['features']
+        multicanvasJSON['datasets'] = dataJSON
+        multicanvasJSON['encoding'] = encodingJSON
+        multicanvasJSON['layer'][0]['data']['values'] = region_json['features']
+        multicanvasJSON['layer'][1]['data']['values'] = HBSet_json['features']
         # VegaLite(singlemapPIE)
-        return canvasJSON
+        return multicanvasJSON
 
 
 def getSampleData_final(MetadataDF, HBTranslation, HBCode_translation):
@@ -413,7 +407,8 @@ singlemappie_blank = '''
   "$schema": "https://vega.github.io/schema/vega-lite/v4.13.1.json",
   "width": 1000,
   "height": 1500,
-  "datasets":{},
+  "datasets": {},
+  "encoding": {},
   "projection": {"type": "mercator"},
   "layer": [
     {
@@ -429,7 +424,6 @@ singlemappie_blank = '''
     "scale": {
       "color": "shared",
       "radius": "shared",
-      "scale": "independent",
       "theta": "independent"
     }
   }
@@ -446,11 +440,11 @@ multimappie_blank = """{
   "layer": [
     {
       "data": {"values": ""},
-      "mark": {"type": "geoshape", "fill": "#DCE1DE", "stroke": "white"}
+      "mark": {"type": "geoshape", "fill": "#BFD9C2", "stroke": "white"}
     },
     {
       "data": {"values": ""},
-      "mark": {"type": "geoshape", "fill": "#BFD9C2", "stroke": "white"}
+      "mark": {"type": "geoshape", "fill": "#DCE1DE", "stroke": "white"}
     }
   ],
   "resolve": {
