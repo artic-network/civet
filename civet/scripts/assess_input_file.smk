@@ -44,7 +44,8 @@ rule check_cog_all:
                         --field {params.field_to_match} \
                         --in-metadata {output.cog:q} \
                         --in-seqs {output.cog_seqs:q} \
-                        --not-in-cog {output.not_cog:q}
+                        --not-in-cog {output.not_cog:q} \
+                        --all-cog
         """
 
 rule get_closest_cog:
@@ -80,7 +81,7 @@ rule get_closest_cog:
         to_find_closest = {}
 
         for record in SeqIO.parse(input.in_all_cog_seqs,"fasta"):
-            to_find_closest[record.id] = ("in_all_cog",record.seq)
+            to_find_closest[record.id] = ("COG_database",record.seq)
 
         not_cog = []
         with open(input.not_cog_csv, newline = "") as f: # getting list of non-cog queries
@@ -93,7 +94,7 @@ rule get_closest_cog:
                 print("Not in COG but have a sequence supplied:")
                 for record in SeqIO.parse(params.query, "fasta"):
                     if record.id in not_cog:
-                        to_find_closest[record.id] = ("not_cog",record.seq) # overwrites with supplied seq if found in all cog
+                        to_find_closest[record.id] = ("fasta",record.seq) # overwrites with supplied seq if found in all cog
 
         with open(output.combined_query, "w") as fw:
             for seq in to_find_closest:
@@ -123,7 +124,7 @@ rule get_closest_cog:
                         "--cores {params.cores}")
 
         else:
-            shell("touch {output.closest_cog:q} && touch {output.aligned_query:q} ")
+            shell("touch {output.closest_cog:q} && touch {output.aligned_query:q}")
 
         with open(output.not_processed, "w") as fw:
             for query in list(set(query_with_no_seq)):
@@ -136,40 +137,27 @@ rule combine_metadata:
     output:
         combined_csv = os.path.join(config["outdir"],"combined_metadata.csv")
     run:
-        with open(output.combined_csv,"w") as fw:
-            with open(input.in_cog, "r") as f:
-                for l in f:
-                    l = l.rstrip("\n")
-                    fw.write(l + '\n')
-            with open(input.closest_cog, "r") as f:
-                for l in f:
-                    l = l.rstrip("\n")
-                    if "sequence_name" in l:
-                        pass
-                    else:
-                        fw.write(l + '\n')
+        with open(input.in_cog, newline="") as f:
+            reader = csv.DictReader(f)
+            header_names = reader.fieldnames
+            with open(output.combined_csv, "w") as fw:
+                header_names.append("closest_distance")
+                header_names.append("snps")
+                writer = csv.DictWriter(fw, fieldnames=header_names,lineterminator='\n')
+                writer.writeheader()
+            
+                for row in reader:
+                    
+                    new_row = row
+                    new_row["closest_distance"]="0"
+                    new_row["snps"]= ""
 
-# rule prune_out_catchments:
-#     input:
-#         tree = config["cog_tree"],
-#         metadata = rules.combine_metadata.output.combined_csv
-#     params:
-#         outdir = os.path.join(config["tempdir"],"catchment_trees"),
-#         distance = config["distance"]
-#     output:
-#         txt = os.path.join(config["tempdir"],"catchment_trees","catchment_tree_summary.txt")
-#     shell:
-#         """
-#         clusterfunk find_catchments -i {input.tree:q} \
-#         -o {params.outdir:q} \
-#         --metadata {input.metadata:q} \
-#         --index-column closest \
-#         --threshold {params.distance} \
-#         --branch-count \
-#         --out-format newick \
-#         && touch {output.txt:q} 
+                    writer.writerow(new_row)
 
-#         """
+                with open(input.closest_cog, newline="") as fc:
+                    readerc = csv.DictReader(fc)
+                    for row in readerc:
+                        writer.writerow(row)
 
 rule prune_out_catchments:
     input:
