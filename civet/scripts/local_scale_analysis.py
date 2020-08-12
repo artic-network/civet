@@ -299,10 +299,10 @@ def mapProduce(HBSet, DF, region, centralCode=None):
         # changing encoding schema; assign colour to focal lineages & allow for greyed out lineages outside this scope
         encodingJSON = json.loads(blank_data_encoding)
         linmap, colmap = lineageRanking(DF, HBSet, centralCode)
-        print(json.dumps(linmap))
+        #print(json.dumps(linmap))
         encodingJSON['color']['scale']['domain'] = linmap
         encodingJSON['color']['scale']['range'] = colmap
-        print(encodingJSON)
+        #print(encodingJSON)
         # amending elements on base schema
         #       canvasJSON['layer'].append(templayer)
         canvasJSON['datasets'] = dataJSON
@@ -466,8 +466,8 @@ multimappie_blank = """{
 blank_data_json = """
 {
     "mainSet": [],
-    "data": {"name": "mainSet"}
-
+    "data": {"name": "mainSet"},
+    "encoding":{"sort": {"field": "Count", "order": "descending"}}
   }
 """
 
