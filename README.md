@@ -243,7 +243,7 @@ Köster, Johannes and Rahmann, Sven. “Snakemake - A scalable bioinformatics wo
     - snakemake-minimal=5.13 
     - iqtree=1.6.12
     - minimap2=2.17-r941
-    - pandas==1.0.1
+    - pandas==1.1.0
     - pytools=2020.1
     - dendropy=4.4.0
     - tabulate=0.8.7
