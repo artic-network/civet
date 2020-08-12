@@ -1,49 +1,23 @@
 {
+"layer": [
+    {
       "layer": [
         {
           "mark": {
             "type": "arc",
-            "innerRadius": 12,
-            "cornerRadius": 7,
-            "padAngle": 0.02,
+            "innerRadius": 15,
+            "cornerRadius": 0.5,
+            "padAngle": 0.05,
             "stroke": "white",
             "strokeWidth": 0.5,
             "thetaOffset": -1.5
           },
-          "transform":[
-            {"filter":""}
-          ],
-          
-          "data" : {"name":""},
-          "encoding": {
-            "text": {
-              "field": "UK_Lineage",
-              "type": "nominal"
-            }
-          }
+          "transform": [{"filter": "datum.Region == ''"}],
+          "data": {"name": "mainSet"},
+          "encoding": {"text": {"field": "UK_Lineage", "type": "nominal"}}
         },
         {
-          "transform":[
-          {"filter":""},
-                      {
-              "window": [
-                {
-                  "op": "rank",
-                  "as": "rank"
-                }
-              ],
-              "sort": [
-                {
-                  "field": "Count",
-                  "order": "descending"
-                }
-              ]
-            },
-            {
-              "filter": "datum.rank <= 5"
-            }
-          ],
-          "data" : {"name":"data-1"},
+          "data": {"name": "mainSet"},
           "mark": {
             "type": "text",
             "radiusOffset": 30,
@@ -51,20 +25,21 @@
             "fill": "black",
             "fontWeight": "bold",
             "fontSize": 15,
-            "font": "Roboto",
+            "font": "Helvetica Neue",
             "angle": 0,
             "align": "center",
             "thetaOffset": -1.5,
             "stroke": "white",
             "strokeWidth": 0.01
           },
-
-          "encoding": {
-            "text": {
-              "field": "UK_Lineage",
-              "type": "nominal"
-            }
-          }
+          "transform": [
+            {
+              "window": [{"op": "rank", "as": "rank"}],
+              "sort": [{"field": "Count", "order": "descending"}]
+            },
+            {"filter": "datum.rank <= 5"}
+          ],
+          "encoding": {"text": {"field": "UK_Lineage", "type": "nominal"}}
         }
       ],
       "encoding": {
@@ -77,20 +52,9 @@
         "radius": {
           "field": "Count",
           "type": "quantitative",
-          "scale": {
-            "type": "sqrt",
-            "zero": true,
-            "range": [
-              10,
-              100
-            ]
-          }
-        },
-        "latitude": {
-          "datum": ""
-        },
-        "longitude": {
-          "datum": ""
+          "scale": {"type": "sqrt", "zero": true, "range": [10, 100]}
         }
       }
     }
+  ]
+}

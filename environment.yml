@@ -16,7 +16,7 @@ dependencies:
   - openjdk
   - cov-ert::jclusterfunk
   - pip:
-    - pandas==1.0.1
+    - pandas==1.1.0
     - pytools==2020.1
     - dendropy>=4.4.0
     - tabulate>=0.8.7
