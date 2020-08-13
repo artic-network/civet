@@ -18,7 +18,6 @@ def prep_data(tax_dict, clean_locs_file):
         
             adm2s.append(tax.attribute_dict["adm2"])
 
-    merged_locations = defaultdict(list)
     metadata_multi_loc = {}
     straight_map = {}
 

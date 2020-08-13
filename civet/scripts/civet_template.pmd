@@ -114,7 +114,7 @@ mpl.rcParams['axes.labelweight']=50
 
 present_in_tree, tip_to_tree = dp.parse_tree_tips(tree_dir)
 
-query_dict, query_id_dict, present_lins, tree_to_tip = dp.parse_reduced_metadata(filtered_cog_metadata, tip_to_tree) #Just the lines with their queries plus the closest match in COG
+query_dict, query_id_dict, present_lins, tree_to_tip = dp.parse_filtered_metadata(filtered_cog_metadata, tip_to_tree) #Just the lines with their queries plus the closest match in COG
 
 if input_csv != '':
     adm2_to_adm1 = dp.prepping_adm2_adm1_data(full_metadata_file)
@@ -221,10 +221,8 @@ for i in range(1,overall_tree_number+1):
     lookup = "tree_" + str(i)
     if len(tree_to_tip[lookup]) == 1:
         print("Tree number " + str(i) + " contains " + str(len(tree_to_tip[lookup])) + " query.")
-        print("Given that there are no other sequences in the query dataset that are in this tree, transmission between this sequence and other queries can be ruled out.")
     else:
         print("Tree number " + str(i) + " contains " + str(len(tree_to_tip[lookup])) + " queries.")
-        print("There are multiple query sequences in this tree, and so transmission cannot be ruled out, but neither can it be confirmed. Therefore their relationship must be investigated further using epidemiological data.")
     print("   ")
     print("![](" + figdir + "/" + name_stem + "_make_trees_" + str(i) + ".png)")
 
@@ -364,12 +362,7 @@ print("Numpy version " + np.__version__)
 print("Scipy version " + sp.__version__)
 print("No version number for Baltic")
 
-
-todays_date = dt.date.today()
-
-#This just takes last Friday so if a more continuous pipeline is implemented this will have to be cleverer. #We're now at that point
-last_friday = todays_date + relativedelta(weekday=FR(-1))
-print("The COG data used here was submitted in batch on " + str(last_friday))
+print("COG data is now submitted every day, so the background data was updated yesterday")
 
 print("CIVET version is 0.1")
 ```
