@@ -34,12 +34,12 @@ class taxon():
             self.phylotype = phylotype
        
         self.in_cog = False
-
         self.attribute_dict = {}
-
         self.attribute_dict["adm1"] = "NA"
-
         self.tree = "NA"
+
+        self.closest_distance = "NA"
+        self.snps = "NA"
 
 class lineage():
     
@@ -89,7 +89,7 @@ def prepping_adm2_adm1_data(full_metadata):
     return adm2_adm1
     
 
-def parse_reduced_metadata(metadata_file, tip_to_tree):
+def parse_filtered_metadata(metadata_file, tip_to_tree):
     
     query_dict = {}
     query_id_dict = {}
@@ -112,10 +112,13 @@ def parse_reduced_metadata(metadata_file, tip_to_tree):
             query_id = sequence['query_id']
             query_name = sequence['query']
             closest_name = sequence["closest"]
+            closest_distance = sequence["closest_distance"]
+            snps = sequence['snps']
 
             phylotype = sequence["phylotype"]
             sample_date = sequence["sample_date"]
 
+            
             new_taxon = taxon(query_name, glob_lin, uk_lineage, phylotype)
 
             new_taxon.query_id = query_id
@@ -130,6 +133,8 @@ def parse_reduced_metadata(metadata_file, tip_to_tree):
 
             else:
                 new_taxon.closest = closest_name
+                new_taxon.closest_distance = closest_distance
+                new_taxon.snps = snps
                 for k,v in contract_dict.items():
                     if k in query_name or v in query_name: #if any part of any country name is in the query name it will pick it up assign it
                         new_taxon.attribute_dict["adm1"] = v
@@ -301,7 +306,9 @@ def make_initial_table(query_dict, desired_fields, label_fields, cog_report):
 
         if not cog_report:
             df_dict["Closest sequence in Tree"].append(query.closest)
-        
+            df_dict["Distance to closest sequence"].append(query.closest_distance)
+            df_dict["SNPs"].append(query.snps)
+
         df_dict["UK lineage"].append(query.uk_lin)
         df_dict["Global lineage"].append(query.global_lin)
         df_dict["Phylotype"].append(query.phylotype)
