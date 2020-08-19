@@ -101,7 +101,7 @@ rule snp_diff:
                     queries = info.split("=")[1]
                     for q in queries.split(","):
                         closest_map[q] = record
-
+        non_amb = ["a","t","g","c"]
         with open(input.csv, newline="") as f:
             reader = csv.DictReader(f)
             header_names = reader.fieldnames
@@ -122,7 +122,7 @@ rule snp_diff:
                     for i in range(len(q_record.seq)):
                         bases = [q_record.seq[i],c_record.seq[i]]
                         if bases[0] != bases[1]:
-                            if "N" not in bases:
+                            if bases[0].lower() in non_amb and bases[1].lower() in non_amb:
                                 
                                 snp = f"{i+1}{bases[0]}{bases[1]}"
                                 snps.append(snp)
