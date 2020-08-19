@@ -101,7 +101,7 @@ rule snp_diff:
                     queries = info.split("=")[1]
                     for q in queries.split(","):
                         closest_map[q] = record
-        non_amb = ["a","t","g","c",'-']
+        non_amb = ["a","t","g","c"]
         with open(input.csv, newline="") as f:
             reader = csv.DictReader(f)
             header_names = reader.fieldnames
