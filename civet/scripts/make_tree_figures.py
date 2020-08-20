@@ -105,6 +105,7 @@ def find_colour_dict(query_dict, trait):
                 "England":"indianred",
                 "Scotland":"steelblue",
                 "Northern_Ireland":"skyblue",
+                "Northern Ireland":"skyblue",
                 "NA": "goldenrod"}
         return colour_dict
 
@@ -135,10 +136,8 @@ def make_scaled_tree_without_legend(My_Tree, tree_name, tree_dir, num_tips, colo
     My_Tree.uncollapseSubtree()
 
     if num_tips < 10:
-        #page_height = num_tips/2
         page_height = num_tips
     else:
-        #page_height = num_tips/4 
         page_height = num_tips/2  
 
     offset = tallest_height - My_Tree.treeHeight
@@ -186,18 +185,17 @@ def make_scaled_tree_without_legend(My_Tree, tree_name, tree_dir, num_tips, colo
     max_x = max(x_values)
     
     
-    fig2,ax2 = plt.subplots(figsize=(20,page_height),facecolor='w',frameon=False, dpi=100)
+    fig,ax = plt.subplots(figsize=(20,page_height),facecolor='w',frameon=False, dpi=100)
     
+    My_Tree.plotTree(ax, colour_function=c_func, x_attr=x_attr, y_attr=y_attr, branchWidth=b_func)
+    
+    My_Tree.plotPoints(ax, x_attr=x_attr, colour_function=cn_func,y_attr=y_attr, size_function=s_func, outline_colour=outline_colour_func)
+    My_Tree.plotPoints(ax, x_attr=x_attr, colour_function=co_func, y_attr=y_attr, size_function=so_func, outline_colour=outline_colour_func)
 
-    My_Tree.plotTree(ax2, colour_function=c_func, x_attr=x_attr, y_attr=y_attr, branchWidth=b_func)
-    
-    My_Tree.plotPoints(ax2, x_attr=x_attr, colour_function=cn_func,y_attr=y_attr, size_function=s_func, outline_colour=outline_colour_func)
-    My_Tree.plotPoints(ax2, x_attr=x_attr, colour_function=co_func, y_attr=y_attr, size_function=so_func, outline_colour=outline_colour_func)
 
     blob_dict = {}
 
     for k in My_Tree.Objects:
-            
         if "display" in k.traits:
             name=k.traits["display"]
             
@@ -227,27 +225,27 @@ def make_scaled_tree_without_legend(My_Tree, tree_name, tree_dir, num_tips, colo
                         
                         blob_dict[trait] = x_value
 
-                    ax2.text(text_start+division, y, name, size=font_size_func(k), ha="left", va="center", fontweight="light")
+                    ax.text(text_start+division, y, name, size=font_size_func(k), ha="left", va="center", fontweight="light")
                     if x != max_x:
-                        ax2.plot([x+space_offset,tallest_height],[y,y],ls='--',lw=1,color=l_func(k))
+                        ax.plot([x+space_offset,tallest_height],[y,y],ls='--',lw=1,color=l_func(k))
 
                 else:
 
-                    ax2.text(text_start+division, y, name, size=font_size_func(k), ha="left", va="center", fontweight="light")
+                    ax.text(text_start+division, y, name, size=font_size_func(k), ha="left", va="center", fontweight="light")
                     if x != max_x:
-                        ax2.plot([x+space_offset,tallest_height],[y,y],ls='--',lw=1,color=l_func(k))
+                        ax.plot([x+space_offset,tallest_height],[y,y],ls='--',lw=1,color=l_func(k))
 
                 
                 for blob_x in blob_dict.values():
 
                     line_x = blob_x - (division/2)
 
-                    ax2.plot([line_x,line_x],[min_y,max_y],ls='--',lw=3,color=l_func(k))
+                    ax.plot([line_x,line_x],[min_y,max_y],ls='--',lw=3,color=l_func(k))
             
             
             else:
-                ax2.text(text_start, y, name, size=font_size_func(k), ha="left", va="center", fontweight="ultralight")
-                ax2.plot([x+space_offset,tallest_height+space_offset],[y,y],ls='--',lw=1,color=l_func(k))
+                ax.text(text_start, y, name, size=font_size_func(k), ha="left", va="center", fontweight="ultralight")
+                ax.plot([x+space_offset,tallest_height+space_offset],[y,y],ls='--',lw=1,color=l_func(k))
 
         
     if len(desired_fields) > 1:
@@ -259,21 +257,37 @@ def make_scaled_tree_without_legend(My_Tree, tree_name, tree_dir, num_tips, colo
             y = max_y
             x = blob_x
 
-            ax2.text(x,y,trait, rotation=45, size=15)
+            ax.text(x,y,trait, rotation=45, size=15)
+    
+    if num_tips < 10:
+        fig2,ax2 =  plt.subplots(figsize=(20,page_height/5),facecolor='w',frameon=False, dpi=100)
+    else:
+        fig2,ax2 =  plt.subplots(figsize=(20,page_height/10),facecolor='w',frameon=False, dpi=100)
 
+    length = 0.00003
+
+    ax2.plot([0,length], [0.5,0.5], ls='-', lw=5)
+    ax2.text(0.000001,0.2,"1 SNP")
+
+    ax.spines['top'].set_visible(False) ## make axes invisible
+    ax.spines['right'].set_visible(False)
+    ax.spines['left'].set_visible(False)
+    ax.spines['bottom'].set_visible(False)
+    ax.set_xticks([])
+    ax.set_yticks([])
     ax2.spines['top'].set_visible(False) ## make axes invisible
     ax2.spines['right'].set_visible(False)
     ax2.spines['left'].set_visible(False)
     ax2.spines['bottom'].set_visible(False)
+    ax2.set_xticks([])
+    ax2.set_yticks([])
     
+    ax.set_xlim(-space_offset,absolute_x_axis_size)
+    ax.set_ylim(min_y,max_y)
     ax2.set_xlim(-space_offset,absolute_x_axis_size)
-    ax2.set_ylim(min_y,max_y)
+    ax2.set_ylim(0,1)
 
-    plt.yticks([])
-    plt.xticks([])
-    # plt.title(lineage, size=25)
-
-    fig2.tight_layout()
+    fig.tight_layout()
 
 
 
@@ -324,11 +338,12 @@ def make_all_of_the_trees(input_dir, taxon_dict, query_dict, desired_fields, cus
         if num_taxa > 1: 
             tree = bt.loadNewick(input_dir + "/" + treefile, absoluteTime=False)
 
+            #make root line
             old_node = tree.root
             new_node = bt.node()
             new_node.children.append(old_node)
             old_node.parent = new_node
-            old_node.length=2.0
+            old_node.length=0.000015
             new_node.height = 0
             new_node.y = old_node.y
             tree.root = new_node
