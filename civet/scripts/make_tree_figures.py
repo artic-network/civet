@@ -221,7 +221,7 @@ def make_scaled_tree_without_legend(My_Tree, tree_name, tree_dir, num_tips, colo
 
                         option = query_dict[k.name].attribute_dict[trait]
                         colour_dict = colour_dict_dict[trait]
-                        trait_blob = ax2.scatter(x_value, y, tipsize*5, color=colour_dict[option])  
+                        trait_blob = ax.scatter(x_value, y, tipsize*5, color=colour_dict[option])  
                         
                         blob_dict[trait] = x_value
 
