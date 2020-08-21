@@ -266,7 +266,7 @@ def make_scaled_tree_without_legend(My_Tree, tree_name, tree_dir, num_tips, colo
 
     length = 0.00003
 
-    ax2.plot([0,length], [0.5,0.5], ls='-', lw=5)
+    ax2.plot([0,length], [0.5,0.5], ls='-', lw=5, color="dimgrey")
     ax2.text(0.000001,0.2,"1 SNP")
 
     ax.spines['top'].set_visible(False) ## make axes invisible
