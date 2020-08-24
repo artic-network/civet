@@ -258,6 +258,51 @@ rule process_catchments:
                             "combined_metadata={input.combined_metadata:q} "
                             "--cores {params.cores}")
 
+rule find_snps:
+    input:
+        tree_summary = os.path.join(config["outdir"],"local_trees","collapse_report.txt"),
+        snakefile = os.path.join(workflow.current_basedir,"find_snps.smk"),
+        query_seqs = rules.get_closest_cog.output.aligned_query, #datafunk-processed seqs
+        all_cog_seqs = config["all_cog_seqs"],
+        outgroup_fasta = config["outgroup_fasta"]
+    params:
+        outdir= config["outdir"],
+        tempdir= config["tempdir"],
+        path = workflow.current_basedir,
+        threshold = config["threshold"],
+        
+        fasta = config["fasta"],
+        tree_dir = os.path.join(config["outdir"],"local_trees"),
+
+        cores = workflow.cores,
+        force = config["force"],
+        quiet_mode = config["quiet_mode"]
+    output:
+        genome_graph = os.path.join(config["outdir"],"figures","genome_graph.png"),
+        report = os.path.join(config["outdir"],"snp_reports","snp_reports.txt")
+    run:
+        local_trees = []
+        for r,d,f in os.walk(params.tree_dir):
+            for fn in f:
+                if fn.endswith(".tree"):
+                    file_stem = ".".join(fn.split(".")[:-1])
+                    local_trees.append(file_stem)
+        local_str = ",".join(local_trees) #to pass to snakemake pipeline
+
+        shell("snakemake --nolock --snakefile {input.snakefile:q} "
+                            "{params.force} "
+                            "{params.quiet_mode} "
+                            "--directory {params.tempdir:q} "
+                            "--config "
+                            f"catchment_str={local_str} "
+                            "outdir={params.outdir:q} "
+                            "tempdir={params.tempdir:q} "
+                            "outgroup_fasta={input.outgroup_fasta:q} "
+                            "aligned_query_seqs={input.query_seqs:q} "
+                            "all_cog_seqs={input.all_cog_seqs:q} "
+                            "threshold={params.threshold} "
+                            "--cores {params.cores}")
+
 rule regional_mapping:
     input:
         query = config['query'],
@@ -336,6 +381,7 @@ rule regional_map_rendering:
             shell("touch {output.region}")
 
 
+
 rule make_report:
     input:
         lineage_trees = rules.process_catchments.output.tree_summary,
@@ -351,6 +397,8 @@ rule make_report:
         channels_map = config["channels_map"],
         ni_map = config["ni_map"],
         urban_centres = config["urban_centres"],
+        genome_graph = rules.find_snps.output.genome_graph,
+        snp_report = rules.find_snps.output.report,
         central = os.path.join(config["outdir"], 'figures', "central_map_ukLin.png"),
         neighboring = os.path.join(config["outdir"], 'figures', "neighboring_map_ukLin.png"),
         region = os.path.join(config["outdir"], 'figures', "region_map_ukLin.png")
@@ -371,7 +419,6 @@ rule make_report:
         y_col = config["y_col"],
         input_crs = config["input_crs"],
         mapping_trait = config["mapping_trait"]
-
     output:
         poly_fig = os.path.join(config["outdir"],"figures","polytomies.png"),
         footer_fig = os.path.join(config["outdir"], "figures", "footer.png"),
@@ -420,6 +467,7 @@ rule make_report:
         "--outfile {output.outfile:q} "
         "--outdir {params.outdir:q} "
         "--map-sequences {params.map_sequences} "
+        "--snp-report {input.snp_report:q} "
         "--x-col {params.x_col} "
         "--y-col {params.y_col} "
         "--input-crs {params.input_crs} "
