@@ -266,8 +266,8 @@ def make_scaled_tree_without_legend(My_Tree, tree_name, tree_dir, num_tips, colo
 
     length = 0.00003
 
-    ax2.plot([0,length], [0.5,0.5], ls='-', lw=5, color="dimgrey")
-    ax2.text(0.000001,0.2,"1 SNP")
+    ax2.plot([0,length], [0.5,0.5], ls='-', lw=1, color="dimgrey")
+    ax2.text(0.000015,0.15,"1 SNP",size=20, ha="center", va="center")
 
     ax.spines['top'].set_visible(False) ## make axes invisible
     ax.spines['right'].set_visible(False)
@@ -305,7 +305,7 @@ def sort_trees_index(tree_dir):
         
     return c
 
-def make_all_of_the_trees(input_dir, taxon_dict, query_dict, desired_fields, custom_tip_labels, min_uk_taxa=3):
+def make_all_of_the_trees(input_dir, tree_name_stem, taxon_dict, query_dict, desired_fields, custom_tip_labels, min_uk_taxa=3):
 
     tallest_height = find_tallest_tree(input_dir)
 
@@ -324,8 +324,9 @@ def make_all_of_the_trees(input_dir, taxon_dict, query_dict, desired_fields, cus
 
     for fn in lst:
         lineage = fn
-        treename = "tree_" + str(fn)
-        treefile = "tree_" + str(fn) + ".tree"
+        treename = f"{tree_name_stem}_{fn}"
+        treefile = f"{tree_name_stem}_{fn}.tree"
+        nodefile = f"{tree_name_stem}_{fn}"
         num_taxa = 0
         intro_name = ""
         with open(input_dir + "/" + treefile,"r") as f:
@@ -555,7 +556,7 @@ def make_legend(colour_dict):
     plt.xticks([])
     plt.show()
 
-def describe_tree_background(full_tax_dict, tree_dir):
+def describe_tree_background(full_tax_dict, tree_name_stem, tree_dir):
 
     tree_lst = sort_trees_index(tree_dir)
 
@@ -564,8 +565,8 @@ def describe_tree_background(full_tax_dict, tree_dir):
     figure_count = 0
 
     for fn in tree_lst:
-        focal_tree = "tree_" + str(fn)
-        focal_tree_file = tree_dir + "/" + focal_tree + ".txt"
+        focal_tree = f"{tree_name_stem}_{fn}"
+        focal_tree_file = f"{tree_dir}/{focal_tree}.txt"
         pretty_focal = "Tree " + str(fn)
 
         collapsed_dict = defaultdict(list)
@@ -625,7 +626,7 @@ def describe_tree_background(full_tax_dict, tree_dir):
 
 
                 if rows == 1:
-                    fig, axs = plt.subplots(rows,5, figsize=(10,2)) 
+                    fig, axs = plt.subplots(rows,5, figsize=(10,2), dpi=250)
 
                     fig.tight_layout()
                     count = 0      
@@ -639,14 +640,15 @@ def describe_tree_background(full_tax_dict, tree_dir):
                         axs[count].set_title(nde, size=8)
                         axs[count].set_xticklabels(x,rotation=90, size=5)
                         #axs[count].set_yticklabels(size=5)
-                        
+                        axs[count].spines['top'].set_visible(False) ## make axes invisible
+                        axs[count].spines['right'].set_visible(False)
                         count += 1
 
                  
                     fig.suptitle(pretty_focal,y=1.1,x=0.05, size=10)
                 
                 else:
-                    fig, axs = plt.subplots(rows,5,figsize=(10,10))
+                    fig, axs = plt.subplots(rows,5,figsize=(10,10), dpi=250)
                     fig.subplots_adjust(hspace=1.0, wspace=0.7)
                     # fig.tight_layout()
                     
@@ -663,6 +665,8 @@ def describe_tree_background(full_tax_dict, tree_dir):
                                 axs[nrow][i].set_title(relevant_nde, size=8)
                                 axs[nrow][i].set_xticklabels(x,rotation=70, size=5)
                                 # axs[nrow][i].set_yticklabels(y, size=5)
+                                axs[count].spines['top'].set_visible(False) ## make axes invisible
+                                axs[count].spines['right'].set_visible(False)
                             except IndexError:
                                 continue
 
@@ -680,7 +684,7 @@ def describe_tree_background(full_tax_dict, tree_dir):
             elif len(ndes_country_counts) == 1:
                 
                 figure_count += 1
-                plt.figure(figsize=(2,2))
+                fig, ax = plt.subplots(figsize=(2,2), dpi=250)
 
                 for nde, country_counts in ndes_country_counts.items():
                     
@@ -688,9 +692,12 @@ def describe_tree_background(full_tax_dict, tree_dir):
                     y = country_counts.values()
 
                     plt.bar(x,y, color="goldenrod")
+                    ax.spines['top'].set_visible(False) ## make axes invisible
+                    ax.spines['right'].set_visible(False)
                     # plt.title(nde)
                     plt.xticks(size=5, rotation=90)
                     plt.yticks(size=5)
+                    
 
 
 
