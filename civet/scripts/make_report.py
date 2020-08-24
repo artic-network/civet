@@ -7,10 +7,26 @@ import shutil
 
 thisdir = os.path.abspath(os.path.dirname(__file__))
 
-def make_report(cog_metadata, input_csv, filtered_cog_metadata, outfile, outdir, treedir, figdir, colour_fields, label_fields, report_template, failed_seqs, no_seq, seq_centre, clean_locs, uk_map, channels_map, ni_map, local_lineages, local_lin_maps, local_lin_tables,map_sequences,x_col,y_col, input_crs,mapping_trait,urban_centres):
+def make_report(cog_metadata, input_csv, filtered_cog_metadata, outfile, outdir, treedir, figdir, snp_report, colour_fields, label_fields, report_template, failed_seqs, no_seq, seq_centre, clean_locs, uk_map, channels_map, ni_map, local_lineages, local_lin_maps, local_lin_tables,map_sequences,x_col,y_col, input_crs,mapping_trait,urban_centres):
 
     name_stem = ".".join(outfile.split(".")[:-1])
                         
+    tree_name_stems = []
+    for r,d,f in os.walk(treedir):
+        for fn in f:
+            if fn.endswith(".tree"):
+                tree_name_stems.append(fn.split("_")[0])
+    tree_name_stems = list(set(tree_name_stems))
+    
+    if len(tree_name_stems) > 1:
+        sys.stderr.write("Error: Multiple tree names found")
+        sys.exit(-1)
+    elif len(tree_name_stems) == 0:
+        sys.stderr.write("Error: No trees found in tree directory. Note, tree name much end with .tree")
+        sys.exit(-1)
+    else:
+        tree_name_stem = tree_name_stems[0]
+
     with open(outfile, 'w') as pmd_file:
     
         md_template = report_template
@@ -27,6 +43,8 @@ def make_report(cog_metadata, input_csv, filtered_cog_metadata, outfile, outdir,
                             "label_fields_input": f'label_fields_input = "{label_fields}"\n',
                             "figdir": f'figdir = "{figdir}"\n',
                             "tree_dir": f'tree_dir = "{treedir}"\n',
+                            "tree_name_stem": f'tree_name_stem = "{tree_name_stem}"\n',
+                            "snp_report": f'snp_report = "{snp_report}"\n',
                             "summary_dir": f'summary_dir = "{summary_dir}"\n',
                             "QC_fail_file": f'QC_fail_file = "{failed_seqs}"\n',
                             "missing_seq_file": f'missing_seq_file = "{no_seq}"\n',
@@ -83,6 +101,7 @@ def main():
     parser.add_argument("--uk-map", required=True, help="shape file for uk counties", dest="uk_map")
     parser.add_argument("--channels-map", required=True, help="shape file for channel islands", dest="channels_map")
     parser.add_argument("--ni-map", required=True, help="shape file for northern irish counties", dest="ni_map")
+    parser.add_argument("--snp-report", required=True, help="snp report", dest="snp_report")
 
     parser.add_argument("--map-sequences", required=True, help="Bool for whether mapping of sequences by trait is required", dest="map_sequences")
     parser.add_argument("--x-col", default="", help="column name in input csv which contains x coords for mapping", dest="x_col")
@@ -97,7 +116,7 @@ def main():
 
     args = parser.parse_args()
 
-    make_report(args.cog_metadata, args.input_csv, args.filtered_cog_metadata, args.outfile, args.outdir, args.treedir, args.figdir,args.colour_fields, args.label_fields, args.report_template, args.failed_seqs,args.no_seq, args.sc, args.clean_locs, args.uk_map, args.channels_map, args.ni_map, args.local_lineages, args.local_lin_maps, args.local_lin_tables,args.map_sequences, args.x_col, args.y_col, args.input_crs, args.mapping_trait, args.urban_centres)
+    make_report(args.cog_metadata, args.input_csv, args.filtered_cog_metadata, args.outfile, args.outdir, args.treedir, args.figdir, args.snp_report, args.colour_fields, args.label_fields, args.report_template, args.failed_seqs,args.no_seq, args.sc, args.clean_locs, args.uk_map, args.channels_map, args.ni_map, args.local_lineages, args.local_lin_maps, args.local_lin_tables,args.map_sequences, args.x_col, args.y_col, args.input_crs, args.mapping_trait, args.urban_centres)
 
 
 if __name__ == "__main__":
