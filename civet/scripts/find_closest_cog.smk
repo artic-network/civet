@@ -29,7 +29,7 @@ rule non_cog_remove_insertions_and_trim_and_pad:
         trim_end = config["trim_end"],
         insertions = os.path.join(config["tempdir"],"post_qc_query.insertions.txt")
     output:
-        fasta = os.path.join(config["outdir"],"post_qc_query.aligned.fasta")
+        fasta = os.path.join(config["tempdir"],"post_qc_query.aligned.fasta")
     shell:
         """
         datafunk sam_2_fasta \
