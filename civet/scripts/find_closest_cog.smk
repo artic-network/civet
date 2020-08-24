@@ -29,7 +29,7 @@ rule non_cog_remove_insertions_and_trim_and_pad:
         trim_end = config["trim_end"],
         insertions = os.path.join(config["tempdir"],"post_qc_query.insertions.txt")
     output:
-        fasta = os.path.join(config["tempdir"],"post_qc_query.aligned.fasta")
+        fasta = os.path.join(config["outdir"],"post_qc_query.aligned.fasta")
     shell:
         """
         datafunk sam_2_fasta \
@@ -77,7 +77,7 @@ rule parse_paf:
 rule snp_diff:
     input:
         closest_fasta = os.path.join(config["tempdir"],"closest_cog.fasta"),
-        input_fasta = config["to_find_closest"],
+        input_fasta = rules.non_cog_remove_insertions_and_trim_and_pad.output.fasta,
         csv = os.path.join(config["tempdir"],"closest_cog.no_snps.csv")
     output:
         csv = os.path.join(config["tempdir"],"closest_cog.csv")
