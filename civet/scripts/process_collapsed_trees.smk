@@ -1,18 +1,4 @@
-"""
-            shell(f"snakemake --nolock --snakefile {snakestring}"
-                        "{params.force} "
-                        "{params.quiet_mode} "
-                        "--directory {params.tempdir:q} "
-                        "--config "
-                        f"catchment_str={catchment_str} "
-                        "outdir={params.outdir:q} "
-                        "tempdir={params.tempdir:q} "
-                        # "not_cog_csv={input.not_cog_csv:q} "
-                        "aligned_query_seqs={input.query_seqs:q} "
-                        "all_cog_seqs={input.all_cog_seqs:q} "
-                        "combined_metadata={input.combined_metadata:q} "
-                        "--cores {params.cores}")
-"""
+
 from Bio import Phylo
 from Bio import SeqIO
 import csv
@@ -241,7 +227,6 @@ rule to_nexus:
         tree = os.path.join(config["outdir"],"local_trees","{tree}.tree")
     run:
         Phylo.convert(input[0], 'newick', output[0], 'nexus')
-
 
 rule summarise_processing:
     input:
