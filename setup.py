@@ -33,6 +33,7 @@ setup(name='civet',
       "civet/scripts/mapping.py",
       "civet/scripts/find_snps.smk",
       "civet/scripts/find_snps.py",
+      "civet/scripts/find_ambiguities.py",
       "civet/scripts/make_genome_graph.py"],
       package_data={"civet":["data/*","data/headers/*","data/mapping_files/*","data/vega_templates/*"]},
       install_requires=[

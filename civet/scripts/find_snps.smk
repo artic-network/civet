@@ -74,12 +74,36 @@ rule gather_snp_reports:
                         l = l.rstrip("\n")
                         fw.write(l + '\n')
 
+rule gather_snp_seqs:
+    input:
+        expand(os.path.join(config["tempdir"], "seqs_for_snps","{tree}.fasta"), tree=config["tree_stems"])
+    output:
+        seqs = os.path.join(config["tempdir"], "seqs_for_snps","for_ambiguities.fasta")
+    run:
+        with open(output.seqs,"w") as fw:
+            for seq_file in input:
+                for record in SeqIO.parse(seq_file,"fasta"):
+                    fw.write(f">{record.description}\n{record.seq}\n")
+        
+rule ambiguities_at_snp_sites:
+    input:
+        seqs = rules.gather_snp_seqs.output.seqs,
+        report = rules.gather_snp_reports.output.report
+    output:
+        snp_report = os.path.join(config["outdir"], "snp_reports","ambiguities.snps.txt")
+    shell:
+        """
+        find_ambiguities.py --input {input.seqs:q} --output {output.snp_report:q} --report {input.report:q}
+        """
+
+
 rule make_snp_figure:
     input:
-        rules.gather_snp_reports.output.report
+        rules.gather_snp_reports.output.report,
+        rules.ambiguities_at_snp_sites.output.snp_report
     output:
         os.path.join(config["outdir"],"figures","genome_graph.png")
     shell:
         """
-        make_genome_graph.py --input {input[0]} --output {output[0]} 
+        make_genome_graph.py --input {input[0]} --ambiguities {input[1]} --output {output[0]} 
         """

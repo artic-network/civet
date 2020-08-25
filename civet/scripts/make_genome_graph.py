@@ -20,6 +20,7 @@ def parse_args():
     parser = argparse.ArgumentParser(description='Find sequences relative to Wuhan4 reference.')
 
     parser.add_argument("--input", action="store", type=str, dest="input")
+    parser.add_argument("--ambiguities", action="store", type=str, dest="ambiguities")
     parser.add_argument("--output", action="store", type=str, dest="output")
 
     return parser.parse_args()
@@ -45,6 +46,17 @@ def make_graph():
     ref_vars = {}
     snp_dict = collections.defaultdict(list)
 
+    
+    amb_dict = collections.defaultdict(list)
+    with open(args.ambiguities, newline="") as famb:
+        reader = csv.DictReader(famb, delimiter="\t")
+        for row in reader:
+            if not row["ambiguous_snps"] == "":
+                ambs = row["ambiguous_snps"].split(";")
+                print(ambs)
+                for ambiguity in ambs:
+                    amb_dict[row["name"]].append(ambiguity)
+
     with open(args.input,newline="") as f:
         reader=csv.DictReader(f, delimiter='\t')
         for row in reader:
@@ -63,7 +75,14 @@ def make_graph():
                 ref_vars[x_position]=ref
                 snp_dict[x_position].append((row["name"], ref, base, y_position))
                 # ax.text(x_position, y_position, base, size=8, ha="center", va="center")
-            
+            if row["name"] in amb_dict:
+                for amb in amb_dict[row["name"]]:
+                    x_position = int(amb[:-2])
+                    base = amb[-1]
+                    ref = amb[-2]
+                    ref_vars[x_position]=ref
+                    snp_dict[x_position].append((row["name"], ref, base, y_position))
+
             ax.text(-20, y_position, row["name"], size=9, ha="right", va="center")
     
     spacing = 29903/(len(snp_dict)+1)
