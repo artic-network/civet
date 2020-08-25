@@ -111,7 +111,7 @@ def make_graph():
     plt.yticks([])
             
     ax.set_xlim(0,29903)
-    ax.set_ylim(-3,y_position+1)
+    ax.set_ylim(-2.7,y_position+1)
     ax.tick_params(axis='x', labelsize=8)
     plt.xlabel("Genome position (base)", fontsize=9)
     plt.tight_layout()
