@@ -4,12 +4,14 @@ import argparse
 import matplotlib as mpl
 from matplotlib import pyplot as plt
 import csv
+import collections
 import matplotlib.patches as patches
 import matplotlib.colors as mcolors
 from matplotlib.patches import Polygon
 from matplotlib import cm
 from matplotlib.colors import ListedColormap, LinearSegmentedColormap
 from itertools import cycle
+import math
 
 colour_list = ["#cc8180","#a0a997","#cbaca4","#cadfbc"]
 colour_cycle = cycle(colour_list)
@@ -30,11 +32,18 @@ def make_graph():
 
     args = parse_args()
 
+    num_seqs = 0
+    with open(args.input,newline="") as f:
+        reader=csv.DictReader(f, delimiter='\t')
+        for row in reader:
+            num_seqs +=1
+
+    height = math.sqrt(num_seqs)*2
+    fig, ax = plt.subplots(1,1, figsize=(12,height), dpi=250)
+
     y_position = 0
     ref_vars = {}
-    fig, ax = plt.subplots(1,1, figsize=(10,2.5), dpi=250)
-
-    
+    snp_dict = collections.defaultdict(list)
 
     with open(args.input,newline="") as f:
         reader=csv.DictReader(f, delimiter='\t')
@@ -52,20 +61,47 @@ def make_graph():
                 base = snp[-1]
                 ref = snp[-2]
                 ref_vars[x_position]=ref
-                
-                ax.text(x_position, y_position, base, size=8, ha="center", va="center")
+                snp_dict[x_position].append((row["name"], ref, base, y_position))
+                # ax.text(x_position, y_position, base, size=8, ha="center", va="center")
             
-            ax.text(-20, y_position, row["name"], size=7, ha="right", va="center")
-            
-    rect = patches.Rectangle((0,-1), 29903, 1 ,alpha=0.2, fill=True, edgecolor='none',facecolor="dimgrey")
+            ax.text(-20, y_position, row["name"], size=9, ha="right", va="center")
+    
+    spacing = 29903/(len(snp_dict)+1)
+    
+    position = 0
+    for snp in sorted(snp_dict):
+        position += spacing
+        # snp position labels
+        ax.text(position, y_position+1, snp, size=9, ha="center", va="bottom", rotation=90)
+        
+        for sequence in snp_dict[snp]:
+            # sequence variant text
+            name,ref,var,y_pos = sequence
+            ax.text(position, y_pos, var, size=9, ha="center", va="center")
+
+        # reference variant text
+        ax.text(position, -0.2, ref, size=9, ha="center", va="center") 
+
+        #polygon showing mapping from genome to spaced out snps
+        x = [snp-0.5,snp+0.5,position+(0.4*spacing),position-(0.4*spacing),snp-0.5]
+        y = [-1.7,-1.7,-0.7,-0.7,-1.7]
+        coords = list(zip(x, y))
+        poly = patches.Polygon(coords, alpha=0.2, fill=True, edgecolor='none',facecolor="dimgrey")
+        ax.add_patch(poly)
+        rect = patches.Rectangle((position-(0.4*spacing),-0.7), spacing*0.8, 1 ,alpha=0.1, fill=True, edgecolor='none',facecolor="dimgrey")
+        ax.add_patch(rect)
+
+    # reference variant rectangle
+    rect = patches.Rectangle((0,-0.7), 29903, 1 ,alpha=0.2, fill=True, edgecolor='none',facecolor="dimgrey")
+    ax.add_patch(rect)
+    ax.text(-20, -0.2, "Reference", size=9, ha="right", va="center")
+    # reference genome rectangle
+    rect = patches.Rectangle((0,-2.7), 29903, 1 ,alpha=0.2, fill=True, edgecolor='none',facecolor="dimgrey")
     ax.add_patch(rect)
 
-    ax.text(-20, -0.5, "Reference", size=7, ha="right", va="center")
-
     for var in ref_vars:
-    #     ax.scatter([var],[0], color="#924242", s = 9, marker="v")
-        ax.text(var, -0.5, ref_vars[var], size=8, ha="center", va="center") 
-        
+        ax.plot([var,var],[-2.69,-1.71], color="#cbaca4")
+
 
     ax.spines['top'].set_visible(False) ## make axes invisible
     ax.spines['right'].set_visible(False)
@@ -75,7 +111,7 @@ def make_graph():
     plt.yticks([])
             
     ax.set_xlim(0,29903)
-    ax.set_ylim(-1,y_position+1)
+    ax.set_ylim(-3,y_position+1)
     ax.tick_params(axis='x', labelsize=8)
     plt.xlabel("Genome position (base)", fontsize=9)
     plt.tight_layout()
