@@ -418,7 +418,8 @@ rule make_report:
         x_col = config["x_col"],
         y_col = config["y_col"],
         input_crs = config["input_crs"],
-        mapping_trait = config["mapping_trait"]
+        mapping_trait = config["mapping_trait"],
+        add_boxplots = config["add_boxplots"]
     output:
         poly_fig = os.path.join(config["outdir"],"figures","polytomies.png"),
         footer_fig = os.path.join(config["outdir"], "figures", "footer.png"),
@@ -444,6 +445,9 @@ rule make_report:
             local_lineage_flag = ""
             lineage_map_flag = ""
             lineage_table_flag = ""
+        boxplots = ""
+        if config["add_boxplots"]:
+            boxplots = "--add-boxplots"
         shell("""
         cp {input.polytomy_figure:q} {output.poly_fig:q} &&
         cp {input.footer:q} {output.footer_fig:q}""")
@@ -473,6 +477,7 @@ rule make_report:
         "--input-crs {params.input_crs} "
         "--mapping-trait {params.mapping_trait} "
         "--urban-centres {input.urban_centres} "
+        f"{boxplots}"
         f"{local_lineage_flag} {lineage_map_flag} {lineage_table_flag}")
 
 rule launch_grip:

@@ -54,6 +54,8 @@ input_directory = "" ##CHANGE
 output_directory = "" ##CHANGE
 name_stem_input = "" ##CHANGE
 
+add_boxplots = "" ##CHANGE
+
 if "/" in name_stem_input:
     name_stem = name_stem_input.split("/")[-1]
 else:
@@ -243,19 +245,16 @@ if too_tall_trees != []:
 ```
 
 
-### Tree background
 
-The following plots describe the data in the collapsed nodes in more detail.
-If more than one country was present, the bar chart describes the number of sequences present in each country. 
-Where there were 10 countries or more, the largest 10 have been taken. 
-If a UK sequence is present in the collapsed node, it is always shown in the plot.
 
-```python, name="tree_background", echo=False, include=False, fig=False
-bar_count = tree_viz.describe_tree_background(full_tax_dict, tree_name_stem, tree_dir)
-```
-```python, name="display bar charts", echo=False, results='raw'
-for i in range(bar_count):
-    print("![](" + figdir + "/" + name_stem + "_tree_background_" + str(i+1) + ".png)")
+```python, name="tree_background", echo=False, include=False,  results='raw'
+if add_boxplots != "":
+    print("""### Tree background\n\nThe following plots describe the data in the collapsed nodes in more detail.\nIf more than one country was present, the bar chart describes the number of sequences present in each country. \nWhere there were 10 countries or more, the largest 10 have been taken. \nIf a UK sequence is present in the collapsed node, it is always shown in the plot.\n\n""")
+    bar_count = tree_viz.describe_tree_background(full_tax_dict, tree_name_stem, tree_dir)
+
+    for i in range(bar_count):
+        print(f"![]({figdir}/{name_stem}_tree_background_{i+1}.png)")
+
 ```
 
 ### SNPs found in sequences of interest

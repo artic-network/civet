@@ -7,7 +7,7 @@ import shutil
 
 thisdir = os.path.abspath(os.path.dirname(__file__))
 
-def make_report(cog_metadata, input_csv, filtered_cog_metadata, outfile, outdir, treedir, figdir, snp_report, colour_fields, label_fields, report_template, failed_seqs, no_seq, seq_centre, clean_locs, uk_map, channels_map, ni_map, local_lineages, local_lin_maps, local_lin_tables,map_sequences,x_col,y_col, input_crs,mapping_trait,urban_centres):
+def make_report(cog_metadata, input_csv, filtered_cog_metadata, outfile, outdir, treedir, figdir, snp_report, colour_fields, label_fields, report_template, failed_seqs, no_seq, seq_centre, clean_locs, uk_map, channels_map, ni_map, local_lineages, local_lin_maps, local_lin_tables,map_sequences,x_col,y_col, input_crs,mapping_trait,urban_centres,add_boxplots):
 
     name_stem = ".".join(outfile.split(".")[:-1])
                         
@@ -63,6 +63,10 @@ def make_report(cog_metadata, input_csv, filtered_cog_metadata, outfile, outdir,
                             "input_crs":f'input_crs = "{input_crs}"\n',
                             "urban_centres":f'urban_centres = "{urban_centres}"\n'
                             }
+        if add_boxplots:
+            change_line_dict["add_boxplots"] = f'add_boxplots = "{add_boxplots}"\n'
+        else:
+            change_line_dict["add_boxplots"] = 'add_boxplots = ""'
         with open(md_template) as f:
             for l in f:
                 if "##CHANGE" in l:
@@ -102,6 +106,7 @@ def main():
     parser.add_argument("--channels-map", required=True, help="shape file for channel islands", dest="channels_map")
     parser.add_argument("--ni-map", required=True, help="shape file for northern irish counties", dest="ni_map")
     parser.add_argument("--snp-report", required=True, help="snp report", dest="snp_report")
+    parser.add_argument("--add-boxplots", action="store_true",dest="add_boxplots",default=False)
 
     parser.add_argument("--map-sequences", required=True, help="Bool for whether mapping of sequences by trait is required", dest="map_sequences")
     parser.add_argument("--x-col", default="", help="column name in input csv which contains x coords for mapping", dest="x_col")
@@ -116,7 +121,7 @@ def main():
 
     args = parser.parse_args()
 
-    make_report(args.cog_metadata, args.input_csv, args.filtered_cog_metadata, args.outfile, args.outdir, args.treedir, args.figdir, args.snp_report, args.colour_fields, args.label_fields, args.report_template, args.failed_seqs,args.no_seq, args.sc, args.clean_locs, args.uk_map, args.channels_map, args.ni_map, args.local_lineages, args.local_lin_maps, args.local_lin_tables,args.map_sequences, args.x_col, args.y_col, args.input_crs, args.mapping_trait, args.urban_centres)
+    make_report(args.cog_metadata, args.input_csv, args.filtered_cog_metadata, args.outfile, args.outdir, args.treedir, args.figdir, args.snp_report, args.colour_fields, args.label_fields, args.report_template, args.failed_seqs,args.no_seq, args.sc, args.clean_locs, args.uk_map, args.channels_map, args.ni_map, args.local_lineages, args.local_lin_maps, args.local_lin_tables,args.map_sequences, args.x_col, args.y_col, args.input_crs, args.mapping_trait, args.urban_centres,args.add_boxplots)
 
 
 if __name__ == "__main__":
