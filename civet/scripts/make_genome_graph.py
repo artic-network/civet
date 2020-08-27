@@ -14,7 +14,7 @@ from itertools import cycle
 import math
 
 colour_list = ["lightgrey","white"]
-colour_dict = {"A":"lightsteelblue","C":"indianred","T":"darkseagreen","G":"slateblue"}
+colour_dict = {"A":"steelblue","C":"indianred","T":"darkseagreen","G":"skyblue"}
 colour_cycle = cycle(colour_list)
 
 def parse_args():
@@ -100,7 +100,10 @@ def make_graph():
         for sequence in snp_dict[snp]:
             # sequence variant text
             name,ref,var,y_pos = sequence
-            rect = patches.Rectangle((position-(0.4*spacing),y_pos-0.5), spacing*0.8, 1 ,alpha=0.5, fill=True, edgecolor='none',facecolor=colour_dict[var.upper()])
+            if var in colour_dict:
+                rect = patches.Rectangle((position-(0.4*spacing),y_pos-0.5), spacing*0.8, 1 ,alpha=0.5, fill=True, edgecolor='none',facecolor=colour_dict[var.upper()])
+            else:
+                rect = patches.Rectangle((position-(0.4*spacing),y_pos-0.5), spacing*0.8, 1 ,alpha=0.5, fill=True, edgecolor='none',facecolor="dimgrey")
             ax.add_patch(rect)
             ax.text(position, y_pos, var, size=9, ha="center", va="center")
 
