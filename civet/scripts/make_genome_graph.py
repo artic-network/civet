@@ -13,7 +13,8 @@ from matplotlib.colors import ListedColormap, LinearSegmentedColormap
 from itertools import cycle
 import math
 
-colour_list = ["#cc8180","#a0a997","#cbaca4","#cadfbc"]
+colour_list = ["lightgrey","white"]
+colour_dict = {"A":"lightsteelblue","C":"indianred","T":"darkseagreen","G":"slateblue"}
 colour_cycle = cycle(colour_list)
 
 def parse_args():
@@ -90,12 +91,17 @@ def make_graph():
     position = 0
     for snp in sorted(snp_dict):
         position += spacing
-        # snp position labels
         ax.text(position, y_position+1, snp, size=9, ha="center", va="bottom", rotation=90)
+
+        # snp position labels
+        
+        
         
         for sequence in snp_dict[snp]:
             # sequence variant text
             name,ref,var,y_pos = sequence
+            rect = patches.Rectangle((position-(0.4*spacing),y_pos-0.5), spacing*0.8, 1 ,alpha=0.5, fill=True, edgecolor='none',facecolor=colour_dict[var.upper()])
+            ax.add_patch(rect)
             ax.text(position, y_pos, var, size=9, ha="center", va="center")
 
         # reference variant text
