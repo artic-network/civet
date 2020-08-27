@@ -37,7 +37,7 @@ def main(sysargs = sys.argv[1:]):
     parser.add_argument('-sc',"--sequencing-centre", action="store",help="Customise report with logos from sequencing centre.", dest="sequencing_centre")
     parser.add_argument('--CLIMB', action="store_true",dest="climb",help="Indicates you're running CIVET from within CLIMB, uses default paths in CLIMB to access data")
     parser.add_argument('--cog-report', action="store_true",help="Run summary cog report. Default: outbreak investigation",dest="cog_report")
-    parser.add_argument("-r",'--remote-sync', action="store_true",dest="remote",help="Remotely access lineage trees from CLIMB, need to also supply -uun,--your-user-name")
+    parser.add_argument("-r",'--remote-sync', action="store_true",dest="remote",help="Remotely access lineage trees from CLIMB")
     parser.add_argument("-uun","--your-user-name", action="store", help="Your CLIMB COG-UK username. Required if running with --remote-sync flag", dest="uun")
     parser.add_argument('-o','--outdir', action="store",help="Output directory. Default: current working directory")
     parser.add_argument('-b','--launch-browser', action="store_true",help="Optionally launch md viewer in the browser using grip",dest="launch_browser")
@@ -353,70 +353,63 @@ def main(sysargs = sys.argv[1:]):
         config["remote"]= "True"
         if args.uun:
             config["username"] = args.uun
-
+        
             rsync_command = f"rsync -avzh {args.uun}@bham.covid19.climb.ac.uk:/cephfs/covid/bham/civet-cat '{data_dir}'"
             print(f"Syncing civet data to {data_dir}")
             status = os.system(rsync_command)
             if status != 0:
-                sys.stderr.write("Error: rsync command failed.\nCheck your user name is a valid CLIMB username e.g. climb-covid19-smithj\nAlso, check if you have access to CLIMB from this machine\n\n")
+                sys.stderr.write("Error: rsync command failed.\nCheck your user name is a valid CLIMB username e.g. climb-covid19-smithj\nAlso, check if you have access to CLIMB from this machine and are in the UK\n\n")
                 sys.exit(-1)
-
-            cog_metadata,all_cog_metadata,cog_global_metadata = ("","","")
-            cog_seqs,all_cog_seqs = ("","")
-            cog_tree = ""
-
-            cog_seqs = os.path.join(data_dir,"civet-cat","cog_alignment.fasta")
-            all_cog_seqs = os.path.join(data_dir,"civet-cat","cog_alignment_all.fasta")
-
-            cog_metadata = os.path.join(data_dir,"civet-cat","cog_metadata.csv")
-            all_cog_metadata = os.path.join(data_dir,"civet-cat","cog_metadata_all.csv")
-
-            cog_global_metadata = os.path.join(data_dir,"civet-cat","cog_global_metadata.csv")
-            cog_global_seqs= os.path.join(data_dir,"civet-cat","cog_global_alignment.fasta")
-
-            cog_tree = os.path.join(data_dir,"civet-cat","cog_global_tree.nexus")
-
-            config["cog_seqs"] = cog_seqs
-            config["all_cog_seqs"] = all_cog_seqs
-
-            config["cog_metadata"] = cog_metadata
-            config["all_cog_metadata"] = all_cog_metadata
-            config["cog_global_metadata"] = cog_global_metadata
-            config["cog_global_seqs"] = cog_global_seqs
-            config["cog_tree"] = cog_tree
-
-            print("Found cog data:")
-            print("    -",cog_seqs)
-            print("    -",all_cog_seqs)
-            print("    -",cog_metadata)
-            print("    -",all_cog_metadata)
-            print("    -",cog_global_metadata)
-            print("    -",cog_tree,"\n")
-
         else:
-            sys.stderr.write("""Error: Username (-uun) required with --remote flag, or supply data directory\n\
-To run civet please either\n1) ssh into CLIMB and run with --CLIMB flag\n\
+            rsync_command = f"rsync -avzh bham.covid19.climb.ac.uk:/cephfs/covid/bham/civet-cat '{data_dir}'"
+            print(f"Syncing civet data to {data_dir}")
+            status = os.system(rsync_command)
+            if status != 0:
+                sys.stderr.write("Error: rsync command failed.\nCheck your ssh is configured with Host bham.covid19.climb.ac.uk\nAlternatively enter your CLIMB username with -uun e.g. climb-covid19-smithj\nAlso, check if you have access to CLIMB from this machine and are in the UK\n\n")
+                sys.exit(-1)
+        cog_metadata,all_cog_metadata,cog_global_metadata = ("","","")
+        cog_seqs,all_cog_seqs = ("","")
+        cog_tree = ""
+
+        cog_seqs = os.path.join(data_dir,"civet-cat","cog_alignment.fasta")
+        all_cog_seqs = os.path.join(data_dir,"civet-cat","cog_alignment_all.fasta")
+
+        cog_metadata = os.path.join(data_dir,"civet-cat","cog_metadata.csv")
+        all_cog_metadata = os.path.join(data_dir,"civet-cat","cog_metadata_all.csv")
+
+        cog_global_metadata = os.path.join(data_dir,"civet-cat","cog_global_metadata.csv")
+        cog_global_seqs= os.path.join(data_dir,"civet-cat","cog_global_alignment.fasta")
+
+        cog_tree = os.path.join(data_dir,"civet-cat","cog_global_tree.nexus")
+
+        config["cog_seqs"] = cog_seqs
+        config["all_cog_seqs"] = all_cog_seqs
+
+        config["cog_metadata"] = cog_metadata
+        config["all_cog_metadata"] = all_cog_metadata
+        config["cog_global_metadata"] = cog_global_metadata
+        config["cog_global_seqs"] = cog_global_seqs
+        config["cog_tree"] = cog_tree
+
+        print("Found cog data:")
+        print("    -",cog_seqs)
+        print("    -",all_cog_seqs)
+        print("    -",cog_metadata)
+        print("    -",all_cog_metadata)
+        print("    -",cog_global_metadata)
+        print("    -",cog_tree,"\n")
+
+    elif not args.datadir and not args.climb:
+        sys.stderr.write("""Error: no way to find source data.\n\nTo run civet please either\n1) ssh into CLIMB and run with --CLIMB flag\n\
 2) Run using `--remote-sync` flag and your CLIMB username specified e.g. `-uun climb-covid19-otoolexyz`\n\
 3) Specify a local directory with the appropriate files on. The following files are required:\n\
-    - cog_global_tree.nexus\n\
-    - cog_metadata.csv\n\
-    - cog_metadata_all.csv\n\
-    - cog_global_metadata.csv\n\
-    - cog_global_alignment.fasta\n\
-    - cog_alignment.fasta\n\n""")
-            sys.exit(-1)
-    else:
-        if not args.datadir and not args.climb:
-            sys.stderr.write("""Error: no way to find source data.\n\nTo run civet please either\n1) ssh into CLIMB and run with --CLIMB flag\n\
-2) Run using `--remote-sync` flag and your CLIMB username specified e.g. `-uun climb-covid19-otoolexyz`\n\
-3) Specify a local directory with the appropriate files on. The following files are required:\n\
-    - cog_global_tree.nexus\n\
-    - cog_metadata.csv\n\
-    - cog_metadata_all.csv\n\
-    - cog_global_metadata.csv\n\
-    - cog_global_alignment.fasta\n\
-    - cog_alignment.fasta\n\n""")
-            sys.exit(-1)
+- cog_global_tree.nexus\n\
+- cog_metadata.csv\n\
+- cog_metadata_all.csv\n\
+- cog_global_metadata.csv\n\
+- cog_global_alignment.fasta\n\
+- cog_alignment.fasta\n\n""")
+        sys.exit(-1)
 
     # run qc on the input sequence file
     if args.fasta:
