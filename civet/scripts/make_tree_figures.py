@@ -98,15 +98,14 @@ def find_colour_dict(query_dict, trait):
 
     attribute_options = set()
 
-    cmap = cm.get_cmap("viridis")
+    cmap = cm.get_cmap("Paired")
 
     if trait == "adm1":
         colour_dict = {"Wales":"darkseagreen",
                 "England":"indianred",
                 "Scotland":"steelblue",
                 "Northern_Ireland":"skyblue",
-                "Northern Ireland":"skyblue",
-                "NA": "goldenrod"}
+                "NA": "dimgrey"}
         return colour_dict
 
     else:
@@ -114,8 +113,18 @@ def find_colour_dict(query_dict, trait):
             attribute_options.add(query.attribute_dict[trait])
             
     if len(attribute_options) == 2:
-        colour_dict = {list(attribute_options)[0]: "goldenrod",
-                        list(attribute_options)[1]:"midnightblue"}
+        options = sorted(list(attribute_options))
+        colour_dict = {options[0]: "indianred",
+                        options[1]:"steelblue"}
+        return colour_dict
+
+    elif len(attribute_options) == 3:
+        options = sorted(list(attribute_options))
+        colour_dict = {options[0]: "darkseagreen",
+                        options[1]:"indianred",
+                        options[2]:"steelblue"}
+        if "NA" in options:
+            colour_dict["NA"] = "dimgrey"
         return colour_dict
 
     else:
@@ -123,10 +132,11 @@ def find_colour_dict(query_dict, trait):
         colour_dict = {}
         count = 0
         colors = cmap(np.linspace(0, 1, len(attribute_options)))
-        for option in attribute_options:
+        for option in sorted(attribute_options):
             colour_dict[option] = colors[count]
             count += 1
-    
+        if "NA" in attribute_options:
+            colour_dict["NA"] = "dimgrey"
         return colour_dict
 
     
