@@ -91,7 +91,12 @@ def display_name(tree, tree_name, tree_dir, full_taxon_dict, query_dict, custom_
                 
                 
                 else:
-                    k.traits["display"] = name + "|" + "not in dict"
+                    if name.startswith("subtree"):
+                        number = name.split("_")[-1]
+                        display = f"Tree {number}"
+                        k.traits["display"] = display
+                    else:
+                        k.traits["display"] = name + "|" + "not in dict"
 
 
 def find_colour_dict(query_dict, trait):
