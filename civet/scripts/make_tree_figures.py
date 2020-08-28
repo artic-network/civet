@@ -195,7 +195,7 @@ def make_scaled_tree_without_legend(My_Tree, tree_name, tree_dir, num_tips, colo
     max_x = max(x_values)
     
     
-    fig,ax = plt.subplots(figsize=(20,page_height),facecolor='w',frameon=False, dpi=100)
+    fig,ax = plt.subplots(figsize=(20,page_height),facecolor='w',frameon=False, dpi=200)
     
     My_Tree.plotTree(ax, colour_function=c_func, x_attr=x_attr, y_attr=y_attr, branchWidth=b_func)
     
@@ -267,12 +267,12 @@ def make_scaled_tree_without_legend(My_Tree, tree_name, tree_dir, num_tips, colo
             y = max_y
             x = blob_x
 
-            ax.text(x,y,trait, rotation=45, size=15)
+            ax.text(x,y,trait, rotation=90, size=15,ha="center", va="bottom")
     
     if num_tips < 10:
-        fig2,ax2 =  plt.subplots(figsize=(20,page_height/5),facecolor='w',frameon=False, dpi=100)
+        fig2,ax2 =  plt.subplots(figsize=(20,page_height/5),facecolor='w',frameon=False, dpi=200)
     else:
-        fig2,ax2 =  plt.subplots(figsize=(20,page_height/10),facecolor='w',frameon=False, dpi=100)
+        fig2,ax2 =  plt.subplots(figsize=(20,page_height/10),facecolor='w',frameon=False, dpi=200)
 
     length = 0.00003
 
@@ -533,34 +533,48 @@ def summarise_node_table(tree_dir, focal_tree, full_tax_dict):
 
     return df_dict
 
-def make_legend(colour_dict):
-    
-    fig,ax = plt.subplots(figsize=(len(colour_dict)+1,1))
+def make_legend(colour_dict_dict):
+    num_colours = []
+    for trait, colour_dict in colour_dict_dict.items():
+        num_colours.append(len(colour_dict))
 
-    plt.gca().set_aspect('equal', adjustable='box')
-    plt.text
-    
+    max_colours = sorted(num_colours, reverse=True)[0]
+    fig,ax = plt.subplots(figsize=(len(colour_dict)+1,1), dpi=700)
+    y = 0
     x = 0
-    for option in colour_dict.keys():
-        circle = plt.Circle((x, 0.5), 0.05, color=colour_dict[option]) #((xloc, yloc), radius) relative to overall plot size
-        ax.add_artist(circle)
-        plt.text(x-0.1,0.3,option, fontsize=5)
-        x += 1
+    for trait, colour_dict in colour_dict_dict.items():
+        y +=2
+        plt.text(-0.5,y,trait, fontsize=5, ha="right",va="center")
+        last_option = ""
+        for option in sorted(colour_dict):
+            if option == "NA":
+                last_option = "NA"
+            else:
+                x += 1
+                col = c=np.array([colour_dict[option]])
+                plt.scatter([x], [y], s =10, c=col) #((xloc, yloc), radius) relative to overall plot size
+                # ax.add_artist(circle)
+                plt.text(x,y-1,option, fontsize=5,ha="center",va="center")
+                
+        if last_option != "":
+            x += 1
+            col = c=np.array([colour_dict["NA"]])
+            plt.scatter([x], [y], s = 10, c=col) #((xloc, yloc), radius) relative to overall plot size
+            # ax.add_artist(circle)
+            plt.text(x,y-1,"NA", fontsize=5,ha="center",va="center")
+        x = 0
         
-        
-    length = len(colour_dict)
-
-    plt.xlim(-1,length)
-    plt.ylim(0,1)
+    plt.xlim(-1,max_colours+1)
+    plt.ylim(0,y+1)
 
     ax.spines['top'].set_visible(False) ## make axes invisible
     ax.spines['right'].set_visible(False)
     ax.spines['left'].set_visible(False)
     ax.spines['bottom'].set_visible(False)
 
-
     plt.yticks([])
     plt.xticks([])
+    plt.tight_layout()
     plt.show()
 
 def describe_tree_background(full_tax_dict, tree_name_stem, tree_dir):

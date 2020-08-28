@@ -15,7 +15,9 @@ def make_report(cog_metadata, input_csv, filtered_cog_metadata, outfile, outdir,
     for r,d,f in os.walk(treedir):
         for fn in f:
             if fn.endswith(".tree"):
-                tree_name_stems.append(fn.split("_")[0])
+                basename = ".".join(fn.split(".")[:-1])
+                stem = "_".join(basename.split("_")[:-1])
+                tree_name_stems.append(stem)
     tree_name_stems = list(set(tree_name_stems))
     
     if len(tree_name_stems) > 1:

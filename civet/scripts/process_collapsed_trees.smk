@@ -42,7 +42,7 @@ rule get_basal_seq:
             for record in SeqIO.parse(input.fasta, "fasta"):
                 if record.id == basal_taxon:
                     node_name = "_".join(params.tree.split("_")[1:])
-                    fw.write(f">{node_name} representative={record.id}\n{record.seq}")
+                    fw.write(f">{node_name} representative={record.id}\n{record.seq}\n")
 
 rule combine_basal:
     input:

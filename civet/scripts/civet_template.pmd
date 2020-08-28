@@ -210,17 +210,17 @@ too_tall_trees, overall_tree_number, colour_dict_dict, overall_df_dict = tree_vi
 ```
 ```python, name="make_legend", echo=False, include=False, results='tex'
 for trait, colour_dict in colour_dict_dict.items():
-    tree_viz.make_legend(colour_dict)
+    tree_viz.make_legend(colour_dict_dict)
     number_of_options = len(colour_dict)
     if number_of_options > 15:
         print("WARNING: There are more than 15 options to colour by for " + trait + ", which will make it difficult to see the differences between colours. Consider adding the trait to the taxon labels on the tree by using the flag _--label-fields_ when calling CIVET.")
 ```
 ```python,name="show_legend",echo=False,results='raw'
-for i, trait in enumerate(colour_dict_dict.keys()):
-    print("The legend for " + trait + " is shown below.\n")
-    print("![](" + figdir + "/" + name_stem + "_make_legend_" + str(i+1) + ".png)")
-    print("\n")
+print(f'<img src="{figdir}/{name_stem}_make_legend_1.png" alt="drawing" style="width:100%;"/>')
+print("\n")
+
 ```
+
 ```python, name="show_trees", echo=False, results='raw'
 for i in range(1,overall_tree_number+1):
     tree_name = "Tree " + str(i)
