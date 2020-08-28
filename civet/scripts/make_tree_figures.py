@@ -30,7 +30,7 @@ from collections import defaultdict
 import datetime as dt
 from collections import Counter
 from collections import defaultdict
-
+import math
 
 thisdir = os.path.abspath(os.path.dirname(__file__))
 
@@ -121,6 +121,9 @@ def find_colour_dict(query_dict, trait):
         options = sorted(list(attribute_options))
         colour_dict = {options[0]: "indianred",
                         options[1]:"steelblue"}
+        if "NA" in options:
+            colour_dict["NA"] = "dimgrey"
+        return colour_dict
         return colour_dict
 
     elif len(attribute_options) == 3:
@@ -251,11 +254,11 @@ def make_scaled_tree_without_legend(My_Tree, tree_name, tree_dir, num_tips, colo
                         ax.plot([x+space_offset,tallest_height],[y,y],ls='--',lw=1,color=l_func(k))
 
                 
-                for blob_x in blob_dict.values():
+                # for blob_x in blob_dict.values():
 
-                    line_x = blob_x - (division/2)
+                #     line_x = blob_x - (division/2)
 
-                    ax.plot([line_x,line_x],[min_y,max_y],ls='--',lw=3,color=l_func(k))
+                #     ax.plot([line_x,line_x],[min_y,max_y],ls='--',lw=3,color=l_func(k))
             
             
             else:
@@ -540,13 +543,16 @@ def summarise_node_table(tree_dir, focal_tree, full_tax_dict):
 
 def make_legend(colour_dict_dict):
     num_colours = []
+    num_traits = 0
     for trait, colour_dict in colour_dict_dict.items():
         num_colours.append(len(colour_dict))
-
-    max_colours = sorted(num_colours, reverse=True)[0]
-    fig,ax = plt.subplots(figsize=(len(colour_dict)+1,1), dpi=700)
+        num_traits +=1 
     y = 0
     x = 0
+    max_colours = sorted(num_colours, reverse=True)[0]
+    height = math.sqrt(num_traits)*0.75
+    fig,ax = plt.subplots(figsize=(len(colour_dict)+1,height), dpi=700)
+    
     for trait, colour_dict in colour_dict_dict.items():
         y +=2
         plt.text(-0.5,y,trait, fontsize=5, ha="right",va="center")
