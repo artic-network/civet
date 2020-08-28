@@ -175,7 +175,7 @@ rule prune_out_catchments:
         -o {params.outdir:q} \
         --max-parent {params.distance} \
         -f newick \
-        -p tree \
+        -p tree_ \
         --ignore-missing \
         -m {input.metadata:q} \
         --id-column closest \

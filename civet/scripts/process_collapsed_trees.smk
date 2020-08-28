@@ -12,10 +12,76 @@ rule all:
         os.path.join(config["outdir"],"local_trees","collapse_report.txt"),
         expand(os.path.join(config["outdir"],"local_trees","{tree}.tree"), tree = config["tree_stems"])
 
+rule get_basal_representative:
+    input:
+        tree = os.path.join(config["tempdir"], "catchment_trees","{tree}.newick")
+    output:
+        basal = os.path.join(config["tempdir"],"representatives","{tree}.txt")
+    shell:
+        """
+        clusterfunk return_basal \
+        -i {input.tree} --in-format newick \
+        -o {output.basal}
+        """
+
+rule get_basal_seq:
+    input:
+        basal = rules.get_basal_representative.output.basal,
+        fasta  = config["cog_global_seqs"]
+    params:
+        tree = "{tree}"
+    output:
+        fasta = os.path.join(config["tempdir"], "representatives","{tree}.fasta")
+    run:
+        basal_taxon = ""
+        with open(input.basal, "r") as f:
+            for l in f:
+                l = l.rstrip("\n")
+                basal_taxon = l
+        with open(output.fasta, "w") as fw:
+            for record in SeqIO.parse(input.fasta, "fasta"):
+                if record.id == basal_taxon:
+                    node_name = "_".join(params.tree.split("_")[1:])
+                    fw.write(f">{node_name} representative={record.id}\n{record.seq}")
+
+rule combine_basal:
+    input:
+        expand(os.path.join(config["tempdir"], "representatives","{tree}.fasta"), tree=config["tree_stems"])
+    output:
+        fasta = os.path.join(config["tempdir"], "all_basal_seqs.fasta")
+    shell:
+        "cat {input} > {output:q}"
+
+rule protect_subtree_nodes:
+    input:
+        metadata = config["combined_metadata"]
+    params:
+        tree_dir = os.path.join(config["tempdir"],"catchment_trees")
+    output:
+        metadata = os.path.join(config["tempdir"],"protected","protected.csv")
+    run:
+        with open(output.metadata, "w") as fw:
+            fw.write("protect,count\n")
+            c =0
+            for r,d,f in os.walk(params.tree_dir):
+                for fn in f:
+                    if fn.endswith(".newick"):
+                        tree = ".".join(fn.split(".")[:-1])
+                        node_name = "_".join(tree.split("_")[1:])
+                        c +=1
+                        fw.write(f"{node_name},{c}\n")
+            
+            with open(input.metadata, newline="") as f:
+                reader = csv.DictReader(f)
+                for row in reader:
+                    c+=1
+                    fw.write(row["closest"] + f",{c}\n")
+        
+
 rule summarise_polytomies:
     input:
-        tree = os.path.join(config["tempdir"], "catchment_trees","{tree}.newick"),
-        metadata = config["combined_metadata"]
+        metadata = os.path.join(config["tempdir"],"protected","protected.csv"),
+        tree = os.path.join(config["tempdir"], "catchment_trees","{tree}.newick")
     params:
         tree_dir = os.path.join(config["tempdir"],"catchment_trees"),
         threshold = config["threshold"]
@@ -27,7 +93,7 @@ rule summarise_polytomies:
         clusterfunk focus -i {input.tree:q} \
         -o {output.collapsed_tree:q} \
         --metadata {input.metadata:q} \
-        --index-column closest \
+        --index-column protect \
         --in-format newick \
         --out-format newick \
         --threshold {params.threshold} \
@@ -86,7 +152,8 @@ rule gather_fasta_seqs:
         cog_seqs = config["all_cog_seqs"],
         outgroup_fasta = config["outgroup_fasta"],
         combined_metadata = config["combined_metadata"],
-        tree_taxa = rules.extract_taxa.output.tree_taxa
+        tree_taxa = rules.extract_taxa.output.tree_taxa,
+        all_basal_seqs = os.path.join(config["tempdir"], "all_basal_seqs.fasta")
     output:
         aln = os.path.join(config["tempdir"], "catchment_aln","{tree}.query.aln.fasta")
     run:
@@ -124,6 +191,10 @@ rule gather_fasta_seqs:
                     fw.write(f">{record.description}\n{record.seq}\n")
                     added_seqs.append(record.id)
 
+            for record in SeqIO.parse(input.all_basal_seqs,"fasta"):
+                if record.id in taxa:
+                    fw.write(f">{record.description}\n{record.seq}\n")
+                    added_seqs.append(record.id)
 
 rule hash_for_iqtree:
     input:

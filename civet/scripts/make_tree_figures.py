@@ -298,7 +298,7 @@ def sort_trees_index(tree_dir):
         for thing in f:
             if thing.endswith("tree"):
                 a = thing.split(".")[0]
-                b = a.split("_")[1]
+                b = a.split("_")[-1]
                 b_list.append(int(b))
         
     c = sorted(b_list, key=int)

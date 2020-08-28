@@ -29,10 +29,37 @@ rule all:
         os.path.join(config["outdir"],"local_trees","collapse_report.txt"),
         expand(os.path.join(config["outdir"],"local_trees","{tree}.tree"), tree = config["tree_stems"])
 
+
+rule protect_subtree_nodes:
+    input:
+        metadata = config["combined_metadata"]
+    params:
+        tree_dir = os.path.join(config["tempdir"],"catchment_trees")
+    output:
+        metadata = os.path.join(config["tempdir"],"protected","protected.csv")
+    run:
+        with open(output.metadata, "w") as fw:
+            fw.write("protect,count\n")
+            c =0
+            for r,d,f in os.walk(params.tree_dir):
+                for fn in f:
+                    if fn.endswith(".newick"):
+                        c+=1
+                        tree = ".".join(fn.split(".")[:-1])
+                        node_name = "_".join(tree.split("_")[1:])
+                        fw.write(f"{node_name},{c}\n")
+            
+            with open(input.metadata, newline="") as f:
+                reader = csv.DictReader(f)
+                for row in reader:
+                    c+=1
+                    fw.write(row["closest"] + f",{c}\n")
+        
+
 rule summarise_polytomies:
     input:
         tree = os.path.join(config["tempdir"], "catchment_trees","{tree}.newick"),
-        metadata = config["combined_metadata"]
+        metadata = os.path.join(config["tempdir"],"protected","protected.csv")
     params:
         tree_dir = os.path.join(config["tempdir"],"catchment_trees")
     output:
@@ -43,7 +70,7 @@ rule summarise_polytomies:
         clusterfunk focus -i {input.tree:q} \
         -o {output.collapsed_tree:q} \
         --metadata {input.metadata:q} \
-        --index-column closest \
+        --index-column protect \
         --in-format newick \
         --out-format newick \
         --output-tsv {output.collapsed_information:q}
