@@ -88,8 +88,7 @@ def main():
     parser.add_argument("-i","--input-csv", required=False, help="path to input file",dest="input_csv")
     parser.add_argument("-f", "--fields",default="", help="desired fields for report. Default=date and UK country",dest="colour_fields")
     parser.add_argument("-l", "--label-fields", default="", help="fields to add into labels in report trees. Default is adm2 and date", dest='label_fields')
-    parser.add_argument("-d", "--display", default="", help="fields to colour by rather than display text. Add colour scheme optionally", dest="graphic_dict")
-
+    parser.add_argument("-gd", "--graphic_dict", default="", help="fields to colour by rather than display text. Add colour scheme optionally", dest="graphic_dict")
 
     parser.add_argument("-sc", "--sequencing-centre",default="", help="Sequencing centre", dest="sc")
 

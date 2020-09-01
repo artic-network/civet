@@ -419,7 +419,8 @@ rule make_report:
         y_col = config["y_col"],
         input_crs = config["input_crs"],
         mapping_trait = config["mapping_trait"],
-        add_boxplots = config["add_boxplots"]
+        add_boxplots = config["add_boxplots"],
+        graphic_dict = config["graphic_dict"]
     output:
         poly_fig = os.path.join(config["outdir"],"figures","polytomies.png"),
         footer_fig = os.path.join(config["outdir"], "figures", "footer.png"),
@@ -455,6 +456,7 @@ rule make_report:
         "make_report.py "
         "--input-csv {input.query:q} "
         "-f {params.fields:q} "
+        "--graphic_dict {params.graphic_dict:q} "
         "--label-fields {params.label_fields:q} "
         "--figdir {params.rel_figdir:q} "
         "{params.sc_flag} "

@@ -42,7 +42,8 @@ def main(sysargs = sys.argv[1:]):
     parser.add_argument('-o','--outdir', action="store",help="Output directory. Default: current working directory")
     parser.add_argument('-b','--launch-browser', action="store_true",help="Optionally launch md viewer in the browser using grip",dest="launch_browser")
     parser.add_argument('-d','--datadir', action="store",help="Local directory that contains the data files")
-    parser.add_argument('--fields', action="store",help="Comma separated string of fields to colour by in the report. Default: country")
+    parser.add_argument('--fields', action="store",help="Comma separated string of fields to display in the trees in the report. Default: country")
+    parser.add_argument('--display', action="store", help="Comma separated string of fields to display as coloured dots rather than text in report trees. Optionally add colour scheme eg adm1=viridis", dest="display")
     parser.add_argument('--label-fields', action="store", help="Comma separated string of fields to add to tree report labels.", dest="label_fields")
     parser.add_argument('--search-field', action="store",help="Option to search COG database for a different id type. Default: COG-UK ID", dest="search_field",default="central_sample_id")
     parser.add_argument('--distance', action="store",help="Extraction from large tree radius. Default: 2", dest="distance",default=2)
@@ -70,7 +71,22 @@ def main(sysargs = sys.argv[1:]):
     parser.add_argument("--input-crs", required=False, dest="input_crs", help="Coordinate reference system of sequence coordinates")
     parser.add_argument("--mapping-trait", required=False, dest="mapping_trait", help="Column to colour mapped sequences by")
 
-
+    acceptable_colours = ['viridis', 'plasma', 'inferno', 'magma', 'cividis','Greys', 
+            'Purples', 'Blues', 'Greens', 'Oranges', 'Reds',
+            'YlOrBr', 'YlOrRd', 'OrRd', 'PuRd', 'RdPu', 'BuPu',
+            'GnBu', 'PuBu', 'YlGnBu', 'PuBuGn', 'BuGn', 'YlGn',
+            'binary', 'gist_yarg', 'gist_gray', 'gray', 'bone', 'pink',
+            'spring', 'summer', 'autumn', 'winter', 'cool', 'Wistia',
+            'hot', 'afmhot', 'gist_heat', 'copper',
+            'PiYG', 'PRGn', 'BrBG', 'PuOr', 'RdGy', 'RdBu',
+            'RdYlBu', 'RdYlGn', 'Spectral', 'coolwarm', 'bwr', 'seismic',
+            'twilight', 'twilight_shifted', 'hsv',
+            'Pastel1', 'Pastel2', 'Paired', 'Accent',
+            'Dark2', 'Set1', 'Set2', 'Set3',
+            'tab10', 'tab20', 'tab20b', 'tab20c',
+            'flag', 'prism', 'ocean', 'gist_earth', 'terrain', 'gist_stern',
+            'gnuplot', 'gnuplot2', 'CMRmap', 'cubehelix', 'brg',
+            'gist_rainbow', 'rainbow', 'jet', 'nipy_spectral', 'gist_ncar']
 
     # Exit with help menu if no args supplied
     if len(sysargs)<1: 
@@ -153,10 +169,12 @@ def main(sysargs = sys.argv[1:]):
     else:
         print(f"Input file: {query}")
 
+
     # parse the input csv, check col headers and get fields if fields specified
     fields = []
     labels = []
     queries = []
+    graphics_list = []
 
     with open(query, newline="") as f:
         reader = csv.DictReader(f)
@@ -188,6 +206,28 @@ def main(sysargs = sys.argv[1:]):
                 else:
                     sys.stderr.write(f"Error: {label_f} field not found in metadata file")
                     sys.exit(-1)
+
+        if args.display:
+            sections = args.display.split(",")
+            for item in sections:
+                splits = item.split("=")
+                graphic_trait = splits[0]
+                if graphic_trait in reader.fieldnames:
+                    if len(splits) == 1:
+                        graphics_list.append(graphic_trait + ":default")
+                    else:
+                        colour_scheme = splits[1]
+                        if colour_scheme in acceptable_colours:
+                            graphics_list.append(graphic_trait + ":" + colour_scheme)
+                        else:
+                            sys.stderr.write(f"Error: {colour_scheme} not a matplotlib compatible colour scheme s")
+                            sys.stderr.write(f"Please use one of {acceptable_colours}")
+                            sys.exit(-1)
+                else:
+                    sys.stderr.write(f"Error: {graphic_trait} field not found in metadata file")
+                    sys.exit(-1)
+        else:
+            graphics_list.append("adm1:default")
         
         print("COG-UK ids to process:")
         for row in reader:
@@ -202,21 +242,6 @@ def main(sysargs = sys.argv[1:]):
     else:
         threads = 1
     print(f"Number of threads: {threads}\n")
-
-    graphic_dict = {}
-    if args.display:
-        #--display adm1=default, hcw=default
-        sections = args.display.split(",")
-        for item in sections:
-            splits = item.split("=")
-            if len(splits) == 1:
-                graphic_dict[splits[0]] = "default"
-            else:
-                #error catching with colour map
-                graphic_dict[splits[0]] = splits[1]
-
-    else:
-        graphic_dict["adm1"] = "default"
 
     # create the config dict to pass through to the snakemake file
     config = {
@@ -233,8 +258,8 @@ def main(sysargs = sys.argv[1:]):
         "force":"True",
         "date_range_start":args.date_range_start,
         "date_range_end":args.date_range_end,
-        "date_window":args.date_window
-        # "graphic_dict":graphic_dict
+        "date_window":args.date_window,
+        "graphic_dict":",".join(graphics_list)
         }
 
     if args.add_boxplots:
