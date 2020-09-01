@@ -63,6 +63,7 @@ else:
 
 desired_fields_input = "" ##CHANGE
 label_fields_input = "" ##CHANGE
+graphic_dict_input = "" ##CHANGE
 summary_dir = "" ##CHANGE
 
 tree_name_stem = "" ##CHANGE
@@ -78,6 +79,15 @@ if label_fields_input != "NONE":
     options = label_fields_input.split(",")
     for i in options: 
         label_fields.append(i)
+
+graphic_dict = {}
+splits = graphic_dict_input.split(",")
+for element in splits:
+    key = element.split(":")[0]
+    value = element.split(":")[1]
+    graphic_dict[key] = value
+
+print(graphic_dict)
 
 snp_report = "" ##CHANGE
 
@@ -206,7 +216,7 @@ In order to generate trees coloured by specific metadata, please provide this na
 
 
 ```python, name="make_trees", echo=False, include=False, figure=False
-too_tall_trees, overall_tree_number, colour_dict_dict, overall_df_dict = tree_viz.make_all_of_the_trees(tree_dir, tree_name_stem, full_tax_dict, query_dict, desired_fields, label_fields)
+too_tall_trees, overall_tree_number, colour_dict_dict, overall_df_dict = tree_viz.make_all_of_the_trees(tree_dir, tree_name_stem, full_tax_dict, query_dict, desired_fields, label_fields, graphic_dict)
 ```
 ```python, name="make_legend", echo=False, include=False, results='tex'
 for trait, colour_dict in colour_dict_dict.items():

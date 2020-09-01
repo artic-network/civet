@@ -203,6 +203,21 @@ def main(sysargs = sys.argv[1:]):
         threads = 1
     print(f"Number of threads: {threads}\n")
 
+    graphic_dict = {}
+    if args.display:
+        #--display adm1=default, hcw=default
+        sections = args.display.split(",")
+        for item in sections:
+            splits = item.split("=")
+            if len(splits) == 1:
+                graphic_dict[splits[0]] = "default"
+            else:
+                #error catching with colour map
+                graphic_dict[splits[0]] = splits[1]
+
+    else:
+        graphic_dict["adm1"] = "default"
+
     # create the config dict to pass through to the snakemake file
     config = {
         "query":query,
@@ -219,6 +234,7 @@ def main(sysargs = sys.argv[1:]):
         "date_range_start":args.date_range_start,
         "date_range_end":args.date_range_end,
         "date_window":args.date_window
+        # "graphic_dict":graphic_dict
         }
 
     if args.add_boxplots:

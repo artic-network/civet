@@ -7,7 +7,7 @@ import shutil
 
 thisdir = os.path.abspath(os.path.dirname(__file__))
 
-def make_report(cog_metadata, input_csv, filtered_cog_metadata, outfile, outdir, treedir, figdir, snp_report, colour_fields, label_fields, report_template, failed_seqs, no_seq, seq_centre, clean_locs, uk_map, channels_map, ni_map, local_lineages, local_lin_maps, local_lin_tables,map_sequences,x_col,y_col, input_crs,mapping_trait,urban_centres,add_boxplots):
+def make_report(cog_metadata, input_csv, filtered_cog_metadata, outfile, outdir, treedir, figdir, snp_report, colour_fields, label_fields, report_template, failed_seqs, no_seq, seq_centre, clean_locs, uk_map, channels_map, ni_map, local_lineages, local_lin_maps, local_lin_tables,map_sequences,x_col,y_col, input_crs,mapping_trait,urban_centres,add_boxplots, graphic_dict):
 
     name_stem = ".".join(outfile.split(".")[:-1])
                         
@@ -63,7 +63,8 @@ def make_report(cog_metadata, input_csv, filtered_cog_metadata, outfile, outdir,
                             "y_col":f'y_col = "{y_col}"\n',
                             "mapping_trait":f'mapping_trait = "{mapping_trait}"\n',
                             "input_crs":f'input_crs = "{input_crs}"\n',
-                            "urban_centres":f'urban_centres = "{urban_centres}"\n'
+                            "urban_centres":f'urban_centres = "{urban_centres}"\n',
+                            "graphic_dict_input":f'graphic_dict_input = "{graphic_dict}"\n'
                             }
         if add_boxplots:
             change_line_dict["add_boxplots"] = f'add_boxplots = "{add_boxplots}"\n'
@@ -87,6 +88,8 @@ def main():
     parser.add_argument("-i","--input-csv", required=False, help="path to input file",dest="input_csv")
     parser.add_argument("-f", "--fields",default="", help="desired fields for report. Default=date and UK country",dest="colour_fields")
     parser.add_argument("-l", "--label-fields", default="", help="fields to add into labels in report trees. Default is adm2 and date", dest='label_fields')
+    parser.add_argument("-d", "--display", default="", help="fields to colour by rather than display text. Add colour scheme optionally", dest="graphic_dict")
+
 
     parser.add_argument("-sc", "--sequencing-centre",default="", help="Sequencing centre", dest="sc")
 
@@ -123,7 +126,7 @@ def main():
 
     args = parser.parse_args()
 
-    make_report(args.cog_metadata, args.input_csv, args.filtered_cog_metadata, args.outfile, args.outdir, args.treedir, args.figdir, args.snp_report, args.colour_fields, args.label_fields, args.report_template, args.failed_seqs,args.no_seq, args.sc, args.clean_locs, args.uk_map, args.channels_map, args.ni_map, args.local_lineages, args.local_lin_maps, args.local_lin_tables,args.map_sequences, args.x_col, args.y_col, args.input_crs, args.mapping_trait, args.urban_centres,args.add_boxplots)
+    make_report(args.cog_metadata, args.input_csv, args.filtered_cog_metadata, args.outfile, args.outdir, args.treedir, args.figdir, args.snp_report, args.colour_fields, args.label_fields, args.report_template, args.failed_seqs,args.no_seq, args.sc, args.clean_locs, args.uk_map, args.channels_map, args.ni_map, args.local_lineages, args.local_lin_maps, args.local_lin_tables,args.map_sequences, args.x_col, args.y_col, args.input_crs, args.mapping_trait, args.urban_centres,args.add_boxplots, args.graphic_dict)
 
 
 if __name__ == "__main__":
