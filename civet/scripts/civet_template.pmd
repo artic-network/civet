@@ -69,16 +69,9 @@ summary_dir = "" ##CHANGE
 tree_name_stem = "" ##CHANGE
 
 desired_fields = []
-
 options = desired_fields_input.split(",")
 for i in options: 
     desired_fields.append(i)
-
-label_fields= []
-if label_fields_input != "NONE":
-    options = label_fields_input.split(",")
-    for i in options: 
-        label_fields.append(i)
 
 graphic_dict = {}
 splits = graphic_dict_input.split(",")
@@ -86,8 +79,16 @@ for element in splits:
     key = element.split(":")[0]
     value = element.split(":")[1]
     graphic_dict[key] = value
+    if key not in desired_fields:
+        desired_fields.append(key)
 
-print(graphic_dict)
+label_fields= []
+if label_fields_input != "NONE":
+    options = label_fields_input.split(",")
+    for i in options: 
+        label_fields.append(i)
+
+
 
 snp_report = "" ##CHANGE
 

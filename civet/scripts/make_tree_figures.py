@@ -190,7 +190,7 @@ def make_scaled_tree(My_Tree, tree_name, tree_dir, num_tips, colour_dict_dict, d
         trait = next(key_iterator) #so always have the first trait as the first colour dot
 
     first_trait = trait
-    
+        
     colour_dict = colour_dict_dict[trait]
     cn_func = lambda k: colour_dict[query_dict[k.name].attribute_dict[trait]] if k.name in query_dict.keys() else 'dimgrey'
     co_func=lambda k: colour_dict[query_dict[k.name].attribute_dict[trait]] if k.name in query_dict.keys() else 'dimgrey' 
