@@ -85,7 +85,7 @@ def display_name(tree, tree_name, tree_dir, full_taxon_dict, query_dict, custom_
                         k.traits["display"] = f"{name}|{adm2}|{date}"
 
                     if name in query_dict.keys():
-                        if len(custom_tip_fields) > 0: #what does no custom tip labels look like
+                        if len(custom_tip_fields) > 0: 
                             for label_element in custom_tip_fields:
                                 k.traits["display"] = k.traits["display"] + "|" + taxon_obj.attribute_dict[label_element]
                 
@@ -99,11 +99,15 @@ def display_name(tree, tree_name, tree_dir, full_taxon_dict, query_dict, custom_
                         k.traits["display"] = name + "|" + "not in dict"
 
 
-def find_colour_dict(query_dict, trait):
+def find_colour_dict(query_dict, trait, colour_scheme):
 
     attribute_options = set()
 
-    cmap = cm.get_cmap("Paired")
+    #Need to add in a thing to highlight when the colour scheme is not a matplotlib accepted one at the start of the snakemake
+    if colour_scheme == "default":
+        cmap = cm.get_cmap("Paired")
+    else:
+        cmap = cm.get_cmap(colour_scheme)
 
     if trait == "adm1":
         colour_dict = {"Wales":"darkseagreen",
@@ -116,24 +120,24 @@ def find_colour_dict(query_dict, trait):
     else:
         for query in query_dict.values():
             attribute_options.add(query.attribute_dict[trait])
-            
-    if len(attribute_options) == 2:
-        options = sorted(list(attribute_options))
-        colour_dict = {options[0]: "indianred",
-                        options[1]:"steelblue"}
-        if "NA" in options:
-            colour_dict["NA"] = "dimgrey"
-        return colour_dict
-        return colour_dict
 
-    elif len(attribute_options) == 3:
-        options = sorted(list(attribute_options))
-        colour_dict = {options[0]: "darkseagreen",
-                        options[1]:"indianred",
-                        options[2]:"steelblue"}
-        if "NA" in options:
-            colour_dict["NA"] = "dimgrey"
-        return colour_dict
+    if colour_scheme == "default":     
+        if len(attribute_options) == 2:
+            options = sorted(list(attribute_options))
+            colour_dict = {options[0]: "indianred",
+                            options[1]:"steelblue"}
+            if "NA" in options:
+                colour_dict["NA"] = "dimgrey"
+            return colour_dict
+
+        elif len(attribute_options) == 3:
+            options = sorted(list(attribute_options))
+            colour_dict = {options[0]: "darkseagreen",
+                            options[1]:"indianred",
+                            options[2]:"steelblue"}
+            if "NA" in options:
+                colour_dict["NA"] = "dimgrey"
+            return colour_dict
 
     else:
         #get the right number of colours, then loop through the set
@@ -148,7 +152,7 @@ def find_colour_dict(query_dict, trait):
         return colour_dict
 
     
-def make_scaled_tree_without_legend(My_Tree, tree_name, tree_dir, num_tips, colour_dict_dict, desired_fields, tallest_height, taxon_dict, query_dict, custom_tip_labels):
+def make_scaled_tree(My_Tree, tree_name, tree_dir, num_tips, colour_dict_dict, desired_fields, tallest_height, taxon_dict, query_dict, custom_tip_labels, graphic_dict):
 
     display_name(My_Tree, tree_name, tree_dir, taxon_dict, query_dict, custom_tip_labels) 
     My_Tree.uncollapseSubtree()
@@ -179,7 +183,14 @@ def make_scaled_tree_without_legend(My_Tree, tree_name, tree_dir, num_tips, colo
     #Colour by specified trait. If no trait is specified, they will be coloured by UK country
     #The first trait will colour the tips, and additional dots are added to the right of the tip
     
-    trait = desired_fields[0] #so always have the first trait as the first colour dot
+    if len(graphic_dict) == 1 and "adm1" in graphic_dict.keys(): #if they didn't specify any graphics
+        trait = "adm1"
+    else:
+        key_iterator = iter(graphic_dict.keys())
+        trait = next(key_iterator) #so always have the first trait as the first colour dot
+
+    first_trait = trait
+        
     colour_dict = colour_dict_dict[trait]
     cn_func = lambda k: colour_dict[query_dict[k.name].attribute_dict[trait]] if k.name in query_dict.keys() else 'dimgrey'
     co_func=lambda k: colour_dict[query_dict[k.name].attribute_dict[trait]] if k.name in query_dict.keys() else 'dimgrey' 
@@ -232,18 +243,25 @@ def make_scaled_tree_without_legend(My_Tree, tree_name, tree_dir, num_tips, colo
                     
                     count = 0
                     
-                    for trait in desired_fields[1:]:
+                    for trait in desired_fields:
                         
-                        x_value = tip_point + count
-                        count += division
+                        if trait != first_trait:
 
-                        option = query_dict[k.name].attribute_dict[trait]
-                        colour_dict = colour_dict_dict[trait]
-                        trait_blob = ax.scatter(x_value, y, tipsize*5, color=colour_dict[option])  
-                        
-                        blob_dict[trait] = x_value
+                            x_value = tip_point + count
+                            count += division
+
+                            option = query_dict[k.name].attribute_dict[trait]
+                            
+                            if trait in graphic_dict.keys():
+                                colour_dict = colour_dict_dict[trait]
+                                trait_blob = ax.scatter(x_value, y, tipsize*5, color=colour_dict[option])  
+                            else:
+                                trait_text = ax.text(x_value, y, option, size=15, ha="left", va="center", fontweight="light")
+                            
+                            blob_dict[trait] = x_value
 
                     ax.text(text_start+division, y, name, size=font_size_func(k), ha="left", va="center", fontweight="light")
+                    
                     if x != max_x:
                         ax.plot([x+space_offset,tallest_height],[y,y],ls='--',lw=1,color=l_func(k))
 
@@ -253,11 +271,9 @@ def make_scaled_tree_without_legend(My_Tree, tree_name, tree_dir, num_tips, colo
                     if x != max_x:
                         ax.plot([x+space_offset,tallest_height],[y,y],ls='--',lw=1,color=l_func(k))
 
-                
+                #This section adds a line in between each trait in the tree
                 # for blob_x in blob_dict.values():
-
                 #     line_x = blob_x - (division/2)
-
                 #     ax.plot([line_x,line_x],[min_y,max_y],ls='--',lw=3,color=l_func(k))
             
             
@@ -265,13 +281,12 @@ def make_scaled_tree_without_legend(My_Tree, tree_name, tree_dir, num_tips, colo
                 ax.text(text_start, y, name, size=font_size_func(k), ha="left", va="center", fontweight="ultralight")
                 ax.plot([x+space_offset,tallest_height+space_offset],[y,y],ls='--',lw=1,color=l_func(k))
 
-        
+    #Adds labels to the top of the tree to indicate what each labelled trait is
     if len(desired_fields) > 1:
 
-        blob_dict[desired_fields[0]] = tallest_height
+        blob_dict[first_trait] = tallest_height
         
         for trait, blob_x in blob_dict.items():
-
             y = max_y
             x = blob_x
 
@@ -323,7 +338,7 @@ def sort_trees_index(tree_dir):
         
     return c
 
-def make_all_of_the_trees(input_dir, tree_name_stem, taxon_dict, query_dict, desired_fields, custom_tip_labels, min_uk_taxa=3):
+def make_all_of_the_trees(input_dir, tree_name_stem, taxon_dict, query_dict, desired_fields, custom_tip_labels, graphic_dict, min_uk_taxa=3):
 
     tallest_height = find_tallest_tree(input_dir)
 
@@ -336,8 +351,9 @@ def make_all_of_the_trees(input_dir, tree_name_stem, taxon_dict, query_dict, des
     
     lst = sort_trees_index(input_dir)
 
-    for trait in desired_fields:
-        colour_dict = find_colour_dict(query_dict, trait)
+    for trait, colour_scheme in graphic_dict.items():
+        colour_dict = find_colour_dict(query_dict, trait, colour_scheme)
+        
         colour_dict_dict[trait] = colour_dict
 
     for fn in lst:
@@ -382,7 +398,7 @@ def make_all_of_the_trees(input_dir, tree_name_stem, taxon_dict, query_dict, des
 
                 overall_tree_count += 1      
                 
-                make_scaled_tree_without_legend(tree, treename, input_dir, len(tips), colour_dict_dict, desired_fields, tallest_height, taxon_dict, query_dict, custom_tip_labels)     
+                make_scaled_tree(tree, treename, input_dir, len(tips), colour_dict_dict, desired_fields, tallest_height, taxon_dict, query_dict, custom_tip_labels, graphic_dict)     
             
             else:
                 too_tall_trees.append(lineage)

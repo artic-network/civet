@@ -108,6 +108,11 @@ optional arguments:
   --datadir DATADIR     Local directory that contains the data files
   --fields FIELDS       Comma separated string of fields to colour by in the
                         report. Default: country
+  --display FIELD=COLOUR_SCHEME
+                        Option to display some fields with coloured dots rather 
+                        than text in the tree. Colour scheme is optional and 
+                        must be matplotlib compatible 
+                        (https://matplotlib.org/3.1.0/tutorials/colors/colormaps.html)
   --label-fields LABEL_FIELDS
                         Comma separated string of fields to add to tree report
                         labels.

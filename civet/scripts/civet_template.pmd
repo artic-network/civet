@@ -63,21 +63,32 @@ else:
 
 desired_fields_input = "" ##CHANGE
 label_fields_input = "" ##CHANGE
+graphic_dict_input = "" ##CHANGE
 summary_dir = "" ##CHANGE
 
 tree_name_stem = "" ##CHANGE
 
 desired_fields = []
-
 options = desired_fields_input.split(",")
 for i in options: 
     desired_fields.append(i)
+
+graphic_dict = {}
+splits = graphic_dict_input.split(",")
+for element in splits:
+    key = element.split(":")[0]
+    value = element.split(":")[1]
+    graphic_dict[key] = value
+    if key not in desired_fields:
+        desired_fields.append(key)
 
 label_fields= []
 if label_fields_input != "NONE":
     options = label_fields_input.split(",")
     for i in options: 
         label_fields.append(i)
+
+
 
 snp_report = "" ##CHANGE
 
@@ -131,12 +142,6 @@ full_tax_dict = dp.parse_full_metadata(query_dict, full_metadata_file, present_l
 
 ```python, name="QC fails", echo=False, results="raw"
 count_fails = 0
-count_missing = 0
-
-with open(missing_seq_file) as f:
-    for l in f:
-        if "name" not in l:
-            count_missing += 1
 
 if QC_fail_file != "": 
     with open(QC_fail_file) as f:
@@ -144,21 +149,14 @@ if QC_fail_file != "":
         for l in f:
             count_fails += 1
 
-if count_fails != 0 or count_missing != 0:
-    if count_fails != 0:
-        fail_dict = dp.investigate_QC_fails(QC_fail_file)
-        if len(fail_dict) > 0:
-            print("The following sequences have failed QC:\n")
-            for seq, reason in fail_dict.items():
-                pretty_name = seq.replace("'","")
-                pretty_reason = reason.replace("'","")
-                print(" - " + pretty_name, pretty_reason)
-    if count_missing != 0:
-        print("\n")
-        failed_names = dp.print_missing_seqs(missing_seq_file)
-        print("The following seqs were not found in COG and a fasta file was not provided, so CIVET was unable to add them into phylogenies:\n")
-        for i in failed_names: 
-            print(" - " + i.replace("'","")) 
+if count_fails != 0:
+    fail_dict = dp.investigate_QC_fails(QC_fail_file)
+    if len(fail_dict) > 0:
+        print("The following sequences have failed QC:\n")
+        for seq, reason in fail_dict.items():
+            pretty_name = seq.replace("'","")
+            pretty_reason = reason.replace("'","")
+            print(" - " + pretty_name, pretty_reason)
 ```
 
 ```python, name="early descriptions", echo=False, results='tex'
@@ -172,41 +170,35 @@ for tax in query_dict.values():
     else:
         not_in_cog_number += 1
 
-print(str(number_seqs) + " sequences were provided in total.")
-
-if cog_number != 0 and not_in_cog_number != 0:
-    print(str(cog_number) + " were found in the COG database, leaving " + str(not_in_cog_number) + " which were not.")
-elif cog_number == 0:
-    print("None of the sequences were found in the COG database.")
-elif not_in_cog_number == 0:
-    print("All of the sequences were found in the COG database.")
+print(str(number_seqs) + " queries (" + str(cog_number) + " matched to COG-UK database).")
+print(str(not_in_cog_number) + " additional sequences provided.")
 
 ```
 
-The table below is a summary of these sequences provided with metadata, along with their associated UK lineage and global lineage. 
-
-If additional information was provided in the input csv, and it was specified that it should be included in the analysis, it will also be displayed here.
 
 ```python, name="first_table", echo=False, results="tex"
 
-df = dp.make_initial_table(query_dict, desired_fields, label_fields,False)
-
-print(df.to_markdown())
+if cog_number != 0 and not_in_cog_number != 0:
+    df_cog, df_seqs = dp.make_initial_table(query_dict, desired_fields, label_fields,False)
+    print("> **Table 1**| Queries found in COG-UK database.\n")
+    print(df_cog.to_markdown())
+    print("\n")
+    print("> **Table 2**| Queries matched to closest COG-UK sequence using input sequences\n")
+    print(df_seqs.to_markdown())
+elif cog_number == 0 and not_in_cog_number != 0:
+    df_seqs = dp.make_initial_table(query_dict, desired_fields, label_fields,False)
+    print("> **Table 1**| Queries matched to closest COG-UK sequence using input sequences\n")
+    print(df_seqs.to_markdown())
+elif not_in_cog_number == 0 and cog_number != 0:
+    df_cog = dp.make_initial_table(query_dict, desired_fields, label_fields,False)
+    print("> **Table 1**| Queries found in COG-UK database.\n")
+    print(df_cog.to_markdown())
 ```
 
 ## Phylogenies
 
-The nearest neighbours of each of the query sequences are shown below in order to show their phylogenetic context.
-
-They are coloured by the input field specified. 
-If no fields were specified, they are coloured by Adm1. 
-
-If there was no geographical information provided (either adm1 or adm2), the sequences are left uncoloured. 
-In order to generate trees coloured by specific metadata, please provide this names of the appropriate metadata columns on the command line.
-
-
 ```python, name="make_trees", echo=False, include=False, figure=False
-too_tall_trees, overall_tree_number, colour_dict_dict, overall_df_dict = tree_viz.make_all_of_the_trees(tree_dir, tree_name_stem, full_tax_dict, query_dict, desired_fields, label_fields)
+too_tall_trees, overall_tree_number, colour_dict_dict, overall_df_dict = tree_viz.make_all_of_the_trees(tree_dir, tree_name_stem, full_tax_dict, query_dict, desired_fields, label_fields, graphic_dict)
 ```
 ```python, name="make_legend", echo=False, include=False, results='tex'
 for trait, colour_dict in colour_dict_dict.items():
@@ -214,11 +206,6 @@ for trait, colour_dict in colour_dict_dict.items():
     number_of_options = len(colour_dict)
     if number_of_options > 15:
         print("WARNING: There are more than 15 options to colour by for " + trait + ", which will make it difficult to see the differences between colours. Consider adding the trait to the taxon labels on the tree by using the flag _--label-fields_ when calling CIVET.")
-```
-```python,name="show_legend",echo=False,results='raw'
-print(f'<img src="{figdir}/{name_stem}_make_legend_1.png" alt="drawing" style="width:100%;"/>')
-print("\n")
-
 ```
 
 ```python, name="show_trees", echo=False, results='raw'
@@ -234,6 +221,9 @@ for i in range(1,overall_tree_number+1):
 
     print(f"![]({figdir}/{name_stem}_make_trees_{(i*2)-1}.png)")
     print(f"![]({figdir}/{name_stem}_make_trees_{i*2}.png)")
+
+    print(f'<img src="{figdir}/{name_stem}_make_legend_1.png" alt="drawing" style="width:100%;"/>')
+    print("\n")
 
 
 ```

@@ -290,21 +290,34 @@ def parse_full_metadata(query_dict, full_metadata, present_lins, present_in_tree
 
 def make_initial_table(query_dict, desired_fields, label_fields, cog_report):
 
-    df_dict = defaultdict(list)
+    df_dict_incog = defaultdict(list)
+    df_dict_seqprovided = defaultdict(list)
+
+    incog = 0
+    seqprovided = 0
+    incogs = False
+    seqprovideds = False
 
     for query in query_dict.values():
+
+        if query.in_cog:
+            df_dict = df_dict_incog
+            incog += 1
+        else:
+            df_dict = df_dict_seqprovided
+            seqprovided += 1
         
         df_dict["Query ID"].append(query.query_id.replace("|","\|"))
         
         if query.in_cog: 
             df_dict["Sequence name in Tree"].append(query.name)
-        else:
-            df_dict["Sequence name in Tree"].append("NA")
+        # else:
+        #     df_dict["Sequence name in Tree"].append("NA")
         
 
         df_dict["Sample date"].append(query.sample_date)
 
-        if not cog_report:
+        if not query.in_cog and not cog_report:
             df_dict["Closest sequence in Tree"].append(query.closest)
             df_dict["Distance to closest sequence"].append(query.closest_distance)
             df_dict["SNPs"].append(query.snps)
@@ -315,7 +328,7 @@ def make_initial_table(query_dict, desired_fields, label_fields, cog_report):
 
         
         if query.tree != "NA":
-            tree_number = query.tree.split("_")[1]
+            tree_number = query.tree.split("_")[-1]
             pretty_tree = "Tree " + str(tree_number)
             df_dict["Tree"].append(pretty_tree)
         else:
@@ -333,11 +346,22 @@ def make_initial_table(query_dict, desired_fields, label_fields, cog_report):
         if cog_report:
             df_dict['adm2'].append(query.attribute_dict["adm2"])
 
-    df = pd.DataFrame(df_dict)
+    if incog != 0:
+        df_incog = pd.DataFrame(df_dict_incog)
+        df_incog.set_index("Query ID", inplace=True)
+        incogs = True
+    
+    if seqprovided != 0:
+        df_seqprovided = pd.DataFrame(df_dict_seqprovided)
+        df_seqprovided.set_index("Query ID", inplace=True)
+        seqprovideds = True
 
-    df.set_index("Query ID", inplace=True)
-
-    return df
+    if seqprovideds and incogs:
+        return df_incog, df_seqprovided
+    elif seqprovideds and not incogs:
+        return df_seqprovided
+    elif incogs and not seqprovideds:
+        return df_incog
 
 def investigate_QC_fails(QC_file):
 

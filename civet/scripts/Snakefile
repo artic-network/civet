@@ -36,7 +36,9 @@ config["down_distance"]=int(config["down_distance"])
 
 if config["qc_fail"] != "":
     fail_file = config["qc_fail"]
-    config["qc_fail"] = f"--failed-seqs {fail_file}"
+    config["qc_fail_report"] = f"--failed-seqs {fail_file}"
+else:
+    config["qc_fail_report"] = ""
 
 if config["delay_collapse"] == "False":
     config["delay_collapse"] = False
