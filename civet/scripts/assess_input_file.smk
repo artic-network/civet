@@ -165,7 +165,7 @@ rule prune_out_catchments:
         metadata = rules.combine_metadata.output.combined_csv
     params:
         outdir = os.path.join(config["tempdir"],"catchment_trees"),
-        up_distance = config["up_distance"]
+        up_distance = config["up_distance"],
         down_distance = config["down_distance"]
     output:
         txt = os.path.join(config["tempdir"],"catchment_trees","catchment_trees_prompt.txt")
