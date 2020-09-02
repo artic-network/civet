@@ -46,6 +46,8 @@ def main(sysargs = sys.argv[1:]):
     parser.add_argument('--label-fields', action="store", help="Comma separated string of fields to add to tree report labels.", dest="label_fields")
     parser.add_argument('--search-field', action="store",help="Option to search COG database for a different id type. Default: COG-UK ID", dest="search_field",default="central_sample_id")
     parser.add_argument('--distance', action="store",help="Extraction from large tree radius. Default: 2", dest="distance",default=2)
+    parser.add_argument('--up-distance', action="store",help="Upstream distance to extract from large tree. Default: 2", dest="up_distance",default=2)
+    parser.add_argument('--down-distance', action="store",help="Downstream distance to extract from large tree. Default: 2", dest="down_distance",default=2)
     parser.add_argument('--add-boxplots', action="store_true",help="Render boxplots in the output report", dest="add_boxplots")
     # parser.add_argument('--delay-tree-collapse',action="store_true",dest="delay_tree_collapse",help="Wait until after iqtree runs to collapse the polytomies. NOTE: This may result in large trees that take quite a while to run.")
     parser.add_argument('-g','--global',action="store_true",dest="search_global",help="Search globally.")
@@ -519,14 +521,32 @@ def main(sysargs = sys.argv[1:]):
     if args.distance:
         try:
             distance = int(args.distance) 
-            config["distance"] = args.distance
+            config["up_distance"] = args.distance
+            config["down_distance"] = args.distance
         except:
             sys.stderr.write('Error: distance must be an integer\n')
             sys.exit(-1)
     else:
-        config["distance"] = "1"
+        config["up_distance"] = "1"
+        config["down_distance"] = "1"
 
-    
+    if args.up_distance:
+        try:
+            distance = int(args.up_distance) 
+            config["up_distance"] = args.up_distance
+        except:
+            sys.stderr.write('Error: up-distance must be an integer\n')
+            sys.exit(-1)
+
+    if args.down_distance:
+        try:
+            distance = int(args.down_distance) 
+            config["down_distance"] = args.down_distance
+        except:
+            sys.stderr.write('Error: down-distance must be an integer\n')
+            sys.exit(-1)
+
+
     if args.threshold:
         try:
             threshold = int(args.threshold)
