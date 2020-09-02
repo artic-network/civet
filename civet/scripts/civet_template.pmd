@@ -170,38 +170,32 @@ for tax in query_dict.values():
     else:
         not_in_cog_number += 1
 
-print(str(number_seqs) + " sequences were provided in total.")
-
-if cog_number != 0 and not_in_cog_number != 0:
-    print(str(cog_number) + " were found in the COG database, leaving " + str(not_in_cog_number) + " which were not.")
-elif cog_number == 0:
-    print("None of the sequences were found in the COG database.")
-elif not_in_cog_number == 0:
-    print("All of the sequences were found in the COG database.")
+print(str(number_seqs) + " queries (" + str(cog_number) + " matched to COG-UK database).")
+print(str(not_in_cog_number) + " additional sequences provided.")
 
 ```
 
-The table below is a summary of these sequences provided with metadata, along with their associated UK lineage and global lineage. 
-
-If additional information was provided in the input csv, and it was specified that it should be included in the analysis, it will also be displayed here.
 
 ```python, name="first_table", echo=False, results="tex"
 
-df = dp.make_initial_table(query_dict, desired_fields, label_fields,False)
-
-print(df.to_markdown())
+if cog_number != 0 and not_in_cog_number != 0:
+    df_cog, df_seqs = dp.make_initial_table(query_dict, desired_fields, label_fields,False)
+    print("> **Table 1**| Queries found in COG-UK database.\n")
+    print(df_cog.to_markdown())
+    print("\n")
+    print("> **Table 2**| Queries matched to closest COG-UK sequence using input sequences\n")
+    print(df_seqs.to_markdown())
+elif cog_number == 0 and not_in_cog_number != 0:
+    df_seqs = dp.make_initial_table(query_dict, desired_fields, label_fields,False)
+    print("> **Table 1**| Queries matched to closest COG-UK sequence using input sequences\n")
+    print(df_seqs.to_markdown())
+elif not_in_cog_number == 0 and cog_number != 0:
+    df_cog = dp.make_initial_table(query_dict, desired_fields, label_fields,False)
+    print("> **Table 1**| Queries found in COG-UK database.\n")
+    print(df_cog.to_markdown())
 ```
 
 ## Phylogenies
-
-The nearest neighbours of each of the query sequences are shown below in order to show their phylogenetic context.
-
-They are coloured by the input field specified. 
-If no fields were specified, they are coloured by Adm1. 
-
-If there was no geographical information provided (either adm1 or adm2), the sequences are left uncoloured. 
-In order to generate trees coloured by specific metadata, please provide this names of the appropriate metadata columns on the command line.
-
 
 ```python, name="make_trees", echo=False, include=False, figure=False
 too_tall_trees, overall_tree_number, colour_dict_dict, overall_df_dict = tree_viz.make_all_of_the_trees(tree_dir, tree_name_stem, full_tax_dict, query_dict, desired_fields, label_fields, graphic_dict)

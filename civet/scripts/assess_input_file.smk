@@ -92,7 +92,7 @@ rule get_closest_cog:
         
         failed_qc = []
         if params.qc_fail_csv != "":
-            with open(input.qc_fail_csv) as f:
+            with open(params.qc_fail_csv) as f:
                 reader = csv.DictReader(f)
                 for row in reader:
                     failed_qc.append(row["name"])
