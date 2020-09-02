@@ -212,7 +212,7 @@ for trait, colour_dict in colour_dict_dict.items():
 for i in range(1,overall_tree_number+1):
     tree_name = "Tree " + str(i)
     lookup = f"{tree_name_stem}_{i}"
-    print(f"####Tree {i}")
+    print(f"#### Tree {i}")
     if len(tree_to_tip[lookup]) == 1:
         print(f"1 sequence of interest")
     else:
