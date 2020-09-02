@@ -177,7 +177,8 @@ rule prune_out_catchments:
         metadata = rules.combine_metadata.output.combined_csv
     params:
         outdir = os.path.join(config["tempdir"],"catchment_trees"),
-        distance = config["distance"]
+        up_distance = config["up_distance"]
+        down_distance = config["down_distance"]
     output:
         txt = os.path.join(config["tempdir"],"catchment_trees","catchment_trees_prompt.txt")
     shell:
@@ -185,7 +186,8 @@ rule prune_out_catchments:
         jclusterfunk context \
         -i {input.tree:q} \
         -o {params.outdir:q} \
-        --max-parent {params.distance} \
+        --max-parent {params.up_distance} \
+        --max-child {params.down_distance} \
         -f newick \
         -p tree_ \
         --ignore-missing \

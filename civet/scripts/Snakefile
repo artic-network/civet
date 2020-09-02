@@ -31,7 +31,8 @@ if config["quiet_mode"]=="True":
 else:
     config["quiet_mode"] = ""
 
-config["distance"]=int(config["distance"])
+config["up_distance"]=int(config["up_distance"])
+config["down_distance"]=int(config["down_distance"])
 
 if config["qc_fail"] != "":
     fail_file = config["qc_fail"]
