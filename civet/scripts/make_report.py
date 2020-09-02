@@ -7,7 +7,7 @@ import shutil
 
 thisdir = os.path.abspath(os.path.dirname(__file__))
 
-def make_report(cog_metadata, input_csv, filtered_cog_metadata, outfile, outdir, treedir, figdir, snp_report, colour_fields, label_fields, report_template, failed_seqs, no_seq, seq_centre, clean_locs, uk_map, channels_map, ni_map, local_lineages, local_lin_maps, local_lin_tables,map_sequences,x_col,y_col, input_crs,mapping_trait,urban_centres,add_boxplots, graphic_dict):
+def make_report(cog_metadata, input_csv, filtered_cog_metadata, outfile, outdir, treedir, figdir, snp_report, colour_fields, label_fields, report_template, failed_seqs, seq_centre, clean_locs, uk_map, channels_map, ni_map, local_lineages, local_lin_maps, local_lin_tables,map_sequences,x_col,y_col, input_crs,mapping_trait,urban_centres,add_boxplots, graphic_dict):
 
     name_stem = ".".join(outfile.split(".")[:-1])
                         
@@ -49,7 +49,6 @@ def make_report(cog_metadata, input_csv, filtered_cog_metadata, outfile, outdir,
                             "snp_report": f'snp_report = "{snp_report}"\n',
                             "summary_dir": f'summary_dir = "{summary_dir}"\n',
                             "QC_fail_file": f'QC_fail_file = "{failed_seqs}"\n',
-                            "missing_seq_file": f'missing_seq_file = "{no_seq}"\n',
                             "sequencing_centre": f'sequencing_centre = "{seq_centre}"\n',
                             "clean_locs_file": f'clean_locs_file = "{clean_locs}"\n',
                             "uk_map": f'uk_map = "{uk_map}"\n',
@@ -95,9 +94,7 @@ def main():
     parser.add_argument("--filtered-cog-metadata", required=False, help="path to combined metadata file",dest="filtered_cog_metadata")
     parser.add_argument("--cog-metadata", required=True, help="path to full COG metadata file",dest="cog_metadata")
     
-    parser.add_argument("--failed-seqs", required=False, default="", help="csv of seqs that fail qc and the reason why",dest="failed_seqs")
-    parser.add_argument("--no-seq-provided", required=False, default="", help="file of seqs that weren't in cog and didn't have a sequence provided",dest="no_seq")
-    
+    parser.add_argument("--failed-seqs", required=False, default="", help="csv of seqs that fail qc and the reason why",dest="failed_seqs")    
     parser.add_argument("-t","--treedir", required=False, default="", help="path to tree directory",dest="treedir")
     parser.add_argument("--report-template", help="report template file",dest="report_template")
 
@@ -125,7 +122,7 @@ def main():
 
     args = parser.parse_args()
 
-    make_report(args.cog_metadata, args.input_csv, args.filtered_cog_metadata, args.outfile, args.outdir, args.treedir, args.figdir, args.snp_report, args.colour_fields, args.label_fields, args.report_template, args.failed_seqs,args.no_seq, args.sc, args.clean_locs, args.uk_map, args.channels_map, args.ni_map, args.local_lineages, args.local_lin_maps, args.local_lin_tables,args.map_sequences, args.x_col, args.y_col, args.input_crs, args.mapping_trait, args.urban_centres,args.add_boxplots, args.graphic_dict)
+    make_report(args.cog_metadata, args.input_csv, args.filtered_cog_metadata, args.outfile, args.outdir, args.treedir, args.figdir, args.snp_report, args.colour_fields, args.label_fields, args.report_template, args.failed_seqs, args.sc, args.clean_locs, args.uk_map, args.channels_map, args.ni_map, args.local_lineages, args.local_lin_maps, args.local_lin_tables,args.map_sequences, args.x_col, args.y_col, args.input_crs, args.mapping_trait, args.urban_centres,args.add_boxplots, args.graphic_dict)
 
 
 if __name__ == "__main__":

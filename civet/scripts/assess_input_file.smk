@@ -66,6 +66,7 @@ rule get_closest_cog:
         force = config["force"],
         fasta = config["fasta"], #use
         search_field = config["search_field"],
+        qc_fail_csv = config["qc_fail"],
         query = config["post_qc_query"], #use
         stand_in_query = os.path.join(config["tempdir"], "temp.fasta"),
         trim_start = config["trim_start"],
@@ -88,6 +89,13 @@ rule get_closest_cog:
             reader = csv.DictReader(f)
             for row in reader:
                 not_cog.append(row["name"])
+        
+        failed_qc = []
+        if params.qc_fail_csv != "":
+            with open(input.qc_fail_csv) as f:
+                reader = csv.DictReader(f)
+                for row in reader:
+                    failed_qc.append(row["name"])
 
         if params.fasta != "":
              # get set with supplied sequences
@@ -101,8 +109,15 @@ rule get_closest_cog:
                 fw.write(f">{seq} status={to_find_closest[seq][0]}\n{to_find_closest[seq][1]}\n")
 
         for query in not_cog: # get set with no sequences supplied
-            if query not in to_find_closest:
+            if query not in to_find_closest and query not in failed_qc:
                 query_with_no_seq.append(query)
+
+        if len(list(set(query_with_no_seq))) != 0:
+            print("The following seqs were not found in COG and a fasta file was not provided, so CIVET was unable to add them into phylogenies:")
+        with open(output.not_processed, "w") as fw:
+            for query in list(set(query_with_no_seq)):
+                fw.write(f"{query},fail=no sequence provided\n")
+                print(f"{query}")
 
         if to_find_closest != {}:
             print(f"Passing {len(to_find_closest)} sequences into nearest COG search pipeline:")
@@ -126,9 +141,6 @@ rule get_closest_cog:
         else:
             shell("touch {output.closest_cog:q} && touch {output.aligned_query:q}")
 
-        with open(output.not_processed, "w") as fw:
-            for query in list(set(query_with_no_seq)):
-                fw.write(f"{query},fail=no sequence provided\n")
 
 rule combine_metadata:
     input:
@@ -391,7 +403,6 @@ rule make_report:
         report_template = config["report_template"],
         polytomy_figure = config["polytomy_figure"],
         footer = config["footer"],
-        no_seq = rules.get_closest_cog.output.not_processed,
         clean_locs = config["clean_locs"],
         uk_map = config["uk_map"],
         channels_map = config["channels_map"],
@@ -413,7 +424,7 @@ rule make_report:
         rel_figdir = os.path.join(".","figures"),
         local_lineages = config["local_lineages"],
         figdir = os.path.join(config["outdir"],"figures"),
-        failure = config["qc_fail"],
+        failure = config["qc_fail_report"],
         map_sequences = config["map_sequences"],
         x_col = config["x_col"],
         y_col = config["y_col"],
@@ -461,7 +472,6 @@ rule make_report:
         "--figdir {params.rel_figdir:q} "
         "{params.sc_flag} "
         "{params.failure} "
-        "--no-seq-provided {input.no_seq} "
         "--treedir {params.treedir:q} "
         "--report-template {input.report_template:q} "
         "--filtered-cog-metadata {input.combined_metadata:q} "
