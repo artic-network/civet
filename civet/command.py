@@ -538,7 +538,7 @@ def main(sysargs = sys.argv[1:]):
             if args.node_summary in column_names:
                 summary = args.node_summary
             else:
-                sys.stderr.write(cyan(f"Error: {args.node_summary} field not found in metadata file\n"))
+                sys.stderr.write(f"Error: {args.node_summary} field not found in metadata file\n")
                 sys.exit(-1)
         
         print(f"Going to summarise collapsed nodes by: {summary}")
