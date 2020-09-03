@@ -59,7 +59,7 @@ The following sequences have failed QC:
 
 
 
-####Tree 1
+#### Tree 1
 3 sequences of interest
    
 ![](./figures/civet_report_make_trees_1.png)
@@ -67,7 +67,7 @@ The following sequences have failed QC:
 <img src="./figures/civet_report_make_legend_1.png" alt="drawing" style="width:100%;"/>
 
 
-####Tree 2
+#### Tree 2
 1 sequence of interest
    
 ![](./figures/civet_report_make_trees_3.png)
@@ -75,7 +75,7 @@ The following sequences have failed QC:
 <img src="./figures/civet_report_make_legend_1.png" alt="drawing" style="width:100%;"/>
 
 
-####Tree 3
+#### Tree 3
 1 sequence of interest
    
 ![](./figures/civet_report_make_trees_5.png)
@@ -83,7 +83,7 @@ The following sequences have failed QC:
 <img src="./figures/civet_report_make_legend_1.png" alt="drawing" style="width:100%;"/>
 
 
-####Tree 4
+#### Tree 4
 1 sequence of interest
    
 ![](./figures/civet_report_make_trees_7.png)
