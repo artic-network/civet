@@ -409,6 +409,7 @@ rule make_report:
         uk_map = config["uk_map"],
         channels_map = config["channels_map"],
         ni_map = config["ni_map"],
+        pc_file = config["pc_file"],
         urban_centres = config["urban_centres"],
         genome_graph = rules.find_snps.output.genome_graph,
         snp_report = rules.find_snps.output.report,
@@ -429,8 +430,7 @@ rule make_report:
         figdir = os.path.join(config["outdir"],"figures"),
         failure = config["qc_fail_report"],
         map_sequences = config["map_sequences"],
-        x_col = config["x_col"],
-        y_col = config["y_col"],
+        map_cols = config["map_cols"],
         input_crs = config["input_crs"],
         mapping_trait = config["mapping_trait"],
         add_boxplots = config["add_boxplots"],
@@ -484,12 +484,12 @@ rule make_report:
         "--uk-map {input.uk_map:q} "
         "--channels-map {input.channels_map:q} "
         "--ni-map {input.ni_map:q} "
+        "--pc-file {input.pc_file:q} "
         "--outfile {output.outfile:q} "
         "--outdir {params.outdir:q} "
         "--map-sequences {params.map_sequences} "
         "--snp-report {input.snp_report:q} "
-        "--x-col {params.x_col} "
-        "--y-col {params.y_col} "
+        "--map-cols {params.map_cols} "
         "--input-crs {params.input_crs} "
         "--mapping-trait {params.mapping_trait} "
         "--urban-centres {input.urban_centres} "

@@ -68,9 +68,8 @@ def main(sysargs = sys.argv[1:]):
     parser.add_argument('--date-window',action="store",default=7, type=int, dest="date_window",help="Define the window +- either side of cluster sample collection date-range. Default is 7 days.")
     parser.add_argument("-v","--version", action='version', version=f"civet {__version__}")
 
-    parser.add_argument("--map-sequences", action="store_true", dest="map_sequences", help="Map the coordinate points of sequences, coloured by a triat.")
-    parser.add_argument("--x-col", required=False, dest="x_col", help="column containing x coordinate for mapping sequences")
-    parser.add_argument("--y-col", required=False, dest="y_col", help="column containing y coordinate for mapping sequences")
+    parser.add_argument("--map-sequences", action="store_true", dest="map_sequences", help="Map the coordinate points of sequences, coloured by a trait.")
+    parser.add_argument("--map-inputs", required=False, dest="map_inputs", help="columns containing EITHER x and y coordinates as a comma separated string OR outer postcodes for mapping sequences")
     parser.add_argument("--input-crs", required=False, dest="input_crs", help="Coordinate reference system of sequence coordinates")
     parser.add_argument("--mapping-trait", required=False, dest="mapping_trait", help="Column to colour mapped sequences by")
 
@@ -272,23 +271,31 @@ def main(sysargs = sys.argv[1:]):
         
     if args.map_sequences:
         config["map_sequences"] = True
-        if not args.x_col or not args.y_col:
-            sys.stderr.write('Error: coordinates not supplied for mapping sequences. Please provide --x-col and --y-col')
+        if not args.map_inputs:
+            sys.stderr.write('Error: coordinates or outer postcode not supplied for mapping sequences. Please provide either x and y columns as a comma separated string, or column header containing outer postcode.')
             sys.exit(-1)
-        elif not args.input_crs:
-            sys.stderr.write('Error: input coordinate system not provided for mapping. Please provide --input-crs eg EPSG:3395')
-            sys.exit(-1)
+        if len(args.map_inputs.split(",")) == 2:
+            if not args.input_crs:
+                sys.stderr.write('Error: input coordinate system not provided for mapping. Please provide --input-crs eg EPSG:3395')
+                sys.exit(-1)
+            else:
+                input_crs = args.input_crs
         else:
-            config["x_col"] = args.x_col
-            config["y_col"] = args.y_col
-            config["input_crs"] = args.input_crs
+            input_crs = "EPSG:4326"
+        
+        config["map_cols"] = args.map_inputs
+        config["input_crs"] = input_crs
 
+        relevant_cols = []
         with open(query, newline="") as f:
             reader = csv.DictReader(f)
             column_names = reader.fieldnames
-            relevant_cols = [args.x_col, args.y_col, args.mapping_trait]
+            map_cols = args.map_inputs.split(",")
+            for i in map_cols:
+                relevant_cols.append(i)
+            relevant_cols.append(args.mapping_trait)
+            
             for map_arg in relevant_cols:
-
                 if map_arg and map_arg not in reader.fieldnames:
                     sys.stderr.write(f"Error: {map_arg} field not found in metadata file")
                     sys.exit(-1)
@@ -300,8 +307,7 @@ def main(sysargs = sys.argv[1:]):
             
     else:
         config["map_sequences"] = False
-        config["x_col"] = False
-        config["y_col"] = False
+        config["map_cols"] = False
         config["input_crs"] = False
         config["mapping_trait"] = False
 
@@ -516,6 +522,7 @@ def main(sysargs = sys.argv[1:]):
     map_input_3 = pkg_resources.resource_filename('civet', 'data/mapping_files/NI_counties.geojson')  
     map_input_4 = pkg_resources.resource_filename('civet', 'data/mapping_files/Mainland_HBs_gapclosed_mapshaped_d3.json')
     map_input_5 = pkg_resources.resource_filename('civet', 'data/mapping_files/urban_areas_UK.geojson')
+    map_input_6 = pkg_resources.resource_filename('civet', 'data/mapping_files/UK_outPC_coords.csv')
     spatial_translations_1 = pkg_resources.resource_filename('civet', 'data/mapping_files/HB_Translation.pkl')
     spatial_translations_2 = pkg_resources.resource_filename('civet', 'data/mapping_files/adm2_regions_to_coords.csv')
 
@@ -555,6 +562,7 @@ def main(sysargs = sys.argv[1:]):
     config["ni_map"] = map_input_3
     config["uk_map_d3"] = map_input_4
     config["urban_centres"] = map_input_5
+    config["pc_file"] = map_input_6
     config["HB_translations"] = spatial_translations_1
     config["PC_translations"] = spatial_translations_2
 

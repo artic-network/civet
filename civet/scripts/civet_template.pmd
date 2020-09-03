@@ -98,14 +98,14 @@ local_lin_maps = "" ##CHANGE
 local_lin_tables = "" ##CHANGE
 
 map_sequences = "" ##CHANGE #going to be true or false
-x_col = "" ##CHANGE
-y_col = "" ##CHANGE
+map_inputs = "" ##CHANGE
 mapping_trait = "" ##CHANGE
 input_crs = "" ##CHANGE
 uk_map = "" ##CHANGE
 channels_map = "" ##CHANGE
 ni_map = "" ##CHANGE
 urban_centres = "" ##CHANGE
+pc_file = "" ##CHANGE
 
 
 mapping_json_files = [uk_map, channels_map, ni_map]
@@ -257,7 +257,7 @@ print(f"![]({figdir}/genome_graph.png)")
 ```python, name="map_sequences", echo=False, results='raw', include=False
 if map_sequences != "False":
     print("## Plotting sequences")
-    adm2_in_map, adm2_percentages = mapping.map_traits(input_csv, input_crs, mapping_trait, x_col, y_col, mapping_json_files, urban_centres)
+    adm2_in_map, adm2_percentages = mapping.map_sequences_using_coordinates(input_csv, mapping_json_files, urban_centres, pc_file, mapping_trait, map_inputs, input_crs)
 
     print("There are sequences from " + str(len(adm2_in_map)) + " admin2 regions")
 

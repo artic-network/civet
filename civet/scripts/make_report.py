@@ -3,11 +3,12 @@ import os
 from pweave import weave
 import argparse
 import shutil
+import sys
 
 
 thisdir = os.path.abspath(os.path.dirname(__file__))
 
-def make_report(cog_metadata, input_csv, filtered_cog_metadata, outfile, outdir, treedir, figdir, snp_report, colour_fields, label_fields, node_summary, report_template, failed_seqs, seq_centre, clean_locs, uk_map, channels_map, ni_map, local_lineages, local_lin_maps, local_lin_tables,map_sequences,x_col,y_col, input_crs,mapping_trait,urban_centres,add_boxplots, graphic_dict):
+def make_report(cog_metadata, input_csv, filtered_cog_metadata, outfile, outdir, treedir, figdir, snp_report, colour_fields, label_fields, node_summary, report_template, failed_seqs, seq_centre, clean_locs, uk_map, channels_map, ni_map, pc_file, local_lineages, local_lin_maps, local_lin_tables,map_sequences,map_inputs, input_crs,mapping_trait,urban_centres,add_boxplots, graphic_dict):
 
     name_stem = ".".join(outfile.split(".")[:-1])
                         
@@ -55,12 +56,12 @@ def make_report(cog_metadata, input_csv, filtered_cog_metadata, outfile, outdir,
                             "uk_map": f'uk_map = "{uk_map}"\n',
                             "channels_map": f'channels_map = "{channels_map}"\n',
                             "ni_map": f'ni_map = "{ni_map}"\n',
+                            "pc_file": f'pc_file = "{pc_file}"\n',
                             "local_lineages":f'local_lineages = "{local_lineages}"\n',
                             "local_lin_maps" : f'local_lin_maps = "{local_lin_maps}"\n',
                             "local_lin_tables" : f'local_lin_tables = "{local_lin_tables}"\n',
                             "map_sequences":f'map_sequences = "{map_sequences}"\n', 
-                            "x_col":f'x_col = "{x_col}"\n',
-                            "y_col":f'y_col = "{y_col}"\n',
+                            "map_inputs":f'map_inputs = "{map_inputs}"\n',
                             "mapping_trait":f'mapping_trait = "{mapping_trait}"\n',
                             "input_crs":f'input_crs = "{input_crs}"\n',
                             "urban_centres":f'urban_centres = "{urban_centres}"\n',
@@ -108,12 +109,12 @@ def main():
     parser.add_argument("--uk-map", required=True, help="shape file for uk counties", dest="uk_map")
     parser.add_argument("--channels-map", required=True, help="shape file for channel islands", dest="channels_map")
     parser.add_argument("--ni-map", required=True, help="shape file for northern irish counties", dest="ni_map")
+    parser.add_argument("--pc-file", required=True, help="file containing outer postcode to centroid mapping", dest="pc_file")
     parser.add_argument("--snp-report", required=True, help="snp report", dest="snp_report")
     parser.add_argument("--add-boxplots", action="store_true",dest="add_boxplots",default=False)
 
     parser.add_argument("--map-sequences", required=True, help="Bool for whether mapping of sequences by trait is required", dest="map_sequences")
-    parser.add_argument("--x-col", default="", help="column name in input csv which contains x coords for mapping", dest="x_col")
-    parser.add_argument("--y-col", default="", help="column name in input csv which contains y coords for mapping", dest="y_col")
+    parser.add_argument("--map-cols", default="", help="either column names in input csv which contains x coords and y coords for mapping as a comma separated string OR column name containing outer postcode", dest="map_inputs")
     parser.add_argument("--input-crs", default="", help="coordinate reference system that x and y inputs are in", dest="input_crs")
     parser.add_argument("--mapping-trait", default="", help="trait to map sequences by", dest="mapping_trait")
     parser.add_argument("--urban-centres", default="", help="geojson for plotting urban centres", dest="urban_centres")
@@ -124,7 +125,7 @@ def main():
 
     args = parser.parse_args()
 
-    make_report(args.cog_metadata, args.input_csv, args.filtered_cog_metadata, args.outfile, args.outdir, args.treedir, args.figdir, args.snp_report, args.colour_fields, args.label_fields, args.node_summary, args.report_template, args.failed_seqs, args.sc, args.clean_locs, args.uk_map, args.channels_map, args.ni_map, args.local_lineages, args.local_lin_maps, args.local_lin_tables,args.map_sequences, args.x_col, args.y_col, args.input_crs, args.mapping_trait, args.urban_centres,args.add_boxplots, args.graphic_dict)
+    make_report(args.cog_metadata, args.input_csv, args.filtered_cog_metadata, args.outfile, args.outdir, args.treedir, args.figdir, args.snp_report, args.colour_fields, args.label_fields, args.node_summary, args.report_template, args.failed_seqs, args.sc, args.clean_locs, args.uk_map, args.channels_map, args.ni_map, args.pc_file, args.local_lineages, args.local_lin_maps, args.local_lin_tables,args.map_sequences, args.map_inputs, args.input_crs, args.mapping_trait, args.urban_centres,args.add_boxplots, args.graphic_dict)
 
 
 if __name__ == "__main__":
