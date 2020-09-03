@@ -65,6 +65,7 @@ desired_fields_input = "" ##CHANGE
 label_fields_input = "" ##CHANGE
 graphic_dict_input = "" ##CHANGE
 summary_dir = "" ##CHANGE
+node_summary_option = "" ##CHANGE
 
 tree_name_stem = "" ##CHANGE
 
@@ -137,7 +138,7 @@ if input_csv != '':
     adm2_to_adm1 = dp.prepping_adm2_adm1_data(full_metadata_file)
     query_dict = dp.parse_input_csv(input_csv, query_id_dict, desired_fields, label_fields, adm2_to_adm1, False) #Any query information they have provided
 
-full_tax_dict = dp.parse_full_metadata(query_dict, full_metadata_file, present_lins, present_in_tree)
+full_tax_dict = dp.parse_full_metadata(query_dict, full_metadata_file, present_lins, present_in_tree, node_summary_option)
 ```
 
 ```python, name="QC fails", echo=False, results="raw"

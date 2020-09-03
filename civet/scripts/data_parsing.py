@@ -244,7 +244,7 @@ def parse_tree_tips(tree_dir):
 
     return tips, tip_to_tree
 
-def parse_full_metadata(query_dict, full_metadata, present_lins, present_in_tree):
+def parse_full_metadata(query_dict, full_metadata, present_lins, present_in_tree, node_summary_option):
 
     full_tax_dict = query_dict.copy()
 
@@ -262,12 +262,18 @@ def parse_full_metadata(query_dict, full_metadata, present_lins, present_in_tree
             glob_lin = sequence["lineage"]
             phylotype = sequence["phylotype"]
 
+            node_summary_trait = sequence[node_summary_option]
+
+
             if (uk_lin in present_lins or seq_name in present_in_tree) and seq_name not in query_dict.keys():
                 new_taxon = taxon(seq_name, glob_lin, uk_lin, phylotype)
                 if date == "":
                     date = "NA"
                 
                 new_taxon.sample_date = date
+
+                new_taxon.node_summary = node_summary_trait
+
                 
                 new_taxon.attribute_dict["adm2"] = adm2
                 new_taxon.attribute_dict["country"] = country

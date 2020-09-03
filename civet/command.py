@@ -45,6 +45,7 @@ def main(sysargs = sys.argv[1:]):
     parser.add_argument('--fields', action="store",help="Comma separated string of fields to display in the trees in the report. Default: country")
     parser.add_argument('--display', action="store", help="Comma separated string of fields to display as coloured dots rather than text in report trees. Optionally add colour scheme eg adm1=viridis", dest="display")
     parser.add_argument('--label-fields', action="store", help="Comma separated string of fields to add to tree report labels.", dest="label_fields")
+    parser.add_argument("--node-summary", action="store", help="Column to summarise collapsed nodes by. Default = Global lineage", dest="node_summary")
     parser.add_argument('--search-field', action="store",help="Option to search COG database for a different id type. Default: COG-UK ID", dest="search_field",default="central_sample_id")
     parser.add_argument('--distance', action="store",help="Extraction from large tree radius. Default: 2", dest="distance",default=2)
     parser.add_argument('--up-distance', action="store",help="Upstream distance to extract from large tree. Default: 2", dest="up_distance",default=2)
@@ -391,6 +392,7 @@ def main(sysargs = sys.argv[1:]):
         print("No data directory specified, will save data in civet-cat in current working directory")
         data_dir = cwd
 
+
     # if remote flag, and uun provided, sync data from climb
     if args.remote:
         config["remote"]= "True"
@@ -525,6 +527,22 @@ def main(sysargs = sys.argv[1:]):
     if not os.path.exists(report_template):
         sys.stderr.write('Error: cannot find report_template at {}\n'.format(report_template))
         sys.exit(-1)
+
+    with open(cog_global_metadata, newline="") as f:
+        reader = csv.DictReader(f)
+        column_names = reader.fieldnames
+
+        if not args.node_summary:
+                summary = "country"
+        else:
+            if args.node_summary in column_names:
+                summary = args.node_summary
+            else:
+                sys.stderr.write(cyan(f"Error: {args.node_summary} field not found in metadata file\n"))
+                sys.exit(-1)
+        
+        print(f"Going to summarise collapsed nodes by: {summary}")
+        config["node_summary"] = summary
 
     config["reference_fasta"] = reference_fasta
     config["outgroup_fasta"] = outgroup_fasta
