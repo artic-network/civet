@@ -86,7 +86,7 @@ def make_report(cog_metadata, input_csv, filtered_cog_metadata, outfile, outdir,
 def main():
     parser = argparse.ArgumentParser(description="Report generator script")
     parser.add_argument("-i","--input-csv", required=False, help="path to input file",dest="input_csv")
-    parser.add_argument("-f", "--fields",default="", help="desired fields for report. Default=date and UK country",dest="colour_fields")
+    parser.add_argument("-f", "--fields",default="", help="desired fields to colour trees by in report. Default=UK country",dest="colour_fields")
     parser.add_argument("-l", "--label-fields", default="", help="fields to add into labels in report trees. Default is adm2 and date", dest='label_fields')
     parser.add_argument("-gd", "--graphic_dict", default="", help="fields to colour by rather than display text. Add colour scheme optionally", dest="graphic_dict")
     parser.add_argument("--node-summary", action="store", help="field to summarise collapsed nodes by. Default=lineage", dest="node_summary")
