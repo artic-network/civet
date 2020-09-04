@@ -116,6 +116,9 @@ optional arguments:
   --label-fields LABEL_FIELDS
                         Comma separated string of fields to add to tree report
                         labels.
+  --date-fields DATE_FIELDS
+                        Comma separated string of date information to include.
+                        Default = "sample_date"
   --node-summary COLUMN Choose which metadata column to summarise collapsed nodes by.                      
   --search-field SEARCH_FIELD
                         Option to search COG database for a different id type.

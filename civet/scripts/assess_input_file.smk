@@ -421,6 +421,7 @@ rule make_report:
         outdir = config["rel_outdir"],
         fields = config["fields"],
         label_fields = config["label_fields"],
+        date_fields = config["date_fields"],
         node_summary = config["node_summary"],
         sc_source = config["sequencing_centre"],
         sc = config["sequencing_centre_file"],
@@ -472,6 +473,7 @@ rule make_report:
         "-f {params.fields:q} "
         "--graphic_dict {params.graphic_dict:q} "
         "--label-fields {params.label_fields:q} "
+        "--date-fields {params.date_fields:q} "
         "--node-summary {params.node_summary} "
         "--figdir {params.rel_figdir:q} "
         "{params.sc_flag} "

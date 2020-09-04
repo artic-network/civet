@@ -45,6 +45,7 @@ def main(sysargs = sys.argv[1:]):
     parser.add_argument('--fields', action="store",help="Comma separated string of fields to display in the trees in the report. Default: country")
     parser.add_argument('--display', action="store", help="Comma separated string of fields to display as coloured dots rather than text in report trees. Optionally add colour scheme eg adm1=viridis", dest="display")
     parser.add_argument('--label-fields', action="store", help="Comma separated string of fields to add to tree report labels.", dest="label_fields")
+    parser.add_argument("--date-fields", action="store", help="Comma separated string of metadata headers containing date information.", dest="date_fields")
     parser.add_argument("--node-summary", action="store", help="Column to summarise collapsed nodes by. Default = Global lineage", dest="node_summary")
     parser.add_argument('--search-field', action="store",help="Option to search COG database for a different id type. Default: COG-UK ID", dest="search_field",default="central_sample_id")
     parser.add_argument('--distance', action="store",help="Extraction from large tree radius. Default: 2", dest="distance",default=2)
@@ -177,6 +178,7 @@ def main(sysargs = sys.argv[1:]):
     labels = []
     queries = []
     graphics_list = []
+    date_lst = []
 
     with open(query, newline="") as f:
         reader = csv.DictReader(f)
@@ -207,6 +209,17 @@ def main(sysargs = sys.argv[1:]):
                     labels.append(label_f)
                 else:
                     sys.stderr.write(f"Error: {label_f} field not found in metadata file")
+                    sys.exit(-1)
+
+        if not args.date_fields:
+            date_lst.append("sample_date")
+        else:
+            date_fields = args.date_fields.split(",")
+            for date_f in date_fields:
+                if date_f in reader.fieldnames or date_f != "sample_date":
+                    date_lst.append(date_f)
+                else:
+                    sys.stderr.write(f"Error: {date_f} field not found in query metadata file")
                     sys.exit(-1)
 
         if args.display:
@@ -250,6 +263,7 @@ def main(sysargs = sys.argv[1:]):
         "query":query,
         "fields":",".join(fields),
         "label_fields":",".join(labels),
+        "date_fields":",".join(date_lst),
         "outdir":outdir,
         "tempdir":tempdir,
         "trim_start":265,   # where to pad to using datafunk

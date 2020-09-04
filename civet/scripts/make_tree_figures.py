@@ -738,9 +738,6 @@ def describe_tree_background(full_tax_dict, tree_name_stem, tree_dir):
                     plt.xticks(size=5, rotation=90)
                     plt.yticks(size=5)
                     
-
-
-
                     plt.title(pretty_focal + ": " + nde, size=5)
 
 

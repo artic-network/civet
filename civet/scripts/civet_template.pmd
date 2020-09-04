@@ -25,6 +25,7 @@ import os
 import data_parsing as dp
 import make_tree_figures as tree_viz
 import mapping as mapping
+import time_functions as time_func
 import matplotlib.font_manager as font_manager
 import matplotlib as mpl
 from collections import defaultdict
@@ -66,6 +67,7 @@ label_fields_input = "" ##CHANGE
 graphic_dict_input = "" ##CHANGE
 summary_dir = "" ##CHANGE
 node_summary_option = "" ##CHANGE
+date_fields_input = ##CHANGE 
 
 tree_name_stem = "" ##CHANGE
 
@@ -89,7 +91,10 @@ if label_fields_input != "NONE":
     for i in options: 
         label_fields.append(i)
 
-
+date_fields = []
+options = date_fields_input.split(",")
+for i in options: 
+    date_fields.append(i)
 
 snp_report = "" ##CHANGE
 
@@ -130,20 +135,22 @@ mpl.rcParams['axes.labelweight']=50
 
 ```python, name="parse metadata", echo=False, results='raw'
 
-present_in_tree, tip_to_tree = dp.parse_tree_tips(tree_dir)
+present_in_tree, tip_to_tree, tree_list = dp.parse_tree_tips(tree_dir)
 
 query_dict, query_id_dict, present_lins, tree_to_tip = dp.parse_filtered_metadata(filtered_cog_metadata, tip_to_tree) #Just the lines with their queries plus the closest match in COG
 
 if input_csv != '':
     adm2_to_adm1 = dp.prepping_adm2_adm1_data(full_metadata_file)
-    query_dict = dp.parse_input_csv(input_csv, query_id_dict, desired_fields, label_fields, adm2_to_adm1, False) #Any query information they have provided
+    query_dict = dp.parse_input_csv(input_csv, query_id_dict, desired_fields, label_fields, date_fields, adm2_to_adm1, False) #Any query information they have provided
 
-full_tax_dict = dp.parse_full_metadata(query_dict, full_metadata_file, present_lins, present_in_tree, node_summary_option)
+full_tax_dict = dp.parse_full_metadata(query_dict, full_metadata_file, present_lins, present_in_tree, node_summary_option, date_fields)
+
+dates_present, overall_dates, max_overall_date, min_overall_date,  max_string, min_string = time_func.summarise_dates(query_dict)
+
 ```
 
 ```python, name="QC fails", echo=False, results="raw"
 count_fails = 0
-
 if QC_fail_file != "": 
     with open(QC_fail_file) as f:
         next(f)
@@ -173,6 +180,13 @@ for tax in query_dict.values():
 
 print(str(number_seqs) + " queries (" + str(cog_number) + " matched to COG-UK database).")
 print(str(not_in_cog_number) + " additional sequences provided.")
+
+if dates_present:
+    print("Time fields provided: " + ",".join(date_fields))
+    print("Earliest date: " + min_string)
+    print("Latest date: " + max_string)
+else:
+    print("No date information found")
 
 ```
 
@@ -235,9 +249,6 @@ if too_tall_trees != []:
         print("Tree" + str(tree) + " is too large to be rendered here.")
 ```
 
-
-
-
 ```python, name="tree_background", echo=False, include=False,  results='raw'
 if add_boxplots != "":
     print("""### Tree background\n\nThe following plots describe the data in the collapsed nodes in more detail.\nIf more than one country was present, the bar chart describes the number of sequences present in each country. \nWhere there were 10 countries or more, the largest 10 have been taken. \nIf a UK sequence is present in the collapsed node, it is always shown in the plot.\n\n""")
@@ -275,6 +286,18 @@ if map_sequences != "False":
     print("![](" + figdir + "/" + name_stem + "_map_sequences_1.png)")
 ```
 
+
+
+```python, name="time_plot", echo=False, results='raw', include=False
+if dates_present:
+    print("## Time distribution of sequences\n")
+    print("Coloured by: Tree \n")
+    time_func.plot_time_series(query_dict, max_overall_date, min_overall_date, tree_list, label_fields)
+```
+```python, name="show_time", echo=False, results='raw'
+if dates_present:
+    print("![](" + figdir + "/" + name_stem + "_time_plot_1.png)")
+```
 
 
 
