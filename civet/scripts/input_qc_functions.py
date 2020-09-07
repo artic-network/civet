@@ -143,7 +143,6 @@ def get_outdir(outdir_arg,cwd,config):
     print(green(f"Output dir:") + f" {outdir}")
     config["outdir"] = outdir 
     config["rel_outdir"] = rel_outdir 
-    return outdir 
         
 def get_temp_dir(tempdir_arg,no_temp_arg, cwd,config):
     tempdir = ''
@@ -552,7 +551,24 @@ def get_datadir(args_climb,args_datadir,remote,cwd,config):
 
         elif args_datadir:
             data_dir = os.path.join(cwd, args_datadir)
+        
+        
+
         if not remote:
+            if not os.path.exists(data_dir):
+                sys.stderr.write(cyan(f"Error: data directory not found at {data_dir}.\n")+ f"""The directory should contain the following files:\n\
+        - cog_global_tree.nexus\n\
+        - cog_alignment_all.fasta\n\
+        - cog_metadata.csv\n\
+        - cog_metadata_all.csv\n\
+        - cog_global_metadata.csv\n\
+        - cog_global_alignment.fasta\n\
+        - cog_alignment.fasta\n\n\
+    To run civet please either\n1) ssh into CLIMB and run with --CLIMB flag\n\
+    2) Run using `--remote-sync` flag and your CLIMB username specified e.g. `-uun climb-covid19-otoolexyz`\n\
+    3) Specify a local directory with the appropriate files\n\n""")
+                sys.exit(-1)
+                
             cog_metadata,all_cog_metadata,cog_global_metadata = ("","","")
             cog_seqs,all_cog_seqs = ("","")
             cog_tree = ""
