@@ -354,7 +354,7 @@ def check_label_and_colour_fields(query_file, query_arg, colour_fields, label_fi
                     sys.exit(-1)
         
         colour_field_str = ",".join(colour_field_list)
-        print(f"Going to colour by: {colour_field_str}")
+        print(green(f"Going to colour by:") + f" {colour_field_str}")
         config["fields"] = colour_field_str
         
         if not label_fields:
@@ -369,7 +369,7 @@ def check_label_and_colour_fields(query_file, query_arg, colour_fields, label_fi
                     sys.exit(-1)
 
         labels_str = ",".join(labels)
-        print(f"Going to label by: {labels_str}")
+        print(green(f"Going to label by:") + f" {labels_str}")
         config["label_fields"] = labels_str
 
         if display_arg:
@@ -401,10 +401,10 @@ def map_sequences_config(map_sequences,mapping_trait,x_col,y_col,input_crs,query
         if map_sequences:
             config["map_sequences"] = True
             if not x_col or not y_col:
-                sys.stderr.write('Error: coordinates not supplied for mapping sequences. Please provide --x-col and --y-col')
+                sys.stderr.write(cyan('Error: coordinates not supplied for mapping sequences. Please provide --x-col and --y-col'))
                 sys.exit(-1)
             elif not input_crs:
-                sys.stderr.write('Error: input coordinate system not provided for mapping. Please provide --input-crs eg EPSG:3395')
+                sys.stderr.write(cyan('Error: input coordinate system not provided for mapping. Please provide --input-crs eg EPSG:3395'))
                 sys.exit(-1)
             else:
                 config["x_col"] = x_col
@@ -418,7 +418,7 @@ def map_sequences_config(map_sequences,mapping_trait,x_col,y_col,input_crs,query
                 for map_arg in relevant_cols:
 
                     if map_arg not in column_names:
-                        sys.stderr.write(f"Error: {map_arg} field not found in metadata file")
+                        sys.stderr.write(cyan(f"Error: {map_arg} field not found in metadata file"))
                         sys.exit(-1)
 
             if mapping_trait:
@@ -440,7 +440,7 @@ def local_lineages_config(local_lineages, query, config):
                 reader = csv.DictReader(f)
                 header = reader.fieldnames
                 if not "adm2" in header:
-                    sys.stderr.write(f"Error: --local-lineages argument called, but input csv file doesn't have an adm2 column. Please provide that to have local lineage analysis.\n")
+                    sys.stderr.write(cyan(f"Error: --local-lineages argument called, but input csv file doesn't have an adm2 column. Please provide that to have local lineage analysis.\n"))
                     sys.exit(-1)
         else:
             config['local_lineages'] = "False"
@@ -461,7 +461,7 @@ def check_summary_fields(full_metadata, summary_field, config):
                 sys.stderr.write(cyan(f"Error: {summary_field} field not found in metadata file\n"))
                 sys.exit(-1)
         
-        print(f"Going to summarise collapsed nodes by: {summary}")
+        print(green(f"Going to summarise collapsed nodes by: ") + f"{summary}")
         config["node_summary"] = summary
 
 
@@ -605,3 +605,116 @@ def get_datadir(args_climb,args_datadir,remote,cwd,config):
         
     return data_dir
     
+def get_remote_data(remote,uun,data_dir,args_datadir,args_climb,config):
+        if remote:
+            config["remote"]= "True"
+            if uun:
+                config["username"] = uun
+            
+                rsync_command = f"rsync -avzh {uun}@bham.covid19.climb.ac.uk:/cephfs/covid/bham/civet-cat '{data_dir}'"
+                print(green(f"Syncing civet data to {data_dir}"))
+                status = os.system(rsync_command)
+                if status != 0:
+                    sys.stderr.write(cyan("Error: rsync command failed.\nCheck your user name is a valid CLIMB username e.g. climb-covid19-smithj\nAlso, check if you have access to CLIMB from this machine and are in the UK\n\n"))
+                    sys.exit(-1)
+            else:
+                rsync_command = f"rsync -avzh bham.covid19.climb.ac.uk:/cephfs/covid/bham/civet-cat '{data_dir}'"
+                print(f"Syncing civet data to {data_dir}")
+                status = os.system(rsync_command)
+                if status != 0:
+                    sys.stderr.write(cyan("Error: rsync command failed.\nCheck your ssh is configured with Host bham.covid19.climb.ac.uk\nAlternatively enter your CLIMB username with -uun e.g. climb-covid19-smithj\nAlso, check if you have access to CLIMB from this machine and are in the UK\n\n"))
+                    sys.exit(-1)
+            cog_metadata,all_cog_metadata,cog_global_metadata = ("","","")
+            cog_seqs,all_cog_seqs = ("","")
+            cog_tree = ""
+
+            cog_seqs = os.path.join(data_dir,"civet-cat","cog_alignment.fasta")
+            all_cog_seqs = os.path.join(data_dir,"civet-cat","cog_alignment_all.fasta")
+
+            cog_metadata = os.path.join(data_dir,"civet-cat","cog_metadata.csv")
+            all_cog_metadata = os.path.join(data_dir,"civet-cat","cog_metadata_all.csv")
+
+            cog_global_metadata = os.path.join(data_dir,"civet-cat","cog_global_metadata.csv")
+            cog_global_seqs= os.path.join(data_dir,"civet-cat","cog_global_alignment.fasta")
+
+            cog_tree = os.path.join(data_dir,"civet-cat","cog_global_tree.nexus")
+
+            config["cog_seqs"] = cog_seqs
+            config["all_cog_seqs"] = all_cog_seqs
+
+            config["cog_metadata"] = cog_metadata
+            config["all_cog_metadata"] = all_cog_metadata
+            config["cog_global_metadata"] = cog_global_metadata
+            config["cog_global_seqs"] = cog_global_seqs
+            config["cog_tree"] = cog_tree
+
+            print("Found cog data:")
+            print("    -",cog_seqs)
+            print("    -",all_cog_seqs)
+            print("    -",cog_metadata)
+            print("    -",all_cog_metadata)
+            print("    -",cog_global_metadata)
+            print("    -",cog_tree,"\n")
+
+        elif not args_datadir and not args_climb:
+            sys.stderr.write(cyan("""Error: no way to find source data.\n\nTo run civet please either\n1) ssh into CLIMB and run with --CLIMB flag\n\
+    2) Run using `--remote-sync` flag and your CLIMB username specified e.g. `-uun climb-covid19-otoolexyz`\n\
+    3) Specify a local directory with the appropriate files on. The following files are required:\n\
+    - cog_global_tree.nexus\n\
+    - cog_metadata.csv\n\
+    - cog_metadata_all.csv\n\
+    - cog_global_metadata.csv\n\
+    - cog_global_alignment.fasta\n\
+    - cog_alignment.fasta\n\n"""))
+            sys.exit(-1)
+
+def node_summary(node_summary,config):
+    with open(config["cog_global_metadata"], newline="") as f:
+        reader = csv.DictReader(f)
+        column_names = reader.fieldnames
+
+        if not node_summary:
+            summary = "country"
+        else:
+            if node_summary in column_names:
+                summary = node_summary
+            else:
+                sys.stderr.write(cyan(f"Error: {node_summary} field not found in metadata file\n"))
+                sys.exit(-1)
+        
+        print(green(f"Summarise collapsed nodes by:") + f" {summary}")
+        config["node_summary"] = summary
+
+def get_sequencing_centre_header(sequencing_centre,config):
+    
+    sc_list = ["PHEC", 'LIVE', 'BIRM', 'PHWC', 'CAMB', 'NORW', 'GLAS', 'EDIN', 'SHEF',
+                'EXET', 'NOTT', 'PORT', 'OXON', 'NORT', 'NIRE', 'GSTT', 'LOND', 'SANG',"NIRE"]
+
+    if sequencing_centre:
+        if sequencing_centre in sc_list:
+            relative_file = os.path.join("data","headers",f"{sequencing_centre}.png")
+            header = pkg_resources.resource_filename('civet', relative_file)
+            print(green(f"Using header file from:") + f" {header}\n")
+            config["sequencing_centre"] = header
+        else:
+            sc_string = "\n".join(sc_list)
+            sys.stderr.write(cyan(f'Error: sequencing centre must be one of the following:\n{sc_string}\n'))
+            sys.exit(-1)
+    else:
+        relative_file = os.path.join("data","headers","DEFAULT.png")
+        header = pkg_resources.resource_filename('civet', relative_file)
+        print(green(f"Using header file from:") + f" {header}\n")
+        config["sequencing_centre"] = header
+
+def distance_config(distance, up_distance, down_distance, config):
+    if distance:
+        config["up_distance"] = distance
+        config["down_distance"] = distance
+
+    if up_distance:
+        config["up_distance"] = up_distance
+
+    if down_distance:
+        config["down_distance"] = down_distance
+
+    print(green(f"Extraction radius:\n")+f"\tUp distance: {up_distance}\n\tDown distance: {down_distance}\n")

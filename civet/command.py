@@ -49,11 +49,10 @@ def main(sysargs = sys.argv[1:]):
     parser.add_argument("--node-summary", action="store", help="Column to summarise collapsed nodes by. Default = Global lineage", dest="node_summary")
     parser.add_argument('--input-column', action="store",help="Column in input csv file to match with database. Default: name", dest="input_column",default="name")
     parser.add_argument('--search-field', action="store",help="Option to search COG database for a different id type. Default: COG-UK ID", dest="data_column",default="central_sample_id")
-    parser.add_argument('--distance', action="store",help="Extraction from large tree radius. Default: 2", dest="distance",default=2)
-    parser.add_argument('--up-distance', action="store",help="Upstream distance to extract from large tree. Default: 2", dest="up_distance",default=2)
-    parser.add_argument('--down-distance', action="store",help="Downstream distance to extract from large tree. Default: 2", dest="down_distance",default=2)
+    parser.add_argument('--distance', action="store",help="Extraction from large tree radius. Default: 2", dest="distance",type=int,default=2)
+    parser.add_argument('--up-distance', action="store",help="Upstream distance to extract from large tree. Default: 2", dest="up_distance",type=int,default=2)
+    parser.add_argument('--down-distance', action="store",help="Downstream distance to extract from large tree. Default: 2", dest="down_distance",type=int,default=2)
     parser.add_argument('--add-bars', action="store_true",help="Render boxplots in the output report", dest="add_bars")
-    # parser.add_argument('--delay-tree-collapse',action="store_true",dest="delay_tree_collapse",help="Wait until after iqtree runs to collapse the polytomies. NOTE: This may result in large trees that take quite a while to run.")
     parser.add_argument('-g','--global',action="store_true",dest="search_global",help="Search globally.")
     parser.add_argument('-n', '--dry-run', action='store_true',help="Go through the motions but don't actually run")
     parser.add_argument('--tempdir',action="store",help="Specify where you want the temp stuff to go. Default: $TMPDIR")
@@ -92,7 +91,8 @@ def main(sysargs = sys.argv[1:]):
         "force":"True",
         "date_range_start":args.date_range_start,
         "date_range_end":args.date_range_end,
-        "date_window":args.date_window
+        "date_window":args.date_window,
+        "threshold": args.threshold
         }
     # find the query csv, or string of ids, or config file
     query = qcfunk.parse_input_query(args.query,args.ids,cwd,config)
@@ -125,187 +125,55 @@ def main(sysargs = sys.argv[1:]):
     else:
         config["add_bars"]= False
         
+    # map sequences configuration
     qcfunk.map_sequences_config(args.map_sequences,args.mapping_trait,args.x_col,args.y_col,args.input_crs,query,config)
     
+    # local lineages configuration
     qcfunk.local_lineages_config(args.local_lineages,query,config)
     
     if args.date_restriction:
-        config['date_restriction'] = "True"
+        config['date_restriction'] = True
     else:
-        config['date_restriction'] = "False"
+        config['date_restriction'] = False
 
-    """ 
-    QC steps:
-    1) check csv header
-    2) check fasta file N content
-    3) write a file that contains just the seqs to run
-    """
 
     # find the data dir
     data_dir = qcfunk.get_datadir(args.climb,args.datadir,args.remote,cwd,config)
     # if remote flag, and uun provided, sync data from climb
-    if args.remote:
-        config["remote"]= "True"
-        if args.uun:
-            config["username"] = args.uun
-        
-            rsync_command = f"rsync -avzh {args.uun}@bham.covid19.climb.ac.uk:/cephfs/covid/bham/civet-cat '{data_dir}'"
-            print(f"Syncing civet data to {data_dir}")
-            status = os.system(rsync_command)
-            if status != 0:
-                sys.stderr.write("Error: rsync command failed.\nCheck your user name is a valid CLIMB username e.g. climb-covid19-smithj\nAlso, check if you have access to CLIMB from this machine and are in the UK\n\n")
-                sys.exit(-1)
-        else:
-            rsync_command = f"rsync -avzh bham.covid19.climb.ac.uk:/cephfs/covid/bham/civet-cat '{data_dir}'"
-            print(f"Syncing civet data to {data_dir}")
-            status = os.system(rsync_command)
-            if status != 0:
-                sys.stderr.write("Error: rsync command failed.\nCheck your ssh is configured with Host bham.covid19.climb.ac.uk\nAlternatively enter your CLIMB username with -uun e.g. climb-covid19-smithj\nAlso, check if you have access to CLIMB from this machine and are in the UK\n\n")
-                sys.exit(-1)
-        cog_metadata,all_cog_metadata,cog_global_metadata = ("","","")
-        cog_seqs,all_cog_seqs = ("","")
-        cog_tree = ""
-
-        cog_seqs = os.path.join(data_dir,"civet-cat","cog_alignment.fasta")
-        all_cog_seqs = os.path.join(data_dir,"civet-cat","cog_alignment_all.fasta")
-
-        cog_metadata = os.path.join(data_dir,"civet-cat","cog_metadata.csv")
-        all_cog_metadata = os.path.join(data_dir,"civet-cat","cog_metadata_all.csv")
-
-        cog_global_metadata = os.path.join(data_dir,"civet-cat","cog_global_metadata.csv")
-        cog_global_seqs= os.path.join(data_dir,"civet-cat","cog_global_alignment.fasta")
-
-        cog_tree = os.path.join(data_dir,"civet-cat","cog_global_tree.nexus")
-
-        config["cog_seqs"] = cog_seqs
-        config["all_cog_seqs"] = all_cog_seqs
-
-        config["cog_metadata"] = cog_metadata
-        config["all_cog_metadata"] = all_cog_metadata
-        config["cog_global_metadata"] = cog_global_metadata
-        config["cog_global_seqs"] = cog_global_seqs
-        config["cog_tree"] = cog_tree
-
-        print("Found cog data:")
-        print("    -",cog_seqs)
-        print("    -",all_cog_seqs)
-        print("    -",cog_metadata)
-        print("    -",all_cog_metadata)
-        print("    -",cog_global_metadata)
-        print("    -",cog_tree,"\n")
-
-    elif not args.datadir and not args.climb:
-        sys.stderr.write("""Error: no way to find source data.\n\nTo run civet please either\n1) ssh into CLIMB and run with --CLIMB flag\n\
-2) Run using `--remote-sync` flag and your CLIMB username specified e.g. `-uun climb-covid19-otoolexyz`\n\
-3) Specify a local directory with the appropriate files on. The following files are required:\n\
-- cog_global_tree.nexus\n\
-- cog_metadata.csv\n\
-- cog_metadata_all.csv\n\
-- cog_global_metadata.csv\n\
-- cog_global_alignment.fasta\n\
-- cog_alignment.fasta\n\n""")
-        sys.exit(-1)
-
+    qcfunk.get_remote_data(args.remote,args.uun,data_dir,args.datadir,args.climb,config)
 
     # run qc on the input sequence file
     qcfunk.input_file_qc(args.fasta,args.minlen,args.maxambig,config)
     
     if args.search_global:
-        config["global"]="True"
+        config["global"]=True
     else:
-        config["global"]="False"
+        config["global"]=False
 
     config["delay_collapse"] = False
 
     # accessing package data and adding to config dict
     qcfunk.get_package_data(args.cog_report,thisdir,config)
 
-    with open(cog_global_metadata, newline="") as f:
-        reader = csv.DictReader(f)
-        column_names = reader.fieldnames
+    # summarising collapsed nodes config
+    qcfunk.node_summary(args.node_summary,config)
 
-        if not args.node_summary:
-                summary = "country"
-        else:
-            if args.node_summary in column_names:
-                summary = args.node_summary
-            else:
-                sys.stderr.write(f"Error: {args.node_summary} field not found in metadata file\n")
-                sys.exit(-1)
-        
-        print(f"Going to summarise collapsed nodes by: {summary}")
-        config["node_summary"] = summary
-
+    # get seq centre header file from pkg data
+    qcfunk.get_sequencing_centre_header(args.sequencing_centre,config)
     
-
-    sc_list = ["PHEC", 'LIVE', 'BIRM', 'PHWC', 'CAMB', 'NORW', 'GLAS', 'EDIN', 'SHEF',
-                 'EXET', 'NOTT', 'PORT', 'OXON', 'NORT', 'NIRE', 'GSTT', 'LOND', 'SANG',"NIRE"]
-
-    if args.sequencing_centre:
-        if args.sequencing_centre in sc_list:
-            relative_file = os.path.join("data","headers",f"{args.sequencing_centre}.png")
-            header = pkg_resources.resource_filename('civet', relative_file)
-            print(f"using header file from {header}\n")
-            config["sequencing_centre"] = header
-        else:
-            sc_string = "\n".join(sc_list)
-            sys.stderr.write(f'Error: sequencing centre must be one of the following:\n{sc_string}\n')
-            sys.exit(-1)
-    else:
-        relative_file = os.path.join("data","headers","DEFAULT.png")
-        header = pkg_resources.resource_filename('civet', relative_file)
-        print(f"using header file from {header}\n")
-        config["sequencing_centre"] = header
-
-    if args.distance:
-        try:
-            distance = int(args.distance) 
-            config["up_distance"] = args.distance
-            config["down_distance"] = args.distance
-        except:
-            sys.stderr.write('Error: distance must be an integer\n')
-            sys.exit(-1)
-    else:
-        config["up_distance"] = "1"
-        config["down_distance"] = "1"
-
-    if args.up_distance:
-        try:
-            distance = int(args.up_distance) 
-            config["up_distance"] = args.up_distance
-        except:
-            sys.stderr.write('Error: up-distance must be an integer\n')
-            sys.exit(-1)
-
-    if args.down_distance:
-        try:
-            distance = int(args.down_distance) 
-            config["down_distance"] = args.down_distance
-        except:
-            sys.stderr.write('Error: down-distance must be an integer\n')
-            sys.exit(-1)
-
-
-    if args.threshold:
-        try:
-            threshold = int(args.threshold)
-            config["threshold"] = args.threshold
-        except:
-            sys.stderr.write('Error: threshold must be an integer\n')
-            sys.exit(-1)
-    else:
-        config["threshold"] = "1"
-
+    # extraction radius configuration
+    qcfunk.distance_config(args.distance, args.up_distance, args.down_distance, config)
+ 
     if args.launch_browser:
-        config["launch_browser"]="True"
+        config["launch_browser"]=True
 
     # don't run in quiet mode if verbose specified
     if args.verbose:
         quiet_mode = False
-        config["quiet_mode"]="False"
+        config["quiet_mode"]=False
     else:
         quiet_mode = True
-        config["quiet_mode"]="True"
+        config["quiet_mode"]=True
 
     status = snakemake.snakemake(snakefile, printshellcmds=True,
                                  dryrun=args.dry_run, forceall=True,force_incomplete=True,workdir=tempdir,
