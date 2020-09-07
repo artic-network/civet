@@ -269,6 +269,7 @@ rule process_catchments:
                             f"catchment_str={catchment_str} "
                             "outdir={params.outdir:q} "
                             "tempdir={params.tempdir:q} "
+                            "threshold={params.threshold} "
                             "combined_metadata={input.combined_metadata:q} "
                             "--cores {params.cores}")
 
