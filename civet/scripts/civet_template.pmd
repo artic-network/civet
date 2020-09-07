@@ -54,7 +54,7 @@ input_directory = "" ##CHANGE
 output_directory = "" ##CHANGE
 name_stem_input = "" ##CHANGE
 
-add_boxplots = "" ##CHANGE
+add_bars = "" ##CHANGE
 
 if "/" in name_stem_input:
     name_stem = name_stem_input.split("/")[-1]
@@ -247,7 +247,7 @@ if too_tall_trees != []:
 
 
 ```python, name="tree_background", echo=False, include=False,  results='raw'
-if add_boxplots != "":
+if add_bars != "":
     print("""### Tree background\n\nThe following plots describe the data in the collapsed nodes in more detail.\nIf more than one country was present, the bar chart describes the number of sequences present in each country. \nWhere there were 10 countries or more, the largest 10 have been taken. \nIf a UK sequence is present in the collapsed node, it is always shown in the plot.\n\n""")
     bar_count = tree_viz.describe_tree_background(full_tax_dict, tree_name_stem, tree_dir)
 

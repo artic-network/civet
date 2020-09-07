@@ -433,7 +433,7 @@ rule make_report:
         y_col = config["y_col"],
         input_crs = config["input_crs"],
         mapping_trait = config["mapping_trait"],
-        add_boxplots = config["add_boxplots"],
+        add_bars = config["add_bars"],
         graphic_dict = config["graphic_dict"]
     output:
         poly_fig = os.path.join(config["outdir"],"figures","polytomies.png"),
@@ -461,8 +461,8 @@ rule make_report:
             lineage_map_flag = ""
             lineage_table_flag = ""
         boxplots = ""
-        if config["add_boxplots"]:
-            boxplots = "--add-boxplots"
+        if config["add_bars"]:
+            boxplots = "--add-bars"
         shell("""
         cp {input.polytomy_figure:q} {output.poly_fig:q} &&
         cp {input.footer:q} {output.footer_fig:q}""")
