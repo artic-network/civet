@@ -94,8 +94,6 @@ def main(sysargs = sys.argv[1:]):
         "date_window":args.date_window,
         "threshold": args.threshold
         }
-    # find the query csv, or string of ids, or config file
-    query = qcfunk.parse_input_query(args.query,args.ids,cwd,config)
     
     # find the master Snakefile
     snakefile = qcfunk.get_snakefile(thisdir)
@@ -108,6 +106,9 @@ def main(sysargs = sys.argv[1:]):
 
     # specifying temp directory, outdir if no_temp
     tempdir =qcfunk.get_temp_dir(args.tempdir, args.no_temp,cwd,config)
+
+    # find the query csv, or string of ids, or config file
+    query = qcfunk.parse_input_query(args.query,args.ids,cwd,config)
 
     # parse the input csv, check col headers and get fields if fields specified
 
