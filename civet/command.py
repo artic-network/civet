@@ -32,7 +32,7 @@ def main(sysargs = sys.argv[1:]):
     description='civet: Cluster Investivation & Virus Epidemiology Tool', 
     usage='''civet <query> [options]''')
 
-    parser.add_argument('query',help="Input csv file with minimally `name` as a column header. Can include additional fields to be incorporated into the analysis, e.g. `sample_date`",)
+    parser.add_argument('query',help="Input csv file with minimally `name` as a column header. Can include additional fields to be incorporated into the analysis, e.g. `sample_date`",dest="query")
     parser.add_argument('-i',"--id-string", action="store_true",help="Indicates the input is a comma-separated id string with one or more query ids. Example: `EDB3588,EDB3589`.", dest="ids")
     parser.add_argument('-f','--fasta', action="store",help="Optional fasta query.", dest="fasta")
     parser.add_argument('-sc',"--sequencing-centre", action="store",help="Customise report with logos from sequencing centre.", dest="sequencing_centre")
@@ -47,11 +47,12 @@ def main(sysargs = sys.argv[1:]):
     parser.add_argument('--display', action="store", help="Comma separated string of fields to display as coloured dots rather than text in report trees. Optionally add colour scheme eg adm1=viridis", dest="display")
     parser.add_argument('--label-fields', action="store", help="Comma separated string of fields to add to tree report labels.", dest="label_fields")
     parser.add_argument("--node-summary", action="store", help="Column to summarise collapsed nodes by. Default = Global lineage", dest="node_summary")
+    parser.add_argument('--input-column', action="store",help="Column in input csv file to match with database. Default: name", dest="input_column",default="name")
     parser.add_argument('--search-field', action="store",help="Option to search COG database for a different id type. Default: COG-UK ID", dest="search_field",default="central_sample_id")
     parser.add_argument('--distance', action="store",help="Extraction from large tree radius. Default: 2", dest="distance",default=2)
     parser.add_argument('--up-distance', action="store",help="Upstream distance to extract from large tree. Default: 2", dest="up_distance",default=2)
     parser.add_argument('--down-distance', action="store",help="Downstream distance to extract from large tree. Default: 2", dest="down_distance",default=2)
-    parser.add_argument('--add-boxplots', action="store_true",help="Render boxplots in the output report", dest="add_boxplots")
+    parser.add_argument('--add-bars', action="store_true",help="Render boxplots in the output report", dest="add_bars")
     # parser.add_argument('--delay-tree-collapse',action="store_true",dest="delay_tree_collapse",help="Wait until after iqtree runs to collapse the polytomies. NOTE: This may result in large trees that take quite a while to run.")
     parser.add_argument('-g','--global',action="store_true",dest="search_global",help="Search globally.")
     parser.add_argument('-n', '--dry-run', action='store_true',help="Go through the motions but don't actually run")
@@ -74,9 +75,7 @@ def main(sysargs = sys.argv[1:]):
     parser.add_argument("--y-col", required=False, dest="y_col", help="column containing y coordinate for mapping sequences")
     parser.add_argument("--input-crs", required=False, dest="input_crs", help="Coordinate reference system of sequence coordinates")
     parser.add_argument("--mapping-trait", required=False, dest="mapping_trait", help="Column to colour mapped sequences by")
-
-    acceptable_colours = qcfunk.get_colours()
-
+    
     # Exit with help menu if no args supplied
     if len(sysargs)<1: 
         parser.print_help()
@@ -84,136 +83,50 @@ def main(sysargs = sys.argv[1:]):
     else:
         args = parser.parse_args(sysargs)
     
+    config = {}
+    
+    # find the query csv, or string of ids, or config file
+    query = qcfunk.parse_input_query(args.query,args.ids,cwd,config)
+    
     # find the master Snakefile
     snakefile = qcfunk.get_snakefile(thisdir)
     
     # find the query fasta
-    fasta = qcfunk.get_query_fasta(args.fasta,cwd)
+    qcfunk.get_query_fasta(args.fasta,cwd, config)
 
     # default output dir
-    outdir, rel_outdir = qcfunk.get_outdir(args.outdir,cwd)
+    qcfunk.get_outdir(args.outdir,cwd,config)
 
-    # specifying temp directory
-    tempdir = qcfunk.get_temp_dir(tempdir_arg, cwd)
-
-    # if no temp, just write everything to outdir
-    if args.no_temp:
-        print(f"--no-temp: All intermediate files will be written to {outdir}")
-        tempdir = outdir
-
-    # find the query csv, or string of ids
-    query = os.path.join(cwd, args.query)
-    if not os.path.exists(query):
-        if args.ids:
-            id_list = args.query.split(",")
-            query = os.path.join(tempdir, "query.csv")
-            with open(query,"w") as fw:
-                fw.write("name\n")
-                for i in id_list:
-                    fw.write(i+'\n')
-        else:
-            sys.stderr.write(f"Error: cannot find query file at {query}\n Check if the file exists, or if you're inputting an id string (e.g. EDB3588,EDB2533), please use in conjunction with the `--id-string` flag\n.")
-            sys.exit(-1)
-    else:
-        print(f"Input file: {query}")
-
+    # specifying temp directory, outdir if no_temp
+    qcfunk.get_temp_dir(args.tempdir, args.no_temp,cwd,config)
 
     # parse the input csv, check col headers and get fields if fields specified
-    fields = []
-    labels = []
-    queries = []
-    graphics_list = []
 
-    with open(query, newline="") as f:
-        reader = csv.DictReader(f)
-        column_names = reader.fieldnames
-        if "name" not in column_names:
-            sys.stderr.write(f"Error: Input file missing header field `name`\n.")
-            sys.exit(-1)
-
-        if not args.fields:
-            fields.append("adm1")
-            print("No fields to colour by provided, will colour by adm1 by default.\n")
-        else:
-            desired_fields = args.fields.split(",")
-            for field in desired_fields:
-                if field in reader.fieldnames:
-                    fields.append(field)
-                else:
-                    sys.stderr.write(f"Error: {field} field not found in metadata file")
-                    sys.exit(-1)
-
+    qcfunk.check_label_and_colour_fields(query, args.query, args.fields, args.label_fields,args.display, args.input_column, config)
         
-        if not args.label_fields:
-            labels.append("NONE")
-        else:
-            label_fields = args.label_fields.split(",")
-            for label_f in label_fields:
-                if label_f in reader.fieldnames:
-                    labels.append(label_f)
-                else:
-                    sys.stderr.write(f"Error: {label_f} field not found in metadata file")
-                    sys.exit(-1)
-
-        if args.display:
-            sections = args.display.split(",")
-            for item in sections:
-                splits = item.split("=")
-                graphic_trait = splits[0]
-                if graphic_trait in reader.fieldnames:
-                    if len(splits) == 1:
-                        graphics_list.append(graphic_trait + ":default")
-                    else:
-                        colour_scheme = splits[1]
-                        if colour_scheme in acceptable_colours:
-                            graphics_list.append(graphic_trait + ":" + colour_scheme)
-                        else:
-                            sys.stderr.write(f"Error: {colour_scheme} not a matplotlib compatible colour scheme s")
-                            sys.stderr.write(f"Please use one of {acceptable_colours}")
-                            sys.exit(-1)
-                else:
-                    sys.stderr.write(f"Error: {graphic_trait} field not found in metadata file")
-                    sys.exit(-1)
-        else:
-            graphics_list.append("adm1:default")
-        
-        print("COG-UK ids to process:")
-        for row in reader:
-            queries.append(row["name"])
-            
-            print(row["name"])
-        print(f"Total: {len(queries)}")
-    print('\n')
     # how many threads to pass
     if args.threads:
         threads = args.threads
     else:
         threads = 1
     print(f"Number of threads: {threads}\n")
-
+    
     # create the config dict to pass through to the snakemake file
     config = {
         "query":query,
-        "fields":",".join(fields),
-        "label_fields":",".join(labels),
-        "outdir":outdir,
-        "tempdir":tempdir,
         "trim_start":265,   # where to pad to using datafunk
         "trim_end":29674,   # where to pad after using datafunk
-        "fasta":fasta,
-        "rel_outdir":rel_outdir,
         "search_field":args.search_field,
         "force":"True",
         "date_range_start":args.date_range_start,
         "date_range_end":args.date_range_end,
-        "date_window":args.date_window,
-        "graphic_dict":",".join(graphics_list)
+        "date_window":args.date_window
         }
 
-    if args.add_boxplots:
-        config["add_boxplots"]= True
+    if args.add_bars:
+        config["add_bars"]= True
     else:
-        config["add_boxplots"]= False
+        config["add_bars"]= False
         
     if args.map_sequences:
         config["map_sequences"] = True

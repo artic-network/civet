@@ -83,40 +83,38 @@ def yellow(text):
 def bold_underline(text):
     return BOLD + UNDERLINE + text + END_FORMATTING
 
-
-
-def get_snakefile(thisdir):
+def get_snakefile(thisdir, config):
     snakefile = os.path.join(thisdir, 'scripts','Snakefile')
     if not os.path.exists(snakefile):
         sys.stderr.write(cyan(f'Error: cannot find Snakefile at {snakefile}\n Check installation'))
         sys.exit(-1)
     return snakefile
 
-def get_seqs_for_aln(seqs_arg,cwd):
-    if not seqs_arg:
-        sys.stderr.write(cyan(f"""Error: please input fasta file for alignment\n"""))
-        sys.exit(-1)
-    else:
-        seqs = os.path.join(cwd, seqs_arg)
+# def get_seqs_for_aln(seqs_arg,cwd):
+#     if not seqs_arg:
+#         sys.stderr.write(cyan(f"""Error: please input fasta file for alignment\n"""))
+#         sys.exit(-1)
+#     else:
+#         seqs = os.path.join(cwd, seqs_arg)
 
-    if not os.path.exists(seqs):
-        sys.stderr.write(cyan(f"""Error: cannot find sequence file at {seqs}\n"""))
-        sys.exit(-1)
-    return seqs
+#     if not os.path.exists(seqs):
+#         sys.stderr.write(cyan(f"""Error: cannot find sequence file at {seqs}\n"""))
+#         sys.exit(-1)
+#     return seqs
 
-def get_outgroup_sequence(outgroup_arg, cwd, config):
-    if outgroup_arg:
-        reference_fasta = os.path.join(cwd, outgroup_arg)
-        if not os.path.isfile(reference_fasta):
-            sys.stderr.write(cyan(f"""Error: cannot find specified outgroup file at {outgroup_arg}\n"""))
-            sys.exit(-1)
-        else:
-            config["reference_fasta"] = reference_fasta
-    else:
-        reference_fasta = pkg_resources.resource_filename('llama', 'data/reference.fasta')
-        config["reference_fasta"] = reference_fasta
+# def get_outgroup_sequence(outgroup_arg, cwd, config):
+#     if outgroup_arg:
+#         reference_fasta = os.path.join(cwd, outgroup_arg)
+#         if not os.path.isfile(reference_fasta):
+#             sys.stderr.write(cyan(f"""Error: cannot find specified outgroup file at {outgroup_arg}\n"""))
+#             sys.exit(-1)
+#         else:
+#             config["reference_fasta"] = reference_fasta
+#     else:
+#         reference_fasta = pkg_resources.resource_filename('llama', 'data/reference.fasta')
+#         config["reference_fasta"] = reference_fasta
 
-def get_query_fasta(fasta_arg,cwd):
+def get_query_fasta(fasta_arg,cwd,config):
     if fasta_arg:
         fasta = os.path.join(cwd, fasta_arg)
         if not os.path.exists(fasta):
@@ -126,9 +124,9 @@ def get_query_fasta(fasta_arg,cwd):
             print(green(f"Input fasta file:") + f" {fasta}")
     else:
         fasta = ""
-    return fasta
+    config["fasta"] = fasta 
 
-def get_outdir(outdir_arg,cwd):
+def get_outdir(outdir_arg,cwd,config):
     outdir = ''
     if outdir_arg:
         rel_outdir = outdir_arg #for report weaving
@@ -143,11 +141,15 @@ def get_outdir(outdir_arg,cwd):
             os.mkdir(outdir)
         rel_outdir = os.path.join(".",timestamp)
     print(green(f"Output dir:") + f" {outdir}")
-    return outdir, rel_outdir
+    config["outdir"] = outdir 
+    config["rel_outdir"] = rel_outdir 
         
-def get_temp_dir(tempdir_arg, cwd):
+def get_temp_dir(tempdir_arg,no_temp_arg, cwd,config):
     tempdir = ''
-    if tempdir_arg:
+    if no_temp_arg:
+        print(green(f"--no-temp:") + f" All intermediate files will be written to {outdir}")
+        tempdir = outdir
+    elif tempdir_arg:
         to_be_dir = os.path.join(cwd, tempdir_arg)
         if not os.path.exists(to_be_dir):
             os.mkdir(to_be_dir)
@@ -156,7 +158,8 @@ def get_temp_dir(tempdir_arg, cwd):
     else:
         temporary_directory = tempfile.TemporaryDirectory(suffix=None, prefix=None, dir=None)
         tempdir = temporary_directory.name
-    return tempdir
+    
+    config["tempdir"] = tempdir 
 
 def check_data_dir(datadir,no_seqs,cwd,config):
     data_dir = os.path.join(cwd, datadir)
@@ -192,103 +195,103 @@ def check_data_dir(datadir,no_seqs,cwd,config):
             print(green("Found input data files:") + f" - {seqs}\n - {metadata}\n - {tree}")
     return metadata,seqs,tree
 
-def parse_from_metadata_arg(metadata, from_metadata, data_column, config):
-    queries = []
-    query_dict = {}
-    column_names =""
-    config["input_column"] = data_column
-    with open(metadata, newline="") as f:
-        reader = csv.DictReader(f)
-        column_names = reader.fieldnames
+# def parse_from_metadata_arg(metadata, from_metadata, data_column, config):
+#     queries = []
+#     query_dict = {}
+#     column_names =""
+#     config["input_column"] = data_column
+#     with open(metadata, newline="") as f:
+#         reader = csv.DictReader(f)
+#         column_names = reader.fieldnames
         
-        for factor in from_metadata:
-            column_name,to_search = factor.split("=")
-            if column_name in column_names:
-                query_dict[column_name] = to_search
-            else:
-                cols = "\n- ".join(column_names)
-                cols = cols + "\n"
-                sys.stderr.write(cyan(f"""Error: `--from-metadata` argument contains a column {column_name} that is not found in the metadata file supplied.
-Columns that were found:\n{cols}"""))
-                sys.exit(-1)
+#         for factor in from_metadata:
+#             column_name,to_search = factor.split("=")
+#             if column_name in column_names:
+#                 query_dict[column_name] = to_search
+#             else:
+#                 cols = "\n- ".join(column_names)
+#                 cols = cols + "\n"
+#                 sys.stderr.write(cyan(f"""Error: `--from-metadata` argument contains a column {column_name} that is not found in the metadata file supplied.
+# Columns that were found:\n{cols}"""))
+#                 sys.exit(-1)
     
-    rows_to_search = []
+#     rows_to_search = []
     
-    for column_name in query_dict:
-        to_search = query_dict[column_name]
-        if ':' in to_search:
-            if to_search.startswith("2020-") or to_search.startswith("2019-") or to_search.startswith("2021-"):
-                print(f"Date range detected: {to_search}")
-                date_range = to_search.split(":")
-                start_date = datetime.strptime(date_range[0], "%Y-%m-%d").date()
-                end_date = datetime.strptime(date_range[1], "%Y-%m-%d").date()
-                if rows_to_search == []:
-                    with open(metadata, newline="") as f:
-                        reader = csv.DictReader(f)
-                        c =0
-                        for row in reader:
-                            c +=1
-                            row_date = row[column_name]
-                            try:
-                                check_date = datetime.strptime(row_date, "%Y-%m-%d").date()
-                            except:
-                                sys.stderr.write(cyan(f"Error: Metadata field `{row_date}` [at column: {column_name}, row: {c}] contains unaccepted date format\Please use format `2020-05-19`\n"))
-                                sys.exit(-1)
-                            if start_date <= check_date <= end_date:
-                                rows_to_search.append((row,c))
-                else:
-                    last_rows_to_search = rows_to_search
-                    new_rows_to_search = []
-                    for row,c in last_rows_to_search:
-                        row_date = row[column_name]
-                        try:
-                            check_date = datetime.strptime(row_date, "%Y-%m-%d").date()
-                        except:
-                            sys.stderr.write(cyan(f"Error: Metadata field `{row_date}` [at column: {column_name}, row: {c}] contains unaccepted date format\Please use format `YYYY-MM-DD`\n"))
-                            sys.exit(-1)
-                        if start_date <= check_date <= end_date:
-                            new_rows_to_search.append((row,c))
+#     for column_name in query_dict:
+#         to_search = query_dict[column_name]
+#         if ':' in to_search:
+#             if to_search.startswith("2020-") or to_search.startswith("2019-") or to_search.startswith("2021-"):
+#                 print(f"Date range detected: {to_search}")
+#                 date_range = to_search.split(":")
+#                 start_date = datetime.strptime(date_range[0], "%Y-%m-%d").date()
+#                 end_date = datetime.strptime(date_range[1], "%Y-%m-%d").date()
+#                 if rows_to_search == []:
+#                     with open(metadata, newline="") as f:
+#                         reader = csv.DictReader(f)
+#                         c =0
+#                         for row in reader:
+#                             c +=1
+#                             row_date = row[column_name]
+#                             try:
+#                                 check_date = datetime.strptime(row_date, "%Y-%m-%d").date()
+#                             except:
+#                                 sys.stderr.write(cyan(f"Error: Metadata field `{row_date}` [at column: {column_name}, row: {c}] contains unaccepted date format\Please use format `2020-05-19`\n"))
+#                                 sys.exit(-1)
+#                             if start_date <= check_date <= end_date:
+#                                 rows_to_search.append((row,c))
+#                 else:
+#                     last_rows_to_search = rows_to_search
+#                     new_rows_to_search = []
+#                     for row,c in last_rows_to_search:
+#                         row_date = row[column_name]
+#                         try:
+#                             check_date = datetime.strptime(row_date, "%Y-%m-%d").date()
+#                         except:
+#                             sys.stderr.write(cyan(f"Error: Metadata field `{row_date}` [at column: {column_name}, row: {c}] contains unaccepted date format\Please use format `YYYY-MM-DD`\n"))
+#                             sys.exit(-1)
+#                         if start_date <= check_date <= end_date:
+#                             new_rows_to_search.append((row,c))
                     
-                    rows_to_search = new_rows_to_search
-        else:
-            if rows_to_search == []:
-                with open(metadata, newline="") as f:
-                    reader = csv.DictReader(f)
-                    c =0
-                    for row in reader:
-                        c +=1
-                        row_info = row[column_name]
+#                     rows_to_search = new_rows_to_search
+#         else:
+#             if rows_to_search == []:
+#                 with open(metadata, newline="") as f:
+#                     reader = csv.DictReader(f)
+#                     c =0
+#                     for row in reader:
+#                         c +=1
+#                         row_info = row[column_name]
                         
-                        if row_info == to_search:
-                            rows_to_search.append((row,c))
-            else:
-                last_rows_to_search = rows_to_search
-                new_rows_to_search = []
-                for row,c in last_rows_to_search:
-                    row_info = row[column_name]
+#                         if row_info == to_search:
+#                             rows_to_search.append((row,c))
+#             else:
+#                 last_rows_to_search = rows_to_search
+#                 new_rows_to_search = []
+#                 for row,c in last_rows_to_search:
+#                     row_info = row[column_name]
                     
-                    if row_info == to_search:
-                        new_rows_to_search.append((row,c))
-                rows_to_search = new_rows_to_search
-    query = os.path.join(config["outdir"], "from_metadata_query.csv")
-    with open(query,"w") as fw:
-        writer = csv.DictWriter(fw, fieldnames=column_names,lineterminator='\n')
-        writer.writeheader()
-        count = 0
-        query_ids = []
-        for row,c in rows_to_search:
-            writer.writerow(row)
-            count +=1
-            query_ids.append(row[data_column])
-        if count == 0:
-            sys.stderr.write(cyan(f"Error: No sequences meet the criteria defined with `--from-metadata`.\nExiting\n"))
-            sys.exit(-1)
-        print(green(f"Number of sequences matching defined query:") + f" {count}")
-        if len(query_ids) < 100:
-            for i in query_ids:
-                print(f" - {i}")
-    config["query"] = query
-    return query
+#                     if row_info == to_search:
+#                         new_rows_to_search.append((row,c))
+#                 rows_to_search = new_rows_to_search
+#     query = os.path.join(config["outdir"], "from_metadata_query.csv")
+#     with open(query,"w") as fw:
+#         writer = csv.DictWriter(fw, fieldnames=column_names,lineterminator='\n')
+#         writer.writeheader()
+#         count = 0
+#         query_ids = []
+#         for row,c in rows_to_search:
+#             writer.writerow(row)
+#             count +=1
+#             query_ids.append(row[data_column])
+#         if count == 0:
+#             sys.stderr.write(cyan(f"Error: No sequences meet the criteria defined with `--from-metadata`.\nExiting\n"))
+#             sys.exit(-1)
+#         print(green(f"Number of sequences matching defined query:") + f" {count}")
+#         if len(query_ids) < 100:
+#             for i in query_ids:
+#                 print(f" - {i}")
+#     config["query"] = query
+#     return query
 
 def parse_input_query(query_arg,ids_arg,cwd,config):
     query = os.path.join(cwd,query_arg)
@@ -306,11 +309,16 @@ def parse_input_query(query_arg,ids_arg,cwd,config):
             sys.stderr.write(cyan(f"Error: cannot find query file at {query}\nCheck if the file exists, or if you're inputting an id string (e.g. EPI12345,EPI23456), please use in conjunction with the `--id-string` flag\n."))
             sys.exit(-1)
 
-    print(green(f"Input file:") + f" {query}")
+    ending = query.split(".")[-1]
+    if ending in ["yaml","yml"]:
+        print(green(f"Input config file:") + f" {query}")
+    elif ending == "csv":
+        print(green(f"Input file:") + f" {query}")
     return query
         
 
-def check_label_and_colour_fields(query_file, query_arg, colour_fields, label_fields, input_column, config):
+def check_label_and_colour_fields(query_file, query_arg, colour_fields, label_fields,display_arg, input_column, config):
+    acceptable_colours = get_colours()
     queries = []
     colour_field_list = []
     labels = []
@@ -330,7 +338,7 @@ def check_label_and_colour_fields(query_file, query_arg, colour_fields, label_fi
             print(green(f"Number of queries:") + f" {len(queries)}")
 
         if not colour_fields:
-            colour_field_list.append("NONE")
+            colour_field_list.append("adm1")
         else:
             desired_fields = colour_fields.split(",")
             for field in desired_fields:
@@ -342,7 +350,7 @@ def check_label_and_colour_fields(query_file, query_arg, colour_fields, label_fi
         
         colour_field_str = ",".join(colour_field_list)
         print(f"Going to colour by: {colour_field_str}")
-        config["colour_fields"] = colour_field_str
+        config["fields"] = colour_field_str
         
         if not label_fields:
             labels.append("NONE")
@@ -358,6 +366,30 @@ def check_label_and_colour_fields(query_file, query_arg, colour_fields, label_fi
         labels_str = ",".join(labels)
         print(f"Going to label by: {labels_str}")
         config["label_fields"] = labels_str
+
+        if display_arg:
+            sections = display_arg.split(",")
+            for item in sections:
+                splits = item.split("=")
+                graphic_trait = splits[0]
+                if graphic_trait in column_names:
+                    if len(splits) == 1:
+                        graphics_list.append(graphic_trait + ":default")
+                    else:
+                        colour_scheme = splits[1]
+                        if colour_scheme in acceptable_colours:
+                            graphics_list.append(graphic_trait + ":" + colour_scheme)
+                        else:
+                            sys.stderr.write(cyan(f"Error: {colour_scheme} not a matplotlib compatible colour scheme\n"))
+                            sys.stderr.write(cyan(f"Please use one of {acceptable_colours}"))
+                            sys.exit(-1)
+                else:
+                    sys.stderr.write(cyan(f"Error: {graphic_trait} field not found in metadata file\n"))
+                    sys.exit(-1)
+        else:
+            graphics_list.append("adm1:default")
+
+        config["graphic_dict"] = ",".join(graphics_list)
 
 def check_summary_fields(full_metadata, summary_field, config):
 
