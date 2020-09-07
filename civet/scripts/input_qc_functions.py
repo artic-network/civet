@@ -83,7 +83,7 @@ def yellow(text):
 def bold_underline(text):
     return BOLD + UNDERLINE + text + END_FORMATTING
 
-def get_snakefile(thisdir, config):
+def get_snakefile(thisdir):
     snakefile = os.path.join(thisdir, 'scripts','Snakefile')
     if not os.path.exists(snakefile):
         sys.stderr.write(cyan(f'Error: cannot find Snakefile at {snakefile}\n Check installation'))
@@ -102,17 +102,17 @@ def get_snakefile(thisdir, config):
 #         sys.exit(-1)
 #     return seqs
 
-# def get_outgroup_sequence(outgroup_arg, cwd, config):
-#     if outgroup_arg:
-#         reference_fasta = os.path.join(cwd, outgroup_arg)
-#         if not os.path.isfile(reference_fasta):
-#             sys.stderr.write(cyan(f"""Error: cannot find specified outgroup file at {outgroup_arg}\n"""))
-#             sys.exit(-1)
-#         else:
-#             config["reference_fasta"] = reference_fasta
-#     else:
-#         reference_fasta = pkg_resources.resource_filename('llama', 'data/reference.fasta')
-#         config["reference_fasta"] = reference_fasta
+def get_outgroup_sequence(outgroup_arg, cwd, config):
+    if outgroup_arg:
+        reference_fasta = os.path.join(cwd, outgroup_arg)
+        if not os.path.isfile(reference_fasta):
+            sys.stderr.write(cyan(f"""Error: cannot find specified outgroup file at {outgroup_arg}\n"""))
+            sys.exit(-1)
+        else:
+            config["reference_fasta"] = reference_fasta
+    else:
+        reference_fasta = pkg_resources.resource_filename('llama', 'data/reference.fasta')
+        config["reference_fasta"] = reference_fasta
 
 def get_query_fasta(fasta_arg,cwd,config):
     if fasta_arg:
@@ -143,6 +143,7 @@ def get_outdir(outdir_arg,cwd,config):
     print(green(f"Output dir:") + f" {outdir}")
     config["outdir"] = outdir 
     config["rel_outdir"] = rel_outdir 
+    return outdir 
         
 def get_temp_dir(tempdir_arg,no_temp_arg, cwd,config):
     tempdir = ''
@@ -160,40 +161,41 @@ def get_temp_dir(tempdir_arg,no_temp_arg, cwd,config):
         tempdir = temporary_directory.name
     
     config["tempdir"] = tempdir 
+    return tempdir
 
-def check_data_dir(datadir,no_seqs,cwd,config):
-    data_dir = os.path.join(cwd, datadir)
+# def check_data_dir(datadir,no_seqs,cwd,config):
+#     data_dir = os.path.join(cwd, datadir)
     
-    seqs = os.path.join(data_dir,"alignment.fasta")
+#     seqs = os.path.join(data_dir,"alignment.fasta")
     
-    metadata = os.path.join(data_dir,"metadata.csv")
+#     metadata = os.path.join(data_dir,"metadata.csv")
 
-    tree = os.path.join(data_dir,"global.tree")
-    if no_seqs:
-        if not os.path.isfile(metadata) or not os.path.isfile(tree):
-            sys.stderr.write(cyan(f"""Error: cannot find correct data files at {data_dir}\nThe directory should contain the following files:\n\
-    - global.tree\n\
-    - metadata.csv\n"""))
-            sys.exit(-1)
-        else:
-            config["metadata"] = metadata
-            config["tree"] = tree
-            seqs = ""
-            print(green("Found input data files:") + f"\n - {metadata}\n - {tree}")
-    else:
-        if not os.path.isfile(seqs) or not os.path.isfile(metadata) or not os.path.isfile(tree):
-            sys.stderr.write(cyan(f"""Error: cannot find correct data files at {data_dir}\nThe directory should contain the following files:\n\
-    - alignment.fasta\n\
-    - global.tree\n\
-    - metadata.csv\n"""))
-            sys.exit(-1)
-        else:
-            config["seqs"] = seqs
-            config["metadata"] = metadata
-            config["tree"] = tree
+#     tree = os.path.join(data_dir,"global.tree")
+#     if no_seqs:
+#         if not os.path.isfile(metadata) or not os.path.isfile(tree):
+#             sys.stderr.write(cyan(f"""Error: cannot find correct data files at {data_dir}\nThe directory should contain the following files:\n\
+#     - global.tree\n\
+#     - metadata.csv\n"""))
+#             sys.exit(-1)
+#         else:
+#             config["metadata"] = metadata
+#             config["tree"] = tree
+#             seqs = ""
+#             print(green("Found input data files:") + f"\n - {metadata}\n - {tree}")
+#     else:
+#         if not os.path.isfile(seqs) or not os.path.isfile(metadata) or not os.path.isfile(tree):
+#             sys.stderr.write(cyan(f"""Error: cannot find correct data files at {data_dir}\nThe directory should contain the following files:\n\
+#     - alignment.fasta\n\
+#     - global.tree\n\
+#     - metadata.csv\n"""))
+#             sys.exit(-1)
+#         else:
+#             config["seqs"] = seqs
+#             config["metadata"] = metadata
+#             config["tree"] = tree
 
-            print(green("Found input data files:") + f" - {seqs}\n - {metadata}\n - {tree}")
-    return metadata,seqs,tree
+#             print(green("Found input data files:") + f" - {seqs}\n - {metadata}\n - {tree}")
+#     return metadata,seqs,tree
 
 # def parse_from_metadata_arg(metadata, from_metadata, data_column, config):
 #     queries = []
@@ -314,6 +316,7 @@ def parse_input_query(query_arg,ids_arg,cwd,config):
         print(green(f"Input config file:") + f" {query}")
     elif ending == "csv":
         print(green(f"Input file:") + f" {query}")
+    config["query"] = query
     return query
         
 
@@ -322,6 +325,8 @@ def check_label_and_colour_fields(query_file, query_arg, colour_fields, label_fi
     queries = []
     colour_field_list = []
     labels = []
+
+    graphics_list = []
     with open(query_file, newline="") as f:
         reader = csv.DictReader(f)
         column_names = reader.fieldnames
@@ -391,6 +396,56 @@ def check_label_and_colour_fields(query_file, query_arg, colour_fields, label_fi
 
         config["graphic_dict"] = ",".join(graphics_list)
 
+def map_sequences_config(map_sequences,mapping_trait,x_col,y_col,input_crs,query,config):
+
+        if map_sequences:
+            config["map_sequences"] = True
+            if not x_col or not y_col:
+                sys.stderr.write('Error: coordinates not supplied for mapping sequences. Please provide --x-col and --y-col')
+                sys.exit(-1)
+            elif not input_crs:
+                sys.stderr.write('Error: input coordinate system not provided for mapping. Please provide --input-crs eg EPSG:3395')
+                sys.exit(-1)
+            else:
+                config["x_col"] = x_col
+                config["y_col"] = y_col
+                config["input_crs"] = input_crs
+
+            with open(query, newline="") as f:
+                reader = csv.DictReader(f)
+                column_names = reader.fieldnames
+                relevant_cols = [x_col, y_col, mapping_trait]
+                for map_arg in relevant_cols:
+
+                    if map_arg not in column_names:
+                        sys.stderr.write(f"Error: {map_arg} field not found in metadata file")
+                        sys.exit(-1)
+
+            if mapping_trait:
+                config["mapping_trait"] = mapping_trait
+            else:
+                config["mapping_trait"] = False
+                
+        else:
+            config["map_sequences"] = False
+            config["x_col"] = False
+            config["y_col"] = False
+            config["input_crs"] = False
+            config["mapping_trait"] = False
+
+def local_lineages_config(local_lineages, query, config):
+        if local_lineages:
+            config['local_lineages'] = "True"
+            with open(query, newline="") as f:
+                reader = csv.DictReader(f)
+                header = reader.fieldnames
+                if not "adm2" in header:
+                    sys.stderr.write(f"Error: --local-lineages argument called, but input csv file doesn't have an adm2 column. Please provide that to have local lineage analysis.\n")
+                    sys.exit(-1)
+        else:
+            config['local_lineages'] = "False"
+
+
 def check_summary_fields(full_metadata, summary_field, config):
 
     with open(full_metadata, newline="") as f:
@@ -410,36 +465,77 @@ def check_summary_fields(full_metadata, summary_field, config):
         config["node_summary"] = summary
 
 
-                    
 def input_file_qc(fasta,minlen,maxambig,config):
-    do_not_run = []
-    run = []
-    for record in SeqIO.parse(fasta, "fasta"):
-        if len(record) <minlen:
-            record.description = record.description + f" fail=seq_len:{len(record)}"
-            do_not_run.append(record)
-            print(cyan(f"    - {record.id}\tsequence too short: Sequence length {len(record)}"))
-        else:
-            num_N = str(record.seq).upper().count("N")
-            prop_N = round((num_N)/len(record.seq), 2)
-            if prop_N > maxambig: 
-                record.description = record.description + f" fail=N_content:{prop_N}"
+    post_qc_query = ""
+    qc_fail = ""
+    if fasta:
+        do_not_run = []
+        run = []
+        for record in SeqIO.parse(fasta, "fasta"):
+            if len(record) <minlen:
+                record.description = record.description + f" fail=seq_len:{len(record)}"
                 do_not_run.append(record)
-                print(cyan(f"    - {record.id}\thas an N content of {prop_N}"))
+                print(cyan(f"    - {record.id}\tsequence too short: Sequence length {len(record)}"))
             else:
-                run.append(record)
+                num_N = str(record.seq).upper().count("N")
+                prop_N = round((num_N)/len(record.seq), 2)
+                if prop_N > maxambig: 
+                    record.description = record.description + f" fail=N_content:{prop_N}"
+                    do_not_run.append(record)
+                    print(cyan(f"    - {record.id}\thas an N content of {prop_N}"))
+                else:
+                    run.append(record)
 
-    post_qc_query = os.path.join(config["outdir"], 'query.post_qc.fasta')
-    with open(post_qc_query,"w") as fw:
-        SeqIO.write(run, fw, "fasta")
-    qc_fail = os.path.join(config["outdir"],'query.failed_qc.csv')
-    with open(qc_fail,"w") as fw:
-        fw.write("name,reason_for_failure\n")
-        for record in do_not_run:
-            desc = record.description.split(" ")
-            for i in desc:
-                if i.startswith("fail="):
-                    fw.write(f"{record.id},{i}\n")
+        post_qc_query = os.path.join(config["outdir"], 'query.post_qc.fasta')
+        with open(post_qc_query,"w") as fw:
+            SeqIO.write(run, fw, "fasta")
+        qc_fail = os.path.join(config["outdir"],'query.failed_qc.csv')
+        with open(qc_fail,"w") as fw:
+            fw.write("name,reason_for_failure\n")
+            for record in do_not_run:
+                desc = record.description.split(" ")
+                for i in desc:
+                    if i.startswith("fail="):
+                        fw.write(f"{record.id},{i}\n")
 
     config["post_qc_query"] = post_qc_query
     config["qc_fail"] = qc_fail
+
+def get_package_data(cog_report,thisdir,config):
+    reference_fasta = pkg_resources.resource_filename('civet', 'data/reference.fasta')
+    outgroup_fasta = pkg_resources.resource_filename('civet', 'data/outgroup.fasta')
+    polytomy_figure = pkg_resources.resource_filename('civet', 'data/polytomies.png')
+    footer_fig = pkg_resources.resource_filename('civet', 'data/footer.png')
+    clean_locs = pkg_resources.resource_filename('civet', 'data/mapping_files/adm2_cleaning.csv')
+    map_input_1 = pkg_resources.resource_filename('civet', 'data/mapping_files/gadm36_GBR_2.json')
+    map_input_2 = pkg_resources.resource_filename('civet', 'data/mapping_files/channel_islands.json')  
+    map_input_3 = pkg_resources.resource_filename('civet', 'data/mapping_files/NI_counties.geojson')  
+    map_input_4 = pkg_resources.resource_filename('civet', 'data/mapping_files/Mainland_HBs_gapclosed_mapshaped_d3.json')
+    map_input_5 = pkg_resources.resource_filename('civet', 'data/mapping_files/urban_areas_UK.geojson')
+    spatial_translations_1 = pkg_resources.resource_filename('civet', 'data/mapping_files/HB_Translation.pkl')
+    spatial_translations_2 = pkg_resources.resource_filename('civet', 'data/mapping_files/adm2_regions_to_coords.csv')
+    config["reference_fasta"] = reference_fasta
+    config["outgroup_fasta"] = outgroup_fasta
+    config["polytomy_figure"] = polytomy_figure
+    config["footer"] = footer_fig
+    
+    config["clean_locs"] = clean_locs
+    config["uk_map"] = map_input_1
+    config["channels_map"] = map_input_2
+    config["ni_map"] = map_input_3
+    config["uk_map_d3"] = map_input_4
+    config["urban_centres"] = map_input_5
+    config["HB_translations"] = spatial_translations_1
+    config["PC_translations"] = spatial_translations_2
+
+    if cog_report:
+        report_template = os.path.join(thisdir, 'scripts','COG_template.pmd')
+    else:
+        report_template = os.path.join(thisdir, 'scripts','civet_template.pmd')
+    
+    if not os.path.exists(report_template):
+        sys.stderr.write(cyan(f'Error: cannot find report_template at {report_template}\n'))
+        sys.exit(-1)
+    config["report_template"] = report_template
+
+    

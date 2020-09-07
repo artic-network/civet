@@ -32,7 +32,7 @@ def main(sysargs = sys.argv[1:]):
     description='civet: Cluster Investivation & Virus Epidemiology Tool', 
     usage='''civet <query> [options]''')
 
-    parser.add_argument('query',help="Input csv file with minimally `name` as a column header. Can include additional fields to be incorporated into the analysis, e.g. `sample_date`",dest="query")
+    parser.add_argument('query',help="Input csv file with minimally `name` as a column header. Can include additional fields to be incorporated into the analysis, e.g. `sample_date`")
     parser.add_argument('-i',"--id-string", action="store_true",help="Indicates the input is a comma-separated id string with one or more query ids. Example: `EDB3588,EDB3589`.", dest="ids")
     parser.add_argument('-f','--fasta', action="store",help="Optional fasta query.", dest="fasta")
     parser.add_argument('-sc',"--sequencing-centre", action="store",help="Customise report with logos from sequencing centre.", dest="sequencing_centre")
@@ -48,7 +48,7 @@ def main(sysargs = sys.argv[1:]):
     parser.add_argument('--label-fields', action="store", help="Comma separated string of fields to add to tree report labels.", dest="label_fields")
     parser.add_argument("--node-summary", action="store", help="Column to summarise collapsed nodes by. Default = Global lineage", dest="node_summary")
     parser.add_argument('--input-column', action="store",help="Column in input csv file to match with database. Default: name", dest="input_column",default="name")
-    parser.add_argument('--search-field', action="store",help="Option to search COG database for a different id type. Default: COG-UK ID", dest="search_field",default="central_sample_id")
+    parser.add_argument('--search-field', action="store",help="Option to search COG database for a different id type. Default: COG-UK ID", dest="data_column",default="central_sample_id")
     parser.add_argument('--distance', action="store",help="Extraction from large tree radius. Default: 2", dest="distance",default=2)
     parser.add_argument('--up-distance', action="store",help="Upstream distance to extract from large tree. Default: 2", dest="up_distance",default=2)
     parser.add_argument('--down-distance', action="store",help="Downstream distance to extract from large tree. Default: 2", dest="down_distance",default=2)
@@ -83,8 +83,17 @@ def main(sysargs = sys.argv[1:]):
     else:
         args = parser.parse_args(sysargs)
     
-    config = {}
-    
+    # create the config dict to pass through to the snakemake file
+    config = {
+        "trim_start":265,   # where to pad to using datafunk
+        "trim_end":29674,   # where to pad after using datafunk
+        "search_field":args.data_column,
+        "input_column":args.input_column,
+        "force":"True",
+        "date_range_start":args.date_range_start,
+        "date_range_end":args.date_range_end,
+        "date_window":args.date_window
+        }
     # find the query csv, or string of ids, or config file
     query = qcfunk.parse_input_query(args.query,args.ids,cwd,config)
     
@@ -95,10 +104,10 @@ def main(sysargs = sys.argv[1:]):
     qcfunk.get_query_fasta(args.fasta,cwd, config)
 
     # default output dir
-    qcfunk.get_outdir(args.outdir,cwd,config)
+    outdir = qcfunk.get_outdir(args.outdir,cwd,config)
 
     # specifying temp directory, outdir if no_temp
-    qcfunk.get_temp_dir(args.tempdir, args.no_temp,cwd,config)
+    tempdir =qcfunk.get_temp_dir(args.tempdir, args.no_temp,cwd,config)
 
     # parse the input csv, check col headers and get fields if fields specified
 
@@ -111,69 +120,15 @@ def main(sysargs = sys.argv[1:]):
         threads = 1
     print(f"Number of threads: {threads}\n")
     
-    # create the config dict to pass through to the snakemake file
-    config = {
-        "query":query,
-        "trim_start":265,   # where to pad to using datafunk
-        "trim_end":29674,   # where to pad after using datafunk
-        "search_field":args.search_field,
-        "force":"True",
-        "date_range_start":args.date_range_start,
-        "date_range_end":args.date_range_end,
-        "date_window":args.date_window
-        }
-
     if args.add_bars:
         config["add_bars"]= True
     else:
         config["add_bars"]= False
         
-    if args.map_sequences:
-        config["map_sequences"] = True
-        if not args.x_col or not args.y_col:
-            sys.stderr.write('Error: coordinates not supplied for mapping sequences. Please provide --x-col and --y-col')
-            sys.exit(-1)
-        elif not args.input_crs:
-            sys.stderr.write('Error: input coordinate system not provided for mapping. Please provide --input-crs eg EPSG:3395')
-            sys.exit(-1)
-        else:
-            config["x_col"] = args.x_col
-            config["y_col"] = args.y_col
-            config["input_crs"] = args.input_crs
-
-        with open(query, newline="") as f:
-            reader = csv.DictReader(f)
-            column_names = reader.fieldnames
-            relevant_cols = [args.x_col, args.y_col, args.mapping_trait]
-            for map_arg in relevant_cols:
-
-                if map_arg and map_arg not in reader.fieldnames:
-                    sys.stderr.write(f"Error: {map_arg} field not found in metadata file")
-                    sys.exit(-1)
-
-        if args.mapping_trait:
-            config["mapping_trait"] = args.mapping_trait
-        else:
-            config["mapping_trait"] = False
-            
-    else:
-        config["map_sequences"] = False
-        config["x_col"] = False
-        config["y_col"] = False
-        config["input_crs"] = False
-        config["mapping_trait"] = False
-
-    if args.local_lineages:
-        config['local_lineages'] = "True"
-        with open(query, newline="") as f:
-            reader = csv.DictReader(f)
-            header = reader.fieldnames
-            if not "adm2" in header:
-                sys.stderr.write(f"Error: --local-lineages argument called, but input csv file doesn't have an adm2 column. Please provide that to have local lineage analysis.\n")
-                sys.exit(-1)
-    else:
-        config['local_lineages'] = "False"
-
+    qcfunk.map_sequences_config(args.map_sequences,args.mapping_trait,args.x_col,args.y_col,args.input_crs,query,config)
+    
+    qcfunk.local_lineages_config(args.local_lineages,query,config)
+    
     if args.date_restriction:
         config['date_restriction'] = "True"
     else:
@@ -185,6 +140,7 @@ def main(sysargs = sys.argv[1:]):
     2) check fasta file N content
     3) write a file that contains just the seqs to run
     """
+
     # find the data files
     data_dir = ""
     if args.climb or args.datadir:
@@ -314,77 +270,19 @@ def main(sysargs = sys.argv[1:]):
 - cog_alignment.fasta\n\n""")
         sys.exit(-1)
 
+
     # run qc on the input sequence file
-    if args.fasta:
-        do_not_run = []
-        run = []
-        for record in SeqIO.parse(args.fasta, "fasta"):
-            if len(record) <args.minlen:
-                record.description = record.description + f" fail=seq_len:{len(record)}"
-                do_not_run.append(record)
-                print(f"    - {record.id}\tsequence too short: Sequence length {len(record)}")
-            else:
-                num_N = str(record.seq).upper().count("N")
-                prop_N = round((num_N)/len(record.seq), 2)
-                if prop_N > args.maxambig: 
-                    record.description = record.description + f" fail=N_content:{prop_N}"
-                    do_not_run.append(record)
-                    print(f"    - {record.id}\thas an N content of {prop_N}")
-                else:
-                    run.append(record)
-
-        post_qc_query = os.path.join(outdir, 'query.post_qc.fasta')
-        with open(post_qc_query,"w") as fw:
-            SeqIO.write(run, fw, "fasta")
-        qc_fail = os.path.join(outdir,'query.failed_qc.csv')
-        with open(qc_fail,"w") as fw:
-            fw.write("name,reason_for_failure\n")
-            for record in do_not_run:
-                desc = record.description.split(" ")
-                for i in desc:
-                    if i.startswith("fail="):
-                        fw.write(f"{record.id},{i}\n")
-
-        config["post_qc_query"] = post_qc_query
-        config["qc_fail"] = qc_fail
-    else:
-        config["post_qc_query"] = ""
-        config["qc_fail"] = ""
-
+    qcfunk.input_file_qc(args.fasta,args.minlen,args.maxambig,config)
+    
     if args.search_global:
         config["global"]="True"
     else:
         config["global"]="False"
 
-    # delay tree colapse
-    # if args.delay_tree_collapse:
-    #     print("--delay-tree-collapse: Warning tree building may take a long time.")
-    #     config["delay_collapse"] = "True"
-    # else:
-    config["delay_collapse"] = "False"
+    config["delay_collapse"] = False
 
     # accessing package data and adding to config dict
-    reference_fasta = pkg_resources.resource_filename('civet', 'data/reference.fasta')
-    outgroup_fasta = pkg_resources.resource_filename('civet', 'data/outgroup.fasta')
-    polytomy_figure = pkg_resources.resource_filename('civet', 'data/polytomies.png')
-    footer_fig = pkg_resources.resource_filename('civet', 'data/footer.png')
-    clean_locs = pkg_resources.resource_filename('civet', 'data/mapping_files/adm2_cleaning.csv')
-    map_input_1 = pkg_resources.resource_filename('civet', 'data/mapping_files/gadm36_GBR_2.json')
-    map_input_2 = pkg_resources.resource_filename('civet', 'data/mapping_files/channel_islands.json')  
-    map_input_3 = pkg_resources.resource_filename('civet', 'data/mapping_files/NI_counties.geojson')  
-    map_input_4 = pkg_resources.resource_filename('civet', 'data/mapping_files/Mainland_HBs_gapclosed_mapshaped_d3.json')
-    map_input_5 = pkg_resources.resource_filename('civet', 'data/mapping_files/urban_areas_UK.geojson')
-    spatial_translations_1 = pkg_resources.resource_filename('civet', 'data/mapping_files/HB_Translation.pkl')
-    spatial_translations_2 = pkg_resources.resource_filename('civet', 'data/mapping_files/adm2_regions_to_coords.csv')
-
-    if args.cog_report:
-        report_template = os.path.join(thisdir, 'scripts','COG_template.pmd')
-    else:
-        report_template = os.path.join(thisdir, 'scripts','civet_template.pmd')
-    
-    if not os.path.exists(report_template):
-        sys.stderr.write('Error: cannot find report_template at {}\n'.format(report_template))
-        sys.exit(-1)
+    qcfunk.get_package_data(args.cog_report,thisdir,config)
 
     with open(cog_global_metadata, newline="") as f:
         reader = csv.DictReader(f)
@@ -402,19 +300,7 @@ def main(sysargs = sys.argv[1:]):
         print(f"Going to summarise collapsed nodes by: {summary}")
         config["node_summary"] = summary
 
-    config["reference_fasta"] = reference_fasta
-    config["outgroup_fasta"] = outgroup_fasta
-    config["polytomy_figure"] = polytomy_figure
-    config["footer"] = footer_fig
-    config["report_template"] = report_template
-    config["clean_locs"] = clean_locs
-    config["uk_map"] = map_input_1
-    config["channels_map"] = map_input_2
-    config["ni_map"] = map_input_3
-    config["uk_map_d3"] = map_input_4
-    config["urban_centres"] = map_input_5
-    config["HB_translations"] = spatial_translations_1
-    config["PC_translations"] = spatial_translations_2
+    
 
     sc_list = ["PHEC", 'LIVE', 'BIRM', 'PHWC', 'CAMB', 'NORW', 'GLAS', 'EDIN', 'SHEF',
                  'EXET', 'NOTT', 'PORT', 'OXON', 'NORT', 'NIRE', 'GSTT', 'LOND', 'SANG',"NIRE"]
