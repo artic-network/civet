@@ -2,6 +2,8 @@ import csv
 from Bio import SeqIO
 import os
 import collections
+import sys
+import input_qc_functions as qcfunk
 
 rule check_cog_db:
     input:
@@ -149,9 +151,11 @@ rule combine_metadata:
     output:
         combined_csv = os.path.join(config["outdir"],"combined_metadata.csv")
     run:
+        c = 0
         with open(input.in_cog, newline="") as f:
             reader = csv.DictReader(f)
             header_names = reader.fieldnames
+
             with open(output.combined_csv, "w") as fw:
                 header_names.append("closest_distance")
                 header_names.append("snps")
@@ -159,7 +163,7 @@ rule combine_metadata:
                 writer.writeheader()
             
                 for row in reader:
-                    
+                    c +=1
                     new_row = row
                     new_row["closest_distance"]="0"
                     new_row["snps"]= ""
@@ -170,6 +174,10 @@ rule combine_metadata:
                     readerc = csv.DictReader(fc)
                     for row in readerc:
                         writer.writerow(row)
+                        c+=1
+        if c ==0:
+            sys.stderr.write(qcfunk.cyan(f'Error: no valid querys to process\n'))
+            sys.exit(-1)
 
 rule prune_out_catchments:
     input:

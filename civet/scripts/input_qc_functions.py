@@ -301,7 +301,7 @@ def parse_input_query(query_arg,ids_arg,cwd,config):
     if not os.path.exists(query):
         if ids_arg:
             id_list = query_arg.split(",")
-            query = os.path.join(config["tempdir"], "query.csv")
+            query = os.path.join(config["outdir"], "query.csv")
             with open(query,"w") as fw:
                 in_col = config["input_column"]
                 fw.write(f"{in_col}\n")
