@@ -20,6 +20,25 @@ YELLOW = '\033[93m'
 CYAN = '\u001b[36m'
 DIM = '\033[2m'
 
+def get_colours():
+    colours = ['viridis', 'plasma', 'inferno', 'magma', 'cividis','Greys', 
+            'Purples', 'Blues', 'Greens', 'Oranges', 'Reds',
+            'YlOrBr', 'YlOrRd', 'OrRd', 'PuRd', 'RdPu', 'BuPu',
+            'GnBu', 'PuBu', 'YlGnBu', 'PuBuGn', 'BuGn', 'YlGn',
+            'binary', 'gist_yarg', 'gist_gray', 'gray', 'bone', 'pink',
+            'spring', 'summer', 'autumn', 'winter', 'cool', 'Wistia',
+            'hot', 'afmhot', 'gist_heat', 'copper',
+            'PiYG', 'PRGn', 'BrBG', 'PuOr', 'RdGy', 'RdBu',
+            'RdYlBu', 'RdYlGn', 'Spectral', 'coolwarm', 'bwr', 'seismic',
+            'twilight', 'twilight_shifted', 'hsv',
+            'Pastel1', 'Pastel2', 'Paired', 'Accent',
+            'Dark2', 'Set1', 'Set2', 'Set3',
+            'tab10', 'tab20', 'tab20b', 'tab20c',
+            'flag', 'prism', 'ocean', 'gist_earth', 'terrain', 'gist_stern',
+            'gnuplot', 'gnuplot2', 'CMRmap', 'cubehelix', 'brg',
+            'gist_rainbow', 'rainbow', 'jet', 'nipy_spectral', 'gist_ncar']
+    return colours
+
 def colour(text, text_colour):
     bold_text = 'bold' in text_colour
     text_colour = text_colour.replace('bold', '')
@@ -66,13 +85,8 @@ def bold_underline(text):
 
 
 
-def get_snakefile(no_seqs,align,thisdir):
-    if no_seqs:
-        snakefile = os.path.join(thisdir, 'scripts', 'no_seqs_snakefile.smk')
-    elif align:
-        snakefile = os.path.join(thisdir, 'scripts', 'curate_alignment.smk')
-    else:
-        snakefile = os.path.join(thisdir, 'scripts','Snakefile')
+def get_snakefile(thisdir):
+    snakefile = os.path.join(thisdir, 'scripts','Snakefile')
     if not os.path.exists(snakefile):
         sys.stderr.write(cyan(f'Error: cannot find Snakefile at {snakefile}\n Check installation'))
         sys.exit(-1)
@@ -102,11 +116,8 @@ def get_outgroup_sequence(outgroup_arg, cwd, config):
         reference_fasta = pkg_resources.resource_filename('llama', 'data/reference.fasta')
         config["reference_fasta"] = reference_fasta
 
-def get_query_fasta(fasta_arg,no_seqs_arg,cwd):
+def get_query_fasta(fasta_arg,cwd):
     if fasta_arg:
-        if no_seqs_arg:
-            sys.stderr.write(cyan(f"Error: can't supply a fasta file if no supporting alignment\nEither provide a data directory with an alignment or just query sequences in the tree\n"))
-            sys.exit(-1)
         fasta = os.path.join(cwd, fasta_arg)
         if not os.path.exists(fasta):
             sys.stderr.write(cyan(f'Error: cannot find fasta query at {fasta}\n'))

@@ -10,6 +10,7 @@ import tempfile
 import pprint
 import json
 import csv
+import input_qc_functions as qcfunk
 import os
 from datetime import datetime
 from Bio import SeqIO
@@ -74,22 +75,7 @@ def main(sysargs = sys.argv[1:]):
     parser.add_argument("--input-crs", required=False, dest="input_crs", help="Coordinate reference system of sequence coordinates")
     parser.add_argument("--mapping-trait", required=False, dest="mapping_trait", help="Column to colour mapped sequences by")
 
-    acceptable_colours = ['viridis', 'plasma', 'inferno', 'magma', 'cividis','Greys', 
-            'Purples', 'Blues', 'Greens', 'Oranges', 'Reds',
-            'YlOrBr', 'YlOrRd', 'OrRd', 'PuRd', 'RdPu', 'BuPu',
-            'GnBu', 'PuBu', 'YlGnBu', 'PuBuGn', 'BuGn', 'YlGn',
-            'binary', 'gist_yarg', 'gist_gray', 'gray', 'bone', 'pink',
-            'spring', 'summer', 'autumn', 'winter', 'cool', 'Wistia',
-            'hot', 'afmhot', 'gist_heat', 'copper',
-            'PiYG', 'PRGn', 'BrBG', 'PuOr', 'RdGy', 'RdBu',
-            'RdYlBu', 'RdYlGn', 'Spectral', 'coolwarm', 'bwr', 'seismic',
-            'twilight', 'twilight_shifted', 'hsv',
-            'Pastel1', 'Pastel2', 'Paired', 'Accent',
-            'Dark2', 'Set1', 'Set2', 'Set3',
-            'tab10', 'tab20', 'tab20b', 'tab20c',
-            'flag', 'prism', 'ocean', 'gist_earth', 'terrain', 'gist_stern',
-            'gnuplot', 'gnuplot2', 'CMRmap', 'cubehelix', 'brg',
-            'gist_rainbow', 'rainbow', 'jet', 'nipy_spectral', 'gist_ncar']
+    acceptable_colours = qcfunk.get_colours()
 
     # Exit with help menu if no args supplied
     if len(sysargs)<1: 
@@ -97,59 +83,18 @@ def main(sysargs = sys.argv[1:]):
         sys.exit(-1)
     else:
         args = parser.parse_args(sysargs)
-
+    
     # find the master Snakefile
-    snakefile = os.path.join(thisdir, 'scripts','Snakefile')
-    if not os.path.exists(snakefile):
-        sys.stderr.write('Error: cannot find Snakefile at {}\n Check installation'.format(snakefile))
-        sys.exit(-1)
+    snakefile = qcfunk.get_snakefile(thisdir)
     
     # find the query fasta
-    if args.fasta:
-        fasta = os.path.join(cwd, args.fasta)
-        if not os.path.exists(fasta):
-            sys.stderr.write('Error: cannot find fasta query at {}\n'.format(fasta))
-            sys.exit(-1)
-        else:
-            print(f"Input fasta file: {fasta}")
-    else:
-        fasta = ""
+    fasta = qcfunk.get_query_fasta(args.fasta,cwd)
 
     # default output dir
-    outdir = ''
-    if args.outdir:
-        rel_outdir = args.outdir #for report weaving
-        outdir = os.path.join(cwd, args.outdir)
-        figdir = os.path.join(outdir, "figures")
-        if not os.path.exists(outdir):
-            os.mkdir(outdir)
-        if not os.path.exists(figdir):
-            os.mkdir(figdir)
-            
-    else:
-        timestamp = str(datetime.now().isoformat(timespec='milliseconds')).replace(":","").replace(".","").replace("T","-")
-        outdir = os.path.join(cwd, timestamp)
-        figdir = os.path.join(outdir, "figures")
-        if not os.path.exists(outdir):
-            os.mkdir(outdir)
-        if not os.path.exists(figdir):
-            os.mkdir(figdir)
-        
-        rel_outdir = os.path.join(".",timestamp)
-    
-    print(f"Output files will be written to {outdir}\n")
+    outdir, rel_outdir = qcfunk.get_outdir(args.outdir,cwd)
 
     # specifying temp directory
-    tempdir = ''
-    if args.tempdir:
-        to_be_dir = os.path.join(cwd, args.tempdir)
-        if not os.path.exists(to_be_dir):
-            os.mkdir(to_be_dir)
-        temporary_directory = tempfile.TemporaryDirectory(suffix=None, prefix=None, dir=to_be_dir)
-        tempdir = temporary_directory.name
-    else:
-        temporary_directory = tempfile.TemporaryDirectory(suffix=None, prefix=None, dir=None)
-        tempdir = temporary_directory.name
+    tempdir = qcfunk.get_temp_dir(tempdir_arg, cwd)
 
     # if no temp, just write everything to outdir
     if args.no_temp:
