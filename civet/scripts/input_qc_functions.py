@@ -10,6 +10,7 @@ from datetime import datetime
 from tempfile import gettempdir
 import tempfile
 import pkg_resources
+import yaml
 
 END_FORMATTING = '\033[0m'
 BOLD = '\033[1m'
@@ -20,75 +21,69 @@ YELLOW = '\033[93m'
 CYAN = '\u001b[36m'
 DIM = '\033[2m'
 
-def get_colours():
-    colours = ['viridis', 'plasma', 'inferno', 'magma', 'cividis','Greys', 
-            'Purples', 'Blues', 'Greens', 'Oranges', 'Reds',
-            'YlOrBr', 'YlOrRd', 'OrRd', 'PuRd', 'RdPu', 'BuPu',
-            'GnBu', 'PuBu', 'YlGnBu', 'PuBuGn', 'BuGn', 'YlGn',
-            'binary', 'gist_yarg', 'gist_gray', 'gray', 'bone', 'pink',
-            'spring', 'summer', 'autumn', 'winter', 'cool', 'Wistia',
-            'hot', 'afmhot', 'gist_heat', 'copper',
-            'PiYG', 'PRGn', 'BrBG', 'PuOr', 'RdGy', 'RdBu',
-            'RdYlBu', 'RdYlGn', 'Spectral', 'coolwarm', 'bwr', 'seismic',
-            'twilight', 'twilight_shifted', 'hsv',
-            'Pastel1', 'Pastel2', 'Paired', 'Accent',
-            'Dark2', 'Set1', 'Set2', 'Set3',
-            'tab10', 'tab20', 'tab20b', 'tab20c',
-            'flag', 'prism', 'ocean', 'gist_earth', 'terrain', 'gist_stern',
-            'gnuplot', 'gnuplot2', 'CMRmap', 'cubehelix', 'brg',
-            'gist_rainbow', 'rainbow', 'jet', 'nipy_spectral', 'gist_ncar']
-    return colours
-
-def colour(text, text_colour):
-    bold_text = 'bold' in text_colour
-    text_colour = text_colour.replace('bold', '')
-    underline_text = 'underline' in text_colour
-    text_colour = text_colour.replace('underline', '')
-    text_colour = text_colour.replace('_', '')
-    text_colour = text_colour.replace(' ', '')
-    text_colour = text_colour.lower()
-    if 'red' in text_colour:
-        coloured_text = RED
-    elif 'green' in text_colour:
-        coloured_text = GREEN
-    elif 'yellow' in text_colour:
-        coloured_text = YELLOW
-    elif 'dim' in text_colour:
-        coloured_text = DIM
-    elif 'cyan' in text_colour:
-        coloured_text = 'cyan'
-    else:
-        coloured_text = ''
-    if bold_text:
-        coloured_text += BOLD
-    if underline_text:
-        coloured_text += UNDERLINE
-    if not coloured_text:
-        return text
-    coloured_text += text + END_FORMATTING
-    return coloured_text
-
-def red(text):
-    return RED + text + END_FORMATTING
-
-def cyan(text):
-    return CYAN + text + END_FORMATTING
-
-def green(text):
-    return GREEN + text + END_FORMATTING
-
-def yellow(text):
-    return YELLOW + text + END_FORMATTING
-
-def bold_underline(text):
-    return BOLD + UNDERLINE + text + END_FORMATTING
-
 def get_snakefile(thisdir):
     snakefile = os.path.join(thisdir, 'scripts','Snakefile')
     if not os.path.exists(snakefile):
         sys.stderr.write(cyan(f'Error: cannot find Snakefile at {snakefile}\n Check installation'))
         sys.exit(-1)
     return snakefile
+
+def type_input_file(query_arg,ids_arg,cwd,config):
+
+    query,configfile="",""
+
+    input_file = os.path.join(cwd,query_arg)
+    ending = input_file.split(".")[-1]
+
+    if ending in ["yaml","yml"]:
+        print(green(f"Input config file:") + f" {input_file}")
+        configfile  = input_file
+
+    elif ending == "csv":
+        print(green(f"Input file:") + f" {input_file}")
+        query = input_file
+
+    return query,configfile
+    
+def check_query_file(query, ids_arg, config):
+    queryfile = ""
+    if "query" in config:
+        queryfile = config["query"]
+    elif query:
+        queryfile = query
+    elif ids_arg:
+        id_list = query_arg.split(",")
+        queryfile = make_csv_from_ids(id_list, config)
+    elif "ids" in config:
+        queryfile = make_csv_from_ids(config["ids"], config)
+    else:
+        sys.stderr.write(cyan(f"Error: no query input provided"))
+        sys.exit(-1)
+    print("queryfile is",queryfile)
+    if os.path.exists(queryfile):
+        config["query"] = queryfile
+    else:
+        sys.stderr.write(cyan(f"Error: cannot find query file at {query}\nCheck if the file exists, or if you're inputting a set of ids (e.g. EPI12345,EPI23456), please use in conjunction with the `--id-string` flag or provide `ids` in the config file \n."))
+        sys.exit(-1)
+
+def make_csv_from_ids(id_list, config):
+    query = os.path.join(config["outdir"], "query.csv")
+    with open(query,"w") as fw:
+        in_col = config["input_column"]
+        fw.write(f"{in_col}\n")
+        for i in id_list:
+            fw.write(i+'\n')
+    return query
+
+def parse_yaml_file(configfile,config):
+    with open(configfile,"r") as f:
+        input_config = yaml.load(f, Loader=yaml.FullLoader)
+        print(input_config)
+        for key in input_config:
+            print(key, input_config[key])
+            key = key.replace("-","_")
+            config[key] = input_config[key]
+
 
 # def get_seqs_for_aln(seqs_arg,cwd):
 #     if not seqs_arg:
@@ -115,31 +110,43 @@ def get_outgroup_sequence(outgroup_arg, cwd, config):
         config["reference_fasta"] = reference_fasta
 
 def get_query_fasta(fasta_arg,cwd,config):
-    if fasta_arg:
+    if "fasta" in config:
         fasta = os.path.join(cwd, fasta_arg)
+    elif fasta_arg:
+        fasta = os.path.join(cwd, fasta_arg)
+    else:
+        fasta = ""
+
+    if fasta:
         if not os.path.exists(fasta):
             sys.stderr.write(cyan(f'Error: cannot find fasta query at {fasta}\n'))
             sys.exit(-1)
         else:
             print(green(f"Input fasta file:") + f" {fasta}")
-    else:
-        fasta = ""
+    
     config["fasta"] = fasta 
 
 def get_outdir(outdir_arg,cwd,config):
     outdir = ''
-    if outdir_arg:
+    
+    if "outdir" in config:
+        rel_outdir = config["outdir"]
+        outdir = os.path.join(cwd, rel_outdir)
+
+
+    elif outdir_arg:
         rel_outdir = outdir_arg #for report weaving
         outdir = os.path.join(cwd, outdir_arg)
         
-        if not os.path.exists(outdir):
-            os.mkdir(outdir)
     else:
         timestamp = str(datetime.now().isoformat(timespec='milliseconds')).replace(":","").replace(".","").replace("T","-")
         outdir = os.path.join(cwd, timestamp)
-        if not os.path.exists(outdir):
-            os.mkdir(outdir)
+        
         rel_outdir = os.path.join(".",timestamp)
+        
+    if not os.path.exists(outdir):
+        os.mkdir(outdir)
+
     print(green(f"Output dir:") + f" {outdir}")
     config["outdir"] = outdir 
     config["rel_outdir"] = rel_outdir 
@@ -294,38 +301,16 @@ def get_temp_dir(tempdir_arg,no_temp_arg, cwd,config):
 #     config["query"] = query
 #     return query
 
-def parse_input_query(query_arg,ids_arg,cwd,config):
-    query = os.path.join(cwd,query_arg)
-            
-    if not os.path.exists(query):
-        if ids_arg:
-            id_list = query_arg.split(",")
-            query = os.path.join(config["outdir"], "query.csv")
-            with open(query,"w") as fw:
-                in_col = config["input_column"]
-                fw.write(f"{in_col}\n")
-                for i in id_list:
-                    fw.write(i+'\n')
-        else:
-            sys.stderr.write(cyan(f"Error: cannot find query file at {query}\nCheck if the file exists, or if you're inputting an id string (e.g. EPI12345,EPI23456), please use in conjunction with the `--id-string` flag\n."))
-            sys.exit(-1)
 
-    ending = query.split(".")[-1]
-    if ending in ["yaml","yml"]:
-        print(green(f"Input config file:") + f" {query}")
-    elif ending == "csv":
-        print(green(f"Input file:") + f" {query}")
-    config["query"] = query
-    return query
-        
 
-def check_label_and_colour_fields(query_file, query_arg, colour_fields, label_fields,display_arg, input_column, config):
+def check_label_and_colour_fields(query_arg, colour_fields, label_fields, display_arg, input_column, config):
     acceptable_colours = get_colours()
     queries = []
     colour_field_list = []
     labels = []
 
     graphics_list = []
+    query_file = config["query"]
     with open(query_file, newline="") as f:
         reader = csv.DictReader(f)
         column_names = reader.fieldnames
@@ -734,3 +719,67 @@ def distance_config(distance, up_distance, down_distance, config):
         config["down_distance"] = down_distance
 
     print(green(f"Extraction radius:\n")+f"\tUp distance: {up_distance}\n\tDown distance: {down_distance}\n")
+
+
+def get_colours():
+    colours = ['viridis', 'plasma', 'inferno', 'magma', 'cividis','Greys', 
+            'Purples', 'Blues', 'Greens', 'Oranges', 'Reds',
+            'YlOrBr', 'YlOrRd', 'OrRd', 'PuRd', 'RdPu', 'BuPu',
+            'GnBu', 'PuBu', 'YlGnBu', 'PuBuGn', 'BuGn', 'YlGn',
+            'binary', 'gist_yarg', 'gist_gray', 'gray', 'bone', 'pink',
+            'spring', 'summer', 'autumn', 'winter', 'cool', 'Wistia',
+            'hot', 'afmhot', 'gist_heat', 'copper',
+            'PiYG', 'PRGn', 'BrBG', 'PuOr', 'RdGy', 'RdBu',
+            'RdYlBu', 'RdYlGn', 'Spectral', 'coolwarm', 'bwr', 'seismic',
+            'twilight', 'twilight_shifted', 'hsv',
+            'Pastel1', 'Pastel2', 'Paired', 'Accent',
+            'Dark2', 'Set1', 'Set2', 'Set3',
+            'tab10', 'tab20', 'tab20b', 'tab20c',
+            'flag', 'prism', 'ocean', 'gist_earth', 'terrain', 'gist_stern',
+            'gnuplot', 'gnuplot2', 'CMRmap', 'cubehelix', 'brg',
+            'gist_rainbow', 'rainbow', 'jet', 'nipy_spectral', 'gist_ncar']
+    return colours
+
+def colour(text, text_colour):
+    bold_text = 'bold' in text_colour
+    text_colour = text_colour.replace('bold', '')
+    underline_text = 'underline' in text_colour
+    text_colour = text_colour.replace('underline', '')
+    text_colour = text_colour.replace('_', '')
+    text_colour = text_colour.replace(' ', '')
+    text_colour = text_colour.lower()
+    if 'red' in text_colour:
+        coloured_text = RED
+    elif 'green' in text_colour:
+        coloured_text = GREEN
+    elif 'yellow' in text_colour:
+        coloured_text = YELLOW
+    elif 'dim' in text_colour:
+        coloured_text = DIM
+    elif 'cyan' in text_colour:
+        coloured_text = 'cyan'
+    else:
+        coloured_text = ''
+    if bold_text:
+        coloured_text += BOLD
+    if underline_text:
+        coloured_text += UNDERLINE
+    if not coloured_text:
+        return text
+    coloured_text += text + END_FORMATTING
+    return coloured_text
+
+def red(text):
+    return RED + text + END_FORMATTING
+
+def cyan(text):
+    return CYAN + text + END_FORMATTING
+
+def green(text):
+    return GREEN + text + END_FORMATTING
+
+def yellow(text):
+    return YELLOW + text + END_FORMATTING
+
+def bold_underline(text):
+    return BOLD + UNDERLINE + text + END_FORMATTING

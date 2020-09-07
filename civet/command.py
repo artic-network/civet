@@ -12,6 +12,7 @@ import json
 import csv
 import input_qc_functions as qcfunk
 import os
+import yaml
 from datetime import datetime
 from Bio import SeqIO
 
@@ -90,7 +91,9 @@ def main(sysargs = sys.argv[1:]):
     else:
         args = parser.parse_args(sysargs)
     
+    
     # create the config dict to pass through to the snakemake file
+
     config = {
         "trim_start":265,   # where to pad to using datafunk
         "trim_end":29674,   # where to pad after using datafunk
@@ -106,7 +109,13 @@ def main(sysargs = sys.argv[1:]):
         "global":args.search_global,
         "delay_collapse": False
         }
-    
+
+    # find the query csv, or string of ids, or config file
+    query,configfile = qcfunk.type_input_file(args.query,args.ids,cwd,config)
+
+    if configfile:
+        qcfunk.parse_yaml_file(configfile, config)
+        
     # find the master Snakefile
     snakefile = qcfunk.get_snakefile(thisdir)
     
@@ -117,14 +126,13 @@ def main(sysargs = sys.argv[1:]):
     qcfunk.get_outdir(args.outdir,cwd,config)
 
     # specifying temp directory, outdir if no_temp
-    tempdir =qcfunk.get_temp_dir(args.tempdir, args.no_temp,cwd,config)
+    tempdir = qcfunk.get_temp_dir(args.tempdir, args.no_temp,cwd,config)
 
-    # find the query csv, or string of ids, or config file
-    query = qcfunk.parse_input_query(args.query,args.ids,cwd,config)
+    # check query exists or add ids to temp query file
+    qcfunk.check_query_file(query, args.ids, config)
 
     # parse the input csv, check col headers and get fields if fields specified
-
-    qcfunk.check_label_and_colour_fields(query, args.query, args.fields, args.label_fields,args.display, args.input_column, config)
+    qcfunk.check_label_and_colour_fields(args.query, args.fields, args.label_fields,args.display, args.input_column, config)
         
     # map sequences configuration
     qcfunk.map_sequences_config(args.map_sequences,args.mapping_trait,args.x_col,args.y_col,args.input_crs,query,config)
