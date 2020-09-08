@@ -34,7 +34,7 @@ def main(sysargs = sys.argv[1:]):
     usage='''civet <query> [options]''')
 
     io_group = parser.add_argument_group('input output options')
-    io_group.add_argument('query',help="Input csv file with minimally `name` as a column header. Can include additional fields to be incorporated into the analysis, e.g. `sample_date`")
+    io_group.add_argument('query',help="Input csv file or input config file. CSV minimally has input_column header, Default=`name`. Can include additional fields to be incorporated into the analysis, e.g. `sample_date`")
     io_group.add_argument('-i',"--id-string", action="store_true",help="Indicates the input is a comma-separated id string with one or more query ids. Example: `EDB3588,EDB3589`.", dest="ids")
     io_group.add_argument('-f','--fasta', action="store",help="Optional fasta query.", dest="fasta")
     io_group.add_argument('--CLIMB', action="store_true",dest="climb",help="Indicates you're running CIVET from within CLIMB, uses default paths in CLIMB to access data")
@@ -51,12 +51,12 @@ def main(sysargs = sys.argv[1:]):
     
     report_group = parser.add_argument_group('report customisation')
     report_group.add_argument('-sc',"--sequencing-centre", action="store",help="Customise report with logos from sequencing centre.", dest="sequencing_centre")
-    report_group.add_argument('--cog-report', action="store_true",help="Run summary cog report. Default: outbreak investigation",dest="cog_report")
-    report_group.add_argument('--fields', action="store",help="Comma separated string of fields to display in the trees in the report. Default: country")
     report_group.add_argument('--display', action="store", help="Comma separated string of fields to display as coloured dots rather than text in report trees. Optionally add colour scheme eg adm1=viridis", dest="display")
+    report_group.add_argument('--fields', action="store",help="Comma separated string of fields to display in the trees in the report. Default: country")
     report_group.add_argument('--label-fields', action="store", help="Comma separated string of fields to add to tree report labels.", dest="label_fields")
     report_group.add_argument("--node-summary", action="store", help="Column to summarise collapsed nodes by. Default = Global lineage", dest="node_summary")
     report_group.add_argument('--add-bars', action="store_true",help="Render boxplots in the output report", dest="add_bars",default=False)
+    report_group.add_argument('--cog-report', action="store_true",help="Run summary cog report. Default: outbreak investigation",dest="cog_report")
 
     tree_group = parser.add_argument_group('tree context options')
     tree_group.add_argument('--distance', action="store",help="Extraction from large tree radius. Default: 2", dest="distance",type=int,default=2)
@@ -110,12 +110,14 @@ def main(sysargs = sys.argv[1:]):
         "delay_collapse": False
         }
 
+    print(args)
     # find the query csv, or string of ids, or config file
-    query,configfile = qcfunk.type_input_file(args.query,args.ids,cwd,config)
+    query,configfile = qcfunk.type_input_file(args.query,cwd,config)
 
     if configfile:
         qcfunk.parse_yaml_file(configfile, config)
         
+    
     # find the master Snakefile
     snakefile = qcfunk.get_snakefile(thisdir)
     
@@ -129,10 +131,10 @@ def main(sysargs = sys.argv[1:]):
     tempdir = qcfunk.get_temp_dir(args.tempdir, args.no_temp,cwd,config)
 
     # check query exists or add ids to temp query file
-    qcfunk.check_query_file(query, args.ids, config)
+    qcfunk.check_query_file(query, args.ids,cwd, config)
 
     # parse the input csv, check col headers and get fields if fields specified
-    qcfunk.check_label_and_colour_fields(args.query, args.fields, args.label_fields,args.display, args.input_column, config)
+    qcfunk.check_label_and_colour_fields(args.fields, args.label_fields,args.display, args.input_column, config)
         
     # map sequences configuration
     qcfunk.map_sequences_config(args.map_sequences,args.mapping_trait,args.x_col,args.y_col,args.input_crs,query,config)
