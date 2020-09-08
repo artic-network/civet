@@ -21,18 +21,14 @@ YELLOW = '\033[93m'
 CYAN = '\u001b[36m'
 DIM = '\033[2m'
 
-def get_snakefile(thisdir):
-    snakefile = os.path.join(thisdir, 'scripts','Snakefile')
-    if not os.path.exists(snakefile):
-        sys.stderr.write(cyan(f'Error: cannot find Snakefile at {snakefile}\n Check installation'))
-        sys.exit(-1)
-    return snakefile
 
-def type_input_file(query_arg,ids_arg,cwd,config):
+def type_input_file(query_arg,cwd,config):
 
     query,configfile="",""
-
     input_file = os.path.join(cwd,query_arg)
+    path_to_file = os.path.abspath(os.path.dirname(input_file))
+    config["path_to_query"] = path_to_file
+
     ending = input_file.split(".")[-1]
 
     if ending in ["yaml","yml"]:
@@ -45,25 +41,32 @@ def type_input_file(query_arg,ids_arg,cwd,config):
 
     return query,configfile
     
-def check_query_file(query, ids_arg, config):
+def check_query_file(query, ids_arg, cwd, config):
     queryfile = ""
-    if "query" in config:
-        queryfile = config["query"]
-    elif query:
+    
+    if query:
         queryfile = query
+
+    elif "query" in config:
+
+        queryfile = os.path.join(config["path_to_query"],config["query"])
+
     elif ids_arg:
         id_list = query_arg.split(",")
         queryfile = make_csv_from_ids(id_list, config)
+
     elif "ids" in config:
         queryfile = make_csv_from_ids(config["ids"], config)
+
     else:
         sys.stderr.write(cyan(f"Error: no query input provided"))
         sys.exit(-1)
+
     print("queryfile is",queryfile)
     if os.path.exists(queryfile):
         config["query"] = queryfile
     else:
-        sys.stderr.write(cyan(f"Error: cannot find query file at {query}\nCheck if the file exists, or if you're inputting a set of ids (e.g. EPI12345,EPI23456), please use in conjunction with the `--id-string` flag or provide `ids` in the config file \n."))
+        sys.stderr.write(cyan(f"Error: cannot find query file at {queryfile}\nCheck if the file exists, or if you're inputting a set of ids (e.g. EPI12345,EPI23456), please use in conjunction with the `--id-string` flag or provide `ids` in the config file \n."))
         sys.exit(-1)
 
 def make_csv_from_ids(id_list, config):
@@ -78,42 +81,25 @@ def make_csv_from_ids(id_list, config):
 def parse_yaml_file(configfile,config):
     with open(configfile,"r") as f:
         input_config = yaml.load(f, Loader=yaml.FullLoader)
-        print(input_config)
         for key in input_config:
-            print(key, input_config[key])
-            key = key.replace("-","_")
-            config[key] = input_config[key]
+            snakecase_key = key.replace("-","_")
+            config[snakecase_key] = input_config[key]
 
-
-# def get_seqs_for_aln(seqs_arg,cwd):
-#     if not seqs_arg:
-#         sys.stderr.write(cyan(f"""Error: please input fasta file for alignment\n"""))
-#         sys.exit(-1)
-#     else:
-#         seqs = os.path.join(cwd, seqs_arg)
-
-#     if not os.path.exists(seqs):
-#         sys.stderr.write(cyan(f"""Error: cannot find sequence file at {seqs}\n"""))
-#         sys.exit(-1)
-#     return seqs
-
-def get_outgroup_sequence(outgroup_arg, cwd, config):
-    if outgroup_arg:
-        reference_fasta = os.path.join(cwd, outgroup_arg)
-        if not os.path.isfile(reference_fasta):
-            sys.stderr.write(cyan(f"""Error: cannot find specified outgroup file at {outgroup_arg}\n"""))
-            sys.exit(-1)
-        else:
-            config["reference_fasta"] = reference_fasta
-    else:
-        reference_fasta = pkg_resources.resource_filename('llama', 'data/reference.fasta')
-        config["reference_fasta"] = reference_fasta
+def get_snakefile(thisdir):
+    snakefile = os.path.join(thisdir, 'scripts','Snakefile')
+    if not os.path.exists(snakefile):
+        sys.stderr.write(cyan(f'Error: cannot find Snakefile at {snakefile}\n Check installation'))
+        sys.exit(-1)
+    return snakefile
 
 def get_query_fasta(fasta_arg,cwd,config):
-    if "fasta" in config:
+    
+    if fasta_arg:
         fasta = os.path.join(cwd, fasta_arg)
-    elif fasta_arg:
+
+    elif "fasta" in config:
         fasta = os.path.join(cwd, fasta_arg)
+
     else:
         fasta = ""
 
@@ -129,15 +115,14 @@ def get_query_fasta(fasta_arg,cwd,config):
 def get_outdir(outdir_arg,cwd,config):
     outdir = ''
     
-    if "outdir" in config:
+    if outdir_arg:
+        rel_outdir = outdir_arg #for report weaving
+        outdir = os.path.join(cwd, outdir_arg)
+
+    elif "outdir" in config:
         rel_outdir = config["outdir"]
         outdir = os.path.join(cwd, rel_outdir)
 
-
-    elif outdir_arg:
-        rel_outdir = outdir_arg #for report weaving
-        outdir = os.path.join(cwd, outdir_arg)
-        
     else:
         timestamp = str(datetime.now().isoformat(timespec='milliseconds')).replace(":","").replace(".","").replace("T","-")
         outdir = os.path.join(cwd, timestamp)
@@ -153,15 +138,25 @@ def get_outdir(outdir_arg,cwd,config):
         
 def get_temp_dir(tempdir_arg,no_temp_arg, cwd,config):
     tempdir = ''
+    outdir = config["outdir"]
     if no_temp_arg:
         print(green(f"--no-temp:") + f" All intermediate files will be written to {outdir}")
         tempdir = outdir
+
     elif tempdir_arg:
         to_be_dir = os.path.join(cwd, tempdir_arg)
         if not os.path.exists(to_be_dir):
             os.mkdir(to_be_dir)
         temporary_directory = tempfile.TemporaryDirectory(suffix=None, prefix=None, dir=to_be_dir)
         tempdir = temporary_directory.name
+
+    elif "tempdir" in config:
+        to_be_dir = os.path.join(cwd, config["tempdir"])
+        if not os.path.exists(to_be_dir):
+            os.mkdir(to_be_dir)
+        temporary_directory = tempfile.TemporaryDirectory(suffix=None, prefix=None, dir=to_be_dir)
+        tempdir = temporary_directory.name
+
     else:
         temporary_directory = tempfile.TemporaryDirectory(suffix=None, prefix=None, dir=None)
         tempdir = temporary_directory.name
@@ -301,89 +296,108 @@ def get_temp_dir(tempdir_arg,no_temp_arg, cwd,config):
 #     config["query"] = query
 #     return query
 
+def check_args_and_config_list(argument, config_key, default, column_names, config):
 
+    list_of_fields = []
+    arg_list = []
+    if argument:
+        arg_list = argument.split(",")
+        for field in arg_list:
+            if field in column_names:
+                list_of_fields.append(field)
+            else:
+                sys.stderr.write(cyan(f"Error: {field} field not found in metadata file\n"))
+                sys.exit(-1)
 
-def check_label_and_colour_fields(query_arg, colour_fields, label_fields, display_arg, input_column, config):
+    elif config_key in config:
+        if type(config[config_key]) != list:
+            arg_list = config[config_key].split(",")
+        else:
+            arg_list = config[config_key]
+
+        for field in arg_list:
+            if field in column_names:
+                list_of_fields.append(field)
+            else:
+                sys.stderr.write(cyan(f"Error: {field} field not found in metadata file\n"))
+                sys.exit(-1)
+
+    else:
+        arg_list.append(default)        
+        
+    field_str = ",".join(arg_list)
+    return field_str
+
+def check_label_and_colour_fields(colour_fields, label_fields, display_arg, input_column, config):
+    # question, what if i want to colour by or label by fields that exist in the big metadata file?
     acceptable_colours = get_colours()
     queries = []
-    colour_field_list = []
+    
     labels = []
 
     graphics_list = []
     query_file = config["query"]
+    input_column = config["input_column"]
+    column_names = []
+
     with open(query_file, newline="") as f:
         reader = csv.DictReader(f)
         column_names = reader.fieldnames
-        if input_column not in column_names:
+
+        if input_column not in column_names: # Checking input column present in query file
             sys.stderr.write(cyan(f"Error: Query file missing header field {input_column}\n"))
             sys.exit(-1)
 
-        if query_arg:
-            print(green("Input querys to process:"))
-            queries = []
-            for row in reader:
-                queries.append(row[input_column])
-                print(f" - {row[input_column]}")
-            print(green(f"Number of queries:") + f" {len(queries)}")
+        print(green("Input querys to process:"))
+        queries = []
+        for row in reader:
+            queries.append(row[input_column])
+            print(f" - {row[input_column]}")
+        print(green(f"Number of queries:") + f" {len(queries)}")
 
-        if not colour_fields:
-            colour_field_list.append("adm1")
-        else:
-            desired_fields = colour_fields.split(",")
-            for field in desired_fields:
-                if field in column_names:
-                    colour_field_list.append(field)
-                else:
-                    sys.stderr.write(cyan(f"Error: {field} field not found in metadata file\n"))
-                    sys.exit(-1)
+    colour_field_str = check_args_and_config_list(colour_fields, "fields", "adm1", column_names, config)
+    print(green(f"Colouring by:") + f" {colour_field_str}")
+    config["fields"] = colour_field_str
         
-        colour_field_str = ",".join(colour_field_list)
-        print(green(f"Going to colour by:") + f" {colour_field_str}")
-        config["fields"] = colour_field_str
-        
-        if not label_fields:
-            labels.append("NONE")
-        else:
-            label_fields = label_fields.split(",")
-            for label_f in label_fields:
-                if label_f in column_names:
-                    labels.append(label_f)
+    labels_str = check_args_and_config_list(label_fields, "label_fields", "NONE", column_names, config)
+
+    print(green(f"Labelling by:") + f" {labels_str}")
+    config["label_fields"] = labels_str
+
+    if display_arg:
+        sections = display_arg.split(",")
+        for item in sections:
+            splits = item.split("=")
+            graphic_trait = splits[0]
+            if graphic_trait in column_names:
+                if len(splits) == 1:
+                    graphics_list.append(graphic_trait + ":default")
                 else:
-                    sys.stderr.write(cyan(f"Error: {label_f} field not found in metadata file\n"))
-                    sys.exit(-1)
-
-        labels_str = ",".join(labels)
-        print(green(f"Going to label by:") + f" {labels_str}")
-        config["label_fields"] = labels_str
-
-        if display_arg:
-            sections = display_arg.split(",")
-            for item in sections:
-                splits = item.split("=")
-                graphic_trait = splits[0]
-                if graphic_trait in column_names:
-                    if len(splits) == 1:
-                        graphics_list.append(graphic_trait + ":default")
+                    colour_scheme = splits[1]
+                    if colour_scheme in acceptable_colours:
+                        graphics_list.append(graphic_trait + ":" + colour_scheme)
                     else:
-                        colour_scheme = splits[1]
-                        if colour_scheme in acceptable_colours:
-                            graphics_list.append(graphic_trait + ":" + colour_scheme)
-                        else:
-                            sys.stderr.write(cyan(f"Error: {colour_scheme} not a matplotlib compatible colour scheme\n"))
-                            sys.stderr.write(cyan(f"Please use one of {acceptable_colours}"))
-                            sys.exit(-1)
-                else:
-                    sys.stderr.write(cyan(f"Error: {graphic_trait} field not found in metadata file\n"))
-                    sys.exit(-1)
-        else:
-            graphics_list.append("adm1:default")
+                        sys.stderr.write(cyan(f"Error: {colour_scheme} not a matplotlib compatible colour scheme\n"))
+                        sys.stderr.write(cyan(f"Please use one of {acceptable_colours}"))
+                        sys.exit(-1)
+            else:
+                sys.stderr.write(cyan(f"Error: {graphic_trait} field not found in metadata file\n"))
+                sys.exit(-1)
+    else:
+        graphics_list.append("adm1:default")
 
-        config["graphic_dict"] = ",".join(graphics_list)
+    config["graphic_dict"] = ",".join(graphics_list)
 
 def map_sequences_config(map_sequences,mapping_trait,x_col,y_col,input_crs,query,config):
+        map_settings = False
 
         if map_sequences:
-            config["map_sequences"] = True
+            map_settings = True
+            
+        elif "map_sequences" in config:
+            map_settings = config["map_sequences"]
+        
+        if map_settings:
             if not x_col or not y_col:
                 sys.stderr.write(cyan('Error: coordinates not supplied for mapping sequences. Please provide --x-col and --y-col'))
                 sys.exit(-1)
@@ -418,8 +432,15 @@ def map_sequences_config(map_sequences,mapping_trait,x_col,y_col,input_crs,query
             config["mapping_trait"] = False
 
 def local_lineages_config(local_lineages, query, config):
-        if local_lineages:
-            config['local_lineages'] = "True"
+
+        if "local_lineages" in config:
+            pass
+        elif local_lineages:
+            config['local_lineages'] = True
+        else:
+            config["local_lineages"] = False
+
+        if config["local_lineages"]:
             with open(query, newline="") as f:
                 reader = csv.DictReader(f)
                 header = reader.fieldnames
@@ -427,7 +448,7 @@ def local_lineages_config(local_lineages, query, config):
                     sys.stderr.write(cyan(f"Error: --local-lineages argument called, but input csv file doesn't have an adm2 column. Please provide that to have local lineage analysis.\n"))
                     sys.exit(-1)
         else:
-            config['local_lineages'] = "False"
+            config['local_lineages'] = False
 
 
 def check_summary_fields(full_metadata, summary_field, config):
@@ -537,8 +558,6 @@ def get_datadir(args_climb,args_datadir,remote,cwd,config):
         elif args_datadir:
             data_dir = os.path.join(cwd, args_datadir)
         
-        
-
         if not remote:
             if not os.path.exists(data_dir):
                 sys.stderr.write(cyan(f"Error: data directory not found at {data_dir}.\n")+ f"""The directory should contain the following files:\n\
@@ -686,10 +705,16 @@ def node_summary(node_summary,config):
         print(green(f"Summarise collapsed nodes by:") + f" {summary}")
         config["node_summary"] = summary
 
-def get_sequencing_centre_header(sequencing_centre,config):
+def get_sequencing_centre_header(sequencing_centre_arg,config):
     
     sc_list = ["PHEC", 'LIVE', 'BIRM', 'PHWC', 'CAMB', 'NORW', 'GLAS', 'EDIN', 'SHEF',
                 'EXET', 'NOTT', 'PORT', 'OXON', 'NORT', 'NIRE', 'GSTT', 'LOND', 'SANG',"NIRE"]
+    if "sequencing_centre" in config:
+        sequencing_centre = config["sequencing_centre"]
+    elif sequencing_centre_arg:
+        sequencing_centre = sequencing_centre_arg
+    else:
+        sequencing_centre = ""
 
     if sequencing_centre:
         if sequencing_centre in sc_list:
