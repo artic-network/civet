@@ -10,8 +10,6 @@ def summarise_dates(query_dict):
 
     overall_dates = []
 
-    
-
     for tax in query_dict.values():
         overall_dates.extend(list(tax.date_dict.values()))
 
@@ -42,9 +40,14 @@ def display_name(tax, custom_tip_fields):
         adm2 = tax.attribute_dict["adm2"]
         display_name = f"{name}|{adm2}|{date}"
 
+    count = 0
     if len(custom_tip_fields) > 0: 
         for label_element in custom_tip_fields:
-            display_name = display_name + "|" + tax.attribute_dict[label_element]
+            if count == 0:
+                display_name = tax.attribute_dict[label_element] 
+            else:   
+                display_name = display_name + "|" + tax.attribute_dict[label_element]
+            count += 1
     
     return display_name
 
@@ -63,15 +66,17 @@ def find_colour_dict(tree_list):
 
     return colour_dict
 
-def plot_time_series(query_dict, overall_max_date, overall_min_date, tree_list, custom_tip_fields):
+def plot_time_series(tips, query_dict, overall_max_date, overall_min_date, tree_list, custom_tip_fields):
 
     time_len = (overall_max_date - overall_min_date).days
+
+    height = math.sqrt(len(tips))*2 + 1
 
     tick_loc_base = float(math.ceil(time_len/5))
     
     loc = plticker.MultipleLocator(base=tick_loc_base)
 
-    fig, ax1 = plt.subplots(1,1, figsize=(20,15))
+    fig, ax1 = plt.subplots(1,1, figsize=(20,height))
     ax2 = ax1.twinx()
     
     if time_len > 10:
@@ -81,10 +86,10 @@ def plot_time_series(query_dict, overall_max_date, overall_min_date, tree_list, 
 
     colour_dict = find_colour_dict(tree_list)
 
-    count = 0
+    count = 1
 
-    for tax in query_dict.values():
-        if tax.date_dict != {}:
+    for tax in tips:
+        if tax.date_dict != {} and tax in query_dict.values():
         
             first_date = min(list(tax.date_dict.values()))
             last_date = max(list(tax.date_dict.values()))

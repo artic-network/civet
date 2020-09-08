@@ -59,6 +59,7 @@ rule assess_snps:
         find_snps.py --input {input.aln:q} --output {output.snp_report:q} --tree {params.tree}
         """
 
+#delete this
 rule gather_snp_reports:
     input:
         snps = expand(os.path.join(config["tempdir"],"snp_reports","{tree}.snps.txt"), tree=config["tree_stems"])
@@ -99,7 +100,7 @@ rule ambiguities_at_snp_sites:
 
 rule make_snp_figure:
     input:
-        rules.gather_snp_reports.output.report,
+        rules.gather_snp_reports.output.report, #change this one to snps input in gather_snp_reports
         rules.ambiguities_at_snp_sites.output.snp_report
     output:
         os.path.join(config["outdir"],"figures","genome_graph.png")

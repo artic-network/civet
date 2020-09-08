@@ -84,10 +84,16 @@ def display_name(tree, tree_name, tree_dir, full_taxon_dict, query_dict, custom_
                         adm2 = taxon_obj.attribute_dict["adm2"]
                         k.traits["display"] = f"{name}|{adm2}|{date}"
 
-                    if name in query_dict.keys():
-                        if len(custom_tip_fields) > 0: 
+                    count = 0
+                    if len(custom_tip_fields) > 0: 
+                        if name in query_dict.keys(): 
                             for label_element in custom_tip_fields:
-                                k.traits["display"] = k.traits["display"] + "|" + taxon_obj.attribute_dict[label_element]
+                                if count == 0:
+                                    display_name = taxon_obj.attribute_dict[label_element] 
+                                else:   
+                                    display_name = display_name + "|" + taxon_obj.attribute_dict[label_element]
+                                count += 1
+                        k.traits["display"] = display_name
                 
                 
                 else:
@@ -348,14 +354,14 @@ def make_all_of_the_trees(input_dir, tree_name_stem, taxon_dict, query_dict, des
 
     overall_tree_count = 0
     
-    lst = sort_trees_index(input_dir)
+    tree_order = sort_trees_index(input_dir)
 
     for trait, colour_scheme in graphic_dict.items():
         colour_dict = find_colour_dict(query_dict, trait, colour_scheme)
         
         colour_dict_dict[trait] = colour_dict
 
-    for fn in lst:
+    for fn in tree_order:
         lineage = fn
         treename = f"{tree_name_stem}_{fn}"
         treefile = f"{tree_name_stem}_{fn}.tree"
@@ -403,7 +409,7 @@ def make_all_of_the_trees(input_dir, tree_name_stem, taxon_dict, query_dict, des
                 too_tall_trees.append(lineage)
                 continue
 
-    return too_tall_trees, overall_tree_count, colour_dict_dict, overall_df_dict
+    return too_tall_trees, overall_tree_count, colour_dict_dict, overall_df_dict, tree_order
 
 def summarise_collapsed_node_for_label(tree_dir, focal_node, focal_tree, full_tax_dict): 
     
