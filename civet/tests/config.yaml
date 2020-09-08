@@ -1,6 +1,6 @@
 report: Outbreak # the report template to use
 
-# header: EDIN # the header to use
+sequencing-centre: EDIN # the header to use
 # title: Grampian outbreak investigation
 # outbreak-id: outbreak1
 # opening-date: 2020-08-01 # date investigation was opened
@@ -14,14 +14,14 @@ report: Outbreak # the report template to use
 #   ## Conclusions
 #   An outbreak occurred
 # fields: { country: "", adm2: "viridis" }
-# label-fields: [ adm2, sample_date ]
+label-fields: [ adm2, sample_date ]
 # date-range: [ 2020-07-01, 2020-08-31 ]
 # date-window: 7
-ids:
-  - EDB001
-  - EDB002
-  - EDB004
-# id-file: test.csv
+# ids:
+#   - EDB001
+#   - EDB002
+#   - EDB004
+query: test.csv
 # fasta-file: test.fasta
 # up-distance: 2
 # down-distance: 2
