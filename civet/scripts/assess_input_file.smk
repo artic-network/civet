@@ -2,7 +2,6 @@ import csv
 from Bio import SeqIO
 import os
 import collections
-from pytools.persistent_dict import PersistentDict
 
 rule check_cog_db:
     input:
