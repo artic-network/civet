@@ -193,7 +193,7 @@ else:
 Their location is shown on the following map, with dots sized by the number of sequences from each location.
 
 ```python, name="make_map", echo=False, include=False, results='tex'
-map = mapping.run_map_functions(query_dict, clean_locs_file, mapping_json_files)
+map = mapping.map_adm2(query_dict, clean_locs_file, mapping_json_files)
 ```
 
 ```python, name="show_map", echo=False, results='raw'

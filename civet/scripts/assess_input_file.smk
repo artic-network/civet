@@ -285,16 +285,17 @@ rule find_snps:
         tempdir= config["tempdir"],
         path = workflow.current_basedir,
         threshold = config["threshold"],
-        
+                
         fasta = config["fasta"],
         tree_dir = os.path.join(config["outdir"],"local_trees"),
 
         cores = workflow.cores,
         force = config["force"],
         quiet_mode = config["quiet_mode"]
+
     output:
-        genome_graph = os.path.join(config["outdir"],"figures","genome_graph.png"),
-        report = os.path.join(config["outdir"],"snp_reports","snp_reports.txt")
+        genome_graphs = os.path.join(config["outdir"],"snp_reports","tree_subtree_1.snps.txt"), #this obviously isn't ideal because it's not flexible to name stem changes
+        reports = os.path.join(config["outdir"],"figures","genome_graph_tree_subtree_1.png")
     run:
         local_trees = []
         for r,d,f in os.walk(params.tree_dir):
@@ -410,9 +411,10 @@ rule make_report:
         uk_map = config["uk_map"],
         channels_map = config["channels_map"],
         ni_map = config["ni_map"],
+        pc_file = config["pc_file"],
         urban_centres = config["urban_centres"],
-        genome_graph = rules.find_snps.output.genome_graph,
-        snp_report = rules.find_snps.output.report,
+        genome_graph = rules.find_snps.output.genome_graphs, #do these two arguments need to be here? 
+        snp_report = rules.find_snps.output.reports, 
         central = os.path.join(config["outdir"], 'figures', "central_map_ukLin.png"),
         neighboring = os.path.join(config["outdir"], 'figures', "neighboring_map_ukLin.png"),
         region = os.path.join(config["outdir"], 'figures', "region_map_ukLin.png")
@@ -421,6 +423,7 @@ rule make_report:
         outdir = config["rel_outdir"],
         fields = config["fields"],
         label_fields = config["label_fields"],
+        date_fields = config["date_fields"],
         node_summary = config["node_summary"],
         sc_source = config["sequencing_centre"],
         sc = config["sequencing_centre_file"],
@@ -430,8 +433,7 @@ rule make_report:
         figdir = os.path.join(config["outdir"],"figures"),
         failure = config["qc_fail_report"],
         map_sequences = config["map_sequences"],
-        x_col = config["x_col"],
-        y_col = config["y_col"],
+        map_cols = config["map_cols"],
         input_crs = config["input_crs"],
         mapping_trait = config["mapping_trait"],
         add_boxplots = config["add_boxplots"],
@@ -473,6 +475,7 @@ rule make_report:
         "-f {params.fields:q} "
         "--graphic_dict {params.graphic_dict:q} "
         "--label-fields {params.label_fields:q} "
+        "--date-fields {params.date_fields:q} "
         "--node-summary {params.node_summary} "
         "--figdir {params.rel_figdir:q} "
         "{params.sc_flag} "
@@ -485,12 +488,12 @@ rule make_report:
         "--uk-map {input.uk_map:q} "
         "--channels-map {input.channels_map:q} "
         "--ni-map {input.ni_map:q} "
+        "--pc-file {input.pc_file:q} "
         "--outfile {output.outfile:q} "
         "--outdir {params.outdir:q} "
         "--map-sequences {params.map_sequences} "
         "--snp-report {input.snp_report:q} "
-        "--x-col {params.x_col} "
-        "--y-col {params.y_col} "
+        "--map-cols {params.map_cols} "
         "--input-crs {params.input_crs} "
         "--mapping-trait {params.mapping_trait} "
         "--urban-centres {input.urban_centres} "

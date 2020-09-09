@@ -16,23 +16,21 @@ def parse_args():
 
     return parser.parse_args()
 
-def find_snps():
-
-    args = parse_args()
+def find_snps(input_file, output, report):
 
     input_seqs = collections.defaultdict(list)
     outgroup_seq = ""
 
-    for record in SeqIO.parse(args.input, "fasta"):
+    for record in SeqIO.parse(input_file, "fasta"):
         if record.id == "outgroup":
             outgroup_seq = record.seq.upper()
         else:
             input_seqs[str(record.seq).upper()].append(record.id)
 
-    with open(args.output, "w") as fw:
+    with open(output, "w") as fw:
         fw.write("name\tnum_snps\tambiguous_snps\n")
         snp_dict = collections.defaultdict(list)
-        with open(args.report, newline="") as f:
+        with open(report, newline="") as f:
             reader = csv.DictReader(f, delimiter="\t")
             for row in reader:
                 snps = row["snps"].split(";")
@@ -59,4 +57,6 @@ def find_snps():
 
 if __name__ == '__main__':
 
-    find_snps()
+    args = parse_args()
+
+    find_snps(args.input, args.output, args.report)

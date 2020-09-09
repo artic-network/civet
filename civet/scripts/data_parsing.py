@@ -17,6 +17,8 @@ class taxon():
         self.name = name
 
         self.sample_date = "NA"
+
+        self.date_dict = {}
         
         if global_lin == "":
             self.global_lin = "NA"
@@ -170,7 +172,14 @@ def parse_filtered_metadata(metadata_file, tip_to_tree):
     return query_dict, query_id_dict, present_lins, tree_to_tip
     
 
-def parse_input_csv(input_csv, query_id_dict, desired_fields, label_fields, adm2_adm1_dict, cog_report):
+def convert_date(date_string):
+    bits = date_string.split("-")
+    date_dt = dt.date(int(bits[0]),int(bits[1]), int(bits[2]))
+    
+    return date_dt
+
+
+def parse_input_csv(input_csv, query_id_dict, desired_fields, label_fields, date_fields, adm2_adm1_dict, cog_report):
     new_query_dict = {}
     contract_dict = {"SCT":"Scotland", "WLS": "Wales", "ENG":"England", "NIR": "Northern_Ireland"}
     cleaning = {"SCOTLAND":"Scotland", "WALES":"Wales", "ENGLAND":"England", "NORTHERN_IRELAND": "Northern_Ireland", "NORTHERN IRELAND": "Northern_Ireland"}
@@ -190,33 +199,46 @@ def parse_input_csv(input_csv, query_id_dict, desired_fields, label_fields, adm2
             if name in query_id_dict.keys():
                 taxon = query_id_dict[name]
 
+                for field in date_fields:
+                    if field in reader.fieldnames:
+                        if sequence[field] != "":
+                            date_dt = convert_date(sequence[field])
+                            taxon.date_dict[field] = date_dt 
+
+                #keep this separate to above, because sample date is specifically needed
                 if "sample_date" in col_names: #if it's not in COG but date is provided (if it's in COG, it will already have been assigned a sample date.)
                     if sequence["sample_date"] != "":
                         taxon.sample_date = sequence["sample_date"]
 
                 for col in col_names: #Add other metadata fields provided
-                    if col != "name" and (col in desired_fields or col in label_fields) and col != "adm1":
+                    if col in label_fields:
                         if sequence[col] == "":
-                            taxon.attribute_dict[col] = "NA"
+                                taxon.attribute_dict[col] = "NA"     
                         else:
                             taxon.attribute_dict[col] = sequence[col]
-        
-                    if col == "adm1":
-                        if "UK" in sequence[col]:
-                            adm1_prep = sequence[col].split("-")[1]
-                            adm1 = contract_dict[adm1_prep]
-                        else:
-                            if sequence[col].upper() in cleaning.keys():
-                                adm1 = cleaning[sequence[col].upper()]
+                    else:
+                        if col != "name" and col in desired_fields and col != "adm1":
+                            if sequence[col] == "":
+                                taxon.attribute_dict[col] = "NA"
                             else:
-                                adm1 = sequence[col]
+                                taxon.attribute_dict[col] = sequence[col]
+            
+                        if col == "adm1":
+                            if "UK" in sequence[col]:
+                                adm1_prep = sequence[col].split("-")[1]
+                                adm1 = contract_dict[adm1_prep]
+                            else:
+                                if sequence[col].upper() in cleaning.keys():
+                                    adm1 = cleaning[sequence[col].upper()]
+                                else:
+                                    adm1 = sequence[col]
 
-                        taxon.attribute_dict["adm1"] = adm1
-
-                    if col == "adm2" and "adm1" not in col_names: #or sequence["adm1"] == ""):
-                        if sequence[col] in adm2_adm1_dict.keys():
-                            adm1 = adm2_adm1_dict[sequence[col]]
                             taxon.attribute_dict["adm1"] = adm1
+
+                        if col == "adm2" and "adm1" not in col_names: #or sequence["adm1"] == ""):
+                            if sequence[col] in adm2_adm1_dict.keys():
+                                adm1 = adm2_adm1_dict[sequence[col]]
+                                taxon.attribute_dict["adm1"] = adm1
 
                 if cog_report:
                     taxon.attribute_dict["adm2"]= sequence["adm2"] 
@@ -232,9 +254,6 @@ def parse_input_csv(input_csv, query_id_dict, desired_fields, label_fields, adm2
 
 
                 new_query_dict[taxon.name] = taxon
-            
-            # else:
-            #     print(name + " is in the input file but not the processed file. This suggests that it is not in COG and a sequence has also not been provided.")
                 
     return new_query_dict 
 
@@ -243,11 +262,13 @@ def parse_tree_tips(tree_dir):
 
     tips = []
     tip_to_tree = {}
+    tree_list = []
 
     for fn in os.listdir(tree_dir):
         if fn.endswith("tree"):
             tree_name = fn.split(".")[0]
             tree = bt.loadNewick(tree_dir + "/" + fn, absoluteTime=False)
+            tree_list.append(tree_name)
             for k in tree.Objects:
                 if k.branchType == 'leaf' and "inserted" not in k.name:
                     tips.append(k.name)
@@ -260,11 +281,16 @@ def parse_tree_tips(tree_dir):
                     tip_list = tip_string.split(",")
                     tips.extend(tip_list)
 
-    return tips, tip_to_tree
+    return tips, tip_to_tree, tree_list
 
-def parse_full_metadata(query_dict, full_metadata, present_lins, present_in_tree, node_summary_option):
+def parse_full_metadata(query_dict, label_fields, full_metadata, present_lins, present_in_tree, node_summary_option, date_fields):
 
     full_tax_dict = query_dict.copy()
+
+    with open(full_metadata, 'r') as f:
+        reader = csv.DictReader(f)
+        col_name_prep = next(reader)
+        col_names = list(col_name_prep.keys())
 
     with open(full_metadata, 'r') as f:
         reader = csv.DictReader(f)
@@ -304,9 +330,27 @@ def parse_full_metadata(query_dict, full_metadata, present_lins, present_in_tree
                 tax_object = query_dict[seq_name]
                 if tax_object.sample_date == "NA" and date != "":
                     tax_object.sample_date = date
+                    tax_object.all_dates.append(convert_date(date))
                 if "adm2" not in tax_object.attribute_dict.keys() and adm2 != "":
                     tax_object.attribute_dict["adm2"] = adm2
-                
+
+                for field in date_fields:
+                    if field in reader.fieldnames:
+                        if sequence[field] != "" and field not in tax_object.date_dict.keys():
+                            date_dt = convert_date(sequence[field])
+                            tax_object.date_dict[field] = date_dt 
+                    
+                for field in label_fields:
+                    if field in col_names:
+                        if field not in tax_object.attribute_dict.keys():
+                            if sequence[field] == "":
+                                tax_object.attribute_dict[field] = "NA"
+                            else:
+                                tax_object.attribute_dict[field] = sequence[field]
+                        
+                        elif tax_object.attribute_dict[field] == "NA" and sequence[field] != "":
+                            tax_object.attribute_dict[field] = sequence[field]
+
                 full_tax_dict[seq_name] = tax_object
                     
     return full_tax_dict
@@ -364,7 +408,7 @@ def make_initial_table(query_dict, desired_fields, label_fields, cog_report):
         
         if label_fields != []:
             for i in label_fields: 
-                if i not in desired_fields:
+                if i not in desired_fields and i != "sample_date" and i != "name":
                     df_dict[i].append(query.attribute_dict[i])
 
         if cog_report:

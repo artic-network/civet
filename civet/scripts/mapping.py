@@ -161,7 +161,7 @@ def make_map(centroid_geo, all_uk):
     ax.axis("off")
 
 
-def run_map_functions(tax_dict, clean_locs_file, mapping_json_files): #So this takes adm2s and plots them onto the whole UK
+def map_adm2(tax_dict, clean_locs_file, mapping_json_files): #So this takes adm2s and plots them onto the whole UK
 
     adm2s, metadata_multi_loc, straight_map = prep_data(tax_dict, clean_locs_file)
 
@@ -175,12 +175,7 @@ def run_map_functions(tax_dict, clean_locs_file, mapping_json_files): #So this t
 
     make_map(centroid_geo, all_uk)
 
-def map_traits(input_csv, input_crs, colour_map_trait, x_col, y_col, mapping_json_files, urban_centres):
-
-    all_uk = generate_all_uk_dataframe(mapping_json_files)
-    all_uk = all_uk.to_crs("EPSG:3395")
-
-    urban = geopandas.read_file(urban_centres)
+def get_coords_from_file(input_csv, input_crs, colour_map_trait, x_col, y_col):
 
     ##READ IN TRAITS##
 
@@ -200,14 +195,66 @@ def map_traits(input_csv, input_crs, colour_map_trait, x_col, y_col, mapping_jso
                 trait = seq[colour_map_trait]
             
             if x != "" and y != "":
-            
-                #name_to_coords[name] = (((float(x)/200)-2.2,(float(y)/200)+55)) #just for now, will change to just x and y in a bit
-                name_to_ccords[name] = (float(x),float(y))
+                #If we have the actual coordinates
+                name_to_coords[name] = (float(x),float(y))
 
                 if colour_map_trait != "False":
                     name_to_trait[name] = trait
 
+    return name_to_coords, name_to_trait
+
+def generate_coords_from_outer_postcode(pc_file, input_csv, postcode_col, colour_map_trait):
+
+    pc_to_coords = {}
+    name_to_coords = {}
+    name_to_trait = {}
+
+    with open(pc_file) as f:
+        reader = csv.DictReader(f)
+        data = [r for r in reader]
+        
+        for line in data:
+
+            pc = line["outcode"]
+            x = float(line["longitude"])
+            y = float(line["latitude"])
+
+            pc_to_coords[pc] = ((x,y))
+    
+    
+    with open(input_csv) as f:
+        reader = csv.DictReader(f)
+        data = [r for r in reader]
+        
+        for seq in data:
+            name = seq["name"]
+            outer_postcode = seq[postcode_col]
+            
+            if colour_map_trait != "False":
+                trait = seq[colour_map_trait]
+            
+            if outer_postcode != "":
+                if outer_postcode in pc_to_coords.keys():
+                    name_to_coords[name] = pc_to_coords[outer_postcode]
+
+                    if colour_map_trait != "False":
+                        name_to_trait[name] = trait
+
+                else:
+                    pass
+
+
+    return name_to_coords, name_to_trait
+
+
+def plot_coordinates(mapping_json_files, urban_centres, name_to_coords, name_to_trait, input_crs, colour_map_trait):
+
     ##MAKE DATAFRAME##
+
+    all_uk = generate_all_uk_dataframe(mapping_json_files)
+    all_uk = all_uk.to_crs("EPSG:3395")
+
+    urban = geopandas.read_file(urban_centres)
 
     df_dict = defaultdict(list)
 
@@ -217,7 +264,7 @@ def map_traits(input_csv, input_crs, colour_map_trait, x_col, y_col, mapping_jso
             df_dict[colour_map_trait].append(name_to_trait[name])
         
     crs = {'init':input_crs}
-        
+
     df = geopandas.GeoDataFrame(df_dict, crs=crs)    
     df_final = df.to_crs(all_uk.crs)
 
@@ -290,11 +337,19 @@ def map_traits(input_csv, input_crs, colour_map_trait, x_col, y_col, mapping_jso
     ax.axis("off") 
 
     return adm2_counter, adm2_percentages
-
-
         
 
+def map_sequences_using_coordinates(input_csv, mapping_json_files, urban_centres, pc_file,colour_map_trait, map_inputs, input_crs):
 
-
+    cols = map_inputs.split(",")
+    if len(cols) == 2:
+        x_col = cols[0]
+        y_col = cols[1]
+        name_to_coords, name_to_trait = get_coords_from_file(input_csv, input_crs, colour_map_trait, x_col, y_col)
+    elif len(cols) == 1:
+        postcode_col = cols[0]
+        name_to_coords, name_to_trait = generate_coords_from_outer_postcode(pc_file, input_csv, postcode_col, colour_map_trait)
     
+    adm2_counter, adm2_percentages = plot_coordinates(mapping_json_files, urban_centres, name_to_coords, name_to_trait, input_crs, colour_map_trait)
 
+    return adm2_counter, adm2_percentages
