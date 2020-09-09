@@ -2,8 +2,7 @@ from Bio import Phylo
 from Bio import SeqIO
 import csv
 import collections
-import make_genome_graph as make_genome_graph
-import find_ambiguities as find_ambiguities
+
 
 config["tree_stems"] = config["catchment_str"].split(",")
 
