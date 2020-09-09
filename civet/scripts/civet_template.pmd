@@ -130,6 +130,8 @@ pyplot.rcParams.update({'figure.max_open_warning': 0})
 mpl.rcParams['font.weight']=50
 mpl.rcParams['axes.labelweight']=50
 
+inputs = [desired_fields, label_fields, graphic_dict, node_summary_option, map_sequences, x_col, y_col, mapping_trait]
+
 ```
 
 
@@ -183,6 +185,12 @@ for tax in query_dict.values():
         cog_number += 1
     else:
         not_in_cog_number += 1
+try:
+    dp.analyse_inputs(inputs)
+except:
+    print("inputs failed to print.")
+
+print("\n")
 
 print(str(number_seqs) + " queries (" + str(cog_number) + " matched to COG-UK database).")
 print(str(not_in_cog_number) + " additional sequences provided.")
@@ -304,17 +312,18 @@ if map_sequences != "False":
 ```python, name='Regional-scale', echo=False, results='raw'
 if local_lineages != '':
     print("## Regional-scale background UK lineage mapping")
+    print("These figures show the background diversity of lineages in the local area to aid with identifying uncommon lineages.")
     centralLoc = [ t for t in local_lin_tables.split(';') if "_central_" in t]
     centralName = centralLoc[0].split('/')[-1].split("_")[0]
     linmapList=[f'./{"/".join(p.split("/")[-2:])}' for p in local_lin_maps.split(';')]
     tableList=[t for t in local_lin_tables.split(';') if "_central_" not in t]
 
-    print(f'Based on the sample density for submitted sequences with adm2 metadata, **{centralName}** was determined to be the focal NHS Health-board for region-scale UK-lineage analysis.')
+    print(f'Based on the sample density for submitted sequences with adm2 metadata, **{centralName}** was determined to be the focal NHS Health-board.')
     print('\n')
-    print(f'The below figure visualises the relative proportion of assigned UK-Lineages for samples collected and sequenced within the central healthboard region for the defined time-frame.')
+    print(f'The below figure visualises the relative proportion of assigned UK-Lineages for samples sampled in **{centralName}** for the defined time-frame.')
     print ("![]("+linmapList[0]+")")
     print('\n')
-    print(f'The below figure visualises the relative proportions of assigned UK-Lineages for samples collected from the focal, and neighboring healthboard regions for the defined time-frame within the regional context. Plot-size demonstrates relative numbers of sequences across given NHS healthboards.')
+    print(f'The below figure visualises the relative proportions of assigned UK-Lineages for samples collected in the whole region for the defined time-frame. Plot-size demonstrates relative numbers of sequences across given NHS healthboards.')
     print ("![]("+linmapList[2]+")")
     print('\n')
     #print(f'The below figure visualises the relative proportion of assigned UK-Lineages for samples collected and sequenced within neighbouring healthboard regions for the defined time-frame.')
@@ -342,9 +351,10 @@ For each query sequence, CIVET either finds them in the COG database, or matches
 Key points for interpreting this information:
 
  - This type of analysis is not able to infer direct transmission between two samples. Even identical sequences may be unrelated as SARS-COV2 is relatively slow evolving for an RNA virus. Previous analysis has shown that samples taken over 100 days apart can be identical. 
- - If sequences have different global or UK lineage designations, we can rule out close epidemiological linkage.
- - If sequences have different phylotypes it’s very unlikely that they are direct transmissions. 
- - If sequences share the same lineage and the same phylotype, transmission cannot be ruled out and also cannot be confirmed.
+ - UK lineage and UK phylotype designations are not yet stable, so they can change with each build of the COG-UK phylogeny.
+ - If sequences have different global or UK lineage designations, within the same analysis/report, we can rule out close epidemiological linkage.
+ - If sequences have different phylotypes, within the same analysis/report, it’s very unlikely that they are direct transmissions. 
+ - If sequences share the same lineage and the same phylotype, within the same analysis/report, transmission cannot be ruled out and also cannot be confirmed.
 
 
 The figure below shows the distribution of time differences that two sequences can be sampled and still be identical. 

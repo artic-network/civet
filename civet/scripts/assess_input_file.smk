@@ -184,16 +184,16 @@ rule prune_out_catchments:
     shell:
         """
         jclusterfunk context \
-        -i {input.tree:q} \
-        -o {params.outdir:q} \
+        -i "{input.tree}" \
+        -o "{params.outdir}" \
         --max-parent {params.up_distance} \
         --max-child {params.down_distance} \
         -f newick \
         -p tree_ \
         --ignore-missing \
-        -m {input.metadata:q} \
+        -m "{input.metadata}" \
         --id-column closest \
-        && touch {output.txt:q} 
+        && touch "{output.txt}" 
         """
 
 rule process_catchments:
@@ -269,6 +269,7 @@ rule process_catchments:
                             f"catchment_str={catchment_str} "
                             "outdir={params.outdir:q} "
                             "tempdir={params.tempdir:q} "
+                            "threshold={params.threshold} "
                             "combined_metadata={input.combined_metadata:q} "
                             "--cores {params.cores}")
 
