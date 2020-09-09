@@ -91,6 +91,9 @@ def main(sysargs = sys.argv[1:]):
             'gnuplot', 'gnuplot2', 'CMRmap', 'cubehelix', 'brg',
             'gist_rainbow', 'rainbow', 'jet', 'nipy_spectral', 'gist_ncar']
 
+    full_metadata_headers = ["central_sample_id", "biosample_source_id","sequence_name","secondary_identifier","sample_date","epi_week","country","adm1","adm2","outer_postcode","is_surveillance","is_community","is_hcw","is_travel_history","travel_history","lineage","lineage_support","uk_lineage","acc_lineage","del_lineage","phylotype"]
+
+
     # Exit with help menu if no args supplied
     if len(sysargs)<1: 
         parser.print_help()
@@ -205,21 +208,21 @@ def main(sysargs = sys.argv[1:]):
         else:
             label_fields = args.label_fields.split(",")
             for label_f in label_fields:
-                if label_f in reader.fieldnames:
+                if label_f in reader.fieldnames or label_f in full_metadata_headers:
                     labels.append(label_f)
                 else:
-                    sys.stderr.write(f"Error: {label_f} field not found in metadata file")
+                    sys.stderr.write(f"Error: {label_f} field not found in metadata file or full metadata file")
                     sys.exit(-1)
 
         if not args.date_fields:
-            date_lst.append("sample_date")
+            date_lst.append("NONE")
         else:
             date_fields = args.date_fields.split(",")
             for date_f in date_fields:
-                if date_f in reader.fieldnames or date_f != "sample_date":
+                if date_f in reader.fieldnames or date_f in full_metadata_headers:
                     date_lst.append(date_f)
                 else:
-                    sys.stderr.write(f"Error: {date_f} field not found in query metadata file")
+                    sys.stderr.write(f"Error: {date_f} field not found in query metadata file or full metadata file")
                     sys.exit(-1)
 
         if args.display:
@@ -282,7 +285,7 @@ def main(sysargs = sys.argv[1:]):
         config["add_boxplots"]= True
     else:
         config["add_boxplots"]= False
-        
+
     if args.map_sequences:
         config["map_sequences"] = True
         if not args.map_inputs:

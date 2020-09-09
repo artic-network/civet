@@ -193,8 +193,10 @@ def parse_input_csv(input_csv, query_id_dict, desired_fields, label_fields, date
                         taxon.sample_date = sequence["sample_date"]
 
                 for col in col_names: #Add other metadata fields provided
-                    if len(label_fields) > 0:
-                        if col in label_fields:
+                    if col in label_fields:
+                        if sequence[col] == "":
+                                taxon.attribute_dict[col] = "NA"     
+                        else:
                             taxon.attribute_dict[col] = sequence[col]
                     else:
                         if col != "name" and col in desired_fields and col != "adm1":
@@ -219,8 +221,6 @@ def parse_input_csv(input_csv, query_id_dict, desired_fields, label_fields, date
                             if sequence[col] in adm2_adm1_dict.keys():
                                 adm1 = adm2_adm1_dict[sequence[col]]
                                 taxon.attribute_dict["adm1"] = adm1
-
-                    
 
                 if cog_report:
                     taxon.attribute_dict["adm2"]= sequence["adm2"] 
@@ -321,10 +321,16 @@ def parse_full_metadata(query_dict, label_fields, full_metadata, present_lins, p
                         if sequence[field] != "" and field not in tax_object.date_dict.keys():
                             date_dt = convert_date(sequence[field])
                             tax_object.date_dict[field] = date_dt 
-
-                if len(label_fields) > 0:
-                    for field in label_fields:
-                        if field in col_names and tax_object.attribute_dict[field] == "" and sequence[field] != "":
+                    
+                for field in label_fields:
+                    if field in col_names:
+                        if field not in tax_object.attribute_dict.keys():
+                            if sequence[field] == "":
+                                tax_object.attribute_dict[field] = "NA"
+                            else:
+                                tax_object.attribute_dict[field] = sequence[field]
+                        
+                        elif tax_object.attribute_dict[field] == "NA" and sequence[field] != "":
                             tax_object.attribute_dict[field] = sequence[field]
 
                 full_tax_dict[seq_name] = tax_object

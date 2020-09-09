@@ -71,8 +71,9 @@ def display_name(tree, tree_name, tree_dir, full_taxon_dict, query_dict, custom_
             name = k.name
             
             if "inserted" in name:
-                collapsed_node_info = summarise_collapsed_node_for_label(tree_dir, name, tree_name, full_taxon_dict)
+                collapsed_node_info, number_nodes = summarise_collapsed_node_for_label(tree_dir, name, tree_name, full_taxon_dict)
                 k.traits["display"] = collapsed_node_info
+                k.node_number = number_nodes
             else:
                 if name in full_taxon_dict:
                     taxon_obj = full_taxon_dict[name]
@@ -94,6 +95,8 @@ def display_name(tree, tree_name, tree_dir, full_taxon_dict, query_dict, custom_
                                     display_name = display_name + "|" + taxon_obj.attribute_dict[label_element]
                                 count += 1
                         k.traits["display"] = display_name
+
+                    k.node_number = 1
                 
                 
                 else:
@@ -101,8 +104,10 @@ def display_name(tree, tree_name, tree_dir, full_taxon_dict, query_dict, custom_
                         number = name.split("_")[-1]
                         display = f"Tree {number}"
                         k.traits["display"] = display
+                        k.node_number = 1
                     else:
                         k.traits["display"] = name + "|" + "not in dict"
+                        k.node_number = 1
 
 
 def find_colour_dict(query_dict, trait, colour_scheme):
@@ -171,11 +176,10 @@ def make_scaled_tree(My_Tree, tree_name, tree_dir, num_tips, colour_dict_dict, d
     space_offset = tallest_height/10
     absolute_x_axis_size = tallest_height+space_offset+space_offset + tallest_height #changed from /3 
     
-
     tipsize = 40
     c_func=lambda k: 'dimgrey' ## colour of branches
     l_func=lambda k: 'lightgrey' ## colour of dotted lines
-    s_func = lambda k: tipsize*5 if k.name in query_dict.keys() else tipsize
+    s_func = lambda k: tipsize*5 if k.name in query_dict.keys() else (0 if k.node_number > 1 else tipsize)
     z_func=lambda k: 100
     b_func=lambda k: 2.0 #branch width
     so_func=lambda k: tipsize*5 if k.name in query_dict.keys() else 0
@@ -195,7 +199,6 @@ def make_scaled_tree(My_Tree, tree_name, tree_dir, num_tips, colour_dict_dict, d
         trait = next(key_iterator) #so always have the first trait as the first colour dot
 
     first_trait = trait
-        
     colour_dict = colour_dict_dict[trait]
     cn_func = lambda k: colour_dict[query_dict[k.name].attribute_dict[trait]] if k.name in query_dict.keys() else 'dimgrey'
     co_func=lambda k: colour_dict[query_dict[k.name].attribute_dict[trait]] if k.name in query_dict.keys() else 'dimgrey' 
@@ -226,7 +229,6 @@ def make_scaled_tree(My_Tree, tree_name, tree_dir, num_tips, colour_dict_dict, d
     My_Tree.plotPoints(ax, x_attr=x_attr, colour_function=cn_func,y_attr=y_attr, size_function=s_func, outline_colour=outline_colour_func)
     My_Tree.plotPoints(ax, x_attr=x_attr, colour_function=co_func, y_attr=y_attr, size_function=so_func, outline_colour=outline_colour_func)
 
-
     blob_dict = {}
 
     for k in My_Tree.Objects:
@@ -236,6 +238,10 @@ def make_scaled_tree(My_Tree, tree_name, tree_dir, num_tips, colour_dict_dict, d
             x=x_attr(k)
             y=y_attr(k)
         
+            if k.node_number > 1:
+                new_dot_size = tipsize*(1+math.log(k.node_number)) 
+                ax.scatter(x, y, s=new_dot_size, marker="s", zorder=3, color="dimgrey")
+
             height = My_Tree.treeHeight+offset
             text_start = tallest_height+space_offset+space_offset
 
@@ -462,7 +468,7 @@ def summarise_collapsed_node_for_label(tree_dir, focal_node, focal_tree, full_ta
 
                 info = pretty_node_name + ": " + number_nodes + " in " + pretty_summary
 
-    return info
+    return info, len(member_list)
 
 def summarise_node_table(tree_dir, focal_tree, full_tax_dict):
 

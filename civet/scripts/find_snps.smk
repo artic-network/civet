@@ -101,6 +101,7 @@ rule ambiguities_at_snp_sites:
 rule make_snp_figure:
     input:
         rules.gather_snp_reports.output.report, #change this one to snps input in gather_snp_reports
+        #snps = expand(os.path.join(config["tempdir"],"snp_reports","{tree}.snps.txt"), tree=config["tree_stems"]),
         rules.ambiguities_at_snp_sites.output.snp_report
     output:
         os.path.join(config["outdir"],"figures","genome_graph.png")

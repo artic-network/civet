@@ -21,13 +21,11 @@ def summarise_dates(query_dict):
         min_string = min_overall_date.strftime("%Y-%m-%d")
         max_string = max_overall_date.strftime("%Y-%m-%d")
 
-        dates_present = True
-
     else:
-        dates_present = False
+        return False
 
 
-    return dates_present, overall_dates, max_overall_date, min_overall_date,  max_string, min_string
+    return overall_dates, max_overall_date, min_overall_date,  max_string, min_string
 
 def display_name(tax, custom_tip_fields):
     
@@ -51,28 +49,33 @@ def display_name(tax, custom_tip_fields):
     
     return display_name
 
-def find_colour_dict(tree_list):
+def find_colour_dict(date_fields):
     
     colour_dict = {}
     count = 0
 
     cmap = cm.get_cmap("Paired")
     
-    colors = cmap(np.linspace(0, 1, len(tree_list)))
+    colors = cmap(np.linspace(0, 1, len(date_fields)))
     
-    for option in sorted(tree_list):
+    for option in sorted(date_fields):
         colour_dict[option] = colors[count]
         count += 1
 
     return colour_dict
 
-def plot_time_series(tips, query_dict, overall_max_date, overall_min_date, tree_list, custom_tip_fields):
+def plot_time_series(tips, query_dict, overall_max_date, overall_min_date, date_fields, custom_tip_fields):
+
+    colour_dict = find_colour_dict(date_fields)    
 
     time_len = (overall_max_date - overall_min_date).days
 
     height = math.sqrt(len(tips))*2 + 1
 
-    tick_loc_base = float(math.ceil(time_len/5))
+    if time_len > 20:
+        tick_loc_base = float(math.ceil(time_len/5))
+    else:
+        tick_loc_base = time_len
     
     loc = plticker.MultipleLocator(base=tick_loc_base)
 
@@ -84,26 +87,36 @@ def plot_time_series(tips, query_dict, overall_max_date, overall_min_date, tree_
     else:
         offset = dt.timedelta(time_len/3)
 
-    colour_dict = find_colour_dict(tree_list)
 
     count = 1
 
     for tax in tips:
         if tax.date_dict != {} and tax in query_dict.values():
         
-            first_date = min(list(tax.date_dict.values()))
-            last_date = max(list(tax.date_dict.values()))
+            first_date_type = min(tax.date_dict.keys(), key=lambda k: tax.date_dict[k])
+            last_date_type = max(tax.date_dict.keys(), key=lambda k: tax.date_dict[k])
+
+            first_date = tax.date_dict[first_date_type]
+            last_date = tax.date_dict[last_date_type]
+
+            other_dates = {}
+            for date_type, date in tax.date_dict.items():
+                if date != first_date and date != last_date:
+                    other_dates[date_type] = date
             
             label = display_name(tax, custom_tip_fields)
             
             x = [first_date, last_date]
             y = [count, count]
             
-            ax1.scatter(first_date, count, color=colour_dict[tax.tree], s=200, zorder=2)
-            ax1.scatter(last_date, count, color=colour_dict[tax.tree], s=200, zorder=2)
+            ax1.scatter(first_date, count, color=colour_dict[first_date_type], s=200, zorder=2, label=first_date_type)
+            ax1.scatter(last_date, count, color=colour_dict[last_date_type], s=200, zorder=2, label=last_date_type)
+
+            for date_option, date in other_dates.items():
+                ax1.scatter(date, count, color=colour_dict[date_option], s=200, zorder=2, label=date_option)
             
             if first_date != last_date:
-                ax1.plot(x,y, color=colour_dict[tax.tree],zorder=1)
+                ax1.plot(x,y, color="dimgrey",zorder=1)
 
             # ax2.plot([last_date, overall_max_date+offset],y,ls='dotted',lw=1,color="dimgrey")
             if x != overall_max_date:
@@ -129,6 +142,9 @@ def plot_time_series(tips, query_dict, overall_max_date, overall_min_date, tree_
     ax1.tick_params(labelsize=20, rotation=90)
     ax1.xaxis.set_major_locator(loc)
 
+    handles, labels = ax1.get_legend_handles_labels()
+    unique = [(h, l) for i, (h, l) in enumerate(zip(handles, labels)) if l not in labels[:i]]
+    ax1.legend(*zip(*unique))
 
     fig.tight_layout()
 

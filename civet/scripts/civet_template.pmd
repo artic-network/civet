@@ -92,9 +92,10 @@ if label_fields_input != "NONE":
         label_fields.append(i)
 
 date_fields = []
-options = date_fields_input.split(",")
-for i in options: 
-    date_fields.append(i)
+if date_fields_input != "NONE":
+    options = date_fields_input.split(",")
+    for i in options: 
+        date_fields.append(i)
 
 snp_report = "" ##CHANGE
 
@@ -102,7 +103,7 @@ local_lineages = "" ##CHANGE
 local_lin_maps = "" ##CHANGE
 local_lin_tables = "" ##CHANGE
 
-map_sequences = "" ##CHANGE #going to be true or false
+map_sequences = "" ##CHANGE 
 map_inputs = "" ##CHANGE
 mapping_trait = "" ##CHANGE
 input_crs = "" ##CHANGE
@@ -145,8 +146,13 @@ if input_csv != '':
 
 full_tax_dict = dp.parse_full_metadata(query_dict, label_fields, full_metadata_file, present_lins, present_in_tree, node_summary_option, date_fields)
 
-dates_present, overall_dates, max_overall_date, min_overall_date,  max_string, min_string = time_func.summarise_dates(query_dict)
 
+time_outputs = time_func.summarise_dates(query_dict)
+if type(time_outputs) != bool:
+    overall_dates, max_overall_date, min_overall_date,  max_string, min_string = time_outputs
+    dates_present = True
+else:
+    dates_present = False
 ```
 
 ```python, name="QC fails", echo=False, results="raw"
@@ -210,7 +216,6 @@ elif not_in_cog_number == 0 and cog_number != 0:
     print(df_cog.to_markdown())
 ```
 
-<!-- ## Phylogenies -->
 
 ```python, name="make_trees", echo=False, include=False, figure=False
 too_tall_trees, overall_tree_number, colour_dict_dict, overall_df_dict, tree_order = tree_viz.make_all_of_the_trees(tree_dir, tree_name_stem, full_tax_dict, query_dict, desired_fields, label_fields, graphic_dict)
@@ -224,10 +229,15 @@ for trait, colour_dict in colour_dict_dict.items():
 ```
 ```python, name="time_plot", echo=False, results='raw', include=False
 if dates_present:
+    count = 0
+    tree_to_time_series = {}
     for tree in tree_order:
+        count += 1
         lookup = f"{tree_name_stem}_{tree}"
         tips = tree_to_tip[lookup]
-        time_func.plot_time_series(tips, query_dict, max_overall_date, min_overall_date, tree_list, label_fields)
+        if len(tips) > 1:
+            time_func.plot_time_series(tips, query_dict, max_overall_date, min_overall_date, date_fields, label_fields)
+            tree_to_time_series[lookup] = count
 ```
 
 ```python, name="show_trees", echo=False, results='raw'
@@ -247,8 +257,8 @@ for i in range(1,overall_tree_number+1):
     print(f'<img src="{figdir}/{name_stem}_make_legend_1.png" alt="drawing" style="width:100%;"/>')
     print("\n")
 
-    if dates_present:
-        print("![](" + figdir + "/" + name_stem + "_time_plot_" + str(i) + ".png)")
+    if dates_present and lookup in tree_to_time_series.keys():
+        print("![](" + figdir + "/" + name_stem + "_time_plot_" + str(tree_to_time_series[lookup]) + ".png)")
 
 ```
 
