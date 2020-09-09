@@ -2,6 +2,7 @@ import csv
 from Bio import SeqIO
 import os
 import collections
+from pytools.persistent_dict import PersistentDict
 
 rule check_cog_db:
     input:
@@ -284,16 +285,17 @@ rule find_snps:
         tempdir= config["tempdir"],
         path = workflow.current_basedir,
         threshold = config["threshold"],
-        
+                
         fasta = config["fasta"],
         tree_dir = os.path.join(config["outdir"],"local_trees"),
 
         cores = workflow.cores,
         force = config["force"],
         quiet_mode = config["quiet_mode"]
+
     output:
-        genome_graph = os.path.join(config["outdir"],"figures","genome_graph.png"),
-        report = os.path.join(config["outdir"],"snp_reports","snp_reports.txt")
+        genome_graphs = os.path.join(config["outdir"],"snp_reports","tree_subtree_1.snps.txt"), #this obviously isn't ideal because it's not flexible to name stem changes
+        reports = os.path.join(config["outdir"],"figures","genome_graph_tree_subtree_1.png")
     run:
         local_trees = []
         for r,d,f in os.walk(params.tree_dir):
@@ -411,8 +413,8 @@ rule make_report:
         ni_map = config["ni_map"],
         pc_file = config["pc_file"],
         urban_centres = config["urban_centres"],
-        genome_graph = rules.find_snps.output.genome_graph,
-        snp_report = rules.find_snps.output.report,
+        genome_graph = rules.find_snps.output.genome_graphs, #do these two arguments need to be here? 
+        snp_report = rules.find_snps.output.reports, 
         central = os.path.join(config["outdir"], 'figures', "central_map_ukLin.png"),
         neighboring = os.path.join(config["outdir"], 'figures', "neighboring_map_ukLin.png"),
         region = os.path.join(config["outdir"], 'figures', "region_map_ukLin.png")

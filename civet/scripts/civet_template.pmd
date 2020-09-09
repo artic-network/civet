@@ -192,7 +192,7 @@ if dates_present:
     print("Earliest date: " + min_string)
     print("Latest date: " + max_string)
 else:
-    print("No date information found")
+    print("No time information provided")
 
 ```
 
@@ -260,6 +260,8 @@ for i in range(1,overall_tree_number+1):
     if dates_present and lookup in tree_to_time_series.keys():
         print("![](" + figdir + "/" + name_stem + "_time_plot_" + str(tree_to_time_series[lookup]) + ".png)")
 
+    print(f"![]({figdir}/genome_graph_{lookup}.png)")
+
 ```
 
 ```python, name="Tree error checking", echo=False, results='raw'
@@ -276,12 +278,6 @@ if add_boxplots != "":
     for i in range(bar_count):
         print(f"![]({figdir}/{name_stem}_tree_background_{i+1}.png)")
 
-```
-
-### SNPs found in sequences of interest
-
-```python, name="genome graph", echo=False, results='raw'
-print(f"![]({figdir}/genome_graph.png)")
 ```
 
 ```python, name="map_sequences", echo=False, results='raw', include=False

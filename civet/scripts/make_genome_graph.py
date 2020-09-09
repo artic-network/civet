@@ -95,8 +95,6 @@ def make_graph():
 
         # snp position labels
         
-        
-        
         for sequence in snp_dict[snp]:
             # sequence variant text
             name,ref,var,y_pos = sequence

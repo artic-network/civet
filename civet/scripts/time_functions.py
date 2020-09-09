@@ -75,9 +75,9 @@ def plot_time_series(tips, query_dict, overall_max_date, overall_min_date, date_
     if time_len > 20:
         tick_loc_base = float(math.ceil(time_len/5))
     else:
-        tick_loc_base = time_len
-    
-    loc = plticker.MultipleLocator(base=tick_loc_base)
+        tick_loc_base = 1.0
+
+    loc = plticker.MultipleLocator(base=tick_loc_base) #Sets a tick on each integer multiple of a base within the view interval
 
     fig, ax1 = plt.subplots(1,1, figsize=(20,height))
     ax2 = ax1.twinx()
