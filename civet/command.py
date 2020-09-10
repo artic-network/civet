@@ -110,6 +110,7 @@ def main(sysargs = sys.argv[1:]):
         "delay_collapse": False
         }
 
+    
     print(args)
     # find the query csv, or string of ids, or config file
     query,configfile = qcfunk.type_input_file(args.query,cwd,config)

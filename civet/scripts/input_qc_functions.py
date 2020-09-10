@@ -81,6 +81,7 @@ def make_csv_from_ids(id_list, config):
 def parse_yaml_file(configfile,config):
     with open(configfile,"r") as f:
         input_config = yaml.load(f, Loader=yaml.FullLoader)
+        print(input_config)
         for key in input_config:
             snakecase_key = key.replace("-","_")
             config[snakecase_key] = input_config[key]
@@ -93,12 +94,12 @@ def get_snakefile(thisdir):
     return snakefile
 
 def get_query_fasta(fasta_arg,cwd,config):
-    
+
     if fasta_arg:
         fasta = os.path.join(cwd, fasta_arg)
 
     elif "fasta" in config:
-        fasta = os.path.join(cwd, fasta_arg)
+        fasta = os.path.join(config["path_to_query"], config["fasta"]) #do we want capability for having different paths to fasta? Or we could ask them to provide full path in config.
 
     else:
         fasta = ""
@@ -406,7 +407,7 @@ def map_sequences_config(map_sequences,mapping_trait,map_inputs,input_crs,query,
         
         if map_settings:
             if not map_inputs:
-                sys.stderr.write(cyan('Error: coordinates or outer postcode not supplied for mapping sequences. Please provide either x and y columns as a comma separated string, or column header containing outer postcode.''))
+                sys.stderr.write(cyan('Error: coordinates or outer postcode not supplied for mapping sequences. Please provide either x and y columns as a comma separated string, or column header containing outer postcode.'))
                 sys.exit(-1)
             else:
                 
@@ -534,6 +535,7 @@ def get_package_data(cog_report,thisdir,config):
     map_input_3 = pkg_resources.resource_filename('civet', 'data/mapping_files/NI_counties.geojson')  
     map_input_4 = pkg_resources.resource_filename('civet', 'data/mapping_files/Mainland_HBs_gapclosed_mapshaped_d3.json')
     map_input_5 = pkg_resources.resource_filename('civet', 'data/mapping_files/urban_areas_UK.geojson')
+    map_input_6 = pkg_resources.resource_filename('civet', 'data/mapping_files/UK_outPC_coords.csv')
     spatial_translations_1 = pkg_resources.resource_filename('civet', 'data/mapping_files/HB_Translation.pkl')
     spatial_translations_2 = pkg_resources.resource_filename('civet', 'data/mapping_files/adm2_regions_to_coords.csv')
     config["reference_fasta"] = reference_fasta
@@ -547,6 +549,7 @@ def get_package_data(cog_report,thisdir,config):
     config["ni_map"] = map_input_3
     config["uk_map_d3"] = map_input_4
     config["urban_centres"] = map_input_5
+    config["pc_file"] = map_input_6
     config["HB_translations"] = spatial_translations_1
     config["PC_translations"] = spatial_translations_2
 

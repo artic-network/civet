@@ -22,12 +22,11 @@ label-fields: [ adm2, sample_date ]
 #   - EDB002
 #   - EDB004
 query: test.csv
-# fasta-file: test.fasta
+fasta: test.fasta
 # up-distance: 2
 # down-distance: 2
 # collapse-threshold: 1
 # boxplots: False
 # global: True
 # map: True
-# x-col: x
-# y-col: y
+# map_inputs: x_col, y_col
