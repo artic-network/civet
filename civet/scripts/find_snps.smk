@@ -5,6 +5,7 @@ import collections
 
 
 config["tree_stems"] = config["catchment_str"].split(",")
+print(config["outdir"])
 
 rule all:
     input:
@@ -90,7 +91,7 @@ rule ambiguities_at_snp_sites:
         #seqs = rules.gather_snp_seqs.output.seqs,
         #report = rules.gather_snp_reports.output.report
         seqs = os.path.join(config["tempdir"], "seqs_for_snps", "{tree}.fasta"),
-        report = os.path.join(config["tempdir"],"snp_reports", "{tree}.snps.txt")
+        report = os.path.join(config["outdir"],"snp_reports", "{tree}.snps.txt")
     output:
         snp_report = os.path.join(config["outdir"], "snp_reports", "ambiguities_{tree}.snps.txt")
     shell:
@@ -103,8 +104,8 @@ rule make_snp_figure:
     input:
         #rules.gather_snp_reports.output.report, #change this one to snps input in gather_snp_reports
         #snps = expand(os.path.join(config["tempdir"],"snp_reports","{tree}.snps.txt"), tree=config["tree_stems"]),
-        ambs = os.path.join(config["tempdir"], "snp_reports", "ambiguities_{tree}.snps.txt"),
-        snps = os.path.join(config["tempdir"],"snp_reports","{tree}.snps.txt")
+        ambs = os.path.join(config["outdir"], "snp_reports", "ambiguities_{tree}.snps.txt"),
+        snps = os.path.join(config["outdir"],"snp_reports","{tree}.snps.txt")
     output:
         os.path.join(config["outdir"],"figures","genome_graph_{tree}.png")
     shell:
