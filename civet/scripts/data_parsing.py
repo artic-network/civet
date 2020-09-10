@@ -12,7 +12,7 @@ import matplotlib.pyplot as plt
 
 class taxon():
 
-    def __init__(self, name, global_lin, uk_lin, phylotype):
+    def __init__(self, name, global_lin, uk_lin, phylotype, label_fields, tree_fields):
 
         self.name = name
 
@@ -38,6 +38,12 @@ class taxon():
         self.in_cog = False
         self.attribute_dict = {}
         self.attribute_dict["adm1"] = "NA"
+        
+        for i in label_fields:
+            self.attribute_dict[i] = "NA"
+        for i in tree_fields:
+            self.attribute_dict[i] = "NA"
+
         self.tree = "NA"
 
         self.closest_distance = "NA"
@@ -116,7 +122,7 @@ def prepping_adm2_adm1_data(full_metadata):
     return adm2_adm1
     
 
-def parse_filtered_metadata(metadata_file, tip_to_tree):
+def parse_filtered_metadata(metadata_file, tip_to_tree, label_fields, tree_fields):
     
     query_dict = {}
     query_id_dict = {}
@@ -146,7 +152,7 @@ def parse_filtered_metadata(metadata_file, tip_to_tree):
             sample_date = sequence["sample_date"]
 
             
-            new_taxon = taxon(query_name, glob_lin, uk_lineage, phylotype)
+            new_taxon = taxon(query_name, glob_lin, uk_lineage, phylotype, label_fields, tree_fields)
 
             new_taxon.query_id = query_id
 
@@ -225,9 +231,7 @@ def parse_input_csv(input_csv, query_id_dict, desired_fields, label_fields, date
                             taxon.attribute_dict[col] = sequence[col]
                     else:
                         if col != "name" and col in desired_fields and col != "adm1":
-                            if sequence[col] == "":
-                                taxon.attribute_dict[col] = "NA"
-                            else:
+                            if sequence[col] != "":
                                 taxon.attribute_dict[col] = sequence[col]
             
                         if col == "adm1":
@@ -290,7 +294,7 @@ def parse_tree_tips(tree_dir):
 
     return tips, tip_to_tree, tree_list
 
-def parse_full_metadata(query_dict, label_fields, full_metadata, present_lins, present_in_tree, node_summary_option, date_fields):
+def parse_full_metadata(query_dict, label_fields, tree_fields,full_metadata, present_lins, present_in_tree, node_summary_option, date_fields):
 
     full_tax_dict = query_dict.copy()
 
@@ -317,7 +321,7 @@ def parse_full_metadata(query_dict, label_fields, full_metadata, present_lins, p
 
 
             if (uk_lin in present_lins or seq_name in present_in_tree) and seq_name not in query_dict.keys():
-                new_taxon = taxon(seq_name, glob_lin, uk_lin, phylotype)
+                new_taxon = taxon(seq_name, glob_lin, uk_lin, phylotype, label_fields, tree_fields)
                 if date == "":
                     date = "NA"
                 
@@ -349,13 +353,7 @@ def parse_full_metadata(query_dict, label_fields, full_metadata, present_lins, p
                     
                 for field in label_fields:
                     if field in col_names:
-                        if field not in tax_object.attribute_dict.keys():
-                            if sequence[field] == "":
-                                tax_object.attribute_dict[field] = "NA"
-                            else:
-                                tax_object.attribute_dict[field] = sequence[field]
-                        
-                        elif tax_object.attribute_dict[field] == "NA" and sequence[field] != "":
+                        if tax_object.attribute_dict[field] == "NA" and sequence[field] != "":
                             tax_object.attribute_dict[field] = sequence[field]
 
                 full_tax_dict[seq_name] = tax_object
