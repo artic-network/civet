@@ -329,7 +329,9 @@ def check_args_and_config_list(argument, config_key, default, column_names, conf
     return field_str
 
 def check_label_and_colour_fields(colour_fields, label_fields, display_arg, input_column, config):
-    # question, what if i want to colour by or label by fields that exist in the big metadata file?
+    # question, what if i want to colour by or label by fields that exist in the big metadata file? 
+    # Already on it!
+    full_metadata_headers = get_cog_headers()
     acceptable_colours = get_colours()
     queries = []
     
@@ -764,6 +766,13 @@ def get_colours():
             'gnuplot', 'gnuplot2', 'CMRmap', 'cubehelix', 'brg',
             'gist_rainbow', 'rainbow', 'jet', 'nipy_spectral', 'gist_ncar']
     return colours
+
+def get_cog_headers():
+    headers = ["central_sample_id", "biosample_source_id","sequence_name","secondary_identifier",
+                "sample_date","epi_week","country","adm1","adm2","outer_postcode","is_surveillance","is_community",
+                "is_hcw","is_travel_history","travel_history","lineage","lineage_support","uk_lineage","acc_lineage","del_lineage","phylotype"]
+
+    return headers
 
 def colour(text, text_colour):
     bold_text = 'bold' in text_colour
