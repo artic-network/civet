@@ -5,7 +5,6 @@ import collections
 
 
 config["tree_stems"] = config["catchment_str"].split(",")
-print(config["outdir"])
 
 rule all:
     input:
