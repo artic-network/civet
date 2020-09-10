@@ -25,6 +25,7 @@ import os
 import data_parsing as dp
 import make_tree_figures as tree_viz
 import mapping as mapping
+import time_functions as time_func
 import matplotlib.font_manager as font_manager
 import matplotlib as mpl
 from collections import defaultdict
@@ -66,6 +67,7 @@ label_fields_input = "" ##CHANGE
 graphic_dict_input = "" ##CHANGE
 summary_dir = "" ##CHANGE
 node_summary_option = "" ##CHANGE
+date_fields_input = ##CHANGE 
 
 tree_name_stem = "" ##CHANGE
 
@@ -89,7 +91,11 @@ if label_fields_input != "NONE":
     for i in options: 
         label_fields.append(i)
 
-
+date_fields = []
+if date_fields_input != "NONE":
+    options = date_fields_input.split(",")
+    for i in options: 
+        date_fields.append(i)
 
 snp_report = "" ##CHANGE
 
@@ -97,15 +103,15 @@ local_lineages = "" ##CHANGE
 local_lin_maps = "" ##CHANGE
 local_lin_tables = "" ##CHANGE
 
-map_sequences = "" ##CHANGE #going to be true or false
-x_col = "" ##CHANGE
-y_col = "" ##CHANGE
+map_sequences = "" ##CHANGE 
+map_inputs = "" ##CHANGE
 mapping_trait = "" ##CHANGE
 input_crs = "" ##CHANGE
 uk_map = "" ##CHANGE
 channels_map = "" ##CHANGE
 ni_map = "" ##CHANGE
 urban_centres = "" ##CHANGE
+pc_file = "" ##CHANGE
 
 
 mapping_json_files = [uk_map, channels_map, ni_map]
@@ -124,7 +130,7 @@ pyplot.rcParams.update({'figure.max_open_warning': 0})
 mpl.rcParams['font.weight']=50
 mpl.rcParams['axes.labelweight']=50
 
-inputs = [desired_fields, label_fields, graphic_dict, node_summary_option, map_sequences, x_col, y_col, mapping_trait]
+inputs = [desired_fields, label_fields, graphic_dict, node_summary_option, map_sequences, mapping_trait, map_inputs]
 
 ```
 
@@ -132,20 +138,27 @@ inputs = [desired_fields, label_fields, graphic_dict, node_summary_option, map_s
 
 ```python, name="parse metadata", echo=False, results='raw'
 
-present_in_tree, tip_to_tree = dp.parse_tree_tips(tree_dir)
+present_in_tree, tip_to_tree, tree_list = dp.parse_tree_tips(tree_dir)
 
 query_dict, query_id_dict, present_lins, tree_to_tip = dp.parse_filtered_metadata(filtered_cog_metadata, tip_to_tree) #Just the lines with their queries plus the closest match in COG
 
 if input_csv != '':
     adm2_to_adm1 = dp.prepping_adm2_adm1_data(full_metadata_file)
-    query_dict = dp.parse_input_csv(input_csv, query_id_dict, desired_fields, label_fields, adm2_to_adm1, False) #Any query information they have provided
+    query_dict = dp.parse_input_csv(input_csv, query_id_dict, desired_fields, label_fields, date_fields, adm2_to_adm1, False) #Any query information they have provided
 
-full_tax_dict = dp.parse_full_metadata(query_dict, full_metadata_file, present_lins, present_in_tree, node_summary_option)
+full_tax_dict = dp.parse_full_metadata(query_dict, label_fields, full_metadata_file, present_lins, present_in_tree, node_summary_option, date_fields)
+
+
+time_outputs = time_func.summarise_dates(query_dict)
+if type(time_outputs) != bool:
+    overall_dates, max_overall_date, min_overall_date,  max_string, min_string = time_outputs
+    dates_present = True
+else:
+    dates_present = False
 ```
 
 ```python, name="QC fails", echo=False, results="raw"
 count_fails = 0
-
 if QC_fail_file != "": 
     with open(QC_fail_file) as f:
         next(f)
@@ -175,12 +188,20 @@ for tax in query_dict.values():
 try:
     dp.analyse_inputs(inputs)
 except:
-    print("inputs failed to print.")
+    print("Failed to print inputs.")
+
 
 print("\n")
 
 print(str(number_seqs) + " queries (" + str(cog_number) + " matched to COG-UK database).")
 print(str(not_in_cog_number) + " additional sequences provided.")
+
+if dates_present:
+    print("Time fields provided: " + ",".join(date_fields))
+    print("Earliest date: " + min_string)
+    print("Latest date: " + max_string)
+else:
+    print("No time information provided")
 
 ```
 
@@ -204,10 +225,9 @@ elif not_in_cog_number == 0 and cog_number != 0:
     print(df_cog.to_markdown())
 ```
 
-<!-- ## Phylogenies -->
 
 ```python, name="make_trees", echo=False, include=False, figure=False
-too_tall_trees, overall_tree_number, colour_dict_dict, overall_df_dict = tree_viz.make_all_of_the_trees(tree_dir, tree_name_stem, full_tax_dict, query_dict, desired_fields, label_fields, graphic_dict)
+too_tall_trees, overall_tree_number, colour_dict_dict, overall_df_dict, tree_order = tree_viz.make_all_of_the_trees(tree_dir, tree_name_stem, full_tax_dict, query_dict, desired_fields, label_fields, graphic_dict)
 ```
 ```python, name="make_legend", echo=False, include=False, results='tex'
 for trait, colour_dict in colour_dict_dict.items():
@@ -215,6 +235,18 @@ for trait, colour_dict in colour_dict_dict.items():
     number_of_options = len(colour_dict)
     if number_of_options > 15:
         print("WARNING: There are more than 15 options to colour by for " + trait + ", which will make it difficult to see the differences between colours. Consider adding the trait to the taxon labels on the tree by using the flag _--label-fields_ when calling CIVET.")
+```
+```python, name="time_plot", echo=False, results='raw', include=False
+if dates_present:
+    count = 0
+    tree_to_time_series = {}
+    for tree in tree_order:
+        count += 1
+        lookup = f"{tree_name_stem}_{tree}"
+        tips = tree_to_tip[lookup]
+        if len(tips) > 1:
+            time_func.plot_time_series(tips, query_dict, max_overall_date, min_overall_date, date_fields, label_fields)
+            tree_to_time_series[lookup] = count
 ```
 
 ```python, name="show_trees", echo=False, results='raw'
@@ -234,6 +266,10 @@ for i in range(1,overall_tree_number+1):
     print(f'<img src="{figdir}/{name_stem}_make_legend_1.png" alt="drawing" style="width:100%;"/>')
     print("\n")
 
+    if dates_present and lookup in tree_to_time_series.keys():
+        print("![](" + figdir + "/" + name_stem + "_time_plot_" + str(tree_to_time_series[lookup]) + ".png)")
+
+    print(f"![]({figdir}/genome_graph_{lookup}.png)")
 
 ```
 
@@ -242,9 +278,6 @@ if too_tall_trees != []:
     for tree in too_tall_trees:
         print("Tree" + str(tree) + " is too large to be rendered here.")
 ```
-
-
-
 
 ```python, name="tree_background", echo=False, include=False,  results='raw'
 if add_bars != "":
@@ -256,16 +289,10 @@ if add_bars != "":
 
 ```
 
-### SNPs found in sequences of interest
-
-```python, name="genome graph", echo=False, results='raw'
-print(f"![]({figdir}/genome_graph.png)")
-```
-
 ```python, name="map_sequences", echo=False, results='raw', include=False
 if map_sequences != "False":
     print("## Plotting sequences")
-    adm2_in_map, adm2_percentages = mapping.map_traits(input_csv, input_crs, mapping_trait, x_col, y_col, mapping_json_files, urban_centres)
+    adm2_in_map, adm2_percentages = mapping.map_sequences_using_coordinates(input_csv, mapping_json_files, urban_centres, pc_file, mapping_trait, map_inputs, input_crs)
 
     print("There are sequences from " + str(len(adm2_in_map)) + " admin2 regions")
 
@@ -282,9 +309,6 @@ if map_sequences != "False":
 if map_sequences != "False":
     print("![](" + figdir + "/" + name_stem + "_map_sequences_1.png)")
 ```
-
-
-
 
 ```python, name='Regional-scale', echo=False, results='raw'
 if local_lineages != '':
