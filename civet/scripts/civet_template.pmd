@@ -130,7 +130,7 @@ pyplot.rcParams.update({'figure.max_open_warning': 0})
 mpl.rcParams['font.weight']=50
 mpl.rcParams['axes.labelweight']=50
 
-inputs = [desired_fields, label_fields, graphic_dict, node_summary_option, map_sequences, x_col, y_col, mapping_trait]
+inputs = [desired_fields, label_fields, graphic_dict, node_summary_option, map_sequences, mapping_trait, map_inputs]
 
 ```
 
@@ -188,7 +188,8 @@ for tax in query_dict.values():
 try:
     dp.analyse_inputs(inputs)
 except:
-    print("inputs failed to print.")
+    print("Failed to print inputs.")
+
 
 print("\n")
 

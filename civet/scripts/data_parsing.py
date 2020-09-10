@@ -64,7 +64,7 @@ class lineage():
 
 def analyse_inputs(inputs):
 
-    desired_fields, label_fields, graphic_dict, node_summary_option, map_sequences, x_col, y_col, mapping_trait = inputs 
+    desired_fields, label_fields, graphic_dict, node_summary_option, map_sequences, mapping_trait, map_inputs = inputs 
 
     print("Showing " + ",".join(desired_fields) + " on the tree.")
     print(",".join(list(graphic_dict.keys())) + " fields are displayed graphically using " + ",".join(list(graphic_dict.values())) + " colour schemes respectively.")
@@ -75,10 +75,17 @@ def analyse_inputs(inputs):
     print("Summarising nodes by " + node_summary_option)
 
     if map_sequences != "False":
-        if mapping_trait != "False":
-            print("Mapping sequences using columns " + x_col + " " + y_col + " for x values and y values respectively, and colouring by " + mapping_trait)
+        map_args = map_inputs.split(",")
+        if len(map_args) == 2:
+            if mapping_trait != "False":
+                print("Mapping sequences using columns " + map_args[0] + " " + map_args[1] + " for x values and y values respectively, and colouring by " + mapping_trait)
+            else:
+                print("Mapping sequences using columns " + map_args[0] + " " + map_args[1] + " for x values and y values respectively.")
         else:
-            print("Mapping sequences using columns " + x_col + " " + y_col + " for x values and y values respectively.")
+            if mapping_trait != "False":
+                print("Mapping sequences using columns " + map_args[0] + " for outer postcodes, and colouring by " + mapping_trait)
+            else:
+                print("Mapping sequences using columns " + map_args[0] + " for outer postocdes.")
 
     
     
