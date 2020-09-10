@@ -298,15 +298,17 @@ def get_temp_dir(tempdir_arg,no_temp_arg, cwd,config):
 
 def check_args_and_config_list(argument, config_key, default, column_names, config):
 
+    full_metadata_headers = get_full_headers()
+
     list_of_fields = []
     arg_list = []
     if argument:
         arg_list = argument.split(",")
         for field in arg_list:
-            if field in column_names:
+            if field in column_names or field in full_metadata_headers:
                 list_of_fields.append(field)
             else:
-                sys.stderr.write(cyan(f"Error: {field} field not found in metadata file\n"))
+                sys.stderr.write(cyan(f"Error: {field} field not found in query metadata file or background metadata file\n"))
                 sys.exit(-1)
 
     elif config_key in config:
@@ -316,10 +318,10 @@ def check_args_and_config_list(argument, config_key, default, column_names, conf
             arg_list = config[config_key]
 
         for field in arg_list:
-            if field in column_names:
+            if field in column_names  or field in full_metadata_headers:
                 list_of_fields.append(field)
             else:
-                sys.stderr.write(cyan(f"Error: {field} field not found in metadata file\n"))
+                sys.stderr.write(cyan(f"Error: {field} field not found in  query metadata file or background metadata file\n"))
                 sys.exit(-1)
 
     else:
@@ -328,10 +330,10 @@ def check_args_and_config_list(argument, config_key, default, column_names, conf
     field_str = ",".join(arg_list)
     return field_str
 
-def check_label_and_colour_fields(colour_fields, label_fields, display_arg, input_column, config):
+def check_label_and_colour_and_date_fields(colour_fields, label_fields, display_arg, date_fields, input_column, config):
     # question, what if i want to colour by or label by fields that exist in the big metadata file? 
     # Already on it!
-    full_metadata_headers = get_cog_headers()
+    
     acceptable_colours = get_colours()
     queries = []
     
@@ -366,6 +368,9 @@ def check_label_and_colour_fields(colour_fields, label_fields, display_arg, inpu
     print(green(f"Labelling by:") + f" {labels_str}")
     config["label_fields"] = labels_str
 
+    date_field_str = check_args_and_config_list(date_fields,"date_fields","NONE", column_names,config)
+    config["date_fields"] = date_field_str
+
     if display_arg:
         sections = display_arg.split(",")
         for item in sections:
@@ -390,7 +395,7 @@ def check_label_and_colour_fields(colour_fields, label_fields, display_arg, inpu
 
     config["graphic_dict"] = ",".join(graphics_list)
 
-def map_sequences_config(map_sequences,mapping_trait,x_col,y_col,input_crs,query,config):
+def map_sequences_config(map_sequences,mapping_trait,map_inputs,input_crs,query,config):
         map_settings = False
 
         if map_sequences:
@@ -400,21 +405,32 @@ def map_sequences_config(map_sequences,mapping_trait,x_col,y_col,input_crs,query
             map_settings = config["map_sequences"]
         
         if map_settings:
-            if not x_col or not y_col:
-                sys.stderr.write(cyan('Error: coordinates not supplied for mapping sequences. Please provide --x-col and --y-col'))
-                sys.exit(-1)
-            elif not input_crs:
-                sys.stderr.write(cyan('Error: input coordinate system not provided for mapping. Please provide --input-crs eg EPSG:3395'))
+            if not map_inputs:
+                sys.stderr.write(cyan('Error: coordinates or outer postcode not supplied for mapping sequences. Please provide either x and y columns as a comma separated string, or column header containing outer postcode.''))
                 sys.exit(-1)
             else:
-                config["x_col"] = x_col
-                config["y_col"] = y_col
-                config["input_crs"] = input_crs
+                
+                if len(map_inputs.split(",")) == 2: #If x and y coordinates are provided
+                    if not input_crs:
+                        sys.stderr.write('Error: input coordinate system not provided for mapping. Please provide --input-crs eg EPSG:3395')
+                        sys.exit(-1)
+                    else:
+                        crs = input_crs
+                else: #If an outer postcode column is provided        
+                    crs = "EPSG:4326"
+                                
+                config["map_cols"] = map_inputs
+                config["input_crs"] = crs
 
             with open(query, newline="") as f:
                 reader = csv.DictReader(f)
                 column_names = reader.fieldnames
-                relevant_cols = [x_col, y_col, mapping_trait]
+                relevant_cols = []
+                map_inputs_lst = map_inputs.split(",")
+                for i in map_inputs_lst:
+                    relevant_cols.append(i)
+                relevant_cols.append(mapping_trait)
+                
                 for map_arg in relevant_cols:
 
                     if map_arg not in column_names:
@@ -428,8 +444,7 @@ def map_sequences_config(map_sequences,mapping_trait,x_col,y_col,input_crs,query
                 
         else:
             config["map_sequences"] = False
-            config["x_col"] = False
-            config["y_col"] = False
+            config["map_cols"] = False
             config["input_crs"] = False
             config["mapping_trait"] = False
 
@@ -767,7 +782,8 @@ def get_colours():
             'gist_rainbow', 'rainbow', 'jet', 'nipy_spectral', 'gist_ncar']
     return colours
 
-def get_cog_headers():
+def get_full_headers():
+    #could open and parse the cog metadata here to make it flexible
     headers = ["central_sample_id", "biosample_source_id","sequence_name","secondary_identifier",
                 "sample_date","epi_week","country","adm1","adm2","outer_postcode","is_surveillance","is_community",
                 "is_hcw","is_travel_history","travel_history","lineage","lineage_support","uk_lineage","acc_lineage","del_lineage","phylotype"]

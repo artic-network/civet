@@ -54,6 +54,7 @@ def main(sysargs = sys.argv[1:]):
     report_group.add_argument('--display', action="store", help="Comma separated string of fields to display as coloured dots rather than text in report trees. Optionally add colour scheme eg adm1=viridis", dest="display")
     report_group.add_argument('--fields', action="store",help="Comma separated string of fields to display in the trees in the report. Default: country")
     report_group.add_argument('--label-fields', action="store", help="Comma separated string of fields to add to tree report labels.", dest="label_fields")
+    report_group.add_argument("--date-fields", action="store", help="Comma separated string of metadata headers containing date information.", dest="date_fields")
     report_group.add_argument("--node-summary", action="store", help="Column to summarise collapsed nodes by. Default = Global lineage", dest="node_summary")
     report_group.add_argument('--add-bars', action="store_true",help="Render boxplots in the output report", dest="add_bars",default=False)
     report_group.add_argument('--cog-report', action="store_true",help="Run summary cog report. Default: outbreak investigation",dest="cog_report")
@@ -71,8 +72,7 @@ def main(sysargs = sys.argv[1:]):
     map_group.add_argument('--date-range-end', action="store", default="None", type=str, dest="date_range_end", help="Define the end date from which sequences will COG sequences will be used for local context. YYYY-MM-DD format required.")
     map_group.add_argument('--date-window',action="store",default=7, type=int, dest="date_window",help="Define the window +- either side of cluster sample collection date-range. Default is 7 days.")
     map_group.add_argument("--map-sequences", action="store_true", dest="map_sequences", help="Map the coordinate points of sequences, coloured by a triat.")
-    map_group.add_argument("--x-col", required=False, dest="x_col", help="column containing x coordinate for mapping sequences")
-    map_group.add_argument("--y-col", required=False, dest="y_col", help="column containing y coordinate for mapping sequences")
+    map_group.add_argument("--map-inputs", required=False, dest="map_inputs", help="columns containing EITHER x and y coordinates as a comma separated string OR outer postcodes for mapping sequences")
     map_group.add_argument("--input-crs", required=False, dest="input_crs", help="Coordinate reference system of sequence coordinates")
     map_group.add_argument("--mapping-trait", required=False, dest="mapping_trait", help="Column to colour mapped sequences by")
     
@@ -134,10 +134,10 @@ def main(sysargs = sys.argv[1:]):
     qcfunk.check_query_file(query, args.ids,cwd, config)
 
     # parse the input csv, check col headers and get fields if fields specified
-    qcfunk.check_label_and_colour_fields(args.fields, args.label_fields,args.display, args.input_column, config)
+    qcfunk.check_label_and_colour_and_date_fields(args.fields, args.label_fields,args.display, args.date_fields, args.input_column, config)
         
     # map sequences configuration
-    qcfunk.map_sequences_config(args.map_sequences,args.mapping_trait,args.x_col,args.y_col,args.input_crs,query,config)
+    qcfunk.map_sequences_config(args.map_sequences,args.mapping_trait,args.map_inputs,args.input_crs,query,config)
     
     # local lineages configuration
     qcfunk.local_lineages_config(args.local_lineages,query,config)
