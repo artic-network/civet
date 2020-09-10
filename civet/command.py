@@ -144,6 +144,7 @@ def main(sysargs = sys.argv[1:]):
 
     # find the data dir
     data_dir = qcfunk.get_datadir(args.climb,args.datadir,args.remote,cwd,config)
+    
     # if remote flag, and uun provided, sync data from climb
     qcfunk.get_remote_data(args.remote,args.uun,data_dir,args.datadir,args.climb,config)
 
