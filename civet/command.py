@@ -150,7 +150,7 @@ def main(sysargs = sys.argv[1:]):
     qcfunk.get_remote_data(args.remote,args.uun,data_dir,args.datadir,args.climb,config)
 
     # run qc on the input sequence file
-    qcfunk.input_file_qc(args.fasta,args.minlen,args.maxambig,config)
+    qcfunk.input_file_qc(args.minlen,args.maxambig,config)
 
     # accessing package data and adding to config dict
     qcfunk.get_package_data(args.cog_report,thisdir,config)

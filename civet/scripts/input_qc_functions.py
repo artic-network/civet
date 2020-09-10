@@ -488,10 +488,11 @@ def check_summary_fields(full_metadata, summary_field, config):
         config["node_summary"] = summary
 
 
-def input_file_qc(fasta,minlen,maxambig,config):
+def input_file_qc(minlen,maxambig,config):
     post_qc_query = ""
     qc_fail = ""
-    if fasta:
+    fasta = config["fasta"]
+    if fasta != "":
         do_not_run = []
         run = []
         for record in SeqIO.parse(fasta, "fasta"):
@@ -521,6 +522,7 @@ def input_file_qc(fasta,minlen,maxambig,config):
                     if i.startswith("fail="):
                         fw.write(f"{record.id},{i}\n")
 
+
     config["post_qc_query"] = post_qc_query
     config["qc_fail"] = qc_fail
 
@@ -528,6 +530,7 @@ def get_package_data(cog_report,thisdir,config):
     reference_fasta = pkg_resources.resource_filename('civet', 'data/reference.fasta')
     outgroup_fasta = pkg_resources.resource_filename('civet', 'data/outgroup.fasta')
     polytomy_figure = pkg_resources.resource_filename('civet', 'data/polytomies.png')
+    report_args = pkg_resources.resource_filename('civet', 'data/report_arguments.txt')
     footer_fig = pkg_resources.resource_filename('civet', 'data/footer.png')
     clean_locs = pkg_resources.resource_filename('civet', 'data/mapping_files/adm2_cleaning.csv')
     map_input_1 = pkg_resources.resource_filename('civet', 'data/mapping_files/gadm36_GBR_2.json')
@@ -541,6 +544,7 @@ def get_package_data(cog_report,thisdir,config):
     config["reference_fasta"] = reference_fasta
     config["outgroup_fasta"] = outgroup_fasta
     config["polytomy_figure"] = polytomy_figure
+    config["report_args"] = report_args
     config["footer"] = footer_fig
     
     config["clean_locs"] = clean_locs

@@ -19,7 +19,7 @@ if config.get("sequencing_centre"):
     if filename == "DEFAULT.png":
         config["sequencing_centre_flag"] = ""
     else:
-        config["sequencing_centre_flag"] = f"-sc {filename}"
+        config["sequencing_centre_flag"] = f"--seq-centre {filename}"
 
 
 if config["global"] == "True":

@@ -408,6 +408,7 @@ rule regional_map_rendering:
 
 rule make_report:
     input:
+        report_args = config["report_args"],
         lineage_trees = rules.process_catchments.output.tree_summary,
         query = config["query"],
         combined_metadata = os.path.join(config["outdir"],"combined_metadata.csv"),
@@ -479,20 +480,21 @@ rule make_report:
         cp {input.footer:q} {output.footer_fig:q}""")
         shell(
         "make_report.py "
+        "--report-args {input.report_args:q} "
         "--input-csv {input.query:q} "
-        "-f {params.fields:q} "
-        "--graphic_dict {params.graphic_dict:q} "
-        "--label-fields {params.label_fields:q} "
-        "--date-fields {params.date_fields:q} "
-        "--node-summary {params.node_summary} "
+        "--tree-fields-input {params.fields:q} "
+        "--graphic-dict-input {params.graphic_dict:q} "
+        "--label-fields-input {params.label_fields:q} "
+        "--date-fields-input {params.date_fields:q} "
+        "--node-summary-option {params.node_summary} "
         "--figdir {params.rel_figdir:q} "
         "{params.sc_flag} "
         "{params.failure} "
-        "--treedir {params.treedir:q} "
+        "--tree-dir {params.treedir:q} "
         "--report-template {input.report_template:q} "
         "--filtered-cog-metadata {input.combined_metadata:q} "
         "--cog-metadata {input.cog_global_metadata:q} "
-        "--clean-locs {input.clean_locs:q} "
+        "--clean-locs-file {input.clean_locs:q} "
         "--uk-map {input.uk_map:q} "
         "--channels-map {input.channels_map:q} "
         "--ni-map {input.ni_map:q} "
@@ -500,7 +502,6 @@ rule make_report:
         "--outfile {output.outfile:q} "
         "--outdir {params.outdir:q} "
         "--map-sequences {params.map_sequences} "
-        "--snp-report {input.snp_report:q} "
         "--map-cols {params.map_cols} "
         "--input-crs {params.input_crs} "
         "--mapping-trait {params.mapping_trait} "

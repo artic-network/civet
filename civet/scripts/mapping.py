@@ -143,7 +143,7 @@ def make_centroids(result,adm2s, straight_map):
         
     centroid_geo = geopandas.GeoDataFrame(centroid_df)
 
-    return centroid_geo
+    return centroid_geo, centroid_counts
 
 def make_map(centroid_geo, all_uk):
 
@@ -167,13 +167,20 @@ def map_adm2(tax_dict, clean_locs_file, mapping_json_files): #So this takes adm2
 
     all_uk, result = prep_mapping_data(mapping_json_files, metadata_multi_loc)
 
-    centroid_geo = make_centroids(result, adm2s, straight_map)
+    centroid_geo, adm2_counter = make_centroids(result, adm2s, straight_map)
     
     if type(centroid_geo) == bool:
         print("None of the sequences provided have adequate adm2 data and so cannot be mapped")
         return
 
     make_map(centroid_geo, all_uk)
+
+    adm2_percentages = {}
+
+    for adm2, count in adm2_counter.items():
+        adm2_percentages[adm2] = round(((count/total)*100),2)
+
+    return adm2_counter, adm2_percentages
 
 def get_coords_from_file(input_csv, input_crs, colour_map_trait, x_col, y_col):
 

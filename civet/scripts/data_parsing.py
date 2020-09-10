@@ -10,9 +10,16 @@ import datetime as dt
 import math
 import matplotlib.pyplot as plt
 
+
+def convert_date(date_string):
+    bits = date_string.split("-")
+    date_dt = dt.date(int(bits[0]),int(bits[1]), int(bits[2]))
+    
+    return date_dt
+
 class taxon():
 
-    def __init__(self, name, global_lin, uk_lin, phylotype):
+    def __init__(self, name, global_lin, uk_lin, phylotype, label_fields, tree_fields):
 
         self.name = name
 
@@ -36,8 +43,16 @@ class taxon():
             self.phylotype = phylotype
        
         self.in_cog = False
+        
         self.attribute_dict = {}
         self.attribute_dict["adm1"] = "NA"
+        
+        for i in label_fields:
+            self.attribute_dict[i] = "NA"
+        for i in tree_fields:
+            self.attribute_dict[i] = "NA"
+        
+        
         self.tree = "NA"
 
         self.closest_distance = "NA"
@@ -54,6 +69,7 @@ class lineage():
         
         for tax in taxa:
             if tax.sample_date != "NA":
+                tax.date_dt = convert_date(tax.sample_date)
                 self.dates.append(tax.date_dt)
             self.global_lins.add(tax.global_lin)
                 
@@ -116,7 +132,7 @@ def prepping_adm2_adm1_data(full_metadata):
     return adm2_adm1
     
 
-def parse_filtered_metadata(metadata_file, tip_to_tree):
+def parse_filtered_metadata(metadata_file, tip_to_tree, label_fields, tree_fields):
     
     query_dict = {}
     query_id_dict = {}
@@ -146,7 +162,7 @@ def parse_filtered_metadata(metadata_file, tip_to_tree):
             sample_date = sequence["sample_date"]
 
             
-            new_taxon = taxon(query_name, glob_lin, uk_lineage, phylotype)
+            new_taxon = taxon(query_name, glob_lin, uk_lineage, phylotype, label_fields, tree_fields)
 
             new_taxon.query_id = query_id
 
@@ -177,16 +193,10 @@ def parse_filtered_metadata(metadata_file, tip_to_tree):
             query_id_dict[query_id] = new_taxon
             
     return query_dict, query_id_dict, present_lins, tree_to_tip
-    
-
-def convert_date(date_string):
-    bits = date_string.split("-")
-    date_dt = dt.date(int(bits[0]),int(bits[1]), int(bits[2]))
-    
-    return date_dt
 
 
-def parse_input_csv(input_csv, query_id_dict, desired_fields, label_fields, date_fields, adm2_adm1_dict, cog_report):
+
+def parse_input_csv(input_csv, query_id_dict, desired_fields, label_fields, date_fields, adm2_adm1_dict): 
     new_query_dict = {}
     contract_dict = {"SCT":"Scotland", "WLS": "Wales", "ENG":"England", "NIR": "Northern_Ireland"}
     cleaning = {"SCOTLAND":"Scotland", "WALES":"Wales", "ENGLAND":"England", "NORTHERN_IRELAND": "Northern_Ireland", "NORTHERN IRELAND": "Northern_Ireland"}
@@ -216,18 +226,17 @@ def parse_input_csv(input_csv, query_id_dict, desired_fields, label_fields, date
                 if "sample_date" in col_names: #if it's not in COG but date is provided (if it's in COG, it will already have been assigned a sample date.)
                     if sequence["sample_date"] != "":
                         taxon.sample_date = sequence["sample_date"]
+                elif "collection_date" in col_names:
+                    if sequence["collection_date"] != "": #for the COG report 
+                        taxon.sample_date = sequence["collection_date"]
 
                 for col in col_names: #Add other metadata fields provided
                     if col in label_fields:
-                        if sequence[col] == "":
-                                taxon.attribute_dict[col] = "NA"     
-                        else:
+                        if sequence[col] != "":
                             taxon.attribute_dict[col] = sequence[col]
                     else:
                         if col != "name" and col in desired_fields and col != "adm1":
-                            if sequence[col] == "":
-                                taxon.attribute_dict[col] = "NA"
-                            else:
+                            if sequence[col] != "":
                                 taxon.attribute_dict[col] = sequence[col]
             
                         if col == "adm1":
@@ -242,26 +251,16 @@ def parse_input_csv(input_csv, query_id_dict, desired_fields, label_fields, date
 
                             taxon.attribute_dict["adm1"] = adm1
 
-                        if col == "adm2" and "adm1" not in col_names: #or sequence["adm1"] == ""):
-                            if sequence[col] in adm2_adm1_dict.keys():
-                                adm1 = adm2_adm1_dict[sequence[col]]
-                                taxon.attribute_dict["adm1"] = adm1
-
-                if cog_report:
-                    taxon.attribute_dict["adm2"]= sequence["adm2"] 
-                    if "collection_date" in reader.fieldnames:
-                        date_string = sequence["collection_date"]
-                    else:
-                        date_string = sequence["sample_date"]
-
-                    taxon.sample_date = date_string
-                    
-                    bits = date_string.split("-")
-                    taxon.date_dt = dt.date(int(bits[0]),int(bits[1]), int(bits[2])) 
-
+                        if col == "adm2":
+                            tax.attribute_dict["adm2"] = adm2
+                            if "adm1" not in col_names:
+                                if sequence[col] in adm2_adm1_dict.keys():
+                                    adm1 = adm2_adm1_dict[sequence[col]]
+                                    taxon.attribute_dict["adm1"] = adm1
 
                 new_query_dict[taxon.name] = taxon
-                
+
+      
     return new_query_dict 
 
 
@@ -290,7 +289,7 @@ def parse_tree_tips(tree_dir):
 
     return tips, tip_to_tree, tree_list
 
-def parse_full_metadata(query_dict, label_fields, full_metadata, present_lins, present_in_tree, node_summary_option, date_fields):
+def parse_full_metadata(query_dict, label_fields, tree_fields, full_metadata, present_lins, present_in_tree, node_summary_option, date_fields):
 
     full_tax_dict = query_dict.copy()
 
@@ -317,7 +316,7 @@ def parse_full_metadata(query_dict, label_fields, full_metadata, present_lins, p
 
 
             if (uk_lin in present_lins or seq_name in present_in_tree) and seq_name not in query_dict.keys():
-                new_taxon = taxon(seq_name, glob_lin, uk_lin, phylotype)
+                new_taxon = taxon(seq_name, glob_lin, uk_lin, phylotype, label_fields, tree_fields)
                 if date == "":
                     date = "NA"
                 
@@ -338,8 +337,11 @@ def parse_full_metadata(query_dict, label_fields, full_metadata, present_lins, p
                 if tax_object.sample_date == "NA" and date != "":
                     tax_object.sample_date = date
                     tax_object.all_dates.append(convert_date(date))
+                
                 if "adm2" not in tax_object.attribute_dict.keys() and adm2 != "":
                     tax_object.attribute_dict["adm2"] = adm2
+                # elif "adm2" not in tax_object.attribute_dict.keys() and adm2 == "":
+                #     tax_object.attribute_dict['adm2'] = "NA"
 
                 for field in date_fields:
                     if field in reader.fieldnames:
@@ -349,14 +351,9 @@ def parse_full_metadata(query_dict, label_fields, full_metadata, present_lins, p
                     
                 for field in label_fields:
                     if field in col_names:
-                        if field not in tax_object.attribute_dict.keys():
-                            if sequence[field] == "":
-                                tax_object.attribute_dict[field] = "NA"
-                            else:
+                        if tax_object.attribute_dict[field] == "NA" and sequence[field] != "NA": #this means it's not in the input file
                                 tax_object.attribute_dict[field] = sequence[field]
-                        
-                        elif tax_object.attribute_dict[field] == "NA" and sequence[field] != "":
-                            tax_object.attribute_dict[field] = sequence[field]
+
 
                 full_tax_dict[seq_name] = tax_object
                     
@@ -372,6 +369,7 @@ def make_initial_table(query_dict, desired_fields, label_fields, cog_report):
     seqprovided = 0
     incogs = False
     seqprovideds = False
+
 
     for query in query_dict.values():
 
@@ -392,7 +390,7 @@ def make_initial_table(query_dict, desired_fields, label_fields, cog_report):
 
         df_dict["Sample date"].append(query.sample_date)
 
-        if not query.in_cog and not cog_report:
+        if not query.in_cog and not cog_report: #poss just needs to be if not query.in_cog now
             df_dict["Closest sequence in Tree"].append(query.closest)
             df_dict["Distance to closest sequence"].append(query.closest_distance)
             df_dict["SNPs"].append(query.snps)
