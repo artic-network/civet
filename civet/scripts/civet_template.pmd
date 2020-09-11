@@ -140,13 +140,13 @@ inputs = [desired_fields, label_fields, graphic_dict, node_summary_option, map_s
 
 present_in_tree, tip_to_tree, tree_list = dp.parse_tree_tips(tree_dir)
 
-query_dict, query_id_dict, present_lins, tree_to_tip = dp.parse_filtered_metadata(filtered_cog_metadata, tip_to_tree) #Just the lines with their queries plus the closest match in COG
+query_dict, query_id_dict, present_lins, tree_to_tip = dp.parse_filtered_metadata(filtered_cog_metadata, tip_to_tree, label_fields, desired_fields) #Just the lines with their queries plus the closest match in COG
 
 if input_csv != '':
     adm2_to_adm1 = dp.prepping_adm2_adm1_data(full_metadata_file)
     query_dict = dp.parse_input_csv(input_csv, query_id_dict, desired_fields, label_fields, date_fields, adm2_to_adm1, False) #Any query information they have provided
 
-full_tax_dict = dp.parse_full_metadata(query_dict, label_fields, full_metadata_file, present_lins, present_in_tree, node_summary_option, date_fields)
+full_tax_dict = dp.parse_full_metadata(query_dict, label_fields, desired_fields, full_metadata_file, present_lins, present_in_tree, node_summary_option, date_fields)
 
 
 time_outputs = time_func.summarise_dates(query_dict)

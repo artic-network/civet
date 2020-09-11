@@ -356,6 +356,11 @@ def parse_full_metadata(query_dict, label_fields, tree_fields,full_metadata, pre
                         if tax_object.attribute_dict[field] == "NA" and sequence[field] != "":
                             tax_object.attribute_dict[field] = sequence[field]
 
+                for field in tree_fields:
+                    if field in col_names:
+                        if tax_object.attribute_dict[field] == "NA" and sequence[field] != "":
+                            tax_object.attribute_dict[field] = sequence[field]
+
                 full_tax_dict[seq_name] = tax_object
                     
     return full_tax_dict
