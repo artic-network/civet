@@ -99,7 +99,7 @@ def main(sysargs = sys.argv[1:]):
         "trim_end":29674,   # where to pad after using datafunk
         "search_field":args.data_column,
         "input_column":args.input_column,
-        "force":"True",
+        "force":True,
         "date_range_start":args.date_range_start,
         "date_range_end":args.date_range_end,
         "date_window":args.date_window,
@@ -110,14 +110,12 @@ def main(sysargs = sys.argv[1:]):
         "delay_collapse": False
         }
 
-    print(args)
     # find the query csv, or string of ids, or config file
     query,configfile = qcfunk.type_input_file(args.query,cwd,config)
 
     if configfile:
         qcfunk.parse_yaml_file(configfile, config)
         
-    
     # find the master Snakefile
     snakefile = qcfunk.get_snakefile(thisdir)
     
