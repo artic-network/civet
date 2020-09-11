@@ -44,7 +44,7 @@ filtered_cog_metadata = "" ##CHANGE
 input_csv = "" ##CHANGE
 full_metadata_file = "" ##CHANGE
 
-tree_dir = "" ##CHANGE
+treedir = "" ##CHANGE
 
 failed_seqs = "" ##CHANGE
 missing_seq_file = "" ##CHANGE
@@ -133,7 +133,7 @@ inputs = [tree_fields, label_fields, graphic_dict, node_summary_option, map_sequ
 
 ```python, name="parse metadata", echo=False, results='raw'
 
-present_in_tree, tip_to_tree, tree_list = dp.parse_tree_tips(tree_dir)
+present_in_tree, tip_to_tree, tree_list = dp.parse_tree_tips(treedir)
 
 query_dict, query_id_dict, present_lins, tree_to_tip = dp.parse_filtered_metadata(filtered_cog_metadata, tip_to_tree, label_fields, tree_fields) #Just the lines with their queries plus the closest match in COG
 
@@ -222,7 +222,7 @@ elif not_in_cog_number == 0 and cog_number != 0:
 
 
 ```python, name="make_trees", echo=False, include=False, figure=False
-too_tall_trees, overall_tree_number, colour_dict_dict, overall_df_dict, tree_order = tree_viz.make_all_of_the_trees(tree_dir, tree_name_stem, full_tax_dict, query_dict, tree_fields, label_fields, graphic_dict)
+too_tall_trees, overall_tree_number, colour_dict_dict, overall_df_dict, tree_order = tree_viz.make_all_of_the_trees(treedir, tree_name_stem, full_tax_dict, query_dict, tree_fields, label_fields, graphic_dict)
 ```
 ```python, name="make_legend", echo=False, include=False, results='tex'
 for trait, colour_dict in colour_dict_dict.items():
@@ -277,7 +277,7 @@ if too_tall_trees != []:
 ```python, name="tree_background", echo=False, include=False,  results='raw'
 if add_bars != "":
     print("""### Tree background\n\nThe following plots describe the data in the collapsed nodes in more detail.\nIf more than one country was present, the bar chart describes the number of sequences present in each country. \nWhere there were 10 countries or more, the largest 10 have been taken. \nIf a UK sequence is present in the collapsed node, it is always shown in the plot.\n\n""")
-    bar_count = tree_viz.describe_tree_background(full_tax_dict, tree_name_stem, tree_dir)
+    bar_count = tree_viz.describe_tree_background(full_tax_dict, tree_name_stem, treedir)
 
     for i in range(bar_count):
         print(f"![]({figdir}/{name_stem}_tree_background_{i+1}.png)")
