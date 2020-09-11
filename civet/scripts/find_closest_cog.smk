@@ -25,8 +25,6 @@ rule non_cog_remove_insertions_and_trim_and_pad:
         sam = rules.non_cog_minimap2_to_reference.output.sam,
         reference = config["reference_fasta"]
     params:
-        trim_start = config["trim_start"],
-        trim_end = config["trim_end"],
         insertions = os.path.join(config["tempdir"],"post_qc_query.insertions.txt")
     output:
         fasta = os.path.join(config["tempdir"],"post_qc_query.aligned.fasta")
@@ -36,7 +34,7 @@ rule non_cog_remove_insertions_and_trim_and_pad:
           -s {input.sam:q} \
           -r {input.reference:q} \
           -o {output.fasta:q} \
-          -t [{params.trim_start}:{params.trim_end}] \
+          -t [{config[trim_start]}:{config[trim_end]}] \
           --pad \
           --log-inserts 
         """
@@ -45,12 +43,11 @@ rule minimap2_against_cog:
     input:
         query_seqs = rules.non_cog_remove_insertions_and_trim_and_pad.output.fasta,
         cog_seqs = config["seq_db"]
-    threads: workflow.cores
     output:
         paf = os.path.join(config["tempdir"],"post_qc_query.cog_mapped.paf")
     shell:
         """
-        minimap2 -x asm5  -t {threads} --secondary=no --paf-no-hit {input.cog_seqs:q} {input.query_seqs:q} > {output.paf:q}
+        minimap2 -x asm5  -t {workflow.cores} --secondary=no --paf-no-hit {input.cog_seqs:q} {input.query_seqs:q} > {output.paf:q}
         """
 
 rule parse_paf:
@@ -58,8 +55,6 @@ rule parse_paf:
         paf = rules.minimap2_against_cog.output.paf,
         metadata = config["cog_metadata"],
         fasta = config["seq_db"]
-    params:
-        search_field = config["search_field"]
     output:
         fasta = os.path.join(config["tempdir"],"closest_cog.fasta"),
         csv = os.path.join(config["tempdir"],"closest_cog.no_snps.csv")
@@ -71,7 +66,7 @@ rule parse_paf:
         --seqs {input.fasta:q} \
         --csv-out {output.csv:q} \
         --seqs-out {output.fasta:q} \
-        --search-field {params.search_field}
+        --search-field {config[search_field]}
         """
 
 rule snp_diff:
@@ -139,8 +134,3 @@ rule snp_diff:
                         new_row["snps"]= snp_str
                     new_row["source"] = source_dict[query]
                     writer.writerow(new_row)
-
-
-
-
-

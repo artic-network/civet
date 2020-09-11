@@ -3,6 +3,8 @@ from Bio import SeqIO
 import os
 import collections
 import sys
+import yaml
+
 import input_qc_functions as qcfunk
 
 rule check_cog_db:
@@ -10,8 +12,6 @@ rule check_cog_db:
         query = config["query"],
         cog_seqs = config["cog_seqs"],
         cog_metadata = config["cog_metadata"]
-    params:
-        field_to_match = config["search_field"]
     output:
         cog = os.path.join(config["tempdir"],"query_in_cog.csv"),
         cog_seqs = os.path.join(config["tempdir"],"query_in_cog.fasta"),
@@ -21,7 +21,7 @@ rule check_cog_db:
         check_cog_db.py --query {input.query:q} \
                         --cog-seqs {input.cog_seqs:q} \
                         --cog-metadata {input.cog_metadata:q} \
-                        --field {params.field_to_match} \
+                        --field {config[search_field]} \
                         --in-metadata {output.cog:q} \
                         --in-seqs {output.cog_seqs:q} \
                         --not-in-cog {output.not_cog:q}
@@ -32,8 +32,6 @@ rule check_cog_all:
         not_in_cog = rules.check_cog_db.output.not_cog,
         cog_seqs = config["all_cog_seqs"],
         cog_metadata = config["all_cog_metadata"]
-    params:
-        field_to_match = config["search_field"]
     output:
         cog = os.path.join(config["tempdir"],"query_in_all_cog.csv"),
         cog_seqs = os.path.join(config["tempdir"],"query_in_all_cog.fasta"),
@@ -43,7 +41,7 @@ rule check_cog_all:
         check_cog_db.py --query {input.not_in_cog:q} \
                         --cog-seqs {input.cog_seqs:q} \
                         --cog-metadata {input.cog_metadata:q} \
-                        --field {params.field_to_match} \
+                        --field {config[search_field]} \
                         --in-metadata {output.cog:q} \
                         --in-seqs {output.cog_seqs:q} \
                         --not-in-cog {output.not_cog:q} \
@@ -60,20 +58,6 @@ rule get_closest_cog:
         not_cog_csv = rules.check_cog_all.output.not_cog, #use
         in_all_cog_metadata = rules.check_cog_all.output.cog,
         in_all_cog_seqs = rules.check_cog_all.output.cog_seqs #use 
-    params:
-        outdir= config["outdir"],
-        tempdir= config["tempdir"],
-        path = workflow.current_basedir,
-        cores = workflow.cores,
-        force = config["force"],
-        fasta = config["fasta"], #use
-        search_field = config["search_field"],
-        qc_fail_csv = config["qc_fail"],
-        query = config["post_qc_query"], #use
-        stand_in_query = os.path.join(config["tempdir"], "temp.fasta"),
-        trim_start = config["trim_start"],
-        trim_end = config["trim_end"],
-        quiet_mode = config["quiet_mode"]
     output:
         closest_cog = os.path.join(config["tempdir"],"closest_cog.csv"),
         combined_query = os.path.join(config["tempdir"],"to_find_closest.fasta"),
@@ -93,16 +77,16 @@ rule get_closest_cog:
                 not_cog.append(row["name"])
         
         failed_qc = []
-        if params.qc_fail_csv != "":
-            with open(params.qc_fail_csv) as f:
+        if config["qc_fail"] != "":
+            with open(config["qc_fail"]) as f:
                 reader = csv.DictReader(f)
                 for row in reader:
                     failed_qc.append(row["name"])
 
-        if params.fasta != "":
+        if config["fasta"] != "":
              # get set with supplied sequences
                 print("Not in COG but have a sequence supplied:")
-                for record in SeqIO.parse(params.query, "fasta"):
+                for record in SeqIO.parse(config["post_qc_query"], "fasta"):
                     if record.id in not_cog:
                         to_find_closest[record.id] = ("fasta",record.seq) # overwrites with supplied seq if found in all cog
 
@@ -126,19 +110,19 @@ rule get_closest_cog:
             for seq in to_find_closest:
                 print(f"    - {seq}    {to_find_closest[seq][0]}")
             shell("snakemake --nolock --snakefile {input.snakefile:q} "
-                        "{params.force} "
-                        "{params.quiet_mode} "
-                        "--directory {params.tempdir:q} "
+                        "{config[force]} "
+                        "{config[quiet_mode]} "
+                        "--directory {config[tempdir]:q} "
                         "--config "
-                        "tempdir={params.tempdir:q} "
+                        "tempdir={config[tempdir]:q} "
                         "seq_db={input.seq_db:q} "
                         "to_find_closest={output.combined_query:q} "
-                        "search_field={params.search_field} "
-                        "trim_start={params.trim_start} "
-                        "trim_end={params.trim_end} "
+                        "search_field={config[search_field]} "
+                        "trim_start={config[trim_start]} "
+                        "trim_end={config[trim_end]} "
                         "reference_fasta={input.reference_fasta:q} "
                         "cog_metadata={input.cog_metadata:q} "
-                        "--cores {params.cores}")
+                        "--cores {workflow.cores}")
 
         else:
             shell("touch {output.closest_cog:q} && touch {output.aligned_query:q}")
@@ -184,9 +168,7 @@ rule prune_out_catchments:
         tree = config["cog_tree"],
         metadata = rules.combine_metadata.output.combined_csv
     params:
-        outdir = os.path.join(config["tempdir"],"catchment_trees"),
-        up_distance = config["up_distance"],
-        down_distance = config["down_distance"]
+        outdir = os.path.join(config["tempdir"],"catchment_trees")
     output:
         txt = os.path.join(config["tempdir"],"catchment_trees","catchment_trees_prompt.txt")
     shell:
@@ -194,8 +176,8 @@ rule prune_out_catchments:
         jclusterfunk context \
         -i "{input.tree}" \
         -o "{params.outdir}" \
-        --max-parent {params.up_distance} \
-        --max-child {params.down_distance} \
+        --max-parent {config[up_distance]} \
+        --max-child {config[down_distance]} \
         -f newick \
         -p tree_ \
         --ignore-missing \
@@ -217,18 +199,7 @@ rule process_catchments:
         cog_global_seqs = config["cog_global_seqs"]
         # not_cog_csv = rules.check_cog_all.output.not_cog
     params:
-        outdir= config["outdir"],
-        tempdir= config["tempdir"],
-        path = workflow.current_basedir,
-        threshold = config["threshold"],
-        delay_collapse = config["delay_collapse"],
-        
-        fasta = config["fasta"],
         tree_dir = os.path.join(config["tempdir"],"catchment_trees"),
-
-        cores = workflow.cores,
-        force = config["force"],
-        quiet_mode = config["quiet_mode"]
     output:
         tree_summary = os.path.join(config["outdir"],"local_trees","collapse_report.txt")
     run:
@@ -245,7 +216,7 @@ rule process_catchments:
             query_seqs +=1
 
         if query_seqs !=0:
-            if params.delay_collapse==False:
+            if config["delay_collapse"]==False:
                 snakefile = input.snakefile_collapse_before
             else:
                 snakefile = input.snakefile_collapse_after
@@ -253,33 +224,33 @@ rule process_catchments:
             snakestring = f"'{snakefile}' "
             print(f"Passing {input.query_seqs} into processing pipeline.")
             shell(f"snakemake --nolock --snakefile {snakestring}"
-                        "{params.force} "
-                        "{params.quiet_mode} "
-                        "--directory {params.tempdir:q} "
+                        "{config[force]} "
+                        "{config[quiet_mode]} "
+                        "--directory {config[tempdir]:q} "
                         "--config "
                         f"catchment_str={catchment_str} "
-                        "outdir={params.outdir:q} "
-                        "tempdir={params.tempdir:q} "
+                        "outdir={config[outdir]:q} "
+                        "tempdir={config[tempdir]:q} "
                         "outgroup_fasta={input.outgroup_fasta:q} "
                         "aligned_query_seqs={input.query_seqs:q} "
                         "all_cog_seqs={input.all_cog_seqs:q} "
                         "cog_global_seqs={input.cog_global_seqs:q} "
                         "combined_metadata={input.combined_metadata:q} "
-                        "threshold={params.threshold} "
-                        "--cores {params.cores}")
+                        "threshold={config[threshold]} "
+                        "--cores {workflow.cores}")
         else:
             print(f"No new sequences to add in, just collapsing trees.")
             shell("snakemake --nolock --snakefile {input.snakefile_just_collapse:q} "
-                            "{params.force} "
-                            "{params.quiet_mode} "
-                            "--directory {params.tempdir:q} "
+                            "{config[force]} "
+                            "{config[quiet_mode]} "
+                            "--directory {config[tempdir]:q} "
                             "--config "
                             f"catchment_str={catchment_str} "
-                            "outdir={params.outdir:q} "
-                            "tempdir={params.tempdir:q} "
-                            "threshold={params.threshold} "
+                            "outdir={config[outdir]:q} "
+                            "tempdir={config[tempdir]:q} "
+                            "threshold={config[threshold]} "
                             "combined_metadata={input.combined_metadata:q} "
-                            "--cores {params.cores}")
+                            "--cores {workflow.cores}")
 
 rule find_snps:
     input:
@@ -289,21 +260,9 @@ rule find_snps:
         all_cog_seqs = config["all_cog_seqs"],
         outgroup_fasta = config["outgroup_fasta"]
     params:
-        outdir= config["outdir"],
-        tempdir= config["tempdir"],
-        path = workflow.current_basedir,
-        threshold = config["threshold"],
-                
-        fasta = config["fasta"],
         tree_dir = os.path.join(config["outdir"],"local_trees"),
-
-        cores = workflow.cores,
-        force = config["force"],
-        quiet_mode = config["quiet_mode"]
-
     output:
-        genome_graphs = os.path.join(config["outdir"],"snp_reports","tree_subtree_1.snps.txt"), #this obviously isn't ideal because it's not flexible to name stem changes
-        reports = os.path.join(config["outdir"],"figures","genome_graph_tree_subtree_1.png")
+        genome_graphs = os.path.join(config["outdir"],"gather_prompt.txt") 
     run:
         local_trees = []
         for r,d,f in os.walk(params.tree_dir):
@@ -314,18 +273,18 @@ rule find_snps:
         local_str = ",".join(local_trees) #to pass to snakemake pipeline
 
         shell("snakemake --nolock --snakefile {input.snakefile:q} "
-                            "{params.force} "
-                            "{params.quiet_mode} "
-                            "--directory {params.tempdir:q} "
+                            "{config[force]} "
+                            "{config[quiet_mode]} "
+                            "--directory {config[tempdir]:q} "
                             "--config "
                             f"catchment_str={local_str} "
-                            "outdir={params.outdir:q} "
-                            "tempdir={params.tempdir:q} "
+                            "outdir={config[outdir]:q} "
+                            "tempdir={config[tempdir]:q} "
                             "outgroup_fasta={input.outgroup_fasta:q} "
                             "aligned_query_seqs={input.query_seqs:q} "
                             "all_cog_seqs={input.all_cog_seqs:q} "
-                            "threshold={params.threshold} "
-                            "--cores {params.cores}")
+                            "threshold={config[threshold]} "
+                            "--cores {workflow.cores}")
 
 rule regional_mapping:
     input:
@@ -333,34 +292,25 @@ rule regional_mapping:
         combined_metadata = os.path.join(config["outdir"],"combined_metadata.csv"),
         cog_global_metadata = config["cog_global_metadata"]
     params:
-        mapfile = config["uk_map_d3"],
-        hb_trans = config["HB_translations"],
-        local_lineages = config["local_lineages"],
-        daterestrict = config["date_restriction"],
-        datestart = config["date_range_start"],
-        dateend = config["date_range_end"],
-        datewindow = config["date_window"],
-        outdir = config["rel_outdir"],
-        tempdir = config['tempdir'],
         figdir = os.path.join(config["outdir"],'figures')
     output:
         central = os.path.join(config["tempdir"], "central_map_ukLin.vl.json"),
         neighboring = os.path.join(config["tempdir"], "neighboring_map_ukLin.vl.json"),
         region = os.path.join(config["tempdir"], "region_map_ukLin.vl.json")
     run:
-        if params.local_lineages == "True":
+        if config["local_lineages"] == True:
             shell("""
         local_scale_analysis.py \
-        --uk-map {params.mapfile:q} \
-        --hb-translation {params.hb_trans:q} \
-        --date-restriction {params.daterestrict:q} \
-        --date-pair-start {params.datestart:q} \
-        --date-pair-end {params.dateend:q} \
-        --date-window {params.datewindow:q} \
+        --uk-map {config[uk_map_d3]:q} \
+        --hb-translation {config[HB_translations]:q} \
+        --date-restriction {config[date_restriction]:q} \
+        --date-pair-start {config[date_range_start]:q} \
+        --date-pair-end {config[date_range_end]:q} \
+        --date-window {config[date_window]:q} \
         --cog-meta-global {input.cog_global_metadata:q} \
         --user-sample-data {input.query:q} \
         --output-base-dir {params.figdir:q} \
-        --output-temp-dir {params.tempdir:q}
+        --output-temp-dir {config[tempdir]:q}
             """)
         else:
             shell("touch {output.central:q}")
@@ -373,8 +323,6 @@ rule regional_map_rendering:
         neighboring = os.path.join(config["tempdir"], "neighboring_map_ukLin.vl.json"),
         region = os.path.join(config["tempdir"], "region_map_ukLin.vl.json")
     params:
-        outdir = config["rel_outdir"],
-        local_lineages = config["local_lineages"],
         central = os.path.join(config["tempdir"], "central_map_ukLin.vg.json"),
         neighboring = os.path.join(config["tempdir"], "neighboring_map_ukLin.vg.json"),
         region = os.path.join(config["tempdir"], "region_map_ukLin.vg.json")
@@ -383,7 +331,7 @@ rule regional_map_rendering:
         neighboring = os.path.join(config["outdir"], 'figures', "neighboring_map_ukLin.png"),
         region = os.path.join(config["outdir"], 'figures', "region_map_ukLin.png")
     run:
-        if params.local_lineages == "True":
+        if config["local_lineages"] == True:
             shell(
             """
             npx -p vega-lite vl2vg {input.central} {params.central}
@@ -404,110 +352,44 @@ rule regional_map_rendering:
             shell("touch {output.neighboring}")
             shell("touch {output.region}")
 
-
-
 rule make_report:
     input:
-        report_args = config["report_args"],
         lineage_trees = rules.process_catchments.output.tree_summary,
         query = config["query"],
         combined_metadata = os.path.join(config["outdir"],"combined_metadata.csv"),
         cog_global_metadata = config["cog_global_metadata"],
-        report_template = config["report_template"],
-        polytomy_figure = config["polytomy_figure"],
-        footer = config["footer"],
-        clean_locs = config["clean_locs"],
-        uk_map = config["uk_map"],
-        channels_map = config["channels_map"],
-        ni_map = config["ni_map"],
-        pc_file = config["pc_file"],
-        urban_centres = config["urban_centres"],
-        genome_graph = rules.find_snps.output.genome_graphs, #do these two arguments need to be here? 
-        snp_report = rules.find_snps.output.reports, 
+        snp_figure_prompt = os.path.join(config["outdir"],"gather_prompt.txt"),
+        genome_graphs = rules.find_snps.output.genome_graphs, 
         central = os.path.join(config["outdir"], 'figures', "central_map_ukLin.png"),
-        neighboring = os.path.join(config["outdir"], 'figures', "neighboring_map_ukLin.png"),
+        neighbouring = os.path.join(config["outdir"], 'figures', "neighboring_map_ukLin.png"),
         region = os.path.join(config["outdir"], 'figures', "region_map_ukLin.png")
-    params:
-        treedir = os.path.join(config["outdir"],"local_trees"),
-        outdir = config["rel_outdir"],
-        fields = config["fields"],
-        label_fields = config["label_fields"],
-        date_fields = config["date_fields"],
-        node_summary = config["node_summary"],
-        sc_source = config["sequencing_centre"],
-        sc = config["sequencing_centre_file"],
-        sc_flag = config["sequencing_centre_flag"],
-        rel_figdir = os.path.join(".","figures"),
-        local_lineages = config["local_lineages"],
-        figdir = os.path.join(config["outdir"],"figures"),
-        failure = config["qc_fail_report"],
-        map_sequences = config["map_sequences"],
-        map_cols = config["map_cols"],
-        input_crs = config["input_crs"],
-        mapping_trait = config["mapping_trait"],
-        add_bars = config["add_bars"],
-        graphic_dict = config["graphic_dict"]
     output:
         poly_fig = os.path.join(config["outdir"],"figures","polytomies.png"),
         footer_fig = os.path.join(config["outdir"], "figures", "footer.png"),
+        yaml = os.path.join(config["outdir"],"config.final.yaml"),
         outfile = os.path.join(config["outdir"], "civet_report.md")
     run:
-        if params.sc != "":
-            shell("cp {params.sc_source:q} {params.sc:q}")
-        if params.local_lineages == "True":
-            lineage_tables = []
-            for r,d,f in os.walk(os.path.join(config["outdir"], 'figures')):
-                for fn in f:
-                    if fn.endswith("_lineageTable.md"):
-                        lineage_tables.append(os.path.join(config["outdir"], 'figures', fn))
-            lineage_maps = [input.central, input.neighboring, input.region]
+        if config["sequencing_centre_file"] != "":
+            shell("cp {config[sequencing_centre]:q} {config[sequencing_centre_file]:q}")
 
-            lineage_table_string = ";".join(lineage_tables)
-            lineage_map_string = ";".join(lineage_maps)
+        qcfunk.local_lineages_to_config(input.central, input.neighbouring, input.region, config)
 
-            local_lineage_flag = "--local-lineages "
-            lineage_map_flag = f"--local-lin-maps '{lineage_map_string}' "
-            lineage_table_flag = f"--local-lin-tables '{lineage_table_string}' "
-        else:
-            local_lineage_flag = ""
-            lineage_map_flag = ""
-            lineage_table_flag = ""
-        boxplots = ""
-        if config["add_bars"]:
-            boxplots = "--add-bars"
+        config["rel_figdir"] = os.path.join(".","figures")
+        config["treedir"] = os.path.join(config["outdir"],"local_trees")
+        config["outfile"] = os.path.join(config["outdir"], "civet_report.md")
+        config["summary_dir"] = os.path.join(config["outdir"], "summary_files")
+        config["name_stem_input"] = "civet_report"
+
+        qcfunk.get_tree_name_stem(config["treedir"],config)
+
+        with open(output.yaml, 'w') as fw:
+            yaml.dump(config, fw)
+
         shell("""
-        cp {input.polytomy_figure:q} {output.poly_fig:q} &&
-        cp {input.footer:q} {output.footer_fig:q}""")
-        shell(
-        "make_report.py "
-        "--report-args {input.report_args:q} "
-        "--input-csv {input.query:q} "
-        "--tree-fields-input {params.fields:q} "
-        "--graphic-dict-input {params.graphic_dict:q} "
-        "--label-fields-input {params.label_fields:q} "
-        "--date-fields-input {params.date_fields:q} "
-        "--node-summary-option {params.node_summary} "
-        "--figdir {params.rel_figdir:q} "
-        "{params.sc_flag} "
-        "{params.failure} "
-        "--tree-dir {params.treedir:q} "
-        "--report-template {input.report_template:q} "
-        "--filtered-cog-metadata {input.combined_metadata:q} "
-        "--cog-metadata {input.cog_global_metadata:q} "
-        "--clean-locs-file {input.clean_locs:q} "
-        "--uk-map {input.uk_map:q} "
-        "--channels-map {input.channels_map:q} "
-        "--ni-map {input.ni_map:q} "
-        "--pc-file {input.pc_file:q} "
-        "--outfile {output.outfile:q} "
-        "--outdir {params.outdir:q} "
-        "--map-sequences {params.map_sequences} "
-        "--map-cols {params.map_cols} "
-        "--input-crs {params.input_crs} "
-        "--mapping-trait {params.mapping_trait} "
-        "--urban-centres {input.urban_centres} "
-        f"{boxplots}"
-        f"{local_lineage_flag} {lineage_map_flag} {lineage_table_flag}")
+        cp {config[polytomy_figure]:q} {output.poly_fig:q} &&
+        cp {config[footer]:q} {output.footer_fig:q} """)
+        
+        shell("make_report.py --config {output.yaml:q} ")
 
 rule launch_grip:
     input:

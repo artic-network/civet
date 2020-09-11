@@ -1,21 +1,4 @@
-"""
-Passed into config:
 
-catchment_str=tree_1,tree_2,...,tree_X
-"snakemake --nolock --snakefile {input.snakefile_collapse_before:q} "
-                            "{params.force} "
-                            "{params.quiet_mode} "
-                            # "--directory {params.tempdir:q} "
-                            "--config "
-                            f"catchment_str={catchment_str} "
-                            "outdir={params.outdir:q} "
-                            # "tempdir={params.tempdir:q} "
-                            "not_cog_csv={input.not_cog_csv:q} "
-                            "post_qc_query={input.not_cog_query_seqs:q} "
-                            "all_cog_seqs={input.all_cog_seqs:q} "
-                            "combined_metadata={input.combined_metadata:q} "
-                            "--cores {params.cores}"
-"""
 from Bio import Phylo
 from Bio import SeqIO
 import csv
@@ -61,8 +44,7 @@ rule summarise_polytomies:
         tree = os.path.join(config["tempdir"], "catchment_trees","{tree}.newick"),
         metadata = os.path.join(config["tempdir"],"protected","protected.csv")
     params:
-        tree_dir = os.path.join(config["tempdir"],"catchment_trees"),
-        threshold = config["threshold"]
+        tree_dir = os.path.join(config["tempdir"],"catchment_trees")
     output:
         collapsed_tree = os.path.join(config["tempdir"],"collapsed_trees","{tree}.tree"),
         collapsed_information = os.path.join(config["outdir"],"local_trees","{tree}.txt")
@@ -72,7 +54,7 @@ rule summarise_polytomies:
         -o {output.collapsed_tree:q} \
         --metadata {input.metadata:q} \
         --index-column protect \
-        --threshold {params.threshold} \
+        --threshold {config[threshold]} \
         --in-format newick \
         --out-format newick \
         --output-tsv {output.collapsed_information:q}
