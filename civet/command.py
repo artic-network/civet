@@ -196,10 +196,10 @@ def main(sysargs = sys.argv[1:]):
         else:
             desired_fields = args.fields.split(",")
             for field in desired_fields:
-                if field in reader.fieldnames:
+                if field in reader.fieldnames or field in full_metadata_headers:
                     fields.append(field)
                 else:
-                    sys.stderr.write(f"Error: {field} field not found in metadata file")
+                    sys.stderr.write(f"Error: {field} field not found in metadata file or full metadata file")
                     sys.exit(-1)
 
         
