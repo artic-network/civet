@@ -10,6 +10,7 @@ import datetime as dt
 import math
 import matplotlib.pyplot as plt
 
+from class_definitions import taxon,lineage
 
 def convert_date(date_string):
     bits = date_string.split("-")
@@ -17,120 +18,28 @@ def convert_date(date_string):
     
     return date_dt
 
-class taxon():
+def parse_tree_tips(tree_dir):
 
-    def __init__(self, name, global_lin, uk_lin, phylotype, label_fields, tree_fields):
+    tips = []
+    tip_to_tree = {}
 
-        self.name = name
+    for fn in os.listdir(tree_dir):
+        if fn.endswith("tree"):
+            tree_name = fn.split(".")[0]
+            tree = bt.loadNewick(tree_dir + "/" + fn, absoluteTime=False)
+            for k in tree.Objects:
+                if k.branchType == 'leaf' and "inserted" not in k.name:
+                    tips.append(k.name)
+                    tip_to_tree[k.name] = tree_name
 
-        self.sample_date = "NA"
+        elif fn.endswith(".txt"):
+            with open(tree_dir + "/" + fn) as f:
+                for l in f:
+                    tip_string = l.strip("\n").split("\t")[1]
+                    tip_list = tip_string.split(",")
+                    tips.extend(tip_list)
 
-        self.date_dict = {}
-        
-        if global_lin == "":
-            self.global_lin = "NA"
-        else:
-            self.global_lin = global_lin
-        
-        if uk_lin == "":
-            self.uk_lin = "NA"
-        else:
-            self.uk_lin = uk_lin
-       
-        if phylotype == "":
-            self.phylotype = "NA"
-        else:
-            self.phylotype = phylotype
-       
-        self.in_cog = False
-        
-        self.attribute_dict = {}
-        self.attribute_dict["adm1"] = "NA"
-        
-        for i in label_fields:
-            self.attribute_dict[i] = "NA"
-        for i in tree_fields:
-            self.attribute_dict[i] = "NA"
-        
-        
-        self.tree = "NA"
-
-        self.closest_distance = "NA"
-        self.snps = "NA"
-
-class lineage():
-    
-    def __init__(self, name, taxa):
-        
-        self.name = name
-        self.taxa = taxa
-        self.dates = []
-        self.global_lins = set()
-        
-        for tax in taxa:
-            if tax.sample_date != "NA":
-                tax.date_dt = convert_date(tax.sample_date)
-                self.dates.append(tax.date_dt)
-            self.global_lins.add(tax.global_lin)
-                
-        if self.dates == []:
-            self.first_date = "NA"
-        else:
-            self.first_date = min(self.dates)
-
-def analyse_inputs(inputs):
-
-    desired_fields, label_fields, graphic_dict, node_summary_option, map_sequences, mapping_trait, map_inputs = inputs 
-
-    print("Showing " + ",".join(desired_fields) + " on the tree.")
-    print(",".join(list(graphic_dict.keys())) + " fields are displayed graphically using " + ",".join(list(graphic_dict.values())) + " colour schemes respectively.")
-    
-    if label_fields != "NONE":
-        print("Labelling by " + ",".join(label_fields) + " on the tree.")
-    
-    print("Summarising nodes by " + node_summary_option)
-
-    if map_sequences != "False":
-        map_args = map_inputs.split(",")
-        if len(map_args) == 2:
-            if mapping_trait != "False":
-                print("Mapping sequences using columns " + map_args[0] + " " + map_args[1] + " for x values and y values respectively, and colouring by " + mapping_trait)
-            else:
-                print("Mapping sequences using columns " + map_args[0] + " " + map_args[1] + " for x values and y values respectively.")
-        else:
-            if mapping_trait != "False":
-                print("Mapping sequences using columns " + map_args[0] + " for outer postcodes, and colouring by " + mapping_trait)
-            else:
-                print("Mapping sequences using columns " + map_args[0] + " for outer postocdes.")
-
-    
-    
-
-def prepping_adm2_adm1_data(full_metadata):
-
-    official_adm2_adm1 = {'BARNSLEY': 'England', 'BATH AND NORTH EAST SOMERSET': 'England', 'BEDFORDSHIRE': 'England', 'BIRMINGHAM': 'England', 'BLACKBURN WITH DARWEN': 'England', 'BLACKPOOL': 'England', 'BOLTON': 'England', 'BOURNEMOUTH': 'England', 'BRACKNELL FOREST': 'England', 'BRADFORD': 'England', 'BRIGHTON AND HOVE': 'England', 'BRISTOL': 'England', 'BUCKINGHAMSHIRE': 'England', 'BURY': 'England', 'CALDERDALE': 'England', 'CAMBRIDGESHIRE': 'England', 'CENTRAL BEDFORDSHIRE': 'England', 'CHESHIRE EAST': 'England', 'CHESHIRE WEST AND CHESTER': 'England', 'CORNWALL': 'England', 'COVENTRY': 'England', 'CUMBRIA': 'England', 'DARLINGTON': 'England', 'DERBY': 'England', 'DERBYSHIRE': 'England', 'DEVON': 'England', 'DONCASTER': 'England', 'DORSET': 'England', 'DUDLEY': 'England', 'DURHAM': 'England', 'EAST RIDING OF YORKSHIRE': 'England', 'EAST SUSSEX': 'England', 'ESSEX': 'England', 'GATESHEAD': 'England', 'GLOUCESTERSHIRE': 'England', 'GREATER LONDON': 'England', 'HALTON': 'England', 'HAMPSHIRE': 'England', 'HARTLEPOOL': 'England', 'HEREFORDSHIRE': 'England', 'HERTFORDSHIRE': 'England', 'ISLE OF WIGHT': 'England', 'ISLES OF SCILLY': 'England', 'KENT': 'England', 'KINGSTON UPON HULL': 'England', 'KIRKLEES': 'England', 'KNOWSLEY': 'England', 'LANCASHIRE': 'England', 'LEEDS': 'England', 'LEICESTER': 'England', 'LEICESTERSHIRE': 'England', 'LINCOLNSHIRE': 'England', 'LUTON': 'England', 'MANCHESTER': 'England', 'MEDWAY': 'England', 'MIDDLESBROUGH': 'England', 'MILTON KEYNES': 'England', 'NEWCASTLE UPON TYNE': 'England', 'NORFOLK': 'England', 'NORTH LINCOLNSHIRE': 'England', 'NORTH SOMERSET': 'England', 'NORTH TYNESIDE': 'England', 'NORTH YORKSHIRE': 'England', 'NORTHAMPTONSHIRE': 'England', 'NORTHUMBERLAND': 'England', 'NOTTINGHAM': 'England', 'NOTTINGHAMSHIRE': 'England', 'OLDHAM': 'England', 'OXFORDSHIRE': 'England', 'PETERBOROUGH': 'England', 'PLYMOUTH': 'England', 'POOLE': 'England', 'PORTSMOUTH': 'England', 'READING': 'England', 'REDCAR AND CLEVELAND': 'England', 'ROCHDALE': 'England', 'ROTHERHAM': 'England', 'RUTLAND': 'England', 'SAINT HELENS': 'England', 'SALFORD': 'England', 'SANDWELL': 'England', 'SEFTON': 'England', 'SHEFFIELD': 'England', 'SHROPSHIRE': 'England', 'SLOUGH': 'England', 'SOLIHULL': 'England', 'SOMERSET': 'England', 'SOUTH GLOUCESTERSHIRE': 'England', 'SOUTH TYNESIDE': 'England', 'SOUTHAMPTON': 'England', 'SOUTHEND-ON-SEA': 'England', 'STAFFORDSHIRE': 'England', 'STOCKPORT': 'England', 'STOCKTON-ON-TEES': 'England', 'STOKE-ON-TRENT': 'England', 'SUFFOLK': 'England', 'SUNDERLAND': 'England', 'SURREY': 'England', 'SWINDON': 'England', 'TAMESIDE': 'England', 'TELFORD AND WREKIN': 'England', 'THURROCK': 'England', 'TORBAY': 'England', 'TRAFFORD': 'England', 'WAKEFIELD': 'England', 'WALSALL': 'England', 'WARRINGTON': 'England', 'WARWICKSHIRE': 'England', 'WEST BERKSHIRE': 'England', 'WEST SUSSEX': 'England', 'WIGAN': 'England', 'WILTSHIRE': 'England', 'WINDSOR AND MAIDENHEAD': 'England', 'WIRRAL': 'England', 'WOKINGHAM': 'England', 'WOLVERHAMPTON': 'England', 'WORCESTERSHIRE': 'England', 'YORK': 'England', 'ANTRIM AND NEWTOWNABBEY': 'Northern Ireland', 'ARMAGH, BANBRIDGE AND CRAIGAVON': 'Northern Ireland', 'BELFAST': 'Northern Ireland', 'CAUSEWAY COAST AND GLENS': 'Northern Ireland', 'DERRY AND STRABANE': 'Northern Ireland', 'FERMANAGH AND OMAGH': 'Northern Ireland', 'LISBURN AND CASTLEREAGH': 'Northern Ireland', 'MID AND EAST ANTRIM': 'Northern Ireland', 'MID ULSTER': 'Northern Ireland', 'NEWRY, MOURNE AND DOWN': 'Northern Ireland', 'NORTH DOWN AND ARDS': 'Northern Ireland', 'ABERDEEN': 'Scotland', 'ABERDEENSHIRE': 'Scotland', 'ANGUS': 'Scotland', 'ARGYLL AND BUTE': 'Scotland', 'CLACKMANNANSHIRE': 'Scotland', 'DUMFRIES AND GALLOWAY': 'Scotland', 'DUNDEE': 'Scotland', 'EAST AYRSHIRE': 'Scotland', 'EAST DUNBARTONSHIRE': 'Scotland', 'EAST LOTHIAN': 'Scotland', 'EAST RENFREWSHIRE': 'Scotland', 'EDINBURGH': 'Scotland', 'EILEAN SIAR': 'Scotland', 'FALKIRK': 'Scotland', 'FIFE': 'Scotland', 'GLASGOW': 'Scotland', 'HIGHLAND': 'Scotland', 'INVERCLYDE': 'Scotland', 'MIDLOTHIAN': 'Scotland', 'MORAY': 'Scotland', 'NORTH AYRSHIRE': 'Scotland', 'NORTH LANARKSHIRE': 'Scotland', 'ORKNEY ISLANDS': 'Scotland', 'PERTHSHIRE AND KINROSS': 'Scotland', 'RENFREWSHIRE': 'Scotland', 'SCOTTISH BORDERS': 'Scotland', 'SHETLAND ISLANDS': 'Scotland', 'SOUTH AYRSHIRE': 'Scotland', 'SOUTH LANARKSHIRE': 'Scotland', 'STIRLING': 'Scotland', 'WEST DUNBARTONSHIRE': 'Scotland', 'WEST LOTHIAN': 'Scotland', 'ANGLESEY': 'Wales', 'BLAENAU GWENT': 'Wales', 'BRIDGEND': 'Wales', 'CAERPHILLY': 'Wales', 'CARDIFF': 'Wales', 'CARMARTHENSHIRE': 'Wales', 'CEREDIGION': 'Wales', 'CONWY': 'Wales', 'DENBIGHSHIRE': 'Wales', 'FLINTSHIRE': 'Wales', 'GWYNEDD': 'Wales', 'MERTHYR TYDFIL': 'Wales', 'MONMOUTHSHIRE': 'Wales', 'NEATH PORT TALBOT': 'Wales', 'NEWPORT': 'Wales', 'PEMBROKESHIRE': 'Wales', 'POWYS': 'Wales', 'RHONDDA, CYNON, TAFF': 'Wales', 'SWANSEA': 'Wales', 'TORFAEN': 'Wales', 'VALE OF GLAMORGAN': 'Wales', 'WREXHAM': 'Wales'}
-
-    contract_dict = {"SCT":"Scotland", "WLS": "Wales", "ENG":"England", "NIR": "Northern_Ireland"}
-
-    illegal_values = ["", "NOT FOUND", "NONE","OTHER", "WALES", "UNKNOWN", "UNKNOWN SOURCE"]
-
-    test_set = set()
-
-    adm2_adm1 = official_adm2_adm1.copy()
-
-    with open(full_metadata) as f:
-        r = csv.DictReader(f)
-        in_data = [x for x in r]
-        for seq in in_data:
-            if seq["country"] == "UK":
-                adm1 = contract_dict[seq["adm1"].split("-")[1]]
-                adm2 = seq["adm2"]
-            
-                if adm2.upper() not in illegal_values and adm2 not in official_adm2_adm1:
-                    adm2_adm1[adm2] = adm1
-
-    return adm2_adm1
-    
+    return tips, tip_to_tree
 
 def parse_filtered_metadata(metadata_file, tip_to_tree, label_fields, tree_fields):
     
@@ -264,31 +173,6 @@ def parse_input_csv(input_csv, query_id_dict, desired_fields, label_fields, date
     return new_query_dict 
 
 
-def parse_tree_tips(tree_dir):
-
-    tips = []
-    tip_to_tree = {}
-    tree_list = []
-
-    for fn in os.listdir(tree_dir):
-        if fn.endswith("tree"):
-            tree_name = fn.split(".")[0]
-            tree = bt.loadNewick(tree_dir + "/" + fn, absoluteTime=False)
-            tree_list.append(tree_name)
-            for k in tree.Objects:
-                if k.branchType == 'leaf' and "inserted" not in k.name:
-                    tips.append(k.name)
-                    tip_to_tree[k.name] = tree_name
-
-        elif fn.endswith(".txt"):
-            with open(tree_dir + "/" + fn) as f:
-                for l in f:
-                    tip_string = l.strip("\n").split("\t")[1]
-                    tip_list = tip_string.split(",")
-                    tips.extend(tip_list)
-
-    return tips, tip_to_tree, tree_list
-
 def parse_full_metadata(query_dict, label_fields, tree_fields, full_metadata, present_lins, present_in_tree, node_summary_option, date_fields):
 
     full_tax_dict = query_dict.copy()
@@ -359,6 +243,22 @@ def parse_full_metadata(query_dict, label_fields, tree_fields, full_metadata, pr
                     
     return full_tax_dict
     
+
+def parse_all_metadata(treedir, filtered_cog_metadata, full_metadata_file, input_csv, label_fields, tree_fields, date_fields, node_summary_option, adm2_to_adm1):
+
+    present_in_tree, tip_to_tree = parse_tree_tips(treedir)
+    
+    #parse the metadata with just those queries found in cog
+    query_dict, query_id_dict, present_lins, tree_to_tip = parse_filtered_metadata(filtered_cog_metadata, tip_to_tree, label_fields, tree_fields) 
+
+    if input_csv != '':
+         #Any query information they have provided
+        query_dict = parse_input_csv(input_csv, query_id_dict, tree_fields, label_fields, date_fields, adm2_to_adm1)
+    
+    #parse the full background metadata
+    full_tax_dict = parse_full_metadata(query_dict, label_fields, tree_fields, full_metadata_file, present_lins, present_in_tree, node_summary_option, date_fields)
+
+    return full_tax_dict, query_dict, tree_to_tip
 
 def make_initial_table(query_dict, desired_fields, label_fields, cog_report):
 
@@ -459,17 +359,6 @@ def investigate_QC_fails(QC_file):
 
     return fail_dict
 
-def print_missing_seqs(missing_seqs_file):
-    
-    failed_names = []
-
-    with open(missing_seqs_file) as f:
-        for l in f:
-            name = l.strip("\n").split(",")[0]
-            
-            failed_names.append(name)
-
-    return failed_names
 
 def find_new_introductions(query_dict, min_date): #will only be called for the COG sitrep, and the query dict will already be filtered to the most recent sequences
 

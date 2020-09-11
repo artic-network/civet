@@ -20,10 +20,14 @@ def get_report_arguments(arg_file):
 
     return args
 
+# def generate_title - so if they provide sc but no title, then make it here
+# def make_free_text_dict
+
 def make_report(inputs, report_args_file):
     
     arguments = get_report_arguments(report_args_file)
 
+    ####so this bit will change with the config file that will be passed
     arg_dict = {}
     for name, value in zip(arguments,inputs):
 
@@ -38,12 +42,13 @@ def make_report(inputs, report_args_file):
                 name = name
             
             arg_dict[name] = value
+    #######
 
     name_stem = ".".join(outfile.split(".")[:-1])
     arg_dict["name_stem_input"] = name_stem
                         
     tree_name_stems = []
-    for r,d,f in os.walk(arg_dict["tree_dir"]):
+    for r,d,f in os.walk(arg_dict["treedir"]):
         for fn in f:
             if fn.endswith(".tree"):
                 basename = ".".join(fn.split(".")[:-1])
@@ -74,22 +79,51 @@ def make_report(inputs, report_args_file):
             change_line_dict[key] = new_value
         
         if arg_dict["add_bars"]:
-            change_line_dict["add_bars"] = f'add_bars = "{add_bars}"\n'
+            change_line_dict["add_bars"] = f'add_bars = "{arg_dict["add_bars"]}"\n'
         else:
-            change_line_dict["add_bars"] = 'add_bars = ""'
+            change_line_dict["add_bars"] = 'add_bars = ""\n'
         
-        with open(md_template) as f:
-            for l in f:
-                if "##CHANGE" in l:
-                    for key in change_line_dict:
-                        if key in l:
-                            new_l = change_line_dict[key]
-                else:
-                    new_l = l
+        #make dict with these, add in \ns on the end
+        title = "# testy testy title\n"
+        date = "2020-08-01\n"
+        description = "We're looking at xyz investigation\n"
+        authors = "- Martin \n - Matt \n"
 
-                pmd_file.write(new_l)
+
+
+        #make_pmd_file(pmd_file, md_template, change_line_dict, free_text)
+        free_text_dict = {}
+
+        #will have to work out how to generate this from the incoming config file
+        free_text_dict["##INSERT_TITLE"] = title 
+        free_text_dict["##DATE"] = f'This investigation was started on {date}'
+        free_text_dict["##DESCRIPTION"] = description
+        free_text_dict["##AUTHORS"] = authors
+
+        with open(md_template) as f:
+            count = 0
+            for l in f:
+                line_written = False
+                if "##INSERT_ARGUMENTS" in l:
+                        pmd_file.write("".join(list(change_line_dict.values())))
+                        line_written = True
+                else:
+                    for k,v in free_text_dict.items():
+                        if k in l:
+                            new_l = str(v)
+                            pmd_file.write(new_l)
+                            line_written = True
+
+                if not line_written:
+                    pmd_file.write(l)
+
+        weave(outfile, doctype = "pandoc", figdir=arg_dict["figdir"])
+
+# def make_pmd_file(pmd_file, md_template, change_line_dict, free_text):
+        
+        
     
-    weave(outfile, doctype = "pandoc", figdir=arg_dict["figdir"])
+    
 
 def main():
     parser = argparse.ArgumentParser(description="Report generator script")
@@ -146,10 +180,10 @@ def get_arg_list(args):
 
     arg_list = [
         args.cog_metadata, args.input_csv, args.filtered_cog_metadata, #metadata inputs
-        args.outfile, args.report_template, args.outdir, args.tree_dir, args.figdir, #directories and file sorting
+        args.outfile, args.report_template, args.outdir, args.treedir, args.figdir, #directories and file sorting
         args.tree_fields_input, args.graphic_dict_input, args.label_fields_input, args.date_fields_input, args.node_summary_option, #display options for tree and timeline
         args.failed_seqs, args.seq_centre, args.add_bars, #misc options
-        args.clean_locs_file, args.pc_file, args.uk_map, args.channels_map, args.ni_map, args.urban_centres #mapping files
+        args.clean_locs_file, args.pc_file, args.uk_map, args.channels_map, args.ni_map, args.urban_centres, #mapping files
         args.local_lineages, args.local_lin_maps, args.local_lin_tables, #background lineage mapping
         args.map_sequences, args.map_inputs, args.input_crs, args.mapping_trait] #options for mapping sequences in query
 
