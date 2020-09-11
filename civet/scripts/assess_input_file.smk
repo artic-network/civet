@@ -374,7 +374,7 @@ rule make_report:
 
         qcfunk.local_lineages_to_config(input.central, input.neighbouring, input.region, config)
 
-        config["rel_figdir"] = os.path.join(".","figures")
+        config["figdir"] = os.path.join(".","figures") #changed from rel_figdir
         config["treedir"] = os.path.join(config["outdir"],"local_trees")
         config["outfile"] = os.path.join(config["outdir"], "civet_report.md")
         config["summary_dir"] = os.path.join(config["outdir"], "summary_files")

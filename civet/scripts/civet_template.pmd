@@ -37,7 +37,6 @@ mpl.rcParams['axes.labelweight']=50
 inputs = [tree_fields, label_fields, graphic_dict, node_summary_option, map_sequences, mapping_trait, map_inputs]
 ```
 
-
 ```python, name="header",echo=False, results='raw'
 ##I think what we'll do is if the title isn't given in the earlier config dict (ie not a config file provided), then we'll make the default title externally to this and pass it in
 #so this will need to go somewhere else to generate the default title 
