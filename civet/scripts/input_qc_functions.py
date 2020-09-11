@@ -165,6 +165,43 @@ def get_temp_dir(tempdir_arg,no_temp_arg, cwd,config):
     config["tempdir"] = tempdir 
     return tempdir
 
+def local_lineages_to_config(central, neighbouring, region, config):
+
+    if config["local_lineages"] == True:
+        lineage_tables = []
+        for r,d,f in os.walk(os.path.join(config["outdir"], 'figures')):
+            for fn in f:
+                if fn.endswith("_lineageTable.md"):
+                    lineage_tables.append(os.path.join(config["outdir"], 'figures', fn))
+
+        config["lineage_tables"] = lineage_tables
+        config["lineage_maps"] = [central, neighboring, region]
+    else:
+        config["lineage_tables"] = []
+        config["lineage_maps"] = []
+
+
+def get_tree_name_stem(tree_dir,config):
+    tree_name_stems = []
+    for r,d,f in os.walk(tree_dir):
+        for fn in f:
+            if fn.endswith(".tree"):
+                basename = ".".join(fn.split(".")[:-1])
+                stem = "_".join(basename.split("_")[:-1])
+                tree_name_stems.append(stem)
+    tree_name_stems = list(set(tree_name_stems))
+    
+    if len(tree_name_stems) > 1:
+        sys.stderr.write("Error: Multiple tree names found")
+        sys.exit(-1)
+    elif len(tree_name_stems) == 0:
+        sys.stderr.write("Error: No trees found in tree directory.")
+        sys.exit(-1)
+    else:
+        tree_name_stem = tree_name_stems[0]
+
+    config["tree_name_stem"] = tree_name_stem
+
 # def check_data_dir(datadir,no_seqs,cwd,config):
 #     data_dir = os.path.join(cwd, datadir)
     

@@ -361,7 +361,7 @@ rule make_report:
         snp_figure_prompt = os.path.join(config["outdir"],"gather_prompt.txt"),
         genome_graphs = rules.find_snps.output.genome_graphs, 
         central = os.path.join(config["outdir"], 'figures', "central_map_ukLin.png"),
-        neighboring = os.path.join(config["outdir"], 'figures', "neighboring_map_ukLin.png"),
+        neighbouring = os.path.join(config["outdir"], 'figures', "neighboring_map_ukLin.png"),
         region = os.path.join(config["outdir"], 'figures', "region_map_ukLin.png")
     output:
         poly_fig = os.path.join(config["outdir"],"figures","polytomies.png"),
@@ -372,22 +372,15 @@ rule make_report:
         if config["sequencing_centre_file"] != "":
             shell("cp {config[sequencing_centre]:q} {config[sequencing_centre_file]:q}")
 
-        if config["local_lineages"] == True:
-            lineage_tables = []
-            for r,d,f in os.walk(os.path.join(config["outdir"], 'figures')):
-                for fn in f:
-                    if fn.endswith("_lineageTable.md"):
-                        lineage_tables.append(os.path.join(config["outdir"], 'figures', fn))
-
-            config["lineage_tables"] = lineage_tables
-            config["lineage_maps"] = [input.central, input.neighboring, input.region]
-        else:
-            config["lineage_tables"] = []
-            config["lineage_maps"] = []
+        qcfunk.local_lineages_to_config(input.central, input.neighbouring, input.region, config)
 
         config["rel_figdir"] = os.path.join(".","figures")
         config["treedir"] = os.path.join(config["outdir"],"local_trees")
         config["outfile"] = os.path.join(config["outdir"], "civet_report.md")
+        config["summary_dir"] = os.path.join(config["outdir"], "summary_files")
+        config["name_stem_input"] = "civet_report"
+
+        qcfunk.get_tree_name_stem(config["treedir"],config)
 
         with open(output.yaml, 'w') as fw:
             yaml.dump(config, fw)
