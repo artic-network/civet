@@ -22,29 +22,15 @@ if config.get("sequencing_centre"):
         config["sequencing_centre_flag"] = f"--seq-centre {filename}"
 
 
-if config["global"] == "True":
+if config["global"] == True:
     config["seq_db"] = config["cog_global_seqs"]
 else:
     config["seq_db"] = config["cog_seqs"]
 
-if config["quiet_mode"]=="True":
+if config["quiet_mode"]==True:
     config["quiet_mode"] = "--quiet"
 else:
     config["quiet_mode"] = ""
-
-config["up_distance"]=int(config["up_distance"])
-config["down_distance"]=int(config["down_distance"])
-
-if config["qc_fail"] != "":
-    fail_file = config["qc_fail"]
-    config["qc_fail_report"] = f"--failed-seqs {fail_file}"
-else:
-    config["qc_fail_report"] = ""
-
-if config["delay_collapse"] == "False":
-    config["delay_collapse"] = False
-elif config["delay_collapse"] == "True":
-    config["delay_collapse"] = True
 
 ##### Target rules #####
 if config.get("launch_browser"):

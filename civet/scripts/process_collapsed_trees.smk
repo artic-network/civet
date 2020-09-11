@@ -83,8 +83,7 @@ rule summarise_polytomies:
         metadata = os.path.join(config["tempdir"],"protected","protected.csv"),
         tree = os.path.join(config["tempdir"], "catchment_trees","{tree}.newick")
     params:
-        tree_dir = os.path.join(config["tempdir"],"catchment_trees"),
-        threshold = config["threshold"]
+        tree_dir = os.path.join(config["tempdir"],"catchment_trees")
     output:
         collapsed_tree = os.path.join(config["tempdir"],"collapsed_trees","{tree}.tree"),
         collapsed_information = os.path.join(config["outdir"],"local_trees","{tree}.txt")
@@ -96,7 +95,7 @@ rule summarise_polytomies:
         --index-column protect \
         --in-format newick \
         --out-format newick \
-        --threshold {params.threshold} \
+        --threshold {config[threshold]} \
         --output-tsv {output.collapsed_information:q}
         """
 
