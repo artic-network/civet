@@ -9,7 +9,8 @@ config["tree_stems"] = config["catchment_str"].split(",")
 rule all:
     input:
         expand(os.path.join(config["outdir"],"snp_reports","{tree}.snps.txt"),tree=config["tree_stems"]),
-        expand(os.path.join(config["outdir"],"figures","genome_graph_{tree}.png"), tree=config["tree_stems"])
+        expand(os.path.join(config["outdir"],"figures","genome_graph_{tree}.png"), tree=config["tree_stems"]),
+        os.path.join(config["outdir"],"gather_prompt.txt")
 
 rule extract_taxa:
     input:
@@ -87,8 +88,6 @@ rule assess_snps:
         
 rule ambiguities_at_snp_sites:
     input:
-        #seqs = rules.gather_snp_seqs.output.seqs,
-        #report = rules.gather_snp_reports.output.report
         seqs = os.path.join(config["tempdir"], "seqs_for_snps", "{tree}.fasta"),
         report = os.path.join(config["outdir"],"snp_reports", "{tree}.snps.txt")
     output:
@@ -98,11 +97,8 @@ rule ambiguities_at_snp_sites:
         find_ambiguities.py --input {input.seqs:q} --output {output.snp_report:q} --report {input.report:q}
         """
 
-
 rule make_snp_figure:
     input:
-        #rules.gather_snp_reports.output.report, #change this one to snps input in gather_snp_reports
-        #snps = expand(os.path.join(config["tempdir"],"snp_reports","{tree}.snps.txt"), tree=config["tree_stems"]),
         ambs = os.path.join(config["outdir"], "snp_reports", "ambiguities_{tree}.snps.txt"),
         snps = os.path.join(config["outdir"],"snp_reports","{tree}.snps.txt")
     output:
@@ -111,3 +107,12 @@ rule make_snp_figure:
         """
         make_genome_graph.py --input {input.snps:q} --ambiguities {input.ambs:q} --output {output[0]} 
         """
+
+rule gather_graphs:
+    input:
+        expand(os.path.join(config["outdir"],"figures","genome_graph_{tree}.png"), tree=config["tree_stems"])
+    output:
+        os.path.join(config["outdir"],"gather_prompt.txt")
+    shell:
+        "touch {output}"
+    

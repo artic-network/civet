@@ -3,6 +3,7 @@ from Bio import SeqIO
 import os
 import collections
 import sys
+import yaml
 
 import input_qc_functions as qcfunk
 
@@ -261,8 +262,7 @@ rule find_snps:
     params:
         tree_dir = os.path.join(config["outdir"],"local_trees"),
     output:
-        genome_graphs = os.path.join(config["outdir"],"snp_reports","tree_subtree_1.snps.txt"), #this obviously isn't ideal because it's not flexible to name stem changes
-        reports = os.path.join(config["outdir"],"figures","genome_graph_tree_subtree_1.png")
+        genome_graphs = os.path.join(config["outdir"],"gather_prompt.txt") 
     run:
         local_trees = []
         for r,d,f in os.walk(params.tree_dir):
@@ -354,45 +354,15 @@ rule regional_map_rendering:
 
 rule make_report:
     input:
-        # report_args = config["report_args"],
         lineage_trees = rules.process_catchments.output.tree_summary,
-        # query = config["query"],
+        query = config["query"],
         combined_metadata = os.path.join(config["outdir"],"combined_metadata.csv"),
-        # cog_global_metadata = config["cog_global_metadata"],
-        # report_template = config["report_template"],
-        # polytomy_figure = config["polytomy_figure"],
-        # footer = config["footer"],
-        # clean_locs = config["clean_locs"],
-        # uk_map = config["uk_map"],
-        # channels_map = config["channels_map"],
-        # ni_map = config["ni_map"],
-        # pc_file = config["pc_file"],
-        # urban_centres = config["urban_centres"],
-        genome_graph = rules.find_snps.output.genome_graphs, #do these two arguments need to be here? 
-        snp_report = rules.find_snps.output.reports, 
+        cog_global_metadata = config["cog_global_metadata"],
+        snp_figure_prompt = os.path.join(config["outdir"],"gather_prompt.txt"),
+        genome_graphs = rules.find_snps.output.genome_graphs, 
         central = os.path.join(config["outdir"], 'figures', "central_map_ukLin.png"),
         neighboring = os.path.join(config["outdir"], 'figures', "neighboring_map_ukLin.png"),
         region = os.path.join(config["outdir"], 'figures', "region_map_ukLin.png")
-    params:
-        treedir = os.path.join(config["outdir"],"local_trees"),
-        outdir = config["rel_outdir"],
-        fields = config["fields"],
-        label_fields = config["label_fields"],
-        date_fields = config["date_fields"],
-        node_summary = config["node_summary"],
-        sc_source = config["sequencing_centre"],
-        # sc = config["sequencing_centre_file"],
-        # sc_flag = config["sequencing_centre_flag"],
-        # rel_figdir = os.path.join(".","figures"),
-        # local_lineages = config["local_lineages"],
-        figdir = os.path.join(config["outdir"],"figures")
-        # failure = config["qc_fail_report"],
-        # map_sequences = config["map_sequences"],
-        # map_cols = config["map_cols"],
-        # input_crs = config["input_crs"],
-        # mapping_trait = config["mapping_trait"],
-        # add_bars = config["add_bars"],
-        # graphic_dict = config["graphic_dict"]
     output:
         poly_fig = os.path.join(config["outdir"],"figures","polytomies.png"),
         footer_fig = os.path.join(config["outdir"], "figures", "footer.png"),
@@ -416,16 +386,19 @@ rule make_report:
             config["lineage_maps"] = []
 
         config["rel_figdir"] = os.path.join(".","figures")
-
+        config["treedir"] = os.path.join(config["outdir"],"local_trees")
+        config["outfile"] = os.path.join(config["outdir"], "civet_report.md")
+        print(config)
         with open(output.yaml, 'w') as fw:
             yaml.dump(config, fw)
 
         shell("""
-        cp {input.polytomy_figure:q} {output.poly_fig:q} &&
-        cp {input.footer:q} {output.footer_fig:q}""")
-        shell(
-        "make_report.py "
-        "--config {output.yaml:q} "
+        cp {config[polytomy_figure]:q} {output.poly_fig:q} &&
+        cp {config[footer]:q} {output.footer_fig:q} &&
+        touch {output.outfile}""")
+        # shell(
+        # "make_report.py "
+        # "--config {output.yaml:q} ")
         # "--input-csv {input.query:q} "
         # "--tree-fields-input {params.fields:q} "
         # "--graphic-dict-input {params.graphic_dict:q} "
@@ -433,26 +406,26 @@ rule make_report:
         # "--date-fields-input {params.date_fields:q} "
         # "--node-summary-option {params.node_summary} "
         # "--figdir {params.rel_figdir:q} "
-        "{params.sc_flag} "
+        # "{params.sc_flag} "
         # "{params.failure} "
-        "--tree-dir {params.treedir:q} "
-        "--report-template {input.report_template:q} "
-        "--filtered-cog-metadata {input.combined_metadata:q} "
-        "--cog-metadata {input.cog_global_metadata:q} "
-        "--clean-locs-file {input.clean_locs:q} "
-        "--uk-map {input.uk_map:q} "
-        "--channels-map {input.channels_map:q} "
-        "--ni-map {input.ni_map:q} "
-        "--pc-file {input.pc_file:q} "
-        "--outfile {output.outfile:q} "
-        "--outdir {params.outdir:q} "
-        "--map-sequences {params.map_sequences} "
-        "--map-cols {params.map_cols} "
-        "--input-crs {params.input_crs} "
-        "--mapping-trait {params.mapping_trait} "
-        "--urban-centres {input.urban_centres} "
-        f"{add_bars}"
-        f"{local_lineage_flag} {lineage_map_flag} {lineage_table_flag}")
+        # "--tree-dir {params.treedir:q} "
+        # "--report-template {input.report_template:q} "
+        # "--filtered-cog-metadata {input.combined_metadata:q} "
+        # "--cog-metadata {input.cog_global_metadata:q} "
+        # "--clean-locs-file {input.clean_locs:q} "
+        # "--uk-map {input.uk_map:q} "
+        # "--channels-map {input.channels_map:q} "
+        # "--ni-map {input.ni_map:q} "
+        # "--pc-file {input.pc_file:q} "
+        # "--outfile {output.outfile:q} "
+        # "--outdir {params.outdir:q} "
+        # "--map-sequences {params.map_sequences} "
+        # "--map-cols {params.map_cols} "
+        # "--input-crs {params.input_crs} "
+        # "--mapping-trait {params.mapping_trait} "
+        # "--urban-centres {input.urban_centres} "
+        # f"{add_bars}"
+        # f"{local_lineage_flag} {lineage_map_flag} {lineage_table_flag}")
 
 rule launch_grip:
     input:
