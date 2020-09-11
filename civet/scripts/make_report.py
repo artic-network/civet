@@ -25,7 +25,6 @@ def parse_args():
     parser.add_argument("--config", required=True, help="config yaml file", dest="config") 
     return parser.parse_args()
 
-# def generate_title - so if they provide sc but no title, then make it here
 # def make_free_text_dict
 
 def make_report(inputs, report_args_file):
@@ -53,12 +52,13 @@ def make_report(inputs, report_args_file):
         else:
             change_line_dict["add_bars"] = 'add_bars = ""\n'
         
+        
+        ###### haven't worked this bit out yet was for testing
         #make dict with these, add in \ns on the end
         title = "# testy testy title\n"
         date = "2020-08-01\n"
         description = "We're looking at xyz investigation\n"
         authors = "- Martin \n - Matt \n"
-
 
         #make_pmd_file(pmd_file, md_template, change_line_dict, free_text)
         free_text_dict = {}
@@ -68,7 +68,7 @@ def make_report(inputs, report_args_file):
         free_text_dict["##DATE"] = f'This investigation was started on {date}'
         free_text_dict["##DESCRIPTION"] = description
         free_text_dict["##AUTHORS"] = authors
-
+        #######
 
         
         with open(config["report_template"]) as f:
@@ -86,8 +86,6 @@ def make_report(inputs, report_args_file):
 
                 if not line_written:
                     pmd_file.write(l)
-
-       
         
     
     weave(config["outfile"], doctype = "pandoc", figdir=config["figdir"])
