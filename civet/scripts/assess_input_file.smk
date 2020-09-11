@@ -388,44 +388,15 @@ rule make_report:
         config["rel_figdir"] = os.path.join(".","figures")
         config["treedir"] = os.path.join(config["outdir"],"local_trees")
         config["outfile"] = os.path.join(config["outdir"], "civet_report.md")
-        print(config)
+
         with open(output.yaml, 'w') as fw:
             yaml.dump(config, fw)
 
         shell("""
         cp {config[polytomy_figure]:q} {output.poly_fig:q} &&
-        cp {config[footer]:q} {output.footer_fig:q} &&
-        touch {output.outfile}""")
-        # shell(
-        # "make_report.py "
-        # "--config {output.yaml:q} ")
-        # "--input-csv {input.query:q} "
-        # "--tree-fields-input {params.fields:q} "
-        # "--graphic-dict-input {params.graphic_dict:q} "
-        # "--label-fields-input {params.label_fields:q} "
-        # "--date-fields-input {params.date_fields:q} "
-        # "--node-summary-option {params.node_summary} "
-        # "--figdir {params.rel_figdir:q} "
-        # "{params.sc_flag} "
-        # "{params.failure} "
-        # "--tree-dir {params.treedir:q} "
-        # "--report-template {input.report_template:q} "
-        # "--filtered-cog-metadata {input.combined_metadata:q} "
-        # "--cog-metadata {input.cog_global_metadata:q} "
-        # "--clean-locs-file {input.clean_locs:q} "
-        # "--uk-map {input.uk_map:q} "
-        # "--channels-map {input.channels_map:q} "
-        # "--ni-map {input.ni_map:q} "
-        # "--pc-file {input.pc_file:q} "
-        # "--outfile {output.outfile:q} "
-        # "--outdir {params.outdir:q} "
-        # "--map-sequences {params.map_sequences} "
-        # "--map-cols {params.map_cols} "
-        # "--input-crs {params.input_crs} "
-        # "--mapping-trait {params.mapping_trait} "
-        # "--urban-centres {input.urban_centres} "
-        # f"{add_bars}"
-        # f"{local_lineage_flag} {lineage_map_flag} {lineage_table_flag}")
+        cp {config[footer]:q} {output.footer_fig:q} """)
+        
+        shell("make_report.py --config {output.yaml:q} ")
 
 rule launch_grip:
     input:

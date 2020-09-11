@@ -60,32 +60,6 @@ rule assess_snps:
         find_snps.py --input {input.aln:q} --output {output.snp_report:q} --tree {params.tree}
         """
 
-# rule gather_snp_reports:
-#     input:
-#         snps = expand(os.path.join(config["tempdir"],"snp_reports","{tree}.snps.txt"), tree=config["tree_stems"])
-#     output:
-#         report = os.path.join(config["outdir"],"snp_reports","snp_reports.txt")
-#     run:
-#         with open(output.report, "w") as fw:
-#             #fw.write("name\ttree\tnum_snps\tsnps\n")
-#             for report in input.snps:
-#                 fn = os.path.basename(report)
-#                 with open(report, "r") as f:
-#                     for l in f:
-#                         l = l.rstrip("\n")
-#                         fw.write(l + '\n')
-
-# rule gather_snp_seqs:
-#     input:
-#         expand(os.path.join(config["tempdir"], "seqs_for_snps","{tree}.fasta"), tree=config["tree_stems"])
-#     output:
-#         seqs = os.path.join(config["tempdir"], "seqs_for_snps","for_ambiguities.fasta")
-#     run:
-#         with open(output.seqs,"w") as fw:
-#             for seq_file in input:
-#                 for record in SeqIO.parse(seq_file,"fasta"):
-#                     fw.write(f">{record.description}\n{record.seq}\n")
-        
 rule ambiguities_at_snp_sites:
     input:
         seqs = os.path.join(config["tempdir"], "seqs_for_snps", "{tree}.fasta"),
