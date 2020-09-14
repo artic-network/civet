@@ -37,19 +37,20 @@ def main(sysargs = sys.argv[1:]):
     io_group = parser.add_argument_group('input output options')
     io_group.add_argument('query',help="Input csv file or input config file. CSV minimally has input_column header, Default=`name`. Can include additional fields to be incorporated into the analysis, e.g. `sample_date`")
     io_group.add_argument('-i',"--id-string", action="store_true",help="Indicates the input is a comma-separated id string with one or more query ids. Example: `EDB3588,EDB3589`.", dest="ids")
-    io_group.add_argument('-f','--fasta', action="store",help="Optional fasta query.", dest="fasta")
-    io_group.add_argument('--CLIMB', action="store_true",dest="climb",help="Indicates you're running CIVET from within CLIMB, uses default paths in CLIMB to access data")
-    io_group.add_argument("-r",'--remote-sync', action="store_true",dest="remote",help="Remotely access lineage trees from CLIMB")
-    io_group.add_argument("-uun","--your-user-name", action="store", help="Your CLIMB COG-UK username. Required if running with --remote-sync flag", dest="uun")
     io_group.add_argument('-o','--outdir', action="store",help="Output directory. Default: current working directory")
-    io_group.add_argument('-d','--datadir', action="store",help="Local directory that contains the data files",default="civet-cat")
-    io_group.add_argument('--input-column', action="store",help="Column in input csv file to match with database. Default: name", dest="input_column",default="name")
-    io_group.add_argument('--search-field', action="store",help="Option to search COG database for a different id type. Default: COG-UK ID", dest="data_column",default="central_sample_id")
-    io_group.add_argument('-b','--launch-browser', action="store_true",help="Optionally launch md viewer in the browser using grip",dest="launch_browser")
-    io_group.add_argument('-g','--global',action="store_true",dest="search_global",help="Search globally.",default=False)
+    io_group.add_argument('-f','--fasta', action="store",help="Optional fasta query.", dest="fasta")
     io_group.add_argument('--max-ambig', action="store", default=0.5, type=float,help="Maximum proportion of Ns allowed to attempt analysis. Default: 0.5",dest="maxambig")
     io_group.add_argument('--min-length', action="store", default=10000, type=int,help="Minimum query length allowed to attempt analysis. Default: 10000",dest="minlen")
-    
+
+    data_group = parser.add_argument_group('data source options')
+    data_group.add_argument('-d','--datadir', action="store",help="Local directory that contains the data files",default="civet-cat")
+    data_group.add_argument('--CLIMB', action="store_true",dest="climb",help="Indicates you're running CIVET from within CLIMB, uses default paths in CLIMB to access data")
+    data_group.add_argument("-r",'--remote-sync', action="store_true",dest="remote",help="Remotely access lineage trees from CLIMB")
+    data_group.add_argument("-uun","--your-user-name", action="store", help="Your CLIMB COG-UK username. Required if running with --remote-sync flag", dest="uun")
+    data_group.add_argument('--input-column', action="store",help="Column in input csv file to match with database. Default: name", dest="input_column",default="name")
+    data_group.add_argument('--search-field', action="store",help="Option to search COG database for a different id type. Default: COG-UK ID", dest="data_column",default="central_sample_id")
+    data_group.add_argument('-g','--global',action="store_true",dest="search_global",help="Rather than finding closest match in COG database, search globally and find closest match in the entire database.",default=False)
+
     report_group = parser.add_argument_group('report customisation')
     report_group.add_argument('-sc',"--sequencing-centre", action="store",help="Customise report with logos from sequencing centre.", dest="sequencing_centre")
     report_group.add_argument('--display', action="store", help="Comma separated string of fields to display as coloured dots rather than text in report trees. Optionally add colour scheme eg adm1=viridis", dest="display")
@@ -78,6 +79,8 @@ def main(sysargs = sys.argv[1:]):
     map_group.add_argument("--mapping-trait", required=False, dest="mapping_trait", help="Column to colour mapped sequences by")
     
     misc_group = parser.add_argument_group('misc options')
+    misc_group.add_argument('-b','--launch-browser', action="store_true",help="Optionally launch md viewer in the browser using grip",dest="launch_browser")
+    misc_group.add_argument('--generate-config',dest="generate_config",action="store_true",help="Rather than running a civet report, generate a config file based on the command line arguments provided")
     misc_group.add_argument('-n', '--dry-run', action='store_true',help="Go through the motions but don't actually run")
     misc_group.add_argument('--tempdir',action="store",help="Specify where you want the temp stuff to go. Default: $TMPDIR")
     misc_group.add_argument("--no-temp",action="store_true",help="Output all intermediate files, for dev purposes.")
@@ -180,6 +183,10 @@ def main(sysargs = sys.argv[1:]):
     else:
         quiet_mode = True
         config["quiet_mode"]=True
+
+    if args.generate_config:
+        qcfunk.make_config_file(config)
+
 
     status = snakemake.snakemake(snakefile, printshellcmds=True,
                                  dryrun=args.dry_run, forceall=True,force_incomplete=True,workdir=tempdir,
