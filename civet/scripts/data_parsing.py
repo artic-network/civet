@@ -105,7 +105,7 @@ def parse_filtered_metadata(metadata_file, tip_to_tree, label_fields, tree_field
 
 
 
-def parse_input_csv(input_csv, query_id_dict, desired_fields, label_fields, date_fields, adm2_adm1_dict): 
+def parse_input_csv(input_csv, query_id_dict, input_column, tree_fields, label_fields, adm2_adm1_dict, date_fields=None): 
     new_query_dict = {}
     contract_dict = {"SCT":"Scotland", "WLS": "Wales", "ENG":"England", "NIR": "Northern_Ireland"}
     cleaning = {"SCOTLAND":"Scotland", "WALES":"Wales", "ENGLAND":"England", "NORTHERN_IRELAND": "Northern_Ireland", "NORTHERN IRELAND": "Northern_Ireland"}
@@ -120,7 +120,7 @@ def parse_input_csv(input_csv, query_id_dict, desired_fields, label_fields, date
         in_data = [r for r in reader]
         for sequence in in_data:
             
-            name = sequence["name"]
+            name = sequence[input_column]
 
             if name in query_id_dict.keys():
                 taxon = query_id_dict[name]
@@ -144,7 +144,7 @@ def parse_input_csv(input_csv, query_id_dict, desired_fields, label_fields, date
                         if sequence[col] != "":
                             taxon.attribute_dict[col] = sequence[col]
                     else:
-                        if col != "name" and col in desired_fields and col != "adm1":
+                        if col != "name" and col in tree_fields and col != "adm1":
                             if sequence[col] != "":
                                 taxon.attribute_dict[col] = sequence[col]
             
@@ -172,8 +172,7 @@ def parse_input_csv(input_csv, query_id_dict, desired_fields, label_fields, date
       
     return new_query_dict 
 
-
-def parse_full_metadata(query_dict, label_fields, tree_fields, full_metadata, present_lins, present_in_tree, node_summary_option, date_fields):
+def parse_full_metadata(query_dict, label_fields, tree_fields, full_metadata, present_lins, present_in_tree, node_summary_option, tip_to_tree, database_name_column, date_fields=None):
 
     full_tax_dict = query_dict.copy()
 
@@ -187,7 +186,7 @@ def parse_full_metadata(query_dict, label_fields, tree_fields, full_metadata, pr
         in_data = [r for r in reader]
         for sequence in in_data:
             uk_lin = sequence["uk_lineage"]
-            seq_name = sequence["sequence_name"]
+            seq_name = sequence[database_name_column]
 
             date = sequence["sample_date"]
             adm2 = sequence["adm2"]
@@ -198,7 +197,6 @@ def parse_full_metadata(query_dict, label_fields, tree_fields, full_metadata, pr
 
             node_summary_trait = sequence[node_summary_option]
 
-
             if (uk_lin in present_lins or seq_name in present_in_tree) and seq_name not in query_dict.keys():
                 new_taxon = taxon(seq_name, glob_lin, uk_lin, phylotype, label_fields, tree_fields)
                 if date == "":
@@ -208,7 +206,9 @@ def parse_full_metadata(query_dict, label_fields, tree_fields, full_metadata, pr
 
                 new_taxon.node_summary = node_summary_trait
 
-                
+                if seq_name in tip_to_tree.keys():
+                    new_taxon.tree = tip_to_tree[seq_name]
+
                 new_taxon.attribute_dict["adm2"] = adm2
                 new_taxon.attribute_dict["country"] = country
 
@@ -244,7 +244,7 @@ def parse_full_metadata(query_dict, label_fields, tree_fields, full_metadata, pr
     return full_tax_dict
     
 
-def parse_all_metadata(treedir, filtered_cog_metadata, full_metadata_file, input_csv, label_fields, tree_fields, date_fields, node_summary_option, adm2_to_adm1):
+def parse_all_metadata(treedir, filtered_cog_metadata, full_metadata_file, input_csv, input_column, database_column, label_fields, tree_fields, node_summary_option, adm2_to_adm1, date_fields=None):
 
     present_in_tree, tip_to_tree = parse_tree_tips(treedir)
     
@@ -253,14 +253,14 @@ def parse_all_metadata(treedir, filtered_cog_metadata, full_metadata_file, input
 
     if input_csv != '':
          #Any query information they have provided
-        query_dict = parse_input_csv(input_csv, query_id_dict, tree_fields, label_fields, date_fields, adm2_to_adm1)
+        query_dict = parse_input_csv(input_csv, query_id_dict, input_column, tree_fields, label_fields, adm2_to_adm1, date_fields)
     
     #parse the full background metadata
-    full_tax_dict = parse_full_metadata(query_dict, label_fields, tree_fields, full_metadata_file, present_lins, present_in_tree, node_summary_option, date_fields)
+    full_tax_dict = parse_full_metadata(query_dict, label_fields, tree_fields, full_metadata_file, present_lins, present_in_tree, node_summary_option, tip_to_tree, database_column, date_fields)
 
     return full_tax_dict, query_dict, tree_to_tip
 
-def make_initial_table(query_dict, desired_fields, label_fields, cog_report):
+def make_initial_table(query_dict, tree_fields, label_fields, input_column):
 
     df_dict_incog = defaultdict(list)
     df_dict_seqprovided = defaultdict(list)
@@ -290,7 +290,7 @@ def make_initial_table(query_dict, desired_fields, label_fields, cog_report):
 
         df_dict["Sample date"].append(query.sample_date)
 
-        if not query.in_cog and not cog_report: #poss just needs to be if not query.in_cog now
+        if not query.in_cog: 
             df_dict["Closest sequence in Tree"].append(query.closest)
             df_dict["Distance to closest sequence"].append(query.closest_distance)
             df_dict["SNPs"].append(query.snps)
@@ -307,17 +307,14 @@ def make_initial_table(query_dict, desired_fields, label_fields, cog_report):
         else:
             df_dict["Tree"].append("NA") #this should never happen, it's more error catching
 
-        if desired_fields != []:
-            for i in desired_fields:
+        if tree_fields != []:
+            for i in tree_fields:
                 df_dict[i].append(query.attribute_dict[i])
         
         if label_fields != []:
             for i in label_fields: 
-                if i not in desired_fields and i != "sample_date" and i != "name":
+                if i not in tree_fields and i != "sample_date" and i != input_column:
                     df_dict[i].append(query.attribute_dict[i])
-
-        if cog_report:
-            df_dict['adm2'].append(query.attribute_dict["adm2"])
 
     if incog != 0:
         df_incog = pd.DataFrame(df_dict_incog)

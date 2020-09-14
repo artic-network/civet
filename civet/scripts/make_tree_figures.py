@@ -608,7 +608,7 @@ def make_legend(colour_dict_dict):
     plt.tight_layout()
     plt.show()
 
-def describe_tree_background(full_tax_dict, tree_name_stem, tree_dir):
+def describe_collapsed_nodes(full_tax_dict, tree_name_stem, tree_dir):
 
     tree_lst = sort_trees_index(tree_dir)
 
@@ -752,8 +752,50 @@ def describe_tree_background(full_tax_dict, tree_name_stem, tree_dir):
                     
                     plt.title(pretty_focal + ": " + nde, size=5)
 
-
-              
-
     return figure_count
+
+def describe_traits(full_tax_dict, node_summary, query_dict):
+##more used in llama than civet
+
+    trait_prep = defaultdict(list)
+    trait_present = defaultdict(dict)
+
+    for tax in full_tax_dict.values():
+        if tax.tree != "NA" and tax not in query_dict.values():
+            key = tax.tree 
+            trait_prep[key].append(tax.node_summary)
+
+    for tree, traits in trait_prep.items():
+        counts = Counter(traits)
+        trait_present[tree] = counts
+
+    fig_count = 1
+    tree_to_trait_fig = {}
+    
+    for tree, counts in trait_present.items():
+        if len(counts) > 2:
+
+            fig, ax = plt.subplots(1,1, figsize=(5,2.5), dpi=250)
+            
+            if len(counts) <= 5:
+                sorted_counts = sorted(counts, key = lambda x : counts[x], reverse = True)
+                x = list(sorted_counts)
+                y = [counts[i] for i in x]
+            elif len(counts) > 5:
+                selected = sorted(dict(counts.most_common(10)), key = lambda x : counts[x], reverse = True)
+                x = list(selected)
+                y = [counts[i] for i in x]
+
+            ax.bar(x,y, color="#924242")
+            ax.set_xticklabels(x, rotation=90)
+            ax.spines['top'].set_visible(False) ## make axes invisible
+            ax.spines['right'].set_visible(False)
+            ax.set_ylabel("Number of sequences")
+            ax.set_xlabel(node_summary)
+            
+            tree_to_trait_fig[tree] = fig_count
+            fig_count += 1
+
+
+    return tree_to_trait_fig, trait_present
 

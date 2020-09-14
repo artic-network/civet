@@ -33,7 +33,7 @@ def make_free_text_dict(config):
     free_text_dict["##DATE"] = config["report_date"] + "\n"
     free_text_dict["##AUTHORS"] = config["authors"] + "\n"
     free_text_dict["##DESCRIPTION"] = config["description"]
-    
+
     config.pop('title', None)
     config.pop('report_date', None)
     config.pop('authors', None)
@@ -78,7 +78,7 @@ def make_report():
                             if k != "##DESCRIPTION":
                                 new_l = str(v)
                             else:
-                                new_l = v
+                                new_l = v.lstrip("'").rstrip("'")
 
                             pmd_file.write(new_l)
                             line_written = True
