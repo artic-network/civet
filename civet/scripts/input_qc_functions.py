@@ -21,6 +21,16 @@ YELLOW = '\033[93m'
 CYAN = '\u001b[36m'
 DIM = '\033[2m'
 
+def make_config_file(config):
+    config_to_write = {}
+    for k in config:
+        if k != "generate_config":
+            config_to_write[k] = config[k]
+    config_out = os.path.join(config["outdir"],"civet_config.yaml")
+    with open(config_out,"w") as fw:
+        yaml.dump(config_to_write, fw)
+        print(green(f"Config file written to {config_out}."))
+        sys.exit()
 
 def type_input_file(query_arg,cwd,config):
 
@@ -645,9 +655,9 @@ To run civet please either\n1) ssh into CLIMB and run with --CLIMB flag\n\
             print("    -",cog_global_metadata)
             print("    -",cog_tree,"\n")
 
-        else:
-            print("No data directory specified, will save data in civet-cat in current working directory")
-            data_dir = cwd
+    else:
+        print("No data directory specified, will save data in civet-cat in current working directory")
+        data_dir = cwd
         
     return data_dir
     
