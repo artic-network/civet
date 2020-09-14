@@ -69,75 +69,98 @@ updates the conda environment
 ### Usage
 
 1. Activate the environment ``conda activate civet``
-2. Run ``civet <query> [options]``
+2. Run ``civet config.yaml`` or ``civet input.csv -f input.fasta -r -uun <your-user-name>``, where `<your-user-name>` represents your unique CLIMB identifier.
+
+
+#### Input file (csv, ids or yaml)
+
+Civet can now accept a number of different inputs:
+- Input csv file with a column describing the sequences of interest. By default civet will look for a column called `name` but this can be changed with the `--input-column` flag. 
+- A comma separated string of ids that civet trys to match against the database (you can define what field you want to match against with `--search-field`, the default is will match against the COG-UK ID).
+- A yaml config file that describes the analysis you want to run and the type of report you want to generate. You can provide any of the command line arguments via this config file. This file can be generated from the set of command line arguments you want to specify when used in conjunction with the `--generate-config` flag. This way you don't have to re-run civet with a long string of commands each time. If the same option is specified in the config file and as a command line argument, the command line argument will overwrite the config file option. 
+
 
 Example usage:
 > ``civet civet/tests/test.csv --fasta civet/tests/test.fasta --remote -uun <your-user-name>``, where `<your-user-name>` represents your unique CLIMB identifier.
 
-Full usage:
+#### Full usage:
 ```
 usage: civet <query> [options]
 
 civet: Cluster Investivation & Virus Epidemiology Tool
 
-positional arguments:
-  query                 Input csv file with minimally `name` as a column
-                        header. Can include additional fields to be
-                        incorporated into the analysis, e.g. `sample_date`
-
 optional arguments:
   -h, --help            show this help message and exit
+
+input output options:
+  query                 Input csv file or input config file. CSV minimally has
+                        input_column header, Default=`name`. Can include
+                        additional fields to be incorporated into the
+                        analysis, e.g. `sample_date`
   -i, --id-string       Indicates the input is a comma-separated id string
                         with one or more query ids. Example:
                         `EDB3588,EDB3589`.
-  --fasta FASTA         Optional fasta query.
-  -sc SEQUENCING_CENTRE, --sequencing-centre SEQUENCING_CENTRE
-                        Customise report with logos from sequencing centre.
-  --CLIMB               Indicates you're running CIVET from within CLIMB, uses
-                        default paths in CLIMB to access data
-  --cog-report          Run summary cog report. Default: outbreak
-                        investigation
-  -r, --remote-sync     Remotely access lineage trees from CLIMB, need to also
-                        supply -uun,--your-user-name
-  -uun UUN, --your-user-name UUN
-                        Your CLIMB COG-UK username. Required if running with
-                        --remote-sync flag
   -o OUTDIR, --outdir OUTDIR
                         Output directory. Default: current working directory
-  -b, --launch-browser  Optionally launch md viewer in the browser using grip
-  --datadir DATADIR     Local directory that contains the data files
-  --fields FIELDS       Comma separated string of fields to colour by in the
-                        report. Default: country
-  --display FIELD=COLOUR_SCHEME
-                        Option to display some fields with coloured dots rather 
-                        than text in the tree. Colour scheme is optional and 
-                        must be matplotlib compatible 
-                        (https://matplotlib.org/3.1.0/tutorials/colors/colormaps.html)
-  --label-fields LABEL_FIELDS
-                        Comma separated string of fields to add to tree report
-                        labels.
-  --date-fields DATE_FIELDS
-                        Comma separated string of date information to include.
-                        Default = "sample_date"
-  --node-summary COLUMN Choose which metadata column to summarise collapsed nodes by.                      
-  --search-field SEARCH_FIELD
-                        Option to search COG database for a different id type.
-                        Default: COG-UK ID
-  --distance DISTANCE   Extraction from large tree radius. Default: 2
-  -g, --global          Search globally.
-  -n, --dry-run         Go through the motions but don't actually run
-  --tempdir TEMPDIR     Specify where you want the temp stuff to go. Default:
-                        $TMPDIR
-  --no-temp             Output all intermediate files, for dev purposes.
-  --collapse-threshold THRESHOLD
-                        Minimum number of nodes to collapse on. Default: 1
-  -t THREADS, --threads THREADS
-                        Number of threads
-  --verbose             Print lots of stuff to screen
+  -f FASTA, --fasta FASTA
+                        Optional fasta query.
   --max-ambig MAXAMBIG  Maximum proportion of Ns allowed to attempt analysis.
                         Default: 0.5
   --min-length MINLEN   Minimum query length allowed to attempt analysis.
                         Default: 10000
+
+data source options:
+  -d DATADIR, --datadir DATADIR
+                        Local directory that contains the data files
+  --CLIMB               Indicates you're running CIVET from within CLIMB, uses
+                        default paths in CLIMB to access data
+  -r, --remote-sync     Remotely access lineage trees from CLIMB
+  -uun UUN, --your-user-name UUN
+                        Your CLIMB COG-UK username. Required if running with
+                        --remote-sync flag
+  --input-column INPUT_COLUMN
+                        Column in input csv file to match with database.
+                        Default: name
+  --search-field DATA_COLUMN
+                        Option to search COG database for a different id type.
+                        Default: COG-UK ID
+  -g, --global          Rather than finding closest match in COG database,
+                        search globally and find closest match in the entire
+                        database.
+
+report customisation:
+  -sc SEQUENCING_CENTRE, --sequencing-centre SEQUENCING_CENTRE
+                        Customise report with logos from sequencing centre.
+  --display DISPLAY     Comma separated string of fields to display as
+                        coloured dots rather than text in report trees.
+                        Optionally add colour scheme eg adm1=viridis
+  --fields FIELDS       Comma separated string of fields to display in the
+                        trees in the report. Default: country
+  --label-fields LABEL_FIELDS
+                        Comma separated string of fields to add to tree report
+                        labels.
+  --date-fields DATE_FIELDS
+                        Comma separated string of metadata headers containing
+                        date information.
+  --node-summary NODE_SUMMARY
+                        Column to summarise collapsed nodes by. Default =
+                        Global lineage
+  --add-bars            Render boxplots in the output report
+  --cog-report          Run summary cog report. Default: outbreak
+                        investigation
+
+tree context options:
+  --distance DISTANCE   Extraction from large tree radius. Default: 2
+  --up-distance UP_DISTANCE
+                        Upstream distance to extract from large tree. Default:
+                        2
+  --down-distance DOWN_DISTANCE
+                        Downstream distance to extract from large tree.
+                        Default: 2
+  --collapse-threshold THRESHOLD
+                        Minimum number of nodes to collapse on. Default: 1
+
+map rendering options:
   --local-lineages      Contextualise the cluster lineages at local regional
                         scale. Requires at least one adm2 value in query csv.
   --date-restriction    Chose whether to date-restrict comparative sequences
@@ -153,18 +176,32 @@ optional arguments:
   --date-window DATE_WINDOW
                         Define the window +- either side of cluster sample
                         collection date-range. Default is 7 days.
-  --map-sequences       Maps coordinates of sequences. Requires arguments x-col,
-                        y-col and input-crs.
-  --x-col X_COL         Name of column in input csv containing x coordinates of sequences for mapping.
-  --y-col Y_COL         Name of column in input csv containing x coordinates of sequences for mapping.
-  --input-crs           Coordinate system of sequence coordinates in EPSG numbers eg World Mercator (WGS84) is EPSG:4326, 
-                        and ordnance survey is EPSG:27700.
-                        For more information see https://geopandas.org/projections.html and https://spatialreference.org/ref/epsg/
+  --map-sequences       Map the coordinate points of sequences, coloured by a
+                        triat.
+  --map-inputs MAP_INPUTS
+                        columns containing EITHER x and y coordinates as a
+                        comma separated string OR outer postcodes for mapping
+                        sequences
+  --input-crs INPUT_CRS
+                        Coordinate reference system of sequence coordinates
   --mapping-trait MAPPING_TRAIT
-                        Trait to colour by on the map. Must match a column header in the input csv.
-  -v, --version         Show program's version number and exit
+                        Column to colour mapped sequences by
+
+misc options:
+  -b, --launch-browser  Optionally launch md viewer in the browser using grip
+  --generate-config     Rather than running a civet report, generate a config
+                        file based on the command line arguments provided
+  -n, --dry-run         Go through the motions but don't actually run
+  --tempdir TEMPDIR     Specify where you want the temp stuff to go. Default:
+                        $TMPDIR
+  --no-temp             Output all intermediate files, for dev purposes.
+  -t THREADS, --threads THREADS
+                        Number of threads
+  --verbose             Print lots of stuff to screen
+  -v, --version         show program's version number and exit
 
 ```
+
 
 ### Analysis pipeline
 
