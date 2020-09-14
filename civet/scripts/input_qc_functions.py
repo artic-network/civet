@@ -86,6 +86,8 @@ def parse_yaml_file(configfile,config):
             snakecase_key = key.replace("-","_")
             config[snakecase_key] = input_config[key]
 
+    return config
+
 def get_snakefile(thisdir):
     snakefile = os.path.join(thisdir, 'scripts','Snakefile')
     if not os.path.exists(snakefile):
@@ -334,9 +336,24 @@ def check_args_and_config_list(argument, config_key, default, column_names, conf
     field_str = ",".join(arg_list)
     return field_str
 
+def node_summary(node_summary,config):
+    with open(config["cog_global_metadata"], newline="") as f:
+        reader = csv.DictReader(f)
+        column_names = reader.fieldnames
+
+        if not node_summary:
+            summary = "country"
+        else:
+            if node_summary in column_names:
+                summary = node_summary
+            else:
+                sys.stderr.write(cyan(f"Error: {node_summary} field not found in metadata file\n"))
+                sys.exit(-1)
+        
+        print(green(f"Summarise collapsed nodes by:") + f" {summary}")
+        config["node_summary"] = summary
+
 def check_label_and_colour_and_date_fields(colour_fields, label_fields, display_arg, date_fields, input_column, config):
-    # question, what if i want to colour by or label by fields that exist in the big metadata file? 
-    # Already on it!
     
     acceptable_colours = get_colours()
     queries = []
@@ -365,7 +382,7 @@ def check_label_and_colour_and_date_fields(colour_fields, label_fields, display_
 
     colour_field_str = check_args_and_config_list(colour_fields, "fields", "adm1", column_names, config)
     print(green(f"Colouring by:") + f" {colour_field_str}")
-    config["fields"] = colour_field_str
+    config["tree_fields"] = colour_field_str
         
     labels_str = check_args_and_config_list(label_fields, "label_fields", "NONE", column_names, config)
 
@@ -614,7 +631,7 @@ To run civet please either\n1) ssh into CLIMB and run with --CLIMB flag\n\
 
         cog_tree = os.path.join(data_dir,"cog_global_tree.nexus")
 
-        if not os.path.isfile(cog_seqs) or not os.path.isfile(cog_global_seqs) or not os.path.isfile(all_cog_seqs) or not os.path.isfile(cog_metadata) or not  os.path.isfile(all_cog_metadata) or not os.path.isfile(cog_global_metadata) or not os.path.isfile(cog_tree):
+        if not os.path.isfile(cog_seqs) or not os.path.isfile(cog_global_seqs) or not os.path.isfile(all_cog_seqs) or not os.path.isfile(cog_metadata) or not os.path.isfile(all_cog_metadata) or not os.path.isfile(cog_global_metadata) or not os.path.isfile(cog_tree):
             sys.stderr.write(cyan(f"""Error: cannot find correct data files at {data_dir}\n""")+ f"""The directory should contain the following files:\n\
     - cog_global_tree.nexus\n\
     - cog_alignment_all.fasta\n\
@@ -645,9 +662,9 @@ To run civet please either\n1) ssh into CLIMB and run with --CLIMB flag\n\
             print("    -",cog_global_metadata)
             print("    -",cog_tree,"\n")
 
-        else:
-            print("No data directory specified, will save data in civet-cat in current working directory")
-            data_dir = cwd
+        # else: #just edited out so it will run for now, need to put back in
+        #     print("No data directory specified, will save data in civet-cat in current working directory")
+        #     data_dir = cwd
         
     return data_dir
     
@@ -714,22 +731,6 @@ def get_remote_data(remote,uun,data_dir,args_datadir,args_climb,config):
 - cog_alignment.fasta\n\n"""))
         sys.exit(-1)
 
-def node_summary(node_summary,config):
-    with open(config["cog_global_metadata"], newline="") as f:
-        reader = csv.DictReader(f)
-        column_names = reader.fieldnames
-
-        if not node_summary:
-            summary = "country"
-        else:
-            if node_summary in column_names:
-                summary = node_summary
-            else:
-                sys.stderr.write(cyan(f"Error: {node_summary} field not found in metadata file\n"))
-                sys.exit(-1)
-        
-        print(green(f"Summarise collapsed nodes by:") + f" {summary}")
-        config["node_summary"] = summary
 
 def get_sequencing_centre_header(sequencing_centre_arg,config):
     
@@ -748,6 +749,7 @@ def get_sequencing_centre_header(sequencing_centre_arg,config):
             header = pkg_resources.resource_filename('civet', relative_file)
             print(green(f"Using header file from:") + f" {header}\n")
             config["sequencing_centre"] = header
+            config["sequencing_centre_text"] = sequencing_centre
         else:
             sc_string = "\n".join(sc_list)
             sys.stderr.write(cyan(f'Error: sequencing centre must be one of the following:\n{sc_string}\n'))
@@ -757,6 +759,7 @@ def get_sequencing_centre_header(sequencing_centre_arg,config):
         header = pkg_resources.resource_filename('civet', relative_file)
         print(green(f"Using header file from:") + f" {header}\n")
         config["sequencing_centre"] = header
+        config["sequencing_centre_text"] = "DEFAULT"
 
 def distance_config(distance, up_distance, down_distance, config):
     if distance:

@@ -94,7 +94,7 @@ def display_name(tree, tree_name, tree_dir, full_taxon_dict, query_dict, custom_
                                 else:   
                                     display_name = display_name + "|" + taxon_obj.attribute_dict[label_element]
                                 count += 1
-                        k.traits["display"] = display_name
+                            k.traits["display"] = display_name
 
                     k.node_number = 1
                 
