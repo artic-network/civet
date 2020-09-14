@@ -69,7 +69,7 @@ def display_name(tree, tree_name, tree_dir, full_taxon_dict, query_dict, custom_
     for k in tree.Objects:
         if k.branchType == 'leaf':
             name = k.name
-            
+            display_name = ""
             if "inserted" in name:
                 collapsed_node_info, number_nodes = summarise_collapsed_node_for_label(tree_dir, name, tree_name, full_taxon_dict)
                 k.traits["display"] = collapsed_node_info
@@ -94,7 +94,8 @@ def display_name(tree, tree_name, tree_dir, full_taxon_dict, query_dict, custom_
                                 else:   
                                     display_name = display_name + "|" + taxon_obj.attribute_dict[label_element]
                                 count += 1
-                        k.traits["display"] = display_name
+                            
+                            k.traits["display"] = display_name
 
                     k.node_number = 1
                 
@@ -102,8 +103,8 @@ def display_name(tree, tree_name, tree_dir, full_taxon_dict, query_dict, custom_
                 else:
                     if name.startswith("subtree"):
                         number = name.split("_")[-1]
-                        display = f"Tree {number}"
-                        k.traits["display"] = display
+                        display_name = f"Tree {number}"
+                        k.traits["display"] = display_name
                         k.node_number = 1
                     else:
                         k.traits["display"] = name + "|" + "not in dict"
