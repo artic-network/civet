@@ -16,7 +16,7 @@ import os
 import yaml
 from datetime import datetime
 from Bio import SeqIO
-
+import custom_logger
 import pkg_resources
 from . import _program
 
@@ -187,10 +187,11 @@ def main(sysargs = sys.argv[1:]):
     if args.generate_config:
         qcfunk.make_config_file(config)
 
+    logger = custom_logger.Logger()
 
-    status = snakemake.snakemake(snakefile, printshellcmds=True,
+    status = snakemake.snakemake(snakefile, printshellcmds=False,
                                  dryrun=args.dry_run, forceall=True,force_incomplete=True,workdir=tempdir,
-                                 config=config, cores=args.threads,lock=False,quiet=quiet_mode
+                                 config=config, cores=args.threads,lock=False,quiet=True,log_handler=logger.log_handler
                                  )
 
     if status: # translate "success" into shell exit code of 0
