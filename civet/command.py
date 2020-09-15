@@ -11,6 +11,7 @@ import pprint
 import json
 import csv
 import input_qc_functions as qcfunk
+import report_funcs as report_func
 import os
 import yaml
 from datetime import datetime
@@ -53,7 +54,7 @@ def main(sysargs = sys.argv[1:]):
     report_group = parser.add_argument_group('report customisation')
     report_group.add_argument('-sc',"--sequencing-centre", action="store",help="Customise report with logos from sequencing centre.", dest="sequencing_centre")
     report_group.add_argument('--display', action="store", help="Comma separated string of fields to display as coloured dots rather than text in report trees. Optionally add colour scheme eg adm1=viridis", dest="display")
-    report_group.add_argument('--fields', action="store",help="Comma separated string of fields to display in the trees in the report. Default: country")
+    report_group.add_argument('--fields', action="store",help="Comma separated string of fields to display in the trees in the report. Default: country", dest="tree_fields")
     report_group.add_argument('--label-fields', action="store", help="Comma separated string of fields to add to tree report labels.", dest="label_fields")
     report_group.add_argument("--date-fields", action="store", help="Comma separated string of metadata headers containing date information.", dest="date_fields")
     report_group.add_argument("--node-summary", action="store", help="Column to summarise collapsed nodes by. Default = Global lineage", dest="node_summary")
@@ -109,7 +110,7 @@ def main(sysargs = sys.argv[1:]):
         "threshold": args.threshold,
         'date_restriction':args.date_restriction,
         "add_bars":args.add_bars,
-        "global":args.search_global,
+        "global_search":args.search_global,
         "delay_collapse": False
         }
 
@@ -117,7 +118,7 @@ def main(sysargs = sys.argv[1:]):
     query,configfile = qcfunk.type_input_file(args.query,cwd,config)
 
     if configfile:
-        qcfunk.parse_yaml_file(configfile, config)
+        config = qcfunk.parse_yaml_file(configfile, config)
         
     # find the master Snakefile
     snakefile = qcfunk.get_snakefile(thisdir)
@@ -135,7 +136,7 @@ def main(sysargs = sys.argv[1:]):
     qcfunk.check_query_file(query, args.ids,cwd, config)
 
     # parse the input csv, check col headers and get fields if fields specified
-    qcfunk.check_label_and_colour_and_date_fields(args.fields, args.label_fields,args.display, args.date_fields, args.input_column, config)
+    qcfunk.check_label_and_colour_and_date_fields(args.tree_fields, args.label_fields,args.display, args.date_fields, args.input_column, config)
         
     # map sequences configuration
     qcfunk.map_sequences_config(args.map_sequences,args.mapping_trait,args.map_inputs,args.input_crs,query,config)
@@ -155,14 +156,22 @@ def main(sysargs = sys.argv[1:]):
     # accessing package data and adding to config dict
     qcfunk.get_package_data(args.cog_report,thisdir,config)
 
-    # summarising collapsed nodes config
-    qcfunk.node_summary(args.node_summary,config)
-
     # get seq centre header file from pkg data
     qcfunk.get_sequencing_centre_header(args.sequencing_centre,config)
     
     # extraction radius configuration
     qcfunk.distance_config(args.distance, args.up_distance, args.down_distance, config)
+
+    ## report arguments
+    # make title
+    report_func.make_title(config)
+    # deal with free text
+    report_func.free_text_args(config)
+        
+    # summarising collapsed nodes config
+    qcfunk.node_summary(args.node_summary,config)
+
+
  
     if args.launch_browser:
         config["launch_browser"]=True

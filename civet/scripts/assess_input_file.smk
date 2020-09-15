@@ -378,12 +378,12 @@ rule make_report:
         config["treedir"] = os.path.join(config["outdir"],"local_trees")
         config["outfile"] = os.path.join(config["outdir"], "civet_report.md")
         config["summary_dir"] = os.path.join(config["outdir"], "summary_files")
-        config["name_stem_input"] = "civet_report"
-
+        config["filtered_cog_metadata"] = input.combined_metadata
+        config["name_stem"] = "civet_report" #may need to change this if we still have different templates - if we don't then we can hard
         qcfunk.get_tree_name_stem(config["treedir"],config)
 
         with open(output.yaml, 'w') as fw:
-            yaml.dump(config, fw)
+            yaml.dump(config, fw) #so at the moment, every config option gets passed to the report
 
         shell("""
         cp {config[polytomy_figure]:q} {output.poly_fig:q} &&
