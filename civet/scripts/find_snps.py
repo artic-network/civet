@@ -30,8 +30,9 @@ def find_snps():
 
     non_amb = ["A","T","G","C"]
     snp_dict = collections.defaultdict(list)
+
     with open(args.output, "w") as fw:
-        
+        fw.write("name\ttree\tnum_snps\tsnps\n")
         for query_seq in input_seqs:
             snps =[]
 

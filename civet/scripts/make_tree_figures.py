@@ -69,10 +69,11 @@ def display_name(tree, tree_name, tree_dir, full_taxon_dict, query_dict, custom_
     for k in tree.Objects:
         if k.branchType == 'leaf':
             name = k.name
-            
+            display_name = ""
             if "inserted" in name:
-                collapsed_node_info = summarise_collapsed_node_for_label(tree_dir, name, tree_name, full_taxon_dict)
+                collapsed_node_info, number_nodes = summarise_collapsed_node_for_label(tree_dir, name, tree_name, full_taxon_dict)
                 k.traits["display"] = collapsed_node_info
+                k.node_number = number_nodes
             else:
                 if name in full_taxon_dict:
                     taxon_obj = full_taxon_dict[name]
@@ -84,19 +85,30 @@ def display_name(tree, tree_name, tree_dir, full_taxon_dict, query_dict, custom_
                         adm2 = taxon_obj.attribute_dict["adm2"]
                         k.traits["display"] = f"{name}|{adm2}|{date}"
 
-                    if name in query_dict.keys():
-                        if len(custom_tip_fields) > 0: 
+                    count = 0
+                    if len(custom_tip_fields) > 0: 
+                        if name in query_dict.keys(): 
                             for label_element in custom_tip_fields:
-                                k.traits["display"] = k.traits["display"] + "|" + taxon_obj.attribute_dict[label_element]
+                                if count == 0:
+                                    display_name = taxon_obj.attribute_dict[label_element] 
+                                else:   
+                                    display_name = display_name + "|" + taxon_obj.attribute_dict[label_element]
+                                count += 1
+                            
+                            k.traits["display"] = display_name
+
+                    k.node_number = 1
                 
                 
                 else:
                     if name.startswith("subtree"):
                         number = name.split("_")[-1]
-                        display = f"Tree {number}"
-                        k.traits["display"] = display
+                        display_name = f"Tree {number}"
+                        k.traits["display"] = display_name
+                        k.node_number = 1
                     else:
                         k.traits["display"] = name + "|" + "not in dict"
+                        k.node_number = 1
 
 
 def find_colour_dict(query_dict, trait, colour_scheme):
@@ -165,11 +177,10 @@ def make_scaled_tree(My_Tree, tree_name, tree_dir, num_tips, colour_dict_dict, d
     space_offset = tallest_height/10
     absolute_x_axis_size = tallest_height+space_offset+space_offset + tallest_height #changed from /3 
     
-
     tipsize = 40
     c_func=lambda k: 'dimgrey' ## colour of branches
     l_func=lambda k: 'lightgrey' ## colour of dotted lines
-    s_func = lambda k: tipsize*5 if k.name in query_dict.keys() else tipsize
+    s_func = lambda k: tipsize*5 if k.name in query_dict.keys() else (0 if k.node_number > 1 else tipsize)
     z_func=lambda k: 100
     b_func=lambda k: 2.0 #branch width
     so_func=lambda k: tipsize*5 if k.name in query_dict.keys() else 0
@@ -189,7 +200,6 @@ def make_scaled_tree(My_Tree, tree_name, tree_dir, num_tips, colour_dict_dict, d
         trait = next(key_iterator) #so always have the first trait as the first colour dot
 
     first_trait = trait
-        
     colour_dict = colour_dict_dict[trait]
     cn_func = lambda k: colour_dict[query_dict[k.name].attribute_dict[trait]] if k.name in query_dict.keys() else 'dimgrey'
     co_func=lambda k: colour_dict[query_dict[k.name].attribute_dict[trait]] if k.name in query_dict.keys() else 'dimgrey' 
@@ -220,7 +230,6 @@ def make_scaled_tree(My_Tree, tree_name, tree_dir, num_tips, colour_dict_dict, d
     My_Tree.plotPoints(ax, x_attr=x_attr, colour_function=cn_func,y_attr=y_attr, size_function=s_func, outline_colour=outline_colour_func)
     My_Tree.plotPoints(ax, x_attr=x_attr, colour_function=co_func, y_attr=y_attr, size_function=so_func, outline_colour=outline_colour_func)
 
-
     blob_dict = {}
 
     for k in My_Tree.Objects:
@@ -230,6 +239,10 @@ def make_scaled_tree(My_Tree, tree_name, tree_dir, num_tips, colour_dict_dict, d
             x=x_attr(k)
             y=y_attr(k)
         
+            if k.node_number > 1:
+                new_dot_size = tipsize*(1+math.log(k.node_number)) 
+                ax.scatter(x, y, s=new_dot_size, marker="s", zorder=3, color="dimgrey")
+
             height = My_Tree.treeHeight+offset
             text_start = tallest_height+space_offset+space_offset
 
@@ -348,14 +361,14 @@ def make_all_of_the_trees(input_dir, tree_name_stem, taxon_dict, query_dict, des
 
     overall_tree_count = 0
     
-    lst = sort_trees_index(input_dir)
+    tree_order = sort_trees_index(input_dir)
 
     for trait, colour_scheme in graphic_dict.items():
         colour_dict = find_colour_dict(query_dict, trait, colour_scheme)
         
         colour_dict_dict[trait] = colour_dict
 
-    for fn in lst:
+    for fn in tree_order:
         lineage = fn
         treename = f"{tree_name_stem}_{fn}"
         treefile = f"{tree_name_stem}_{fn}.tree"
@@ -403,7 +416,7 @@ def make_all_of_the_trees(input_dir, tree_name_stem, taxon_dict, query_dict, des
                 too_tall_trees.append(lineage)
                 continue
 
-    return too_tall_trees, overall_tree_count, colour_dict_dict, overall_df_dict
+    return too_tall_trees, overall_tree_count, colour_dict_dict, overall_df_dict, tree_order
 
 def summarise_collapsed_node_for_label(tree_dir, focal_node, focal_tree, full_tax_dict): 
     
@@ -456,7 +469,7 @@ def summarise_collapsed_node_for_label(tree_dir, focal_node, focal_tree, full_ta
 
                 info = pretty_node_name + ": " + number_nodes + " in " + pretty_summary
 
-    return info
+    return info, len(member_list)
 
 def summarise_node_table(tree_dir, focal_tree, full_tax_dict):
 
@@ -738,9 +751,6 @@ def describe_tree_background(full_tax_dict, tree_name_stem, tree_dir):
                     plt.xticks(size=5, rotation=90)
                     plt.yticks(size=5)
                     
-
-
-
                     plt.title(pretty_focal + ": " + nde, size=5)
 
 
