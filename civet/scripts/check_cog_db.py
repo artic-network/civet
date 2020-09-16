@@ -7,7 +7,7 @@ import os
 import csv
 cwd = os.getcwd()
 
-
+import input_qc_functions as qcfunk
 
 def parse_args():
     parser = argparse.ArgumentParser(description='Check COG DB for query sequences.')
@@ -58,9 +58,9 @@ def check_cog_db():
                     in_cog_metadata.append(row)
                     in_cog_names[row[column_to_match]] = row["sequence_name"]
     if args.all_cog:
-        print(f"Number of query records found in CLIMB: {len(in_cog_metadata)}")
+        print(qcfunk.green(f"Number of query records found in CLIMB:")+f" {len(in_cog_metadata)}")
     else:
-        print(f"Number of query records found in tree: {len(in_cog_metadata)}")
+        print(qcfunk.green(f"Number of query records found in tree:")+f" {len(in_cog_metadata)}")
     with open(args.in_metadata, "w") as fw:
         header_names.append("query_id")
         header_names.append("cog_id")
@@ -78,19 +78,20 @@ def check_cog_db():
                 if sequence_name==record.id:
                     found.append(name)
                     fw.write(f">{name} sequence_name={record.id} status=in_cog\n{record.seq}\n")
-    print(f"Number of associated sequences found: {len(found)}")
+
     with open(args.not_in_cog, "w") as fw:
         if args.all_cog:
-            print("\nThe following sequences were not found in the cog database:")
+            print(qcfunk.cyan("\nNot found in full cog database:"))
         else:
-            print("\nThe following sequences were not found in the phylogeny:")
+            print(qcfunk.cyan("\nNot found in phylogeny:"))
         
         fw.write("name\n")
         for query in query_names:
             if query not in found:
                 fw.write(query + '\n')
-                print(f"{query}")
-        print("If you wish to access sequences in the cog database\nwith your query, ensure you have the correct sequence id.")
+                print(f"\t- {query}")
+        print("\n")
+
 
 
 if __name__ == '__main__':
