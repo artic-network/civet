@@ -47,11 +47,10 @@ print(f"![]({sequencing_centre_file})")
 
 ##AUTHORS
 
-```python,name="description",echo=False,results='tex'
+```python, name="print description", echo=False, results='raw'
 ##DESCRIPTION
 
 ```
-
 
 
 ```python, name="parse metadata", echo=False, results='raw'

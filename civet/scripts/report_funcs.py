@@ -30,23 +30,16 @@ def report_date(config):
 def description(config):
 
     if "description" in config:
-        description = config["description"].rstrip("\n")
-        if "#" in description:
-            description = description.lstrip("'").rstrip("'")
+        
+        description_start = config["description"].replace("'","")
+        
+        description = "print('''" + description_start + "''')"
              
     else:
         description = ""
 
-    if "\\n" in description:
-        description_lst = description.split("\\n")
-        description_str = ""
-        for i in description_lst:
-            description_str += f'print("{i}")' + "\n"
+    config["description"] = description
 
-        config["description"] = description_str
-
-    else:
-        config["description"] = f'print("{description}")'
 
 def authors(config):
 
@@ -61,7 +54,6 @@ def authors(config):
 
 
 def free_text_args(config):
-    print("MAKING REPORT ARGS")
     report_date(config)
     description(config)
     authors(config)

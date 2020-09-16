@@ -75,7 +75,7 @@ def make_report():
                 else:
                     for k,v in free_text_dict.items():
                         if k in l:
-                            if k != "##DESCRIPTION":
+                            if "'''" not in v:
                                 new_l = str(v)
                             else:
                                 new_l = v.lstrip("'").rstrip("'")
