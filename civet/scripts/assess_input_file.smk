@@ -371,8 +371,8 @@ rule make_report:
         yaml = os.path.join(config["outdir"],"config.final.yaml"),
         outfile = os.path.join(config["outdir"], "civet_report.md")
     run:
-        if config["sequencing_centre_file"] != "":
-            shell("cp {config[sequencing_centre]:q} {config[sequencing_centre_file]:q}")
+        
+        shell("cp {config[sequencing_centre_source]:q} {config[sequencing_centre_dest]:q}")
 
         qcfunk.local_lineages_to_config(input.central, input.neighbouring, input.region, config)
 

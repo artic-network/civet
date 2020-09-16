@@ -47,39 +47,16 @@ rule gather_fasta_seqs:
                 if record.id in taxa:
                     fw.write(f">{record.description}\n{record.seq}\n")
 
-
-rule assess_snps:
+rule make_snp_figure:
     input:
         aln = rules.gather_fasta_seqs.output.aln
     params:
-        tree = "{tree}"
-    output:
-        snp_report = os.path.join(config["outdir"], "snp_reports","{tree}.snps.txt")
-    shell:
-        """
-        find_snps.py --input {input.aln:q} --output {output.snp_report:q} --tree {params.tree}
-        """
-
-rule ambiguities_at_snp_sites:
-    input:
-        seqs = os.path.join(config["tempdir"], "seqs_for_snps", "{tree}.fasta"),
-        report = os.path.join(config["outdir"],"snp_reports", "{tree}.snps.txt")
-    output:
-        snp_report = os.path.join(config["outdir"], "snp_reports", "ambiguities_{tree}.snps.txt")
-    shell:
-        """
-        find_ambiguities.py --input {input.seqs:q} --output {output.snp_report:q} --report {input.report:q}
-        """
-
-rule make_snp_figure:
-    input:
-        ambs = os.path.join(config["outdir"], "snp_reports", "ambiguities_{tree}.snps.txt"),
-        snps = os.path.join(config["outdir"],"snp_reports","{tree}.snps.txt")
+        out_stem = os.path.join(config["outdir"],"figures","genome_graph_{tree}")
     output:
         os.path.join(config["outdir"],"figures","genome_graph_{tree}.png")
     shell:
         """
-        make_genome_graph.py --input {input.snps:q} --ambiguities {input.ambs:q} --output {output[0]} 
+        snipit {input.aln:q} -r "outgroup" -o {params.out_stem} 
         """
 
 rule gather_graphs:

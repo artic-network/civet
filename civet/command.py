@@ -160,6 +160,9 @@ def main(sysargs = sys.argv[1:]):
     # get seq centre header file from pkg data
     qcfunk.get_sequencing_centre_header(args.sequencing_centre,config)
     
+    # global vs cog db search
+    qcfunk.define_seq_db(config)
+
     # extraction radius configuration
     qcfunk.distance_config(args.distance, args.up_distance, args.down_distance, config)
 

@@ -10,23 +10,6 @@ import os
 if config.get("force"):
     config["force"] = "--forceall "
 
-if config.get("sequencing_centre"):
-    
-    header = config["sequencing_centre"]
-    filename = os.path.basename(header)
-    moved_file = os.path.join("figures",filename)
-    config["sequencing_centre_file"] = moved_file
-    if filename == "DEFAULT.png":
-        config["sequencing_centre_flag"] = ""
-    else:
-        config["sequencing_centre_flag"] = f"--seq-centre {filename}"
-
-
-if config["global_search"] == True:
-    config["seq_db"] = config["cog_global_seqs"]
-else:
-    config["seq_db"] = config["cog_seqs"]
-
 if config["quiet_mode"]==True:
     config["quiet_mode"] = "--quiet"
 else:
