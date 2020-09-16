@@ -142,9 +142,9 @@ present_in_tree, tip_to_tree, tree_list = dp.parse_tree_tips(tree_dir)
 
 query_dict, query_id_dict, present_lins, tree_to_tip = dp.parse_filtered_metadata(filtered_cog_metadata, tip_to_tree, label_fields, desired_fields) #Just the lines with their queries plus the closest match in COG
 
-if input_csv != '':
+if input_csv != '': #there will always be one of these because a csv is made out of the list of COG IDs
     adm2_to_adm1 = dp.prepping_adm2_adm1_data(full_metadata_file)
-    query_dict = dp.parse_input_csv(input_csv, query_id_dict, desired_fields, label_fields, date_fields, adm2_to_adm1, False) #Any query information they have provided
+    query_dict, full_query_count = dp.parse_input_csv(input_csv, query_id_dict, desired_fields, label_fields, date_fields, adm2_to_adm1, False) #Any query information they have provided
 
 full_tax_dict = dp.parse_full_metadata(query_dict, label_fields, desired_fields, full_metadata_file, present_lins, present_in_tree, node_summary_option, date_fields)
 
@@ -177,6 +177,7 @@ if count_fails != 0:
 
 ```python, name="early descriptions", echo=False, results='tex'
 number_seqs = len(query_dict)
+not_found_in_climb = full_query_count - number_seqs
 
 cog_number = 0
 not_in_cog_number = 0
@@ -193,8 +194,9 @@ except:
 
 print("\n")
 
-print(str(number_seqs) + " queries (" + str(cog_number) + " matched to COG-UK database).")
+print(str(full_query_count) + " queries (" + str(cog_number) + " matched to COG-UK database).")
 print(str(not_in_cog_number) + " additional sequences provided.")
+print(str(not_found_in_climb) + " were not found in the phylogeny or in the larger background database and a sequence was not provided.")
 
 if dates_present:
     print("Time fields provided: " + ",".join(date_fields))

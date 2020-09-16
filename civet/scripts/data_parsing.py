@@ -194,6 +194,7 @@ def convert_date(date_string):
 
 def parse_input_csv(input_csv, query_id_dict, desired_fields, label_fields, date_fields, adm2_adm1_dict, cog_report):
     new_query_dict = {}
+    full_query_count = 0
     contract_dict = {"SCT":"Scotland", "WLS": "Wales", "ENG":"England", "NIR": "Northern_Ireland"}
     cleaning = {"SCOTLAND":"Scotland", "WALES":"Wales", "ENGLAND":"England", "NORTHERN_IRELAND": "Northern_Ireland", "NORTHERN IRELAND": "Northern_Ireland"}
 
@@ -206,6 +207,7 @@ def parse_input_csv(input_csv, query_id_dict, desired_fields, label_fields, date
         reader = csv.DictReader(f)
         in_data = [r for r in reader]
         for sequence in in_data:
+            full_query_count += 1
             
             name = sequence["name"]
 
@@ -266,7 +268,7 @@ def parse_input_csv(input_csv, query_id_dict, desired_fields, label_fields, date
 
                 new_query_dict[taxon.name] = taxon
                 
-    return new_query_dict 
+    return new_query_dict, full_query_count
 
 
 def parse_tree_tips(tree_dir):
