@@ -218,7 +218,7 @@ def parse_from_metadata_arg(metadata, from_metadata, data_column, config):
     queries = []
     query_dict = {}
     column_names =""
-    # config["input_column"] = data_column
+    config["input_column"] = data_column
     with open(metadata, newline="") as f:
         reader = csv.DictReader(f)
         column_names = reader.fieldnames
