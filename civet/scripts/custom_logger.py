@@ -1,7 +1,11 @@
+
+""" 
+Adapted from snakemake source code
 __author__ = "Johannes Köster"
 __copyright__ = "Copyright 2015-2019, Johannes Köster"
 __email__ = "koester@jimmy.harvard.edu"
 __license__ = "MIT"
+"""
 
 import logging as _logging
 import platform
@@ -278,8 +282,6 @@ class Logger:
                     yield fmt
 
             wildcards = format_wildcards(msg["wildcards"])
-            # if wildcards:
-            #     yield "    wildcards: " + wildcards
 
             for item, omit in zip("priority threads".split(), [0, 1]):
                 fmt = format_item(item, omit=omit)
@@ -287,8 +289,6 @@ class Logger:
                     yield fmt
 
             resources = format_resources(msg["resources"])
-            # if resources:
-            #     yield "    resources: " + resources
 
         def indent(item):
             if msg.get("indent"):
@@ -300,46 +300,10 @@ class Logger:
             self.logger.info(indent("[{}]".format(time.asctime())))
         
         level = msg["level"]
-        # if level =="info":
-        #     self.logger.info("")
-        # elif level =="resources_info" and self.quiet:
-        #     self.logger.info("")
-        # elif level =="run_info" and self.quiet:
-        #     self.logger.info("")
-        # elif level == "job_info" and self.quiet:
-        #     self.logger.info("")
-        # elif level == "job_info" and not self.quiet:
-        #     if not self.last_msg_was_job_info:
-        #         self.logger.info("")
-        #     timestamp()
-        #     if msg["msg"] is not None:
-        #         self.logger.info(indent("Job {}: {}".format(msg["jobid"], msg["msg"])))
-        #         if self.printreason:
-        #             self.logger.info(indent("{}".format(msg["reason"])))
-        #     else:
-        #         self.logger.info("\n".join(map(indent, job_info(msg))))
-        #     if msg["is_checkpoint"]:
-        #         self.logger.warning(
-        #             indent("Downstream jobs will be updated " "after completion.")
-        #         )
-        #     self.logger.info("")
-
-        #     self.last_msg_was_job_info = True
-        # elif level == "group_info" and not self.quiet:
-        #     timestamp()
-        #     if not self.last_msg_was_job_info:
-        #         self.logger.info("")
-        #     self.logger.info(
-        #         "group job {} (jobs in lexicogr. order):".format(msg["groupid"])
-        #     )
         if level == "job_error":
             timestamp()
             self.logger.error(indent("Error in {}:".format(msg["name"])))
-            # self.logger.error(indent("    jobid: {}".format(msg["jobid"])))
-            # if msg["output"]:
-            #     self.logger.error(
-            #         indent("    output: {}".format(", ".join(msg["output"])))
-            #     )
+
             if msg["log"]:
                 self.logger.error(
                     indent(
@@ -374,37 +338,14 @@ class Logger:
             timestamp()
             self.logger.error("Error in group job {}:".format(msg["groupid"]))
         else:
-            # if level == "info" and not self.quiet:
-            #     self.logger.warning("")
-            # if level == "warning" and not self.quiet:
-            #     self.logger.warning("")
             if level == "error":
                 self.logger.error(msg["msg"])
             elif level == "debug":
                 self.logger.debug(msg["msg"])
-            # elif level == "resources_info" and not self.quiet:
-            #     self.logger.warning(msg["msg"])
-            # elif level == "run_info":
-            #     self.logger.warning(msg["msg"])
-            # elif level == "progress" and not self.quiet:
-            #     done = msg["done"]
-            #     total = msg["total"]
-            #     p = done / total
-            #     percent_fmt = ("{:.2%}" if p < 0.01 else "{:.0%}").format(p)
-            #     self.logger.info(
-            #         "{} of {} steps ({}) done".format(done, total, percent_fmt)
-            #     )
-            # elif level == "shellcmd":
-            #     if self.printshellcmds:
-            #         self.logger.warning(indent(msg["msg"]))
             elif level == "job_finished" and not self.quiet:
                 timestamp()
                 self.logger.info("Finished job {}.".format(msg["jobid"]))
                 pass
-            # elif level == "rule_info" and not self.quiet:
-            #     self.logger.info(msg["name"])
-            #     if msg["docstring"]:
-            #         self.logger.info("    " + msg["docstring"])
             elif level == "d3dag":
                 print(json.dumps({"nodes": msg["nodes"], "links": msg["edges"]}))
             elif level == "dag_debug":
@@ -421,13 +362,6 @@ class Logger:
                         )
                     else:
                         job = msg["job"]
-                        # self.logger.warning(
-                        #     "{status} job {name}\n    wildcards: {wc}".format(
-                        #         status=msg["status"],
-                        #         name=job.rule.name,
-                        #         wc=format_wildcards(job.wildcards),
-                        #     )
-                        # )
 
             self.last_msg_was_job_info = True
 

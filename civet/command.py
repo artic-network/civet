@@ -37,6 +37,7 @@ def main(sysargs = sys.argv[1:]):
     io_group = parser.add_argument_group('input output options')
     io_group.add_argument('query',help="Input csv file or input config file. CSV minimally has input_column header, Default=`name`. Can include additional fields to be incorporated into the analysis, e.g. `sample_date`")
     io_group.add_argument('-i',"--id-string", action="store_true",help="Indicates the input is a comma-separated id string with one or more query ids. Example: `EDB3588,EDB3589`.", dest="ids")
+    io_group.add_argument('-fm','--from-metadata',nargs='*', dest="from_metadata",help="Generate a query from the metadata file supplied. Define a search that will be used to pull out sequences of interest from the large phylogeny. E.g. -fm adm2=Edinburgh sample_date=2020-03-01:2020-04-01")
     io_group.add_argument('-o','--outdir', action="store",help="Output directory. Default: current working directory")
     io_group.add_argument('-f','--fasta', action="store",help="Optional fasta query.", dest="fasta")
     io_group.add_argument('--max-ambig', action="store", default=0.5, type=float,help="Maximum proportion of Ns allowed to attempt analysis. Default: 0.5",dest="maxambig")
@@ -170,7 +171,7 @@ def main(sysargs = sys.argv[1:]):
         
     # summarising collapsed nodes config
     qcfunk.node_summary(args.node_summary,config)
-
+    statsfile = os.path.join(config["outdir"],"stats.json")
 
  
     if args.launch_browser:
@@ -187,12 +188,19 @@ def main(sysargs = sys.argv[1:]):
     if args.generate_config:
         qcfunk.make_config_file(config)
 
-    logger = custom_logger.Logger()
+    
 
-    status = snakemake.snakemake(snakefile, printshellcmds=False,
-                                 dryrun=args.dry_run, forceall=True,force_incomplete=True,workdir=tempdir,
-                                 config=config, cores=args.threads,lock=False,quiet=True,log_handler=logger.log_handler
-                                 )
+    if args.verbose:
+        status = snakemake.snakemake(snakefile, printshellcmds=True,
+                                    dryrun=args.dry_run, forceall=True,force_incomplete=True,workdir=tempdir,
+                                    config=config, cores=args.threads,lock=False,quiet=False,stats=statsfile
+                                    )
+    else:
+        logger = custom_logger.Logger()
+        status = snakemake.snakemake(snakefile, printshellcmds=False,
+                                    dryrun=args.dry_run, forceall=True,force_incomplete=True,workdir=tempdir,
+                                    config=config, cores=args.threads,lock=False,quiet=True,stats=statsfile,log_handler=logger.log_handler
+                                    )
 
     if status: # translate "success" into shell exit code of 0
        return 0

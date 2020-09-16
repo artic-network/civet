@@ -63,6 +63,7 @@ rule get_closest_cog:
         combined_query = os.path.join(config["tempdir"],"to_find_closest.fasta"),
         aligned_query = os.path.join(config["tempdir"],"post_qc_query.aligned.fasta"),
         not_processed = os.path.join(config["tempdir"], "no_seq_to_process.csv")
+    log: os.path.join(config["outdir"],"logs","closest.log")
     run:
         query_with_no_seq = []
         to_find_closest = {}
@@ -85,7 +86,6 @@ rule get_closest_cog:
 
         if config["fasta"] != "":
              # get set with supplied sequences
-                print("Not in COG but have a sequence supplied:")
                 for record in SeqIO.parse(config["post_qc_query"], "fasta"):
                     if record.id in not_cog:
                         to_find_closest[record.id] = ("fasta",record.seq) # overwrites with supplied seq if found in all cog
@@ -99,14 +99,15 @@ rule get_closest_cog:
                 query_with_no_seq.append(query)
 
         if len(list(set(query_with_no_seq))) != 0:
-            print("The following seqs were not found in COG and a fasta file was not provided, so CIVET was unable to add them into phylogenies:")
+            print(qcfunk.cyan("Not found in COG and a fasta file not provided, CIVET was unable to add them into phylogenies:"))
         with open(output.not_processed, "w") as fw:
             for query in list(set(query_with_no_seq)):
                 fw.write(f"{query},fail=no sequence provided\n")
-                print(f"{query}")
+                print(f"\t- {query}")
+        print("\n")
 
         if to_find_closest != {}:
-            print(f"Passing {len(to_find_closest)} sequences into nearest COG search pipeline:")
+            print(green(f"Passing {len(to_find_closest)} sequences into nearest COG search pipeline:"))
             for seq in to_find_closest:
                 print(f"    - {seq}    {to_find_closest[seq][0]}")
             shell("snakemake --nolock --snakefile {input.snakefile:q} "
@@ -122,10 +123,10 @@ rule get_closest_cog:
                         "trim_end={config[trim_end]} "
                         "reference_fasta={input.reference_fasta:q} "
                         "cog_metadata={input.cog_metadata:q} "
-                        "--cores {workflow.cores}")
+                        "--cores {workflow.cores} > {log} 2>> {log}")
 
         else:
-            shell("touch {output.closest_cog:q} && touch {output.aligned_query:q}")
+            shell("touch {output.closest_cog:q} && touch {output.aligned_query:q} && echo 'no closest to find' > {log} 2>> {log}")
 
 
 rule combine_metadata:
@@ -199,7 +200,8 @@ rule process_catchments:
         cog_global_seqs = config["cog_global_seqs"]
         # not_cog_csv = rules.check_cog_all.output.not_cog
     params:
-        tree_dir = os.path.join(config["tempdir"],"catchment_trees"),
+        tree_dir = os.path.join(config["tempdir"],"catchment_trees")
+    log: os.path.join(config["outdir"],"logs","catchment.log")
     output:
         tree_summary = os.path.join(config["outdir"],"local_trees","collapse_report.txt")
     run:
@@ -237,7 +239,7 @@ rule process_catchments:
                         "cog_global_seqs={input.cog_global_seqs:q} "
                         "combined_metadata={input.combined_metadata:q} "
                         "threshold={config[threshold]} "
-                        "--cores {workflow.cores}")
+                        "--cores {workflow.cores} >& {log}")
         else:
             print(f"No new sequences to add in, just collapsing trees.")
             shell("snakemake --nolock --snakefile {input.snakefile_just_collapse:q} "
@@ -250,7 +252,7 @@ rule process_catchments:
                             "tempdir={config[tempdir]:q} "
                             "threshold={config[threshold]} "
                             "combined_metadata={input.combined_metadata:q} "
-                            "--cores {workflow.cores}")
+                            "--cores {workflow.cores} >& {log}")
 
 rule find_snps:
     input:
