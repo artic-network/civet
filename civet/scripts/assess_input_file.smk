@@ -5,7 +5,7 @@ import collections
 import sys
 import yaml
 
-import input_qc_functions as qcfunk
+from reportfunk.funks import io_functions as qcfunk
 
 rule check_cog_db:
     input:
@@ -107,7 +107,7 @@ rule get_closest_cog:
         print("\n")
 
         if to_find_closest != {}:
-            print(green(f"Passing {len(to_find_closest)} sequences into nearest COG search pipeline:"))
+            print(qcfunk.green(f"Passing {len(to_find_closest)} sequences into nearest COG search pipeline:"))
             for seq in to_find_closest:
                 print(f"    - {seq}    {to_find_closest[seq][0]}")
             shell("snakemake --nolock --snakefile {input.snakefile:q} "
@@ -224,7 +224,7 @@ rule process_catchments:
                 snakefile = input.snakefile_collapse_after
 
             snakestring = f"'{snakefile}' "
-            print(f"Passing {input.query_seqs} into processing pipeline.")
+            print(f"Processing catchment trees")
             shell(f"snakemake --nolock --snakefile {snakestring}"
                         "{config[force]} "
                         "{config[quiet_mode]} "
@@ -241,7 +241,7 @@ rule process_catchments:
                         "threshold={config[threshold]} "
                         "--cores {workflow.cores} >& {log}")
         else:
-            print(f"No new sequences to add in, just collapsing trees.")
+            print(f"No new sequences to add in, just collapsing trees")
             shell("snakemake --nolock --snakefile {input.snakefile_just_collapse:q} "
                             "{config[force]} "
                             "{config[quiet_mode]} "

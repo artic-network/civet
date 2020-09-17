@@ -741,11 +741,6 @@ def get_remote_data(remote,uun,data_dir,args_datadir,args_climb,config):
 - cog_alignment.fasta\n\n"""))
         sys.exit(-1)
 
-def define_seq_db(config):
-    if config["global_search"] == True:
-        config["seq_db"] = config["cog_global_seqs"]
-    else:
-        config["seq_db"] = config["cog_seqs"]
 
 
 def get_sequencing_centre_header(sequencing_centre_arg,config):

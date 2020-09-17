@@ -1,29 +1,23 @@
 #!/usr/bin/env python3
 from civet import __version__
+
 import setuptools
 import argparse
 import os.path
 import snakemake
 import sys
-from tempfile import gettempdir
 import tempfile
-import pprint
-import json
 import csv
-import input_qc_functions as qcfunk
-import report_funcs as report_func
 import os
 import yaml
 from datetime import datetime
 from Bio import SeqIO
-import custom_logger
 import pkg_resources
 from . import _program
 
-"""
-Need query_csv, metadata, fasta (opt)
-"""
-
+from reportfunk.funks import io_functions as qcfunk
+from reportfunk.funks import report_functions as rfunk
+from reportfunk.funks import custom_logger as custom_logger
 
 thisdir = os.path.abspath(os.path.dirname(__file__))
 cwd = os.getcwd()
@@ -161,16 +155,16 @@ def main(sysargs = sys.argv[1:]):
     qcfunk.get_sequencing_centre_header(args.sequencing_centre,config)
     
     # global vs cog db search
-    qcfunk.define_seq_db(config)
+    define_seq_db(config)
 
     # extraction radius configuration
     qcfunk.distance_config(args.distance, args.up_distance, args.down_distance, config)
 
     ## report arguments
     # make title
-    report_func.make_title(config)
+    rfunk.make_title(config)
     # deal with free text
-    report_func.free_text_args(config)
+    rfunk.free_text_args(config)
         
     # summarising collapsed nodes config
     qcfunk.node_summary(args.node_summary,config)
@@ -209,6 +203,13 @@ def main(sysargs = sys.argv[1:]):
        return 0
 
     return 1
+
+def define_seq_db(config):
+    if config["global_search"] == True:
+        config["seq_db"] = config["cog_global_seqs"]
+    else:
+        config["seq_db"] = config["cog_seqs"]
+
 
 if __name__ == '__main__':
     main()

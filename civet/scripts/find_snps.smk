@@ -3,12 +3,10 @@ from Bio import SeqIO
 import csv
 import collections
 
-
 config["tree_stems"] = config["catchment_str"].split(",")
 
 rule all:
     input:
-        expand(os.path.join(config["outdir"],"snp_reports","{tree}.snps.txt"),tree=config["tree_stems"]),
         expand(os.path.join(config["outdir"],"figures","genome_graph_{tree}.png"), tree=config["tree_stems"]),
         os.path.join(config["outdir"],"gather_prompt.txt")
 
