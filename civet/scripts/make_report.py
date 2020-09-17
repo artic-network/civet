@@ -31,14 +31,18 @@ def make_free_text_dict(config):
     free_text_dict = {}
 
     free_text_dict["##INSERT_TITLE"] = config["title"] + "\n"
+    free_text_dict["##OUTBREAKID"] = config["outbreak_id"] + "\n"
     free_text_dict["##DATE"] = config["report_date"] + "\n"
     free_text_dict["##AUTHORS"] = config["authors"] + "\n"
     free_text_dict["##DESCRIPTION"] = config["description"]
+    free_text_dict["##CONCLUSIONS"] = config["conclusions"]
+
 
     config.pop('title', None)
     config.pop('report_date', None)
     config.pop('authors', None)
     config.pop('description', None)
+    config.pop('conclusions', None)
 
     return free_text_dict
 

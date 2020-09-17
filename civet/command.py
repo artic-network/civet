@@ -53,7 +53,7 @@ def main(sysargs = sys.argv[1:]):
     report_group.add_argument('--label-fields', action="store", help="Comma separated string of fields to add to tree report labels.", dest="label_fields")
     report_group.add_argument("--date-fields", action="store", help="Comma separated string of metadata headers containing date information.", dest="date_fields")
     report_group.add_argument("--node-summary", action="store", help="Column to summarise collapsed nodes by. Default = Global lineage", dest="node_summary")
-    report_group.add_argument('--add-bars', action="store_true",help="Render boxplots in the output report", dest="add_bars",default=False)
+    report_group.add_argument('--add-bars', action="store_true",help="Render barcharts in the output report", dest="add_bars",default=False)
     report_group.add_argument('--cog-report', action="store_true",help="Run summary cog report. Default: outbreak investigation",dest="cog_report")
     report_group.add_argument('--omit-appendix', action="store_true", help="Omit the appendix section. Default=False", dest="omit_appendix")
 
@@ -97,7 +97,7 @@ def main(sysargs = sys.argv[1:]):
     config = {
         "trim_start":265,   # where to pad to using datafunk
         "trim_end":29674,   # where to pad after using datafunk
-        "search_field":args.data_column,
+        "search_field":args.data_column, 
         "input_column":args.input_column,
         "force":True,
         "date_range_start":args.date_range_start,
@@ -105,7 +105,6 @@ def main(sysargs = sys.argv[1:]):
         "date_window":args.date_window,
         "threshold": args.threshold,
         'date_restriction':args.date_restriction,
-        "add_bars":args.add_bars,
         "global_search":args.search_global,
         "delay_collapse": False
         }
@@ -167,6 +166,9 @@ def main(sysargs = sys.argv[1:]):
     # deal with free text
     rfunk.free_text_args(config)
     rfunk.appendix(args.omit_appendix,config)
+
+    #deal with figures
+    rfunk.bars(args.add_bars, config)
         
     # summarising collapsed nodes config
     qcfunk.node_summary(args.node_summary,config)

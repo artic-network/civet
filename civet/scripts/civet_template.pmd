@@ -47,6 +47,8 @@ print(f"![]({sequencing_centre_file})")
 
 ##INSERT_TITLE
 
+##OUTBREAKID
+
 ##DATE
 
 ##AUTHORS
@@ -177,12 +179,14 @@ if too_tall_trees != []:
 ```
 
 ```python, name="tree_background", echo=False, include=False,  results='raw'
-if add_bars != "":
-    print("""### Tree background\n\nThe following plots describe the data in the collapsed nodes in more detail.\nIf more than one {node_summary} was present, the bar chart describes the number of sequences present in each {node_summary}. \nWhere there were 10 options or more, the largest 10 have been taken. \nIf a UK sequence is present in the collapsed node, it is always shown in the plot.\n\n""")
-    bar_count = tree_viz.describe_collapsed_nodes(full_tax_dict, tree_name_stem, treedir)
+if add_bars:
+    print("""### Tree background\n\nThe following plots describe the data in the collapsed nodes in more detail.\nIf more than one """ + node_summary + """ was present, the bar chart describes the number of sequences present in each """ + node_summary + """. \nWhere there were 10 options or more, the largest 10 have been taken."""
+    bar_count = tree_viz.describe_collapsed_nodes(full_tax_dict, tree_name_stem, treedir, node_summary)
+    if node_summary == "country":
+        print("If a UK sequence is present in the collapsed node, it is always shown in the plot.")
 ```
 ```python, name="show_background",echo=False,include=False,results='raw'
-if add_bars != "":
+if add_bars:
     for i in range(bar_count):
         print(f"![]({figdir}/{name_stem}_tree_background_{i+1}.png)")
 
@@ -243,6 +247,12 @@ if local_lineages != 'False':
             contents = file.read()
             print (contents)
 ```
+
+```python, name="print conclusions", echo=False, results='raw'
+##CONCLUSIONS
+
+```
+
 
 ##APPENDIX
 
