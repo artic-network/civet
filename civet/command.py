@@ -97,6 +97,9 @@ def main(sysargs = sys.argv[1:]):
     config = {
         "trim_start":265,   # where to pad to using datafunk
         "trim_end":29674,   # where to pad after using datafunk
+        "up_distance": args.up_distance,
+        "down_distance": args.down_distance,
+        "distance":args.distance,
         "search_field":args.data_column, 
         "input_column":args.input_column,
         "force":True,
@@ -158,7 +161,7 @@ def main(sysargs = sys.argv[1:]):
     define_seq_db(config)
 
     # extraction radius configuration
-    qcfunk.distance_config(args.distance, args.up_distance, args.down_distance, config)
+    qcfunk.distance_config(config) #this is now only a print statement because they get added to the config dict up top
 
     ## report arguments
     # make title

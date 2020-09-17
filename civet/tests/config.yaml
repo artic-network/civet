@@ -16,9 +16,9 @@ fields: adm1,adm2
 graphic_dict: {adm1: "default", adm2: "viridis" }
 label-fields: [name, adm2, sample_date]
 node_summary: lineage
-# up-distance: 2
-# down-distance: 2
-# collapse-threshold: 1
+up-distance: 2
+down-distance: 2
+threshold: 1
 # ids:
 #   - EDB001
 #   - EDB002
