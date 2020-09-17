@@ -12,11 +12,14 @@ import warnings
 warnings.filterwarnings("ignore")
 from dateutil.relativedelta import relativedelta, FR
 
-import data_parsing as dp
-import make_tree_figures as tree_viz
 import mapping as mapping
-import time_functions as time_func
-import prep_data as prep_data
+
+from reportfunk.funks import time_functions as time_func
+from reportfunk.funks import prep_data_functions as prep_data
+from reportfunk.funks import tree_functions as tree_viz
+from reportfunk.funks import data_parsing_functions as dp
+
+
 ```
 
 ```python, name="insert_arguments", echo=False, results='raw'

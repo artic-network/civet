@@ -7,7 +7,7 @@ import os
 import csv
 cwd = os.getcwd()
 
-import input_qc_functions as qcfunk
+from reportfunk.funks import io_functions as qcfunk
 
 def parse_args():
     parser = argparse.ArgumentParser(description='Check COG DB for query sequences.')
