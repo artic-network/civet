@@ -15,8 +15,7 @@ def prep_data(tax_dict, clean_locs_file):
 
     for tax in tax_dict.values():
         if tax.attribute_dict["adm2"] != "":
-        
-            adm2s.append(tax.attribute_dict["adm2"])
+            adm2s.append(tax.attribute_dict["adm2"].upper())
 
     metadata_multi_loc = {}
     straight_map = {}
@@ -167,15 +166,19 @@ def map_adm2(tax_dict, clean_locs_file, mapping_json_files): #So this takes adm2
 
     all_uk, result = prep_mapping_data(mapping_json_files, metadata_multi_loc)
 
-    centroid_geo, adm2_counter = make_centroids(result, adm2s, straight_map)
+    output = make_centroids(result, adm2s, straight_map)
     
-    if type(centroid_geo) == bool:
+    if type(output) == bool:
         print("None of the sequences provided have adequate adm2 data and so cannot be mapped")
         return
+    else:
+        centroid_geo, adm2_counter = output
 
     make_map(centroid_geo, all_uk)
 
     adm2_percentages = {}
+
+    total = len(adm2s)
 
     for adm2, count in adm2_counter.items():
         adm2_percentages[adm2] = round(((count/total)*100),2)
@@ -198,14 +201,14 @@ def get_coords_from_file(input_csv, input_crs, colour_map_trait, x_col, y_col):
             x = seq[x_col]
             y = seq[y_col]
             
-            if colour_map_trait != "False":
+            if colour_map_trait:
                 trait = seq[colour_map_trait]
             
             if x != "" and y != "":
                 #If we have the actual coordinates
                 name_to_coords[name] = (float(x),float(y))
 
-                if colour_map_trait != "False":
+                if colour_map_trait:
                     name_to_trait[name] = trait
 
     return name_to_coords, name_to_trait
@@ -237,14 +240,14 @@ def generate_coords_from_outer_postcode(pc_file, input_csv, postcode_col, colour
             name = seq["name"]
             outer_postcode = seq[postcode_col]
             
-            if colour_map_trait != "False":
+            if colour_map_trait:
                 trait = seq[colour_map_trait]
             
             if outer_postcode != "":
                 if outer_postcode in pc_to_coords.keys():
                     name_to_coords[name] = pc_to_coords[outer_postcode]
 
-                    if colour_map_trait != "False":
+                    if colour_map_trait:
                         name_to_trait[name] = trait
 
                 else:
@@ -267,7 +270,7 @@ def plot_coordinates(mapping_json_files, urban_centres, name_to_coords, name_to_
 
     for name, point in name_to_coords.items():
         df_dict["geometry"].append(Point(point))
-        if colour_map_trait != "False":
+        if colour_map_trait:
             df_dict[colour_map_trait].append(name_to_trait[name])
         
     crs = {'init':input_crs}
@@ -311,7 +314,7 @@ def plot_coordinates(mapping_json_files, urban_centres, name_to_coords, name_to_
     expanded_filter.plot(ax=base, color="whitesmoke", edgecolor="darkgrey")
     filtered_urban.plot(ax=base, color="lightgrey")
 
-    if colour_map_trait != "False":
+    if colour_map_trait:
         df_final.plot(ax=base, column=colour_map_trait, legend=True, markersize=10, legend_kwds={"fontsize":10, "bbox_to_anchor":(1.8,1), 'title':colour_map_trait, 'title_fontsize':10})
     else:
         df_final.plot(ax=base, markersize=10)

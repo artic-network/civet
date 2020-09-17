@@ -19,16 +19,17 @@ node_summary: lineage
 up-distance: 2
 down-distance: 2
 threshold: 1
+date-fields: ["sample_date", "date_2", "date_3"]
 # ids:
 #   - EDB001
 #   - EDB002
 #   - EDB004
 query: test.csv
-# fasta: test.fasta
-add_bars: True
+fasta: test.fasta
+add_bars: False
 # date-range: [ 2020-07-01, 2020-08-31 ]
 # date-window: 7
-# map: True
-# map_inputs: x_col, y_col
+map_sequences: True
+map_cols: adm2
 # global: True
 

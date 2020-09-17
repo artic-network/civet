@@ -97,8 +97,8 @@ prep_data.analyse_inputs(inputs)
 
 print("\n")
 
-print(str(number_seqs) + " queries (" + str(cog_number) + " matched to background database).")
-print(str(not_in_cog_number) + " additional sequences provided.")
+print(str(number_seqs) + " queries after QC (" + str(cog_number) + " matched to background database).")
+print(str(not_in_cog_number) + " additional sequences found in CLIMB or provided in a fasta file.")
 
 if dates_present:
     print("Time fields provided: " + ",".join(date_fields))
@@ -180,7 +180,7 @@ if too_tall_trees != []:
 
 ```python, name="tree_background", echo=False, include=False,  results='raw'
 if add_bars:
-    print("""### Tree background\n\nThe following plots describe the data in the collapsed nodes in more detail.\nIf more than one """ + node_summary + """ was present, the bar chart describes the number of sequences present in each """ + node_summary + """. \nWhere there were 10 options or more, the largest 10 have been taken."""
+    print("""### Tree background\n\nThe following plots describe the data in the collapsed nodes in more detail.\nIf more than one """ + node_summary + """ was present, the bar chart describes the number of sequences present in each """ + node_summary + """. \nWhere there were 10 options or more, the largest 10 have been taken.""")
     bar_count = tree_viz.describe_collapsed_nodes(full_tax_dict, tree_name_stem, treedir, node_summary)
     if node_summary == "country":
         print("If a UK sequence is present in the collapsed node, it is always shown in the plot.")
@@ -193,26 +193,32 @@ if add_bars:
 ```
 
 ```python, name="map_sequences", echo=False, results='raw', include=False
-if map_sequences != "False":
+if map_sequences:
+    stop_map = False
     print("## Plotting sequences")
     if map_cols == "adm2":
-        adm2_in_map, adm2_percentages = mapping.map_adm2(query_dict, clean_locs_file, mapping_json_files)
+        output = mapping.map_adm2(query_dict, clean_locs, mapping_json_files)
+        if output:
+            adm2_in_map, adm2_percentages = output
+        else:
+            stop_map = True
     else:
         adm2_in_map, adm2_percentages = mapping.map_sequences_using_coordinates(query, mapping_json_files, urban_centres, pc_file, mapping_trait, map_cols, input_crs)
 
-    print("There are sequences from " + str(len(adm2_in_map)) + " admin2 regions")
+    if not stop_map:
+        print("There are sequences from " + str(len(adm2_in_map)) + " admin2 regions")
 
-    print("This is divided into:")
-    for adm2, percentage in adm2_percentages.items():
-        print(str(percentage) + "% (" + str(adm2_in_map[adm2]) + ") in " + adm2)
+        print("This is divided into:")
+        for adm2, percentage in adm2_percentages.items():
+            print(str(percentage) + "% (" + str(adm2_in_map[adm2]) + ") in " + adm2)
 
-    if mapping_trait != "False":
-        print("This is shown in the map below, and is coloured by " + mapping_trait + " and urban centres are shown in the darker grey")
-    else:
-        print("This is shown in the map below, with urban centres shown in the darker grey")
+        if mapping_trait:
+            print("This is shown in the map below, and is coloured by " + mapping_trait + " and urban centres are shown in the darker grey")
+        else:
+            print("This is shown in the map below, with urban centres shown in the darker grey")
 ```
 ```python, name="show_map", echo=False, results='raw'
-if map_sequences != "False":
+if map_sequences and not stop_map:
     print("![](" + figdir + "/" + name_stem + "_map_sequences_1.png)")
 ```
 
