@@ -11,7 +11,7 @@ description: > # Free-text description that will be inserted at the top of the r
 # conclusions: > # Free-text concluding text that will be inserted at the bottom of the report
 #   ## Conclusions
 #   An outbreak occurred
-# fields: country
+fields: adm1
 # graphic_dict: { country: "default", adm2: "viridis" }
 label-fields: [name, adm2, sample_date]
 # date-range: [ 2020-07-01, 2020-08-31 ]
@@ -25,7 +25,7 @@ query: fast_test.csv
 # up-distance: 2
 # down-distance: 2
 # collapse-threshold: 1
-# boxplots: False
+# barcharts: False
 # global: True
 # map: True
 # map_inputs: x_col, y_col
