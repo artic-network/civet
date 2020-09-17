@@ -73,6 +73,16 @@ def make_report():
                 if "##INSERT_ARGUMENTS" in l:
                         pmd_file.write("".join(list(change_line_dict.values())))
                         line_written = True
+
+                elif "##APPENDIX" in l:
+                    if config["omit_appendix"]:
+                        new_l = ""
+                        line_written = True
+                    else:
+                        line_written = True
+                        with open(config['appendix']) as f:
+                            for l in f:
+                                pmd_file.write(l)
                 else:
                     for k,v in free_text_dict.items():
                         if k in l:

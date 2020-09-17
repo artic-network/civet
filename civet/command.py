@@ -55,6 +55,7 @@ def main(sysargs = sys.argv[1:]):
     report_group.add_argument("--node-summary", action="store", help="Column to summarise collapsed nodes by. Default = Global lineage", dest="node_summary")
     report_group.add_argument('--add-bars', action="store_true",help="Render boxplots in the output report", dest="add_bars",default=False)
     report_group.add_argument('--cog-report', action="store_true",help="Run summary cog report. Default: outbreak investigation",dest="cog_report")
+    report_group.add_argument('--omit-appendix', action="store_true", help="Omit the appendix section. Default=False", dest="omit_appendix")
 
     tree_group = parser.add_argument_group('tree context options')
     tree_group.add_argument('--distance', action="store",help="Extraction from large tree radius. Default: 2", dest="distance",type=int,default=2)
@@ -131,7 +132,7 @@ def main(sysargs = sys.argv[1:]):
     qcfunk.check_query_file(query, args.ids,cwd, config)
 
     # parse the input csv, check col headers and get fields if fields specified
-    qcfunk.check_label_and_colour_and_date_fields(args.tree_fields, args.label_fields,args.display, args.date_fields, args.input_column, config)
+    qcfunk.check_label_and_tree_and_date_fields(args.tree_fields, args.label_fields,args.display, args.date_fields, args.input_column, config)
         
     # map sequences configuration
     qcfunk.map_sequences_config(args.map_sequences,args.mapping_trait,args.map_inputs,args.input_crs,query,config)
@@ -165,6 +166,7 @@ def main(sysargs = sys.argv[1:]):
     rfunk.make_title(config)
     # deal with free text
     rfunk.free_text_args(config)
+    rfunk.appendix(args.omit_appendix,config)
         
     # summarising collapsed nodes config
     qcfunk.node_summary(args.node_summary,config)
