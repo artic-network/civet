@@ -22,7 +22,7 @@ from reportfunk.funks import parsing_functions as dp
 
 ```
 
-```python, name="insert_arguments", echo=False, results='raw'
+```python, name="insert_arguments", echo=True, results='raw'
 ##INSERT_ARGUMENTS
 ```
 ```python, name="prepare_arguments", echo=False, results='raw'
@@ -223,7 +223,7 @@ if map_sequences and not stop_map:
 ```
 
 ```python, name='Regional-scale', echo=False, results='raw'
-if local_lineages != 'False':
+if local_lineages:
     print("## Regional-scale background UK lineage mapping")
     print("These figures show the background diversity of lineages in the local area to aid with identifying uncommon lineages.")
     centralLoc = [ t for t in lineage_tables.split(';') if "_central_" in t]

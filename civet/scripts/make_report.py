@@ -63,7 +63,10 @@ def make_report():
             else:
                 new_key = key
 
-            new_value = f'{new_key} = "{value}"\n'
+            if type(value) == bool:
+                new_value = f'{new_key} = {value}\n'
+            else:
+                new_value = f'{new_key} = "{value}"\n'
             change_line_dict[new_key] = new_value
         
         if config["add_bars"]:
