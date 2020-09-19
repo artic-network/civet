@@ -22,7 +22,7 @@ from reportfunk.funks import parsing_functions as dp
 
 ```
 
-```python, name="insert_arguments", echo=True, results='raw'
+```python, name="insert_arguments", echo=False, results='raw'
 ##INSERT_ARGUMENTS
 ```
 ```python, name="prepare_arguments", echo=False, results='raw'
@@ -195,7 +195,6 @@ if add_bars:
 ```python, name="map_sequences", echo=False, results='raw', include=False
 if map_sequences:
     stop_map = False
-    print("## Plotting sequences")
     if map_cols == "adm2":
         output = mapping.map_adm2(query_dict, clean_locs, mapping_json_files)
         if output:
@@ -203,9 +202,15 @@ if map_sequences:
         else:
             stop_map = True
     else:
-        adm2_in_map, adm2_percentages = mapping.map_sequences_using_coordinates(query, mapping_json_files, urban_centres, pc_file, mapping_trait, map_cols, input_crs)
-
+        output = mapping.map_sequences_using_coordinates(query, mapping_json_files, urban_centres, pc_file, mapping_trait, map_cols, input_crs)
+        if output:
+            adm2_in_map, adm2_percentages = output
+        else:
+            stop_map = True
+        
     if not stop_map:
+        print("## Plotting sequences")
+
         print("There are sequences from " + str(len(adm2_in_map)) + " admin2 regions")
 
         print("This is divided into:")
@@ -216,6 +221,9 @@ if map_sequences:
             print("This is shown in the map below, and is coloured by " + mapping_trait + " and urban centres are shown in the darker grey")
         else:
             print("This is shown in the map below, with urban centres shown in the darker grey")
+
+    else:
+        print("Insufficient geographical information to plot sequences")
 ```
 ```python, name="show_map", echo=False, results='raw'
 if map_sequences and not stop_map:

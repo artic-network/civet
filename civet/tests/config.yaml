@@ -11,7 +11,7 @@ description: > # Free-text description that will be inserted at the top of the r
 conclusions: > # Free-text concluding text that will be inserted at the bottom of the report
   ### Conclusions \n
   An outbreak occurred.
-omit_appendix: False
+omit_appendix: True
 fields: adm1,adm2
 graphic_dict: {adm1: "default", adm2: "viridis" }
 label-fields: [name, adm2, sample_date]

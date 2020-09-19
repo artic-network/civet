@@ -287,6 +287,9 @@ def plot_coordinates(mapping_json_files, urban_centres, name_to_coords, name_to_
             if j.contains(i):
                 adm2_present.append(l)
 
+    if len(adm2_present) == 0:
+        return
+
     adm2_counter = Counter(adm2_present)
 
     total=len(adm2_present)
@@ -360,6 +363,6 @@ def map_sequences_using_coordinates(input_csv, mapping_json_files, urban_centres
         postcode_col = cols[0]
         name_to_coords, name_to_trait = generate_coords_from_outer_postcode(pc_file, input_csv, postcode_col, colour_map_trait)
     
-    adm2_counter, adm2_percentages = plot_coordinates(mapping_json_files, urban_centres, name_to_coords, name_to_trait, input_crs, colour_map_trait)
+    mapping_output = plot_coordinates(mapping_json_files, urban_centres, name_to_coords, name_to_trait, input_crs, colour_map_trait)
 
-    return adm2_counter, adm2_percentages
+    return mapping_output
