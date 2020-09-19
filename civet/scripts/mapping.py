@@ -102,7 +102,6 @@ def prep_mapping_data(mapping_input, metadata_multi_loc):
 
     result = pd.merge(merged_locs, original, how="outer")
 
-
     return all_uk, result
 
 
@@ -155,7 +154,7 @@ def make_map(centroid_geo, all_uk):
 
     base = all_uk.plot(ax=ax, color="steelblue")
 
-    centroids_final.plot(ax=base, color='goldenrod', markersize=centroids_final["seq_count"]*10)
+    centroids_final.plot(ax=base, color="goldenrod", markersize=centroids_final["seq_count"]*10)
 
     ax.axis("off")
 
