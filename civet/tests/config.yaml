@@ -27,11 +27,14 @@ date-fields: ["sample_date", "date_2", "date_3"]
 query: test.csv
 fasta: test.fasta
 add_bars: False
-# date-range: [ 2020-07-01, 2020-08-31 ]
-# date-window: 7
 map_sequences: True
 map_cols: outer_postcode
 input_crs: "EPSG:4326"
 mapping_trait: care_home
+local_lineages: True
+date_restriction: False #need to add if this is True test to find the date range
+# date_range_start: [ 2020-07-01, 2020-08-31 ]
+# date_range_end
+# date_window: 7 #I think you can choose the date range or date window
 # global: True
 

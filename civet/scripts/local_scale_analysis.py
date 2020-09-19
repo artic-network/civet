@@ -591,7 +591,6 @@ if argsIN.date_restriction == 'True':
 cog_final = getSampleData_final(cog_meta, HBTranslation, HBCode_name_translation)
 ## Proessing input csv ##
 Central_HB_code=adm2_to_centralHBCode(inputSamples, HBTranslation, HBCode_name_translation)
-
 # ~~~~~~~
 if Central_HB_code is not None:
     ## Get the localised regions ##
@@ -604,6 +603,7 @@ if Central_HB_code is not None:
             f.write(f'{MDTable}\n\n')
     for row, frame in neighboring.iterrows():
         HB_name, MDTable = tableget(frame, cog_final)
+        HB_name = HB_name.replace(" ","_")
         with open(os.path.join(outDIR, f'{HB_name}_neighboring_lineageTable.md'), 'w') as f:
             f.write(f'### {HB_name}\n')
             f.write(f'{MDTable}\n\n')

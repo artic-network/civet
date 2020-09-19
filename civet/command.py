@@ -140,7 +140,7 @@ def main(sysargs = sys.argv[1:]):
     qcfunk.map_sequences_config(args.map_sequences,args.mapping_trait,args.map_cols,args.input_crs,config)
     
     # local lineages configuration
-    qcfunk.local_lineages_config(args.local_lineages,query,config)
+    qcfunk.local_lineages_config(args.local_lineages,config)
 
     # find the data dir
     data_dir = qcfunk.get_datadir(args.climb,args.datadir,args.remote,cwd,config)

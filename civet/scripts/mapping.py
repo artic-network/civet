@@ -7,6 +7,7 @@ import matplotlib.pyplot as plt
 from shapely.geometry.point import Point
 import csv
 import adjustText as aT
+import os
 
 
 def prep_data(tax_dict, clean_locs_file):
@@ -365,3 +366,52 @@ def map_sequences_using_coordinates(input_csv, mapping_json_files, urban_centres
     mapping_output = plot_coordinates(mapping_json_files, urban_centres, name_to_coords, name_to_trait, input_crs, colour_map_trait)
 
     return mapping_output
+
+
+def convert_str_to_list(string, rel_dir):
+
+    lst = []
+    
+    prep = string.split(",") 
+    for i in prep:
+        new = i.replace("'","").replace(" ","")
+        newer = new.strip("[").strip("]")
+        if rel_dir:
+            even_newer = newer.split("/figures")[1]
+            final = ("./figures" + even_newer)
+        else:
+            final = newer
+        
+        lst.append(final)
+    
+    return lst
+
+def local_lineages_section(lineage_maps, lineage_tables):
+
+    print("These figures show the background diversity of lineages in the local area to aid with identifying uncommon lineages.")
+    
+    big_list = convert_str_to_list(lineage_tables,False)
+    centralLoc = [t for t in big_list if "_central_" in t]
+    tableList = [t for t in big_list if "_central_" not in t]
+    centralName = centralLoc[0].split('/')[-1].split("_")[0]
+    
+    linmapList = convert_str_to_list(lineage_maps, True)        
+
+    print(f'Based on the sample density for submitted sequences with adm2 metadata, **{centralName}** was determined to be the focal NHS Health-board.\n')
+    print(f'The below figure visualises the relative proportion of assigned UK-Lineages for samples sampled in **{centralName}** for the defined time-frame.')
+    print ("![]("+linmapList[0]+")\n")
+    print(f'The below figure visualises the relative proportions of assigned UK-Lineages for samples collected in the whole region for the defined time-frame. Plot-size demonstrates relative numbers of sequences across given NHS healthboards.')
+    print ("![]("+linmapList[2]+")\n")
+    #print(f'The below figure visualises the relative proportion of assigned UK-Lineages for samples collected and sequenced within neighbouring healthboard regions for the defined time-frame.')
+    #print ("![]("+linmapList[1]+")")
+    #print('\n')
+    print(f'Tabulated lineage data for the **central** health-board region:')
+    with open(centralLoc[0]) as file:
+        contents = file.read()
+        print (contents)
+    print(f'Tabulated lineage data for the **neighbouring** health-board regions:')
+
+    for each in tableList:
+        with open(each) as file:
+            contents = file.read()
+            print (contents)
