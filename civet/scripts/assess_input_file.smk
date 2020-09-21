@@ -294,7 +294,7 @@ rule regional_mapping:
         combined_metadata = os.path.join(config["outdir"],"combined_metadata.csv"),
         cog_global_metadata = config["cog_global_metadata"]
     params:
-        figdir = os.path.join(config["outdir"],'figures')
+        figdir = os.path.join(config["outdir"],'figures'),
     output:
         central = os.path.join(config["tempdir"], "central_map_ukLin.vl.json"),
         neighboring = os.path.join(config["tempdir"], "neighboring_map_ukLin.vl.json"),
@@ -311,6 +311,8 @@ rule regional_mapping:
         --date-window {config[date_window]:q} \
         --cog-meta-global {input.cog_global_metadata:q} \
         --user-sample-data {input.query:q} \
+        --combined-metadata {input.combined_metadata:q} \
+        --input-name {config[input_column]:q} \
         --output-base-dir {params.figdir:q} \
         --output-temp-dir {config[tempdir]:q}
             """)
