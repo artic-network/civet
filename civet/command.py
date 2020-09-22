@@ -44,7 +44,7 @@ def main(sysargs = sys.argv[1:]):
     data_group.add_argument("-uun","--your-user-name", action="store", help="Your CLIMB COG-UK username. Required if running with --remote-sync flag", dest="uun")
     data_group.add_argument('--input-column', action="store",help="Column in input csv file to match with database. Default: name", dest="input_column",default="name")
     data_group.add_argument('--search-field', action="store",help="Option to search COG database for a different id type. Default: COG-UK ID", dest="data_column",default="central_sample_id")
-    data_group.add_argument('-g','--global',action="store_true",dest="search_global",help="Rather than finding closest match in COG database, search globally and find closest match in the entire database.",default=False)
+    data_group.add_argument('-g','--global',action="store_true",dest="global_search",help="Rather than finding closest match in COG database, search globally and find closest match in the entire database.",default=False)
 
     report_group = parser.add_argument_group('report customisation')
     report_group.add_argument('-sc',"--sequencing-centre", action="store",help="Customise report with logos from sequencing centre.", dest="sequencing_centre")
@@ -56,6 +56,7 @@ def main(sysargs = sys.argv[1:]):
     report_group.add_argument('--add-bars', action="store_true",help="Render barcharts in the output report", dest="add_bars",default=False)
     report_group.add_argument('--cog-report', action="store_true",help="Run summary cog report. Default: outbreak investigation",dest="cog_report")
     report_group.add_argument('--omit-appendix', action="store_true", help="Omit the appendix section. Default=False", dest="omit_appendix")
+    report_group.add_argument('--private', action="store_true", help="remove adm2 references from background sequences. Default=False", default=False)
 
     tree_group = parser.add_argument_group('tree context options')
     tree_group.add_argument('--distance', action="store",help="Extraction from large tree radius. Default: 2", dest="distance",type=int,default=2)
@@ -108,8 +109,9 @@ def main(sysargs = sys.argv[1:]):
         "date_window":args.date_window,
         "threshold": args.threshold,
         'date_restriction':args.date_restriction,
-        "global_search":args.search_global,
-        "delay_collapse": False
+        "global_search":args.global_search,
+        "delay_collapse": False,
+        "private":args.private
         }
 
     # find the query csv, or string of ids, or config file

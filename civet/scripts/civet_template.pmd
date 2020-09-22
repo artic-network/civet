@@ -127,9 +127,8 @@ elif not_in_cog_number == 0 and cog_number != 0:
     print(df_cog.to_markdown())
 ```
 
-
 ```python, name="make_trees", echo=False, include=False, figure=False
-too_tall_trees, overall_tree_number, colour_dict_dict, overall_df_dict, tree_order = tree_viz.make_all_of_the_trees(treedir, tree_name_stem, full_tax_dict, query_dict, tree_fields, label_fields, graphic_dict)
+too_tall_trees, overall_tree_number, colour_dict_dict, overall_df_dict, tree_order = tree_viz.make_all_of_the_trees(treedir, tree_name_stem, full_tax_dict, query_dict, tree_fields, label_fields, graphic_dict, private)
 ```
 ```python, name="make_legend", echo=False, include=False, results='tex'
 for trait, colour_dict in colour_dict_dict.items():
@@ -187,6 +186,8 @@ if add_bars:
 ```
 ```python, name="show_background",echo=False,include=False,results='raw'
 if add_bars:
+    if bar_count == 0:
+        print(f"There were no nodes that needed to be shown, as there were no collapsed nodes with more than two of {node_summary} in.")
     for i in range(bar_count):
         print(f"![]({figdir}/{name_stem}_tree_background_{i+1}.png)")
 
