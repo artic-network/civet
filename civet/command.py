@@ -44,7 +44,7 @@ def main(sysargs = sys.argv[1:]):
     data_group.add_argument("-uun","--your-user-name", action="store", help="Your CLIMB COG-UK username. Required if running with --remote-sync flag", dest="uun")
     data_group.add_argument('--input-column', action="store",help="Column in input csv file to match with database. Default: name", dest="input_column",default="name")
     data_group.add_argument('--search-field', action="store",help="Option to search COG database for a different id type. Default: COG-UK ID", dest="data_column",default="central_sample_id")
-    data_group.add_argument('-g','--global',action="store_true",dest="search_global",help="Rather than finding closest match in COG database, search globally and find closest match in the entire database.",default=False)
+    data_group.add_argument('-g','--global',action="store_true",dest="global_search",help="Rather than finding closest match in COG database, search globally and find closest match in the entire database.",default=False)
 
     report_group = parser.add_argument_group('report customisation')
     report_group.add_argument('-sc',"--sequencing-centre", action="store",help="Customise report with logos from sequencing centre.", dest="sequencing_centre")
@@ -56,6 +56,7 @@ def main(sysargs = sys.argv[1:]):
     report_group.add_argument('--add-bars', action="store_true",help="Render barcharts in the output report", dest="add_bars",default=False)
     report_group.add_argument('--cog-report', action="store_true",help="Run summary cog report. Default: outbreak investigation",dest="cog_report")
     report_group.add_argument('--omit-appendix', action="store_true", help="Omit the appendix section. Default=False", dest="omit_appendix")
+    report_group.add_argument('--private', action="store_true", help="remove adm2 references from background sequences. Default=False", default=False)
 
     tree_group = parser.add_argument_group('tree context options')
     tree_group.add_argument('--distance', action="store",help="Extraction from large tree radius. Default: 2", dest="distance",type=int,default=2)
@@ -66,12 +67,12 @@ def main(sysargs = sys.argv[1:]):
     map_group = parser.add_argument_group('map rendering options')
     map_group.add_argument('--local-lineages',action="store_true",dest="local_lineages",help="Contextualise the cluster lineages at local regional scale. Requires at least one adm2 value in query csv.", default=False)
     map_group.add_argument('--date-restriction',action="store_true",dest="date_restriction",help="Chose whether to date-restrict comparative sequences at regional-scale.", default=False)
-    map_group.add_argument('--date-range-start',action="store",default="None", type=str, dest="date_range_start", help="Define the start date from which sequences will COG sequences will be used for local context. YYYY-MM-DD format required.")
-    map_group.add_argument('--date-range-end', action="store", default="None", type=str, dest="date_range_end", help="Define the end date from which sequences will COG sequences will be used for local context. YYYY-MM-DD format required.")
+    map_group.add_argument('--date-range-start',action="store",default=False, type=str, dest="date_range_start", help="Define the start date from which sequences will COG sequences will be used for local context. YYYY-MM-DD format required.")
+    map_group.add_argument('--date-range-end', action="store", default=False, type=str, dest="date_range_end", help="Define the end date from which sequences will COG sequences will be used for local context. YYYY-MM-DD format required.")
     map_group.add_argument('--date-window',action="store",default=7, type=int, dest="date_window",help="Define the window +- either side of cluster sample collection date-range. Default is 7 days.")
-    map_group.add_argument("--map-sequences", action="store_true", dest="map_sequences", help="Map the coordinate points of sequences, coloured by a trait.")
-    map_group.add_argument("--map-cols", required=False, dest="map_cols", help="columns containing EITHER x and y coordinates as a comma separated string OR outer postcodes for mapping sequences")
-    map_group.add_argument("--input-crs", required=False, dest="input_crs", help="Coordinate reference system of sequence coordinates")
+    map_group.add_argument("--map-sequences", action="store_true", dest="map_sequences", help="Map the sequences themselves by adm2, coordinates or otuer postcode.")
+    map_group.add_argument("--map-cols", required=False, dest="map_cols", help="columns containing EITHER x and y coordinates as a comma separated string OR outer postcodes for mapping sequences OR Adm2")
+    map_group.add_argument("--input-crs", required=False, dest="input_crs", help="Coordinate reference system for sequence coordinates")
     map_group.add_argument("--mapping-trait", required=False, dest="mapping_trait", help="Column to colour mapped sequences by")
     
     misc_group = parser.add_argument_group('misc options')
@@ -108,8 +109,9 @@ def main(sysargs = sys.argv[1:]):
         "date_window":args.date_window,
         "threshold": args.threshold,
         'date_restriction':args.date_restriction,
-        "global_search":args.search_global,
-        "delay_collapse": False
+        "global_search":args.global_search,
+        "delay_collapse": False,
+        "private":args.private
         }
 
     # find the query csv, or string of ids, or config file

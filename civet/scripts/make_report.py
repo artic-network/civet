@@ -58,7 +58,7 @@ def make_report():
         change_line_dict = {}
 
         for key, value in config.items():
-            if key == "cog_metadata":
+            if key == "cog_global_metadata":
                 new_key = "full_metadata_file"
             else:
                 new_key = key

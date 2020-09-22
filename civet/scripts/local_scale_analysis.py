@@ -6,6 +6,7 @@ import geopandas as gp
 import pandas as pd
 from libpysal.weights import Queen, attach_islands, DistanceBand, set_operations
 import json
+import csv
 #from vega import VegaLite
 import argparse
 warnings.filterwarnings("ignore")
@@ -13,11 +14,13 @@ print("running local scale analysis")
 # ~~~~~~~ Define input variables ~~~~~~~~~~
 
 parser = argparse.ArgumentParser(description='Parse barcode info and minimap paf file, create report.')
-parser.add_argument("--date-restriction", default="False", action="store", type=str, dest="date_restriction")
-parser.add_argument("--date-pair-start", default="", action="store", type=str, dest="date_pair_start")
-parser.add_argument("--date-pair-end", default="", action="store", type=str, dest="date_pair_end")
+parser.add_argument("--date-restriction", default=False, action="store", type=bool, dest="date_restriction")
+parser.add_argument("--date-pair-start", default="", action="store", dest="date_pair_start")
+parser.add_argument("--date-pair-end", default="", action="store", dest="date_pair_end")
 parser.add_argument("--cog-meta-global", action="store", type=str, dest="cog_metadata")
 parser.add_argument("--user-sample-data", action="store", type=str, dest="user_sample_data")
+parser.add_argument("--combined-metadata",action="store",type=str,dest="combined_metadata")
+parser.add_argument("--input-name", action="store", type=str, dest="input_name")
 parser.add_argument("--date-window", action="store",required=False, type=int, dest="date_window")
 parser.add_argument("--output-base-dir", action="store", type=str, dest="output_base_dir")
 parser.add_argument("--output-temp-dir", action="store", type=str, dest="output_temp_dir")
@@ -28,38 +31,26 @@ parser.add_argument("--uk-map", action="store", type=str, dest="uk_map")
 argsIN=parser.parse_args()
 
 currentDir=os.getcwd()
-#####    NOTE ------- NEEEDS TO KNOW WHAT THE GENERATED OUTPUT DIR IS
 outDIR=argsIN.output_base_dir
-#os.path.join(currentDir, 'GENERATEDOUTPUTDIR', 'figures', 'Mapping')
 
-## Needed temporarily to point to correct additional data files (map, pkl)
-#civet_dir = "/mnt/e/Users/Stefan/GitKraken/civet"
-# Needed to pull metadata
-#civet_cat_dir=os.path.join(currentDir, 'civet_cat')
-
-### needs importation from installation of civet
 translator=argsIN.hb_translation
 mapfile=argsIN.uk_map
 
 date_pair=[]
 for each in [argsIN.date_pair_start, argsIN.date_pair_end]:
-    if each != "None":
+    if each != "False":
         date_pair.append(each)
 
 
 # ~~~~~~~~ Defining functions ~~~~~~~~~~
-#def VegaLite(spec):
-#    bundle = {}
- #   bundle['application/vnd.vegalite.v3+json'] = spec
- #   display(bundle, raw=True)
-
 
 def adm2cleaning(data_cog, samplecsv=False):
     data_cog2 = ""
-    if samplecsv == False:
+    if not samplecsv:
         data_cog2 = data_cog.dropna(subset=['adm2']).copy()
-    if samplecsv == True:
+    else:
         data_cog2 = data_cog.copy()
+    
     data_cog2['adm2'] = data_cog2['adm2'].str.replace('^MOTHERWELL$', 'NORTH LANARKSHIRE', regex=True).copy()
     data_cog2['adm2'] = data_cog2['adm2'].str.replace('^GREATER_LONDON$', 'GREATER LONDON', regex=True)
     data_cog2['adm2'] = data_cog2['adm2'].str.replace('^BORDERS$', 'SCOTTISH BORDERS', regex=True)
@@ -85,8 +76,6 @@ def dateRestriction(DFin, dateDict):
     datemask = (DFin['sample_date'] > dateDict['start_date']) & (DFin['sample_date'] <= dateDict['end_date'])
     DFout = DFin.loc[datemask]
     return DFout
-
-
 
 
 def update_adm15(combinedMAP):
@@ -344,18 +333,68 @@ def adm2_to_centralHBCode(sampleframe, translation_dict, HbtoCode):
         return None
 
 
+def supplement_sample_csv(sample_df,combined_metadata_df,input_name):
+
+  col_list = sample_df.columns
+  potential_date_cols = []
+  for i in col_list:
+    if "date" in i.lower():
+        potential_date_cols.append(i)
+
+  if "adm2" not in col_list:
+    testing_similarity = combined_metadata_df['query'][combined_metadata_df["query"] == combined_metadata_df["closest"]]
+
+    if len(testing_similarity) > 0 and not combined_metadata_df["adm2"].isnull().all():
+      final_sample = pd.merge(sample_df, combined_metadata_df, left_on=input_name, right_on="query_id", how="outer")
+      return final_sample
+    else:
+      return False
+
+  elif len(potential_date_cols) == 0:
+    testing_similarity = combined_metadata_df['query'][combined_metadata_df["query"] == combined_metadata_df["closest"]]
+
+    if len(testing_similarity) > 0:
+      final_sample = pd.merge(sample_df, combined_metadata_df, left_on=input_name, right_on="query_id", how="outer")
+    else:
+      final_sample = sample_df
+
+  return final_sample
+
 def defineDateRestriction(samplesDF, windowSize):
-    datedSamples = samplesDF.dropna(subset=['Collection_Date'])
-    if len(datedSamples) == 0:
-        print('No collection dates specified, will revert to using all available data for local lineage analysis.')
-        return None
-    if len(datedSamples) > 0:
-        datedSamples['Collection_Date'] = pd.to_datetime(datedSamples['Collection_Date'], format="%Y-%m-%d")
-        datedSamples.sort_values(by=['Collection_Date'], inplace=True)
-        start = datedSamples.iloc[[0]]['Collection_Date'].item() + pd.DateOffset(days=-windowSize)
-        end = datedSamples.iloc[[-1]]['Collection_Date'].item() + pd.DateOffset(days=windowSize)
-        daterange = {'start_date': start, 'end_date': end}
-        return daterange
+  
+  col_list = samplesDF.columns
+  potential_date_cols = []
+  for i in col_list:
+    if "date" in i.lower():
+      potential_date_cols.append(i)
+
+  if len(potential_date_cols) == 0:
+    print('No dates found, will revert to using all available data for local lineage analysis.')
+    return None
+
+  collection = False
+  for j in potential_date_cols:
+    if "collection" in j.lower():
+      date_col = j
+      collection = True
+      break
+    else:
+      date_col = j
+      
+  if collection:
+    print(f"Collection date not found, using {j} to restrict local lineages by")
+
+  datedSamples = samplesDF.dropna(subset=[date_col])
+  if len(datedSamples) == 0:
+      print('No collection dates specified, will revert to using all available data for local lineage analysis.')
+      return None
+  if len(datedSamples) > 0:
+      datedSamples[date_col] = pd.to_datetime(datedSamples[date_col], format="%Y-%m-%d")
+      datedSamples.sort_values(by=[date_col], inplace=True)
+      start = datedSamples.iloc[[0]][date_col].item() + pd.DateOffset(days=-windowSize)
+      end = datedSamples.iloc[[-1]][date_col].item() + pd.DateOffset(days=windowSize)
+      daterange = {'start_date': start, 'end_date': end}
+      return daterange
 
 
 def finaliseMapping(boardMAP):
@@ -371,15 +410,14 @@ def hbcode_hbname_translation(mapDF):
     translation = dict(zip(mapDF.HBName, mapDF.HBCode))
     return translation
 
-
-def do_date_restriction(cogDF, samplecsv, start, end, window=7, restriction_bool="False"):
-    if restriction_bool == 'True':
-        if start is not None and end is not None:
+def do_date_restriction(cogDF, samplecsv, start, end, window=7, restriction_bool=False):
+    if restriction_bool:
+        if start and end:
             date_list = {'start_date': date_start, 'end_date': date_end}
             cogOut = dateRestriction(cogDF, date_list)
             return cogOut
         else:
-            date_list = defineDateRestriction(inputSamples, window)
+            date_list = defineDateRestriction(samplecsv, window)
             if date_list is not None:
                 cogOut = dateRestriction(cogDF, date_list)
                 return cogOut
@@ -552,72 +590,78 @@ graphcolourFiller = "#87858C"
 # ~~~~~~~~~~~  Code execution ~~~~~~~~~~~~~~~
 # ~~~~~~~~
 
-HBTranslation=pickle.load(open(translator, 'rb'))
-COGDATA=pd.read_csv(argsIN.cog_metadata)
+HBTranslation = pickle.load(open(translator, 'rb'))
+COGDATA = pd.read_csv(argsIN.cog_metadata)
 inputSamples = pd.read_csv(argsIN.user_sample_data)
+combined_metadata = pd.read_csv(argsIN.combined_metadata)
 mainland_boards=gp.read_file(mapfile)
-if len(date_pair) == 2:
-    date_start=date_pair[0]
-    date_start=pd.to_datetime(date_start, format="%Y-%m-%d")
-    date_end=date_pair[1]
-    date_end=pd.to_datetime(date_end, format="%Y-%m-%d")
-if len(date_pair) == 1:
-    date_start=date_pair[0]
-    date_start=pd.to_datetime(date_start, format="%Y-%m-%d")
-    date_end=pd.to_datetime('today')
-if len(date_pair) == 0:
-    date_start=None
-    date_end=None
 
-# ~~~~~~~
-mainland_W=finaliseMapping(mainland_boards)
-HBCode_name_translation=hbcode_hbname_translation(mainland_boards)
-# ~~~~~~~~
-mainland_W=finaliseMapping(mainland_boards)
-HBCode_name_translation=hbcode_hbname_translation(mainland_boards)
-HBname_code_translation=hbname_hbcode_translation(mainland_boards)
+#if the inputs don't have adm2 or dates, but if some of them are in COG
+inputSamples = supplement_sample_csv(inputSamples, combined_metadata, argsIN.input_name)
+if type(inputSamples) == bool:
+  print("NO ADM2 PRESENT, CANNOT PRODUCE LOCAL LINEAGE MAPPING")
+else:
 
-# ~~~~~~~
-#mainland_boards=update_adm15(mainland_boards)
-###Checking user defined dates###
-if argsIN.date_restriction != 'True':
-    cog_meta=do_date_restriction(COGDATA, inputSamples, date_start, date_end)
-if argsIN.date_restriction == 'True':
-    if date_window == '':
-        cog_meta=do_date_restriction(COGDATA, inputSamples, date_start, date_end, restriction_bool='True')
-    if date_window != '':
-        cog_meta=do_date_restriction(COGDATA, inputSamples, date_start, date_end, restriction_bool='True', window=int(date_window))
-### Final restricted meta
-cog_final = getSampleData_final(cog_meta, HBTranslation, HBCode_name_translation)
-## Proessing input csv ##
-Central_HB_code=adm2_to_centralHBCode(inputSamples, HBTranslation, HBCode_name_translation)
-# ~~~~~~~
-if Central_HB_code is not None:
-    ## Get the localised regions ##
-    central, neighboring, submap = central_surrounding_regions(Central_HB_code, mainland_W, mainland_boards)
-    ## Generate tabular data for each region ##
-    for row, frame in central.iterrows():
-        HB_name, MDTable = tableget(frame, cog_final)
-        with open(os.path.join(outDIR, f'{HB_name}_central_lineageTable.md'), 'w') as f:
-            f.write(f'### {HB_name}\n')
-            f.write(f'{MDTable}\n\n')
-    for row, frame in neighboring.iterrows():
-        HB_name, MDTable = tableget(frame, cog_final)
-        HB_name = HB_name.replace(" ","_")
-        with open(os.path.join(outDIR, f'{HB_name}_neighboring_lineageTable.md'), 'w') as f:
-            f.write(f'### {HB_name}\n')
-            f.write(f'{MDTable}\n\n')
+  #sort out the date inputs
+  if len(date_pair) == 2:
+      date_start=date_pair[0]
+      date_start=pd.to_datetime(date_start, format="%Y-%m-%d")
+      date_end=date_pair[1]
+      date_end=pd.to_datetime(date_end, format="%Y-%m-%d")
+  if len(date_pair) == 1:
+      date_start=date_pair[0]
+      date_start=pd.to_datetime(date_start, format="%Y-%m-%d")
+      date_end=pd.to_datetime('today')
+  if len(date_pair) == 0:
+      date_start=None
+      date_end=None
 
-# ~~~~~~~
-if Central_HB_code is not None:
-    ## Get the localised regions ##
-    central, neighboring, submap = central_surrounding_regions(Central_HB_code, mainland_W, mainland_boards)
-    ## Generated Mapping ##
-    centralmapOUT=mapProduce(central, cog_final, submap)
-    neighboringmapOUT=mapProduce(neighboring, cog_final, submap)
-    regionmapOUT=mapProduce(submap, cog_final, submap, Central_HB_code)
-    for mapjson, location in zip([centralmapOUT,neighboringmapOUT,regionmapOUT],['central', 'neighboring', 'region']):
-        with open(os.path.join(argsIN.output_temp_dir, f'{location}_map_ukLin.vl.json'), 'w') as f:
-            json.dump(mapjson, f, indent=True)
-            ##### Shell commands required
-            # subprocess.call(['npx', 'vl2png', f'{location}_map_ukLin.vl.json', f{location}_map_ukLin.png])
+  # ~~~~~~~
+  mainland_W=finaliseMapping(mainland_boards)
+  HBCode_name_translation=hbcode_hbname_translation(mainland_boards)
+  # ~~~~~~~~
+  mainland_W=finaliseMapping(mainland_boards)
+  HBCode_name_translation=hbcode_hbname_translation(mainland_boards)
+  HBname_code_translation=hbname_hbcode_translation(mainland_boards)
+
+  # ~~~~~~~
+  #mainland_boards=update_adm15(mainland_boards)
+  ###Checking user defined dates###
+  if not argsIN.date_restriction:
+      cog_meta=do_date_restriction(COGDATA, inputSamples, date_start, date_end)
+  else:
+      cog_meta=do_date_restriction(COGDATA, inputSamples, date_start, date_end, restriction_bool=True, window=int(argsIN.date_window))
+  ### Final restricted meta
+  cog_final = getSampleData_final(cog_meta, HBTranslation, HBCode_name_translation)
+  ## Proessing input csv ##
+  Central_HB_code=adm2_to_centralHBCode(inputSamples, HBTranslation, HBCode_name_translation)
+  # ~~~~~~~
+  if Central_HB_code is not None:
+      ## Get the localised regions ##
+      central, neighboring, submap = central_surrounding_regions(Central_HB_code, mainland_W, mainland_boards)
+      ## Generate tabular data for each region ##
+      for row, frame in central.iterrows():
+          HB_name, MDTable = tableget(frame, cog_final)
+          with open(os.path.join(outDIR, f'{HB_name}_central_lineageTable.md'), 'w') as f:
+              f.write(f'### {HB_name}\n')
+              f.write(f'{MDTable}\n\n')
+      for row, frame in neighboring.iterrows():
+          HB_name, MDTable = tableget(frame, cog_final)
+          HB_name = HB_name.replace(" ","_")
+          with open(os.path.join(outDIR, f'{HB_name}_neighboring_lineageTable.md'), 'w') as f:
+              f.write(f'### {HB_name}\n')
+              f.write(f'{MDTable}\n\n')
+
+  # ~~~~~~~
+  if Central_HB_code is not None:
+      ## Get the localised regions ##
+      central, neighboring, submap = central_surrounding_regions(Central_HB_code, mainland_W, mainland_boards)
+      ## Generated Mapping ##
+      centralmapOUT=mapProduce(central, cog_final, submap)
+      neighboringmapOUT=mapProduce(neighboring, cog_final, submap)
+      regionmapOUT=mapProduce(submap, cog_final, submap, Central_HB_code)
+      for mapjson, location in zip([centralmapOUT,neighboringmapOUT,regionmapOUT],['central', 'neighboring', 'region']):
+          with open(os.path.join(argsIN.output_temp_dir, f'{location}_map_ukLin.vl.json'), 'w') as f:
+              json.dump(mapjson, f, indent=True)
+              ##### Shell commands required
+              # subprocess.call(['npx', 'vl2png', f'{location}_map_ukLin.vl.json', f{location}_map_ukLin.png])
