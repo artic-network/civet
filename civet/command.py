@@ -148,6 +148,8 @@ def main(sysargs = sys.argv[1:]):
     # if remote flag, and uun provided, sync data from climb
     qcfunk.get_remote_data(args.remote,args.uun,data_dir,args.datadir,args.climb,config)
 
+    qcfunk.generate_query_from_metadata(args.from_metadata,config)
+
     # run qc on the input sequence file
     qcfunk.input_file_qc(args.minlen,args.maxambig,config)
 

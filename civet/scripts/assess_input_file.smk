@@ -26,27 +26,6 @@ rule check_cog_db:
                         --in-seqs {output.cog_seqs:q} \
                         --not-in-cog {output.not_cog:q}
         """
-        
-rule check_cog_all:
-    input:
-        not_in_cog = rules.check_cog_db.output.not_cog,
-        cog_seqs = config["all_cog_seqs"],
-        cog_metadata = config["all_cog_metadata"]
-    output:
-        cog = os.path.join(config["tempdir"],"query_in_all_cog.csv"),
-        cog_seqs = os.path.join(config["tempdir"],"query_in_all_cog.fasta"),
-        not_cog = os.path.join(config["tempdir"],"not_in_all_cog.csv")
-    shell:
-        """
-        check_cog_db.py --query {input.not_in_cog:q} \
-                        --cog-seqs {input.cog_seqs:q} \
-                        --cog-metadata {input.cog_metadata:q} \
-                        --field {config[search_field]} \
-                        --in-metadata {output.cog:q} \
-                        --in-seqs {output.cog_seqs:q} \
-                        --not-in-cog {output.not_cog:q} \
-                        --all-cog
-        """
 
 rule get_closest_cog:
     input:
@@ -55,9 +34,8 @@ rule get_closest_cog:
         cog_seqs = config["cog_seqs"],
         cog_metadata = config["cog_metadata"],
         seq_db = config["seq_db"],
-        not_cog_csv = rules.check_cog_all.output.not_cog, #use
-        in_all_cog_metadata = rules.check_cog_all.output.cog,
-        in_all_cog_seqs = rules.check_cog_all.output.cog_seqs #use 
+        not_cog_csv = rules.check_cog_db.output.not_cog, #use
+        in_cog_metadata = rules.check_cog_db.output.cog
     output:
         closest_cog = os.path.join(config["tempdir"],"closest_cog.csv"),
         combined_query = os.path.join(config["tempdir"],"to_find_closest.fasta"),
@@ -67,9 +45,6 @@ rule get_closest_cog:
     run:
         query_with_no_seq = []
         to_find_closest = {}
-
-        for record in SeqIO.parse(input.in_all_cog_seqs,"fasta"):
-            to_find_closest[record.id] = ("COG_database",record.seq)
 
         not_cog = []
         with open(input.not_cog_csv, newline = "") as f: # getting list of non-cog queries
