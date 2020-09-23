@@ -358,6 +358,9 @@ def supplement_sample_csv(sample_df,combined_metadata_df,input_name):
     else:
       final_sample = sample_df
 
+  else:
+    final_sample = sample_df
+
   return final_sample
 
 def defineDateRestriction(samplesDF, windowSize):
