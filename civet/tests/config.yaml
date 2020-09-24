@@ -14,7 +14,9 @@ conclusions: > # Free-text concluding text that will be inserted at the bottom o
 omit_appendix: True
 fields: adm1,adm2
 graphic_dict: {adm1: "default", adm2: "viridis" }
-label-fields: [name, sample_date]
+label_fields: [name, sample_date]
+table_fields: [uk_lineage,adm1,adm2]
+#display_name: display
 snps_in_seq_table: True
 node_summary: lineage
 up-distance: 2
@@ -26,7 +28,7 @@ date-fields: ["sample_date", "date_2", "date_3"]
 #   - EDB002
 #   - EDB004
 query: test.csv
-fasta: test.fasta
+#fasta: test.fasta
 add_bars: False
 map_sequences: True
 map_cols: outer_postcode

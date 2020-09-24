@@ -43,6 +43,7 @@ def main(sysargs = sys.argv[1:]):
     data_group.add_argument("-r",'--remote-sync', action="store_true",dest="remote",help="Remotely access lineage trees from CLIMB")
     data_group.add_argument("-uun","--your-user-name", action="store", help="Your CLIMB COG-UK username. Required if running with --remote-sync flag", dest="uun")
     data_group.add_argument('--input-column', action="store",help="Column in input csv file to match with database. Default: name", dest="input_column",default="name")
+    data_group.add_argument("--display-name", action="store", help="Column in input csv file with display names for seqs. Default: same as input column", dest="display_name", default=None)
     data_group.add_argument('--search-field', action="store",help="Option to search COG database for a different id type. Default: COG-UK ID", dest="data_column",default="central_sample_id")
     data_group.add_argument('-g','--global',action="store_true",dest="global_search",help="Rather than finding closest match in COG database, search globally and find closest match in the entire database.",default=False)
 
@@ -138,7 +139,7 @@ def main(sysargs = sys.argv[1:]):
     qcfunk.check_query_file(query, args.ids,cwd, config)
 
     # parse the input csv, check col headers and get fields if fields specified
-    qcfunk.check_label_and_tree_and_date_fields(args.tree_fields, args.label_fields,args.display, args.date_fields, args.input_column, config)
+    qcfunk.check_label_and_tree_and_date_fields(args.tree_fields, args.label_fields,args.display, args.date_fields, args.input_column, args.display_name, config)
         
     # map sequences configuration
     qcfunk.map_sequences_config(args.map_sequences,args.mapping_trait,args.map_cols,args.input_crs,config)
