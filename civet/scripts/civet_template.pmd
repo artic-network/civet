@@ -18,6 +18,7 @@ from reportfunk.funks import time_functions as time_func
 from reportfunk.funks import prep_data_functions as prep_data
 from reportfunk.funks import tree_functions as tree_viz
 from reportfunk.funks import parsing_functions as dp
+from reportfunk.funks import table_functions as table_func
 
 
 ```
@@ -27,7 +28,7 @@ from reportfunk.funks import parsing_functions as dp
 ```
 ```python, name="prepare_arguments", echo=False, results='raw'
 
-name_stem, tree_fields, graphic_dict, label_fields, date_fields = prep_data.prepping_arguments(name_stem, tree_fields, graphic_dict, label_fields, date_fields)
+name_stem, tree_fields, graphic_dict, label_fields, date_fields, table_fields = prep_data.prepping_arguments(name_stem, tree_fields, graphic_dict, label_fields, date_fields, table_fields)
 adm2_to_adm1 = prep_data.prepping_adm2_adm1_data(full_metadata_file)
 mapping_json_files = [uk_map, channels_map, ni_map]
 
@@ -61,7 +62,7 @@ print(f"![]({sequencing_centre_file})")
 
 ```python, name="parse metadata", echo=False, results='raw'
 database_column = "sequence_name"
-full_tax_dict, query_dict, tree_to_tip = dp.parse_all_metadata(treedir, filtered_cog_metadata, full_metadata_file, query, input_column, database_column, label_fields, tree_fields, node_summary, adm2_to_adm1,date_fields=date_fields)
+full_tax_dict, query_dict, tree_to_tip = dp.parse_all_metadata(treedir, filtered_cog_metadata, full_metadata_file, query, input_column, database_column, label_fields, tree_fields, table_fields, node_summary, adm2_to_adm1,date_fields=date_fields)
 
 time_outputs = time_func.summarise_dates(query_dict)
 if type(time_outputs) != bool:
@@ -88,10 +89,11 @@ number_seqs = len(query_dict)
 cog_number = 0
 not_in_cog_number = 0
 for tax in query_dict.values():
-    if tax.in_cog:
+    if tax.in_db:
         cog_number += 1
     else:
         not_in_cog_number += 1
+
 
 prep_data.analyse_inputs(inputs)
 
@@ -111,18 +113,18 @@ else:
 
 ```python, name="first_table", echo=False, results="tex"
 if cog_number != 0 and not_in_cog_number != 0:
-    df_cog, df_seqs = dp.make_initial_table(query_dict, tree_fields, label_fields, input_column)
+    df_cog, df_seqs = table_func.make_full_civet_table(query_dict, tree_fields, label_fields, input_column, outdir, table_fields, snps_in_seq_table)
     print("**Table 1** | Queries found in COG-UK database.\n")
     print(df_cog.to_markdown())
     print("\n")
     print("**Table 2** | Queries matched to closest COG-UK sequence using input sequences\n")
     print(df_seqs.to_markdown())
 elif cog_number == 0 and not_in_cog_number != 0:
-    df_seqs = dp.make_initial_table(query_dict, tree_fields, label_fields, input_column)
+    df_seqs = table_func.make_full_civet_table(query_dict, tree_fields, label_fields, input_column,outdir, table_fields, snps_in_seq_table)
     print("**Table 1** | Queries matched to closest COG-UK sequence using input sequences\n")
     print(df_seqs.to_markdown())
 elif not_in_cog_number == 0 and cog_number != 0:
-    df_cog = dp.make_initial_table(query_dict, tree_fields, label_fields, input_column)
+    df_cog = table_func.make_full_civet_table(query_dict, tree_fields, label_fields, input_column, outdir, table_fields, snps_in_seq_table)
     print("**Table 1** | Queries found in COG-UK database.\n")
     print(df_cog.to_markdown())
 ```

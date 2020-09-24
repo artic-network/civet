@@ -53,6 +53,8 @@ def main(sysargs = sys.argv[1:]):
     report_group.add_argument('--label-fields', action="store", help="Comma separated string of fields to add to tree report labels.", dest="label_fields")
     report_group.add_argument("--date-fields", action="store", help="Comma separated string of metadata headers containing date information.", dest="date_fields")
     report_group.add_argument("--node-summary", action="store", help="Column to summarise collapsed nodes by. Default = Global lineage", dest="node_summary")
+    report_group.add_argument("--table-fields", action="store", help="Fields to include in the table produced in the report", dest="table_fields")
+    report_group.add_argument("--snp-data-table", action="store", help="Include information about closest sequence in database in table. Default is False", dest="snps_in_seq_table")
     report_group.add_argument('--add-bars', action="store_true",help="Render barcharts in the output report", dest="add_bars",default=False)
     report_group.add_argument('--cog-report', action="store_true",help="Run summary cog report. Default: outbreak investigation",dest="cog_report")
     report_group.add_argument('--omit-appendix', action="store_true", help="Omit the appendix section. Default=False", dest="omit_appendix")
@@ -176,6 +178,9 @@ def main(sysargs = sys.argv[1:]):
 
     #deal with figures
     rfunk.bars(args.add_bars, config)
+
+    #get table headers
+    qcfunk.check_table_fields(args.table_fields, args.snps_in_seq_table, config)
         
     # summarising collapsed nodes config
     qcfunk.node_summary(args.node_summary,config)
