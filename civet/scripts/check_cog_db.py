@@ -20,6 +20,7 @@ def parse_args():
     parser.add_argument("--in-seqs", action="store", type=str, dest="in_seqs")
     parser.add_argument("--not-in-cog", action="store", type=str, dest="not_in_cog")
     parser.add_argument("--all-cog",action="store_true",dest="all_cog")
+    parser.add_argument("--input-column",action="store",dest="input_column")
     return parser.parse_args()
 
 def check_cog_db():
@@ -31,12 +32,12 @@ def check_cog_db():
     in_cog_names = {}
 
     column_to_match = args.field
-    
+    input_column = args.input_column
     query_names = []
     with open(args.query,newline="") as f:
         reader = csv.DictReader(f)
         for row in reader:
-            query_names.append(row["name"])
+            query_names.append(row[input_column])
 
     with open(args.cog_metadata,newline="") as f:
         reader = csv.DictReader(f)
@@ -85,7 +86,7 @@ def check_cog_db():
         else:
             print(qcfunk.cyan("\nNot found in phylogeny:"))
         
-        fw.write("name\n")
+        fw.write(f"{input_column}\n")
         for query in query_names:
             if query not in found:
                 fw.write(query + '\n')

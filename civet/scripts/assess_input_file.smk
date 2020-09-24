@@ -24,6 +24,7 @@ rule check_cog_db:
                         --field {config[search_field]} \
                         --in-metadata {output.cog:q} \
                         --in-seqs {output.cog_seqs:q} \
+                        --input-column {config[input_column]} \
                         --not-in-cog {output.not_cog:q}
         """
 
@@ -46,18 +47,19 @@ rule get_closest_cog:
         query_with_no_seq = []
         to_find_closest = {}
 
+        column_name = config["input_column"]
         not_cog = []
         with open(input.not_cog_csv, newline = "") as f: # getting list of non-cog queries
             reader = csv.DictReader(f)
             for row in reader:
-                not_cog.append(row["name"])
+                not_cog.append(row[column_name])
         
         failed_qc = []
         if config["qc_fail"] != "":
             with open(config["qc_fail"]) as f:
                 reader = csv.DictReader(f)
                 for row in reader:
-                    failed_qc.append(row["name"])
+                    failed_qc.append(row[column_name])
 
         if config["fasta"] != "":
              # get set with supplied sequences
