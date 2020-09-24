@@ -170,7 +170,7 @@ rule process_catchments:
         combined_metadata = rules.combine_metadata.output.combined_csv, 
         query_seqs = rules.get_closest_cog.output.aligned_query, #datafunk-processed seqs
         catchment_prompt = rules.prune_out_catchments.output.txt,
-        all_cog_seqs = config["all_cog_seqs"],
+        cog_seqs = config["cog_seqs"],
         outgroup_fasta = config["outgroup_fasta"],
         cog_global_seqs = config["cog_global_seqs"]
         # not_cog_csv = rules.check_cog_all.output.not_cog
@@ -210,7 +210,7 @@ rule process_catchments:
                         "tempdir={config[tempdir]:q} "
                         "outgroup_fasta={input.outgroup_fasta:q} "
                         "aligned_query_seqs={input.query_seqs:q} "
-                        "all_cog_seqs={input.all_cog_seqs:q} "
+                        "cog_seqs={input.cog_seqs:q} "
                         "cog_global_seqs={input.cog_global_seqs:q} "
                         "combined_metadata={input.combined_metadata:q} "
                         "threshold={config[threshold]} "
@@ -234,7 +234,7 @@ rule find_snps:
         tree_summary = os.path.join(config["outdir"],"local_trees","collapse_report.txt"),
         snakefile = os.path.join(workflow.current_basedir,"find_snps.smk"),
         query_seqs = rules.get_closest_cog.output.aligned_query, #datafunk-processed seqs
-        all_cog_seqs = config["all_cog_seqs"],
+        cog_seqs = config["cog_seqs"],
         outgroup_fasta = config["outgroup_fasta"]
     params:
         tree_dir = os.path.join(config["outdir"],"local_trees"),
@@ -259,7 +259,7 @@ rule find_snps:
                             "tempdir={config[tempdir]:q} "
                             "outgroup_fasta={input.outgroup_fasta:q} "
                             "aligned_query_seqs={input.query_seqs:q} "
-                            "all_cog_seqs={input.all_cog_seqs:q} "
+                            "cog_seqs={input.cog_seqs:q} "
                             "threshold={config[threshold]} "
                             "--cores {workflow.cores}")
 

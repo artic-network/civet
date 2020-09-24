@@ -148,7 +148,7 @@ rule gather_fasta_seqs:
     input:
         collapsed_nodes = os.path.join(config["tempdir"],"collapsed_trees","{tree}_representatives.fasta"),
         aligned_query_seqs = config["aligned_query_seqs"],
-        cog_seqs = config["all_cog_seqs"],
+        cog_seqs = config["cog_seqs"],
         outgroup_fasta = config["outgroup_fasta"],
         combined_metadata = config["combined_metadata"],
         tree_taxa = rules.extract_taxa.output.tree_taxa,
