@@ -1,20 +1,21 @@
 report: Outbreak # the report template to use
 
 sequencing-centre: EDIN # the header to use
-title: Grampian outbreak investigation
+title: Test outbreak investigation
 outbreak-id: outbreak1
 report_date: 2020-08-01 # date investigation was opened
-authors: Martin, Matt # List of authors, affiliations and contact details
+authors: Verity, Andrew # List of authors, affiliations and contact details
 description: > # Free-text description that will be inserted at the top of the report - can use markdown for formatting. Please use \n to indicate new lines.
   ### Background \n
-  This report describes the investigation into an outbreak in the Grampian region.
+  This report describes the investigation into an outbreak in the made-up region.
 conclusions: > # Free-text concluding text that will be inserted at the bottom of the report
   ### Conclusions \n
   An outbreak occurred.
 omit_appendix: True
 fields: adm1,adm2
 graphic_dict: {adm1: "default", adm2: "viridis" }
-label-fields: [name, adm2, sample_date]
+label-fields: [name, sample_date]
+snps_in_seq_table: True
 node_summary: lineage
 up-distance: 2
 down-distance: 2
@@ -31,10 +32,11 @@ map_sequences: True
 map_cols: outer_postcode
 input_crs: "EPSG:4326"
 mapping_trait: care_home
-local_lineages: True
+local_lineages: False
 date_restriction: True 
 date_range_start: 2020-07-01
 date_range_end: 2020-08-31
+private: True
 # date_window: 8 
 # global: True
 
