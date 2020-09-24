@@ -62,7 +62,7 @@ print(f"![]({sequencing_centre_file})")
 
 ```python, name="parse metadata", echo=False, results='raw'
 database_column = "sequence_name"
-full_tax_dict, query_dict, tree_to_tip = dp.parse_all_metadata(treedir, filtered_cog_metadata, full_metadata_file, query, input_column, database_column, label_fields, tree_fields, table_fields, node_summary, adm2_to_adm1,date_fields=date_fields)
+full_tax_dict, query_dict, tree_to_tip = dp.parse_all_metadata(treedir, filtered_cog_metadata, full_metadata_file, query, input_column, database_column, display_name, label_fields, tree_fields, table_fields, node_summary, adm2_to_adm1,date_fields=date_fields)
 
 time_outputs = time_func.summarise_dates(query_dict)
 if type(time_outputs) != bool:
@@ -74,7 +74,7 @@ else:
 
 ```python, name="QC fails", echo=False, results="raw"
 if qc_fail != "": 
-    fail_dict = dp.investigate_QC_fails(qc_fail)
+    fail_dict = dp.investigate_QC_fails(qc_fail, full_tax_dict)
     if len(fail_dict) > 0:
         print("The following sequences have failed QC:\n")
         for seq, reason in fail_dict.items():
