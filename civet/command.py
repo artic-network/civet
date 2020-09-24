@@ -26,11 +26,14 @@ def main(sysargs = sys.argv[1:]):
 
     parser = argparse.ArgumentParser(prog = _program, 
     description='civet: Cluster Investivation & Virus Epidemiology Tool', 
-    usage='''civet <query> [options]''')
+    usage='''civet -i <input.csv> [options]
+civet -i EDB3588,EDB3589 [options]
+civet -i <config.yaml>
+civet -fm adm2=Edinburgh sample_date=2020-03-01:2020-04-01 [options]''')
 
     io_group = parser.add_argument_group('input output options')
-    io_group.add_argument('query',help="Input csv file or input config file. CSV minimally has input_column header, Default=`name`. Can include additional fields to be incorporated into the analysis, e.g. `sample_date`")
-    io_group.add_argument('-i',"--id-string", action="store_true",help="Indicates the input is a comma-separated id string with one or more query ids. Example: `EDB3588,EDB3589`.", dest="ids")
+    # io_group.add_argument('query',help="Input csv file or input config file.  Can include additional fields to be incorporated into the analysis, e.g. `sample_date`")
+    io_group.add_argument('-i',"--input", action="store",help="Input config file in yaml format, csv file (with minimally an input_column header, Default=`name`) or comma-separated id string with one or more query ids. Example: `EDB3588,EDB3589`.", dest="input")
     io_group.add_argument('-fm','--from-metadata',nargs='*', dest="from_metadata",help="Generate a query from the metadata file supplied. Define a search that will be used to pull out sequences of interest from the large phylogeny. E.g. -fm adm2=Edinburgh sample_date=2020-03-01:2020-04-01")
     io_group.add_argument('-o','--outdir', action="store",help="Output directory. Default: current working directory")
     io_group.add_argument('-f','--fasta', action="store",help="Optional fasta query.", dest="fasta")
@@ -105,6 +108,7 @@ def main(sysargs = sys.argv[1:]):
         "distance":args.distance,
         "search_field":args.data_column, 
         "input_column":args.input_column,
+        "data_column":args.data_column,
         "force":True,
         "date_range_start":args.date_range_start,
         "date_range_end":args.date_range_end,
@@ -116,8 +120,11 @@ def main(sysargs = sys.argv[1:]):
         "private":args.private
         }
 
+    # default output dir
+    qcfunk.get_outdir(args.outdir,cwd,config)
+
     # find the query csv, or string of ids, or config file
-    query,configfile = qcfunk.type_input_file(args.query,cwd,config)
+    query,configfile = qcfunk.type_input_file(args.input,cwd,config)
 
     if configfile:
         config = qcfunk.parse_yaml_file(configfile, config)
@@ -128,14 +135,22 @@ def main(sysargs = sys.argv[1:]):
     # find the query fasta
     qcfunk.get_query_fasta(args.fasta,cwd, config)
 
-    # default output dir
-    qcfunk.get_outdir(args.outdir,cwd,config)
-
     # specifying temp directory, outdir if no_temp
     tempdir = qcfunk.get_temp_dir(args.tempdir, args.no_temp,cwd,config)
 
+    # find the data dir
+    data_dir = qcfunk.get_datadir(args.climb,args.datadir,args.remote,cwd,config)
+    
+    # if remote flag, and uun provided, sync data from climb
+    qcfunk.get_remote_data(args.remote,args.uun,data_dir,args.datadir,args.climb,config)
+
+    # generate query from metadata
+    if args.from_metadata or "from_metadata" in config:
+        metadata = config["cog_metadata"]
+        query = qcfunk.generate_query_from_metadata(args.from_metadata,metadata,config)
+
     # check query exists or add ids to temp query file
-    qcfunk.check_query_file(query, args.ids,cwd, config)
+    qcfunk.check_query_file(query, cwd, config)
 
     # parse the input csv, check col headers and get fields if fields specified
     qcfunk.check_label_and_tree_and_date_fields(args.tree_fields, args.label_fields,args.display, args.date_fields, args.input_column, config)
@@ -146,14 +161,7 @@ def main(sysargs = sys.argv[1:]):
     # local lineages configuration
     qcfunk.local_lineages_config(args.local_lineages,config)
 
-    # find the data dir
-    data_dir = qcfunk.get_datadir(args.climb,args.datadir,args.remote,cwd,config)
     
-    # if remote flag, and uun provided, sync data from climb
-    qcfunk.get_remote_data(args.remote,args.uun,data_dir,args.datadir,args.climb,config)
-
-    qcfunk.generate_query_from_metadata(args.from_metadata,config)
-
     # run qc on the input sequence file
     qcfunk.input_file_qc(args.minlen,args.maxambig,config)
 
