@@ -120,11 +120,8 @@ civet -fm adm2=Edinburgh sample_date=2020-03-01:2020-04-01 [options]''')
     tempdir = qcfunk.get_temp_dir(args.tempdir, args.no_temp,cwd,config)
 
     # find the data dir
-    data_dir = qcfunk.get_datadir(args.climb,args.uun,args.datadir,args.remote,cwd,config,default_dict)
+    qcfunk.get_datadir(args.climb,args.uun,args.datadir,args.remote,cwd,config,default_dict)
     
-    # if remote flag, and uun provided, sync data from climb
-    # qcfunk.get_remote_data(args.remote,args.uun,data_dir,args.datadir,args.climb,config)
-
     # generate query from metadata
     if args.from_metadata or "from_metadata" in config:
         metadata = config["cog_metadata"]
@@ -134,29 +131,28 @@ civet -fm adm2=Edinburgh sample_date=2020-03-01:2020-04-01 [options]''')
     qcfunk.check_query_file(query, cwd, config)
 
     # parse the input csv, check col headers and get fields if fields specified
-    qcfunk.check_label_and_tree_and_date_fields(args.tree_fields, args.label_fields,args.display, args.date_fields, args.input_column, args.display_name, config)
+    qcfunk.check_label_and_tree_and_date_fields(args.tree_fields, args.label_fields,args.display, args.date_fields, args.input_column, args.display_name, config,default_dict)
         
     # map sequences configuration
-    qcfunk.map_sequences_config(args.map_sequences,args.mapping_trait,args.map_cols,args.input_crs,config)
+    qcfunk.map_sequences_config(args.map_sequences,args.mapping_trait,args.map_cols,args.input_crs,config,default_dict)
     
     # local lineages configuration
-    qcfunk.local_lineages_config(args.local_lineages,config)
+    qcfunk.local_lineages_config(args.local_lineages,config,default_dict)
 
-    
     # run qc on the input sequence file
     qcfunk.input_file_qc(args.minlen,args.maxambig,config)
 
     # accessing package data and adding to config dict
-    qcfunk.get_package_data(args.cog_report,thisdir,config)
+    qcfunk.get_package_data(args.cog_report,thisdir,config,default_dict)
 
     # get seq centre header file from pkg data
     qcfunk.get_sequencing_centre_header(args.sequencing_centre,config)
     
     # global vs cog db search
-    define_seq_db(config)
+    cfunk.define_seq_db(config)
 
     # extraction radius configuration
-    qcfunk.distance_config(config) #this is now only a print statement because they get added to the config dict up top
+    qcfunk.distance_config(args.distance,args.up_distance,args.down_distance,config,default_dict) #this is now only a print statement because they get added to the config dict up top
 
     ## report arguments
     # make title
@@ -212,13 +208,6 @@ civet -fm adm2=Edinburgh sample_date=2020-03-01:2020-04-01 [options]''')
        return 0
 
     return 1
-
-def define_seq_db(config):
-    if config["global_search"] == True:
-        config["seq_db"] = config["cog_global_seqs"]
-    else:
-        config["seq_db"] = config["cog_seqs"]
-
 
 if __name__ == '__main__':
     main()

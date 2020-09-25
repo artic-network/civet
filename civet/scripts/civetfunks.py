@@ -11,10 +11,14 @@ def get_defaults():
                     "down_distance":2,
                     "threshold":1,
                     "add_bars":False,
+                    "tree_fields":"adm1",
                     "date_range_start":False,
                     "date_range_end":False,
                     "date_window":7,
                     "global_search":False,
+                    "label_fields":"NONE",
+                    "date_fields":"NONE",
+                    "graphic_dict":"adm1",
                     "date_restriction":False,
                     "local_lineages":False,
                     "map_sequences":False,
@@ -25,3 +29,10 @@ def get_defaults():
                     "trim_end":29674
                     }
     return default_dict
+
+def define_seq_db(config, default_dict):
+    if config["global_search"] == True:
+        config["seq_db"] = config["cog_global_seqs"]
+    else:
+        config["seq_db"] = config["cog_seqs"]
+
