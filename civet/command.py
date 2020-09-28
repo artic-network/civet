@@ -46,8 +46,8 @@ civet -fm adm2=Edinburgh sample_date=2020-03-01:2020-04-01 [options]''')
     data_group.add_argument("-r",'--remote-sync', action="store_true",dest="remote",help="Remotely access lineage trees from CLIMB")
     data_group.add_argument("-uun","--your-user-name", action="store", help="Your CLIMB COG-UK username. Required if running with --remote-sync flag", dest="uun")
     data_group.add_argument('--input-column', action="store",help="Column in input csv file to match with database. Default: name", dest="input_column")
+    data_group.add_argument('--data-column', action="store",help="Option to search COG database for a different id type. Default: COG-UK ID", dest="data_column")
     data_group.add_argument("--display-name", action="store", help="Column in input csv file with display names for seqs. Default: same as input column", dest="display_name")
-    data_group.add_argument('--search-field', action="store",help="Option to search COG database for a different id type. Default: COG-UK ID", dest="data_column")
     data_group.add_argument('-g','--global',action="store_true",dest="global_search",help="Rather than finding closest match in COG database, search globally and find closest match in the entire database.")
 
     report_group = parser.add_argument_group('report customisation')
@@ -87,7 +87,7 @@ civet -fm adm2=Edinburgh sample_date=2020-03-01:2020-04-01 [options]''')
     misc_group.add_argument('-n', '--dry-run', action='store_true',help="Go through the motions but don't actually run")
     misc_group.add_argument('--tempdir',action="store",help="Specify where you want the temp stuff to go. Default: $TMPDIR")
     misc_group.add_argument("--no-temp",action="store_true",help="Output all intermediate files, for dev purposes.")
-    misc_group.add_argument('-t', '--threads', action='store',type=int,help="Number of threads")
+    misc_group.add_argument('-t', '--threads', action='store',dest="threads",type=int,help="Number of threads")
     misc_group.add_argument("--verbose",action="store_true",help="Print lots of stuff to screen")
     misc_group.add_argument("-v","--version", action='version', version=f"civet {__version__}")
     
@@ -112,7 +112,7 @@ civet -fm adm2=Edinburgh sample_date=2020-03-01:2020-04-01 [options]''')
 
     if configfile:
         config = qcfunk.parse_yaml_file(configfile, config)
-    
+
     # find the query fasta
     qcfunk.get_query_fasta(args.fasta,cwd, config)
 
@@ -120,8 +120,10 @@ civet -fm adm2=Edinburgh sample_date=2020-03-01:2020-04-01 [options]''')
     tempdir = qcfunk.get_temp_dir(args.tempdir, args.no_temp,cwd,config)
 
     # find the data dir
-    qcfunk.get_datadir(args.climb,args.uun,args.datadir,args.remote,cwd,config,default_dict)
+    cfunk.get_datadir(args.climb,args.uun,args.datadir,args.remote,cwd,config,default_dict)
     
+    qcfunk.check_metadata_for_seach_columns(args.data_column,config,default_dict)
+
     # generate query from metadata
     if args.from_metadata or "from_metadata" in config:
         metadata = config["cog_metadata"]
@@ -140,17 +142,15 @@ civet -fm adm2=Edinburgh sample_date=2020-03-01:2020-04-01 [options]''')
     qcfunk.local_lineages_config(args.local_lineages,config,default_dict)
 
     # run qc on the input sequence file
-    qcfunk.input_file_qc(args.minlen,args.maxambig,config)
+    qcfunk.input_file_qc(args.minlen,args.maxambig,config,default_dict)
 
     # accessing package data and adding to config dict
-    qcfunk.get_package_data(args.cog_report,thisdir,config,default_dict)
+    cfunk.get_package_data(args.cog_report,thisdir,config,default_dict)
 
     # get seq centre header file from pkg data
     qcfunk.get_sequencing_centre_header(args.sequencing_centre,config)
     
-    # global vs cog db search
-    cfunk.define_seq_db(config)
-
+    
     # extraction radius configuration
     qcfunk.distance_config(args.distance,args.up_distance,args.down_distance,config,default_dict) #this is now only a print statement because they get added to the config dict up top
 
@@ -165,7 +165,7 @@ civet -fm adm2=Edinburgh sample_date=2020-03-01:2020-04-01 [options]''')
     rfunk.bars(args.add_bars, config)
 
     #get table headers
-    qcfunk.check_table_fields(args.table_fields, args.snps_in_seq_table, config)
+    qcfunk.check_table_fields(args.table_fields, args.snps_in_seq_table, config,default_dict)
         
     # summarising collapsed nodes config
     qcfunk.node_summary(args.node_summary,config)
@@ -174,6 +174,10 @@ civet -fm adm2=Edinburgh sample_date=2020-03-01:2020-04-01 [options]''')
     for key in default_dict:
         if key not in config:
             config[key] = default_dict[key]
+
+    # global vs cog db search
+    cfunk.define_seq_db(args.global_search,config,default_dict)
+
 
     if args.launch_browser:
         config["launch_browser"]=True
@@ -187,7 +191,10 @@ civet -fm adm2=Edinburgh sample_date=2020-03-01:2020-04-01 [options]''')
         config["quiet_mode"]=True
 
     if args.generate_config:
-        qcfunk.make_config_file(config)
+        qcfunk.make_config_file("civet_config.yaml",config)
+
+    threads = qcfunk.check_arg_config_default("threads",args.threads,config,default_dict)
+    config["threads"]= int(threads)
 
     # find the master Snakefile
     snakefile = qcfunk.get_snakefile(thisdir)
@@ -201,7 +208,7 @@ civet -fm adm2=Edinburgh sample_date=2020-03-01:2020-04-01 [options]''')
         logger = custom_logger.Logger()
         status = snakemake.snakemake(snakefile, printshellcmds=False,
                                     dryrun=args.dry_run, forceall=True,force_incomplete=True,workdir=tempdir,
-                                    config=config, cores=args.threads,lock=False,quiet=True,stats=statsfile,log_handler=logger.log_handler
+                                    config=config, cores=threads,lock=False,quiet=True,stats=statsfile,log_handler=logger.log_handler
                                     )
 
     if status: # translate "success" into shell exit code of 0
