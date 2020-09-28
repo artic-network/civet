@@ -185,10 +185,10 @@ civet -fm adm2=Edinburgh sample_date=2020-03-01:2020-04-01 [options]''')
     # don't run in quiet mode if verbose specified
     if args.verbose:
         quiet_mode = False
-        config["quiet_mode"]=False
+        config["quiet_mode"]=" "
     else:
         quiet_mode = True
-        config["quiet_mode"]=True
+        config["quiet_mode"]="--quiet"
 
     if args.generate_config:
         qcfunk.make_config_file("civet_config.yaml",config)
@@ -200,15 +200,15 @@ civet -fm adm2=Edinburgh sample_date=2020-03-01:2020-04-01 [options]''')
     snakefile = qcfunk.get_snakefile(thisdir)
 
     if args.verbose:
-        status = snakemake.snakemake(snakefile, printshellcmds=True,
-                                    dryrun=args.dry_run, forceall=True,force_incomplete=True,workdir=tempdir,
-                                    config=config, cores=args.threads,lock=False,quiet=False,stats=statsfile
+        for k in sorted(config):
+            print(k, config[k])
+        status = snakemake.snakemake(snakefile, printshellcmds=True, forceall=True, force_incomplete=True,
+                                    workdir=tempdir,config=config, cores=threads,lock=False
                                     )
     else:
         logger = custom_logger.Logger()
-        status = snakemake.snakemake(snakefile, printshellcmds=False,
-                                    dryrun=args.dry_run, forceall=True,force_incomplete=True,workdir=tempdir,
-                                    config=config, cores=threads,lock=False,quiet=True,stats=statsfile,log_handler=logger.log_handler
+        status = snakemake.snakemake(snakefile, printshellcmds=False, forceall=True,force_incomplete=True,workdir=tempdir,
+                                    config=config, cores=threads,lock=False,quiet=True,log_handler=logger.log_handler
                                     )
 
     if status: # translate "success" into shell exit code of 0

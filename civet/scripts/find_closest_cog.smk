@@ -48,15 +48,15 @@ rule gofasta_against_cog:
     shell:
         # produces query,closest,SNPdistance,SNPs
         """
-        gofasta closest -target {input.cog_seqs:q} \
-        -query {input.query_seqs:q} \
-        -outfile {output.csv:q} \
+        gofasta closest --target {input.cog_seqs:q} \
+        --query {input.query_seqs:q} \
+        --outfile {output.csv:q} \
         -t {workflow.cores}
         """
 
 rule parse_closest:
     input:
-        csv = rules.minimap2_against_cog.output.csv,
+        csv = rules.gofasta_against_cog.output.csv,
         metadata = config["cog_metadata"],
         fasta = config["seq_db"]
     output:
