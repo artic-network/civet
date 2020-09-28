@@ -4,14 +4,14 @@ import argparse
 from Bio import SeqIO
 import collections
 """
---paf {input.paf:q} 
+--csv {input.csv:q} 
 --metadata {input.metadata:q} 
 --csv-out {output.csv:q} 
 """
 def parse_args():
-    parser = argparse.ArgumentParser(description='Parse barcode info and minimap paf file, create report.')
+    parser = argparse.ArgumentParser(description='Parse barcode info and csv file, create report.')
 
-    parser.add_argument("--paf", action="store", type=str, dest="paf")
+    parser.add_argument("--csv", action="store", type=str, dest="csv")
     parser.add_argument("--metadata", action="store", type=str, dest="metadata")
     parser.add_argument("--search-field", action="store",type=str, dest="search_field")
     parser.add_argument("--csv-out", action="store", type=str, dest="outfile")
@@ -20,31 +20,22 @@ def parse_args():
     return parser.parse_args()
 
 
-def parse_line(line):
-    values = {}
-    tokens = line.rstrip('\n').split('\t')
-    values["name"], values["read_len"] = tokens[:2]
-    values["ref_hit"], values["ref_len"], values["coord_start"], values["coord_end"], values["matches"], values["aln_block_len"] = tokens[5:11]
-    return values
-
-
-def get_closest_cog_sequences(paf):
+def get_closest_cog_sequences(csv):
 
     closest_cog_sequences = []
     closest_to_query = collections.defaultdict(list)
-    with open(paf,"r") as f:
-        last_mapping = None
-        for line in f:
-            mapping = parse_line(line)
-            closest_to_query[mapping["ref_hit"]].append(mapping["name"])
+    with open(csv,"r") as f:
+        reader = csv.DictReader(f)
+        for row in reader:
+            closest_to_query[mapping["closest"]].append(row)
 
     return closest_to_query
 
 
-def parse_paf_and_get_metadata():
+def parse_csv_and_get_metadata():
     args = parse_args()
 
-    closest_to_query = get_closest_cog_sequences(args.paf)
+    closest_to_query = get_closest_cog_sequences(args.csv)
     column_to_match = args.search_field
     
     with open(args.metadata, newline="") as f:
@@ -56,18 +47,21 @@ def parse_paf_and_get_metadata():
             header_names.append("cog_id")
             header_names.append("query")
             header_names.append("closest")
+            header_names.append("SNPdistance")
+            header_names.append("SNPs")
             writer = csv.DictWriter(fw, fieldnames=header_names,lineterminator='\n')
             writer.writeheader()
         
             for row in reader:
                 if row["sequence_name"] in closest_to_query:
-                    for query in closest_to_query[row["sequence_name"]]:
+                    for query_row in closest_to_query[row["sequence_name"]]:
                         new_row = row
-                        new_row["query_id"]=query
+                        new_row["query_id"]=query_row["query"]
                         new_row["cog_id"]= row[column_to_match]
-                        new_row["query"]=query
+                        new_row["query"]=query_row["query"]
                         new_row["closest"]=row["sequence_name"]
-
+                        new_row["SNPdistance"]=query_row["SNPdistance"]
+                        new_row["SNPs"]=query_row["SNPs"]
 
                         writer.writerow(new_row)
 
@@ -75,10 +69,13 @@ def parse_paf_and_get_metadata():
     with open(args.seqs_out, "w") as fw:
         for record in SeqIO.parse(args.seqs,"fasta"):
             if record.id in closest_to_query:
-                closest_queries = ",".join(closest_to_query[record.id])
+                queries = []
+                for query_row in closest_to_query[record.id]:
+                    queries.append(query_row["query"])
+                closest_queries = ",".join(queries)
                 fw.write(f">{record.id} query={closest_queries}\n{record.seq}\n")
 
 if __name__ == '__main__':
 
-    parse_paf_and_get_metadata()
+    parse_csv_and_get_metadata()
     
