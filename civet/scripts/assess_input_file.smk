@@ -21,7 +21,7 @@ rule check_cog_db:
         check_cog_db.py --query {input.query:q} \
                         --cog-seqs {input.cog_seqs:q} \
                         --cog-metadata {input.cog_metadata:q} \
-                        --field {config[search_field]} \
+                        --field {config[data_column]} \
                         --in-metadata {output.cog:q} \
                         --in-seqs {output.cog_seqs:q} \
                         --input-column {config[input_column]} \
@@ -95,7 +95,7 @@ rule get_closest_cog:
                         "tempdir={config[tempdir]:q} "
                         "seq_db={input.seq_db:q} "
                         "to_find_closest={output.combined_query:q} "
-                        "search_field={config[search_field]} "
+                        "data_column={config[data_column]} "
                         "trim_start={config[trim_start]} "
                         "trim_end={config[trim_end]} "
                         "reference_fasta={input.reference_fasta:q} "
@@ -119,16 +119,16 @@ rule combine_metadata:
             header_names = reader.fieldnames
 
             with open(output.combined_csv, "w") as fw:
-                header_names.append("closest_distance")
-                header_names.append("snps")
+                header_names.append("SNPdistance")
+                header_names.append("SNPs")
                 writer = csv.DictWriter(fw, fieldnames=header_names,lineterminator='\n')
                 writer.writeheader()
             
                 for row in reader:
                     c +=1
                     new_row = row
-                    new_row["closest_distance"]="0"
-                    new_row["snps"]= ""
+                    new_row["SNPdistance"]="0"
+                    new_row["SNPs"]= ""
 
                     writer.writerow(new_row)
 
