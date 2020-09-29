@@ -45,13 +45,9 @@ def get_defaults():
                     }
     return default_dict
 
-def define_seq_db(global_arg,config,default_dict):
-    global_search = qcfunk.check_arg_config_default("global_search",global_arg, config, default_dict)
-    if global_search:
-        config["seq_db"] = config["cog_global_seqs"]
-    else:
-        config["seq_db"] = config["cog_seqs"]
-
+def define_seq_db(config,default_dict):
+    config["seq_db"] = config["cog_global_seqs"]
+    
 
 def get_package_data(cog_report,thisdir,config,default_dict):
     reference_fasta = pkg_resources.resource_filename('civet', 'data/reference.fasta')
@@ -226,3 +222,37 @@ def get_datadir(args_climb,args_uun,args_datadir,remote,cwd,config,default_dict)
         get_remote_data(args_uun, data_dir, config)
 
     config["datadir"]=data_dir
+
+def map_group_to_config(args,config,default_dict):
+
+    ## date_restriction
+    date_restriction = qcfunk.check_arg_config_default("date_restriction",args.date_restriction, config, default_dict)
+    config["date_restriction"] = date_restriction
+
+    ## date_range_start
+    date_range_start = qcfunk.check_arg_config_default("date_range_start",args.date_range_start, config, default_dict)
+    config["date_range_start"] = date_range_start
+
+    ## date_range_end
+    date_range_end = qcfunk.check_arg_config_default("date_range_end",args.date_range_end, config, default_dict)
+    config["date_range_end"] = date_range_end
+
+    ## date_window
+    date_window = qcfunk.check_arg_config_default("date_window",args.date_window, config, default_dict)
+    config["date_window"] = date_window
+
+    ## map_sequences
+    map_sequences = qcfunk.check_arg_config_default("map_sequences",args.map_sequences, config, default_dict)
+    config["map_sequences"] = map_sequences
+
+    ## map_cols
+    map_cols = qcfunk.check_arg_config_default("map_cols",args.map_cols, config, default_dict)
+    config["map_cols"] = map_cols
+
+    ## input_crs
+    input_crs = qcfunk.check_arg_config_default("input_crs",args.input_crs, config, default_dict)
+    config["input_crs"] = input_crs
+
+    ## mapping_trait
+    mapping_trait = qcfunk.check_arg_config_default("mapping_trait",args.mapping_trait, config, default_dict)
+    config["mapping_trait"] = mapping_trait
