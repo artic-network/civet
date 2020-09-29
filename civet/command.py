@@ -76,7 +76,7 @@ civet -fm adm2=Edinburgh sample_date=2020-03-01:2020-04-01 [options]''')
     map_group.add_argument('--date-range-end', action="store", type=str, dest="date_range_end", help="Define the end date from which sequences will COG sequences will be used for local context. YYYY-MM-DD format required.")
     map_group.add_argument('--date-window',action="store", type=int, dest="date_window",help="Define the window +- either side of cluster sample collection date-range. Default is 7 days.")
     map_group.add_argument("--map-sequences", action="store_true", dest="map_sequences", help="Map the sequences themselves by adm2, coordinates or otuer postcode.")
-    map_group.add_argument("--map-cols", required=False, dest="map_cols", help="columns containing EITHER x and y coordinates as a comma separated string OR outer postcodes for mapping sequences OR Adm2")
+    map_group.add_argument("--map-info", required=False, dest="map_info", help="columns containing EITHER x and y coordinates as a comma separated string OR outer postcodes for mapping sequences OR Adm2")
     map_group.add_argument("--input-crs", required=False, dest="input_crs", help="Coordinate reference system for sequence coordinates")
     map_group.add_argument("--mapping-trait", required=False, dest="mapping_trait", help="Column to colour mapped sequences by")
     
@@ -130,6 +130,8 @@ civet -fm adm2=Edinburgh sample_date=2020-03-01:2020-04-01 [options]''')
     
     
     """
+    Get tempdir and data dir. 
+    Check if data has the right columns needed.
     The following rely on things that come out of the 
     input config or csv files so shouldnt be moved up above that.
 
@@ -142,8 +144,12 @@ civet -fm adm2=Edinburgh sample_date=2020-03-01:2020-04-01 [options]''')
 
     # find the data dir
     cfunk.get_datadir(args.climb,args.uun,args.datadir,args.remote,cwd,config,default_dict)
-    # check if metadata has the right columns
-    qcfunk.check_metadata_for_seach_columns(args.data_column,config,default_dict)
+
+    # add data and input columns to config
+    qcfunk.data_columns_to_config(args,config,default_dict)
+
+    # check if metadata has the right columns, background_metadata_header added to config
+    qcfunk.check_metadata_for_seach_columns(config,default_dict)
 
     """
     from metadata parsing 
@@ -152,7 +158,7 @@ civet -fm adm2=Edinburgh sample_date=2020-03-01:2020-04-01 [options]''')
     """
     # generate query from metadata
     if args.from_metadata or "from_metadata" in config:
-        metadata = config["cog_metadata"]
+        metadata = config["metadata"]
         query = qcfunk.generate_query_from_metadata(args.from_metadata,metadata,config)
 
     """
@@ -184,25 +190,35 @@ civet -fm adm2=Edinburgh sample_date=2020-03-01:2020-04-01 [options]''')
     # accessing package data and adding to config dict
     cfunk.get_package_data(args.cog_report,thisdir,config,default_dict)
 
+    """
+    Report options and args added to config, seq header file retrieved
+    """
+    # check args, config, defaultdict for report group options
+    cfunk.report_columns_to_config(args,config,default_dict)
+
     # get seq centre header file from pkg data
-    qcfunk.get_sequencing_centre_header(args.sequencing_centre,config)
+    qcfunk.get_sequencing_centre_header(config)
 
-
+    
     """
     Mapping options parsing and 
     qc of the input
     """
+    
     # check args, config, defaultdict for mapping group options
     cfunk.map_group_to_config(args,config,default_dict)
+
+    # check args, config, defaultdict for data group options
+    qcfunk.data_group_to_config(args,config,default_dict)
 
     # parse the input csv, check col headers and get fields if fields specified
     qcfunk.check_label_and_tree_and_date_fields(args.tree_fields, args.label_fields,args.display, args.date_fields, args.input_column, args.display_name, config,default_dict)
         
     # map sequences configuration
-    qcfunk.map_sequences_config(args.map_sequences,args.mapping_trait,args.map_cols,args.input_crs,config,default_dict)
+    qcfunk.map_sequences_config(args.map_sequences,args.mapping_trait,args.map_info,args.input_crs,config,default_dict)
     
-    # local lineages configuration
-    qcfunk.local_lineages_config(args.local_lineages,config,default_dict)
+    # local lineages qc
+    cfunk.local_lineages_qc(config,default_dict)
 
     """
     Parsing the tree_group arguments, 
@@ -234,7 +250,6 @@ civet -fm adm2=Edinburgh sample_date=2020-03-01:2020-04-01 [options]''')
         
     # summarising collapsed nodes config
     qcfunk.node_summary(args.node_summary,config)
-    statsfile = os.path.join(config["outdir"],"stats.json")
 
     for key in default_dict:
         if key not in config:
