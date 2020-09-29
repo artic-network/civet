@@ -19,10 +19,11 @@ omit_appendix: True
 #display_name: display
 snps_in_seq_table: True
 node_summary: lineage
+sample_date_column: "sample_date"
 # up-distance: 2
 # down-distance: 2
 # threshold: 1
-from-metadata: ["adm2=Edinburgh","sample_date=2020-05-01:2020-05-15"]
+#from-metadata: ["adm2=Edinburgh","sample_date=2020-05-01:2020-05-15"]
 # date-fields: ["sample_date", "date_2", "date_3"]
 # ids:
 #   - EDB001

@@ -31,7 +31,7 @@ def get_defaults():
                     "date_window":7,
                     "global_search":False,
                     "label_fields":"sequence_name",#this was none
-                    "date_fields":"sample_date",#this was none
+                    "date_fields":"sample_date",#this was none - this still needs to be None?
                     "graphic_dict":"adm1",
                     "date_restriction":False,
                     "local_lineages":False,
@@ -226,3 +226,31 @@ def get_datadir(args_climb,args_uun,args_datadir,remote,cwd,config,default_dict)
         get_remote_data(args_uun, data_dir, config)
 
     config["datadir"]=data_dir
+
+
+def prepping_civet_arguments(name_stem_input, tree_fields_input, graphic_dict_input, label_fields_input, date_fields_input, table_fields_input):
+
+    tree_fields = prep_argument_list(tree_fields_input, "NONE")
+    label_fields = prep_argument_list(label_fields_input, "NONE")
+    date_fields = prep_argument_list(date_fields_input, "NONE")
+    table_fields = prep_argument_list(table_fields_input, "NONE")
+
+    if "/" in name_stem_input:
+        name_stem = name_stem_input.split("/")[-1]
+    else:
+        name_stem = name_stem_input
+
+    graphic_dict = {}
+    splits = graphic_dict_input.split(",")
+    for element in splits:
+        key = element.split(":")[0]
+        value = element.split(":")[1]
+        graphic_dict[key] = value
+            
+    for key in graphic_dict.keys():
+        if key not in tree_fields:
+            tree_fields.append(key)
+  
+    return name_stem, tree_fields, graphic_dict, label_fields, date_fields, table_fields
+
+

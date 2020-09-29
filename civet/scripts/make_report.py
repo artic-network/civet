@@ -9,18 +9,6 @@ from reportfunk.funks import io_functions as qcfunk
 import yaml
 thisdir = os.path.abspath(os.path.dirname(__file__))
 
-def get_report_arguments(arg_file):
-
-    args = []
-
-    with open(arg_file) as f:
-        for l in f:
-            arg = l.strip("\n")
-            arg = arg.replace("-", "_")
-            args.append(arg)
-
-    return args
-
 def parse_args():
     parser = argparse.ArgumentParser(description="Report generator script")
     parser.add_argument("--config", required=True, help="config yaml file", dest="config") 
