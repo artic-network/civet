@@ -265,17 +265,17 @@ civet -fm adm2=Edinburgh sample_date=2020-03-01:2020-04-01 [options]''')
     # don't run in quiet mode if verbose specified
     if args.verbose:
         quiet_mode = False
-        config["quiet_mode"]=" "
+        config["log_string"] = ""
     else:
         quiet_mode = True
-        config["quiet_mode"]="--quiet"
+        config["log_string"] = f"--quiet --log-handler-script custom_logger.py "
+
 
     threads = qcfunk.check_arg_config_default("threads",args.threads,config,default_dict)
     config["threads"]= int(threads)
 
     if args.generate_config:
         qcfunk.make_config_file("civet_config.yaml",config)
-
     
     # find the master Snakefile
     snakefile = qcfunk.get_snakefile(thisdir)

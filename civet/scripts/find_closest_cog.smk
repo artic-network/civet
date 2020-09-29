@@ -8,7 +8,6 @@ rule all:
         os.path.join(config["tempdir"],"closest_cog.csv"),
         os.path.join(config["tempdir"],"post_qc_query.aligned.fasta")
 
-
 rule non_cog_minimap2_to_reference:
     input:
         fasta = config["to_find_closest"],
@@ -39,16 +38,16 @@ rule non_cog_remove_insertions_and_trim_and_pad:
           --log-inserts 
         """
 
-rule gofasta_against_cog:
+rule gofasta:
     input:
         query_seqs = rules.non_cog_remove_insertions_and_trim_and_pad.output.fasta,
-        cog_seqs = config["seq_db"]
+        background_seqs = config["background_seqs"]
     output:
         csv = os.path.join(config["tempdir"],"closest_gofasta.csv")
     shell:
         # produces query,closest,SNPdistance,SNPs
         """
-        gofasta closest --target {input.cog_seqs:q} \
+        gofasta closest --target {input.background_seqs:q} \
         --query {input.query_seqs:q} \
         --outfile {output.csv:q} \
         -t {workflow.cores}
@@ -56,19 +55,19 @@ rule gofasta_against_cog:
 
 rule parse_closest:
     input:
-        csv = rules.gofasta_against_cog.output.csv,
-        metadata = config["cog_metadata"],
-        fasta = config["seq_db"]
+        csv = rules.gofasta.output.csv,
+        metadata = config["background_metadata"],
+        fasta = config["background_seqs"]
     output:
         fasta = os.path.join(config["tempdir"],"closest_cog.fasta"),
         csv = os.path.join(config["tempdir"],"closest_cog.csv")
     shell:
         """
         parse_closest.py \
-        --csv {input.paf:q} \
+        --csv {input.csv:q} \
         --metadata {input.metadata:q} \
         --seqs {input.fasta:q} \
         --csv-out {output.csv:q} \
         --seqs-out {output.fasta:q} \
-        --search-field {config[search_field]}
+        --data-column {config[data_column]}
         """
