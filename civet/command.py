@@ -48,7 +48,6 @@ civet -fm adm2=Edinburgh sample_date=2020-03-01:2020-04-01 [options]''')
     data_group.add_argument('--input-column', action="store",help="Column in input csv file to match with database. Default: name", dest="input_column")
     data_group.add_argument('--data-column', action="store",help="Option to search COG database for a different id type. Default: COG-UK ID", dest="data_column")
     data_group.add_argument("--display-name", action="store", help="Column in input csv file with display names for seqs. Default: same as input column", dest="display_name")
-    data_group.add_argument('-g','--global',action="store_true",dest="global_search",help="Rather than finding closest match in COG database, search globally and find closest match in the entire database.")
 
     report_group = parser.add_argument_group('report customisation')
     report_group.add_argument('-sc',"--sequencing-centre", action="store",help="Customise report with logos from sequencing centre.", dest="sequencing_centre")
@@ -91,46 +90,110 @@ civet -fm adm2=Edinburgh sample_date=2020-03-01:2020-04-01 [options]''')
     misc_group.add_argument("--verbose",action="store_true",help="Print lots of stuff to screen")
     misc_group.add_argument("-v","--version", action='version', version=f"civet {__version__}")
     
-    # Exit with help menu if no args supplied
+    """
+    Exit with help menu if no args supplied
+    """
     if len(sysargs)<1: 
         parser.print_help()
         sys.exit(-1)
     else:
         args = parser.parse_args(sysargs)
     
+    """
+    Initialising dicts
+    """
     # create the config dict to pass through to the snakemake file
-
     config = {}
-
+    # get the default values from civetfunks
     default_dict = cfunk.get_defaults()
 
+    """
+    Output directory 
+    (needed prior to -i, in case input ids need to be written to a file)
+    """
     # default output dir
     qcfunk.get_outdir(args.outdir,cwd,config)
 
+    """
+    Input file (-i/--input) 
+    Valid inputs are input.csv; ID1,ID2,ID3; config.yaml/config.yml
+    
+    If there's an input fasta file- add to the config dict
+
+    """
     # find the query csv, or string of ids, or config file
     query,configfile = qcfunk.type_input_file(args.input,cwd,config)
 
+    # if a yaml file is detected, add everything in it to the config dict
     if configfile:
         config = qcfunk.parse_yaml_file(configfile, config)
+    
+    
+    """
+    The following rely on things that come out of the 
+    input config or csv files so shouldnt be moved up above that.
 
-    # find the query fasta
-    qcfunk.get_query_fasta(args.fasta,cwd, config)
-
-    # specifying temp directory, outdir if no_temp
+    - tempdir
+    - datadir
+    """
+    
+    # specifying temp directory, outdir if no_temp (tempdir becomes working dir)
     tempdir = qcfunk.get_temp_dir(args.tempdir, args.no_temp,cwd,config)
 
     # find the data dir
     cfunk.get_datadir(args.climb,args.uun,args.datadir,args.remote,cwd,config,default_dict)
-    
+    # check if metadata has the right columns
     qcfunk.check_metadata_for_seach_columns(args.data_column,config,default_dict)
 
+    """
+    from metadata parsing 
+
+    relies on the data dir being found 
+    """
     # generate query from metadata
     if args.from_metadata or "from_metadata" in config:
         metadata = config["cog_metadata"]
         query = qcfunk.generate_query_from_metadata(args.from_metadata,metadata,config)
 
+    """
+    The query file could have been from one of
+    - input.csv
+    - id string input, created csv
+    - from_metadata generated query csv
+
+    (all either specified in config or via command line)
+    """
     # check query exists or add ids to temp query file
     qcfunk.check_query_file(query, cwd, config)
+
+    """
+    Input fasta file 
+    sourcing and qc checks
+    """
+    # find the query fasta
+    qcfunk.get_query_fasta(args.fasta,cwd, config)
+    
+    # run qc on the input sequence file
+    qcfunk.input_file_qc(args.minlen,args.maxambig,config,default_dict)
+
+    """
+    Accessing the civet package data and 
+    selecting the mapping files, 
+    the sequencing centre header
+    """
+    # accessing package data and adding to config dict
+    cfunk.get_package_data(args.cog_report,thisdir,config,default_dict)
+
+    # get seq centre header file from pkg data
+    qcfunk.get_sequencing_centre_header(args.sequencing_centre,config)
+
+
+    """
+    Mapping options parsing and 
+    qc of the input
+    """
+    # check args, config, defaultdict for mapping group options
+    cfunk.map_group_to_config(args,config,default_dict)
 
     # parse the input csv, check col headers and get fields if fields specified
     qcfunk.check_label_and_tree_and_date_fields(args.tree_fields, args.label_fields,args.display, args.date_fields, args.input_column, args.display_name, config,default_dict)
@@ -141,20 +204,22 @@ civet -fm adm2=Edinburgh sample_date=2020-03-01:2020-04-01 [options]''')
     # local lineages configuration
     qcfunk.local_lineages_config(args.local_lineages,config,default_dict)
 
-    # run qc on the input sequence file
-    qcfunk.input_file_qc(args.minlen,args.maxambig,config,default_dict)
+    """
+    Parsing the tree_group arguments, 
+    config or default options
+    """
 
-    # accessing package data and adding to config dict
-    cfunk.get_package_data(args.cog_report,thisdir,config,default_dict)
+    # global now the only search option
+    cfunk.define_seq_db(config,default_dict)
 
-    # get seq centre header file from pkg data
-    qcfunk.get_sequencing_centre_header(args.sequencing_centre,config)
-    
-    
     # extraction radius configuration
-    qcfunk.distance_config(args.distance,args.up_distance,args.down_distance,config,default_dict) #this is now only a print statement because they get added to the config dict up top
+    qcfunk.distance_config(args.distance,args.up_distance,args.down_distance,config,default_dict) 
 
-    ## report arguments
+    """
+    Parsing the report_group arguments, 
+    config or default options
+    """
+
     # make title
     rfunk.make_title(config)
     # deal with free text
@@ -175,10 +240,10 @@ civet -fm adm2=Edinburgh sample_date=2020-03-01:2020-04-01 [options]''')
         if key not in config:
             config[key] = default_dict[key]
 
-    # global vs cog db search
-    cfunk.define_seq_db(args.global_search,config,default_dict)
+    """
+    Miscellaneous options parsing
 
-
+    """
     if args.launch_browser:
         config["launch_browser"]=True
 
@@ -190,18 +255,20 @@ civet -fm adm2=Edinburgh sample_date=2020-03-01:2020-04-01 [options]''')
         quiet_mode = True
         config["quiet_mode"]="--quiet"
 
-    if args.generate_config:
-        qcfunk.make_config_file("civet_config.yaml",config)
-
     threads = qcfunk.check_arg_config_default("threads",args.threads,config,default_dict)
     config["threads"]= int(threads)
 
+    if args.generate_config:
+        qcfunk.make_config_file("civet_config.yaml",config)
+
+    
     # find the master Snakefile
     snakefile = qcfunk.get_snakefile(thisdir)
 
     if args.verbose:
+        
         for k in sorted(config):
-            print(k, config[k])
+            print(qcfunk.green(k), config[k])
         status = snakemake.snakemake(snakefile, printshellcmds=True, forceall=True, force_incomplete=True,
                                     workdir=tempdir,config=config, cores=threads,lock=False
                                     )
