@@ -11,23 +11,23 @@ import collections
 def parse_args():
     parser = argparse.ArgumentParser(description='Parse barcode info and csv file, create report.')
 
-    parser.add_argument("--csv", action="store", type=str, dest="csv")
+    parser.add_argument("--csv", action="store", type=str, dest="input_csv")
     parser.add_argument("--metadata", action="store", type=str, dest="metadata")
-    parser.add_argument("--search-field", action="store",type=str, dest="search_field")
+    parser.add_argument("--data-column", action="store",type=str, dest="data_column")
     parser.add_argument("--csv-out", action="store", type=str, dest="outfile")
     parser.add_argument("--seqs", action="store", type=str, dest="seqs")
     parser.add_argument("--seqs-out", action="store", type=str, dest="seqs_out")
     return parser.parse_args()
 
 
-def get_closest_cog_sequences(csv):
+def get_closest_cog_sequences(input_csv):
 
     closest_cog_sequences = []
     closest_to_query = collections.defaultdict(list)
-    with open(csv,"r") as f:
+    with open(input_csv,"r") as f:
         reader = csv.DictReader(f)
         for row in reader:
-            closest_to_query[mapping["closest"]].append(row)
+            closest_to_query[row["closest"]].append(row)
 
     return closest_to_query
 
@@ -35,8 +35,8 @@ def get_closest_cog_sequences(csv):
 def parse_csv_and_get_metadata():
     args = parse_args()
 
-    closest_to_query = get_closest_cog_sequences(args.csv)
-    column_to_match = args.search_field
+    closest_to_query = get_closest_cog_sequences(args.input_csv)
+    column_to_match = args.data_column
     
     with open(args.metadata, newline="") as f:
         rows_to_write = []

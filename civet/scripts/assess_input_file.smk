@@ -2,28 +2,31 @@ import csv
 from Bio import SeqIO
 import os
 import collections
+import snakemake
 import sys
 import yaml
+from reportfunk.funks import custom_logger as custom_logger
+
 
 from reportfunk.funks import io_functions as qcfunk
 
 rule check_cog_db:
     input:
         query = config["query"],
-        cog_seqs = config["cog_seqs"],
-        cog_metadata = config["cog_metadata"]
+        background_seqs = config["background_seqs"],
+        background_metadata = config["background_metadata"]
     output:
         cog = os.path.join(config["tempdir"],"query_in_cog.csv"),
-        cog_seqs = os.path.join(config["tempdir"],"query_in_cog.fasta"),
+        background_seqs = os.path.join(config["tempdir"],"query_in_cog.fasta"),
         not_cog = os.path.join(config["tempdir"],"not_in_cog.csv")
     shell:
         """
         check_cog_db.py --query {input.query:q} \
-                        --cog-seqs {input.cog_seqs:q} \
-                        --cog-metadata {input.cog_metadata:q} \
+                        --cog-seqs {input.background_seqs:q} \
+                        --cog-metadata {input.background_metadata:q} \
                         --field {config[data_column]} \
                         --in-metadata {output.cog:q} \
-                        --in-seqs {output.cog_seqs:q} \
+                        --in-seqs {output.background_seqs:q} \
                         --input-column {config[input_column]} \
                         --not-in-cog {output.not_cog:q}
         """
@@ -32,17 +35,16 @@ rule get_closest_cog:
     input:
         snakefile = os.path.join(workflow.current_basedir,"find_closest_cog.smk"),
         reference_fasta = config["reference_fasta"],
-        cog_seqs = config["cog_seqs"],
-        cog_metadata = config["cog_metadata"],
+        background_seqs = config["background_seqs"],
+        background_metadata = config["background_metadata"],
         seq_db = config["seq_db"],
         not_cog_csv = rules.check_cog_db.output.not_cog, #use
-        in_cog_metadata = rules.check_cog_db.output.cog
+        in_background_metadata = rules.check_cog_db.output.cog
     output:
         closest_cog = os.path.join(config["tempdir"],"closest_cog.csv"),
         combined_query = os.path.join(config["tempdir"],"to_find_closest.fasta"),
         aligned_query = os.path.join(config["tempdir"],"post_qc_query.aligned.fasta"),
         not_processed = os.path.join(config["tempdir"], "no_seq_to_process.csv")
-    log: os.path.join(config["outdir"],"logs","closest.log")
     run:
         query_with_no_seq = []
         to_find_closest = {}
@@ -77,6 +79,7 @@ rule get_closest_cog:
 
         if len(list(set(query_with_no_seq))) != 0:
             print(qcfunk.cyan("Not found in COG and a fasta file not provided, CIVET was unable to add them into phylogenies:"))
+        
         with open(output.not_processed, "w") as fw:
             for query in list(set(query_with_no_seq)):
                 fw.write(f"{query},fail=no sequence provided\n")
@@ -87,23 +90,25 @@ rule get_closest_cog:
             print(qcfunk.green(f"Passing {len(to_find_closest)} sequences into nearest COG search pipeline:"))
             for seq in to_find_closest:
                 print(f"    - {seq}    {to_find_closest[seq][0]}")
+
+            # config["to_find_closest"]=output.combined_query
+
             shell("snakemake --nolock --snakefile {input.snakefile:q} "
                         "{config[force]} "
-                        "{config[quiet_mode]} "
+                        "{config[log_string]}"
                         "--directory {config[tempdir]:q} "
                         "--config "
                         "tempdir={config[tempdir]:q} "
-                        "seq_db={input.seq_db:q} "
+                        "background_metadata={input.background_metadata:q} "
+                        "background_seqs={input.background_seqs:q} "
                         "to_find_closest={output.combined_query:q} "
                         "data_column={config[data_column]} "
                         "trim_start={config[trim_start]} "
                         "trim_end={config[trim_end]} "
                         "reference_fasta={input.reference_fasta:q} "
-                        "cog_metadata={input.cog_metadata:q} "
-                        "--cores {workflow.cores} > {log} 2>> {log}")
-
+                        "--cores {workflow.cores}")
         else:
-            shell("touch {output.closest_cog:q} && touch {output.aligned_query:q} && echo 'no closest to find' > {log} 2>> {log}")
+            shell("touch {output.closest_cog:q} && touch {output.aligned_query:q} && echo 'no closest to find'")
 
 
 rule combine_metadata:
@@ -143,7 +148,7 @@ rule combine_metadata:
 
 rule prune_out_catchments:
     input:
-        tree = config["cog_tree"],
+        tree = config["background_tree"],
         metadata = rules.combine_metadata.output.combined_csv
     params:
         outdir = os.path.join(config["tempdir"],"catchment_trees")
@@ -172,9 +177,8 @@ rule process_catchments:
         combined_metadata = rules.combine_metadata.output.combined_csv, 
         query_seqs = rules.get_closest_cog.output.aligned_query, #datafunk-processed seqs
         catchment_prompt = rules.prune_out_catchments.output.txt,
-        cog_seqs = config["cog_seqs"],
-        outgroup_fasta = config["outgroup_fasta"],
-        cog_global_seqs = config["cog_global_seqs"]
+        background_seqs = config["background_seqs"],
+        outgroup_fasta = config["outgroup_fasta"]
         # not_cog_csv = rules.check_cog_all.output.not_cog
     params:
         tree_dir = os.path.join(config["tempdir"],"catchment_trees")
@@ -195,16 +199,13 @@ rule process_catchments:
             query_seqs +=1
 
         if query_seqs !=0:
-            if config["delay_collapse"]==False:
-                snakefile = input.snakefile_collapse_before
-            else:
-                snakefile = input.snakefile_collapse_after
-
-            snakestring = f"'{snakefile}' "
+            
+            
+            snakestring = f"'{input.snakefile_collapse_before}' "
             print(f"Processing catchment trees")
             shell(f"snakemake --nolock --snakefile {snakestring}"
                         "{config[force]} "
-                        "{config[quiet_mode]} "
+                        "{config[log_string]} "
                         "--directory {config[tempdir]:q} "
                         "--config "
                         f"catchment_str={catchment_str} "
@@ -212,8 +213,7 @@ rule process_catchments:
                         "tempdir={config[tempdir]:q} "
                         "outgroup_fasta={input.outgroup_fasta:q} "
                         "aligned_query_seqs={input.query_seqs:q} "
-                        "cog_seqs={input.cog_seqs:q} "
-                        "cog_global_seqs={input.cog_global_seqs:q} "
+                        "background_seqs={input.background_seqs:q} "
                         "combined_metadata={input.combined_metadata:q} "
                         "threshold={config[threshold]} "
                         "--cores {workflow.cores} >& {log}")
@@ -221,7 +221,7 @@ rule process_catchments:
             print(f"No new sequences to add in, just collapsing trees")
             shell("snakemake --nolock --snakefile {input.snakefile_just_collapse:q} "
                             "{config[force]} "
-                            "{config[quiet_mode]} "
+                            "{config[log_string]} "
                             "--directory {config[tempdir]:q} "
                             "--config "
                             f"catchment_str={catchment_str} "
@@ -236,7 +236,7 @@ rule find_snps:
         tree_summary = os.path.join(config["outdir"],"local_trees","collapse_report.txt"),
         snakefile = os.path.join(workflow.current_basedir,"find_snps.smk"),
         query_seqs = rules.get_closest_cog.output.aligned_query, #datafunk-processed seqs
-        cog_seqs = config["cog_seqs"],
+        background_seqs = config["background_seqs"],
         outgroup_fasta = config["outgroup_fasta"]
     params:
         tree_dir = os.path.join(config["outdir"],"local_trees"),
@@ -253,7 +253,7 @@ rule find_snps:
 
         shell("snakemake --nolock --snakefile {input.snakefile:q} "
                             "{config[force]} "
-                            "{config[quiet_mode]} "
+                            "{config[log_string]} "
                             "--directory {config[tempdir]:q} "
                             "--config "
                             f"catchment_str={local_str} "
@@ -261,7 +261,7 @@ rule find_snps:
                             "tempdir={config[tempdir]:q} "
                             "outgroup_fasta={input.outgroup_fasta:q} "
                             "aligned_query_seqs={input.query_seqs:q} "
-                            "cog_seqs={input.cog_seqs:q} "
+                            "background_seqs={input.background_seqs:q} "
                             "threshold={config[threshold]} "
                             "--cores {workflow.cores}")
 
@@ -269,7 +269,7 @@ rule regional_mapping:
     input:
         query = config['query'],
         combined_metadata = os.path.join(config["outdir"],"combined_metadata.csv"),
-        cog_global_metadata = config["cog_global_metadata"]
+        background_metadata = config["background_metadata"]
     params:
         figdir = os.path.join(config["outdir"],'figures'),
     output:
@@ -286,7 +286,7 @@ rule regional_mapping:
         --date-pair-start {config[date_range_start]:q} \
         --date-pair-end {config[date_range_end]:q} \
         --date-window {config[date_window]:q} \
-        --cog-meta-global {input.cog_global_metadata:q} \
+        --cog-meta-global {input.background_metadata:q} \
         --user-sample-data {input.query:q} \
         --combined-metadata {input.combined_metadata:q} \
         --input-name {config[input_column]:q} \
@@ -338,7 +338,7 @@ rule make_report:
         lineage_trees = rules.process_catchments.output.tree_summary,
         query = config["query"],
         combined_metadata = os.path.join(config["outdir"],"combined_metadata.csv"),
-        cog_global_metadata = config["cog_global_metadata"],
+        background_metadata = config["background_metadata"],
         snp_figure_prompt = os.path.join(config["outdir"],"gather_prompt.txt"),
         genome_graphs = rules.find_snps.output.genome_graphs, 
         central = os.path.join(config["outdir"], 'figures', "central_map_ukLin.png"),
@@ -359,7 +359,7 @@ rule make_report:
         config["treedir"] = os.path.join(config["outdir"],"local_trees")
         config["outfile"] = os.path.join(config["outdir"], "civet_report.md")
         config["summary_dir"] = os.path.join(config["outdir"], "summary_files")
-        config["filtered_cog_metadata"] = input.combined_metadata
+        config["filtered_background_metadata"] = input.combined_metadata
         config["name_stem"] = "civet_report" #may need to change this if we still have different templates - if we don't then we can hard
         qcfunk.get_tree_name_stem(config["treedir"],config)
 

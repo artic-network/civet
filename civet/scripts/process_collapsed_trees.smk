@@ -27,7 +27,7 @@ rule get_basal_representative:
 rule get_basal_seq:
     input:
         basal = rules.get_basal_representative.output.basal,
-        fasta  = config["cog_global_seqs"]
+        fasta  = config["background_seqs"]
     params:
         tree = "{tree}"
     output:
@@ -101,7 +101,7 @@ rule summarise_polytomies:
 
 rule get_collapsed_representative:
     input:
-        cog_seqs = config["cog_global_seqs"],
+        background_seqs = config["background_seqs"],
         collapsed_information = rules.summarise_polytomies.output.collapsed_information
     params:
         tree_dir = os.path.join(config["tempdir"],"collapsed_trees")
@@ -116,7 +116,7 @@ rule get_collapsed_representative:
                 l = l.rstrip("\n")
                 collapsed_name,taxa = l.split('\t')
                 collapsed[collapsed_name] = taxa.split(",")
-        for record in SeqIO.parse(input.cog_seqs,"fasta"):
+        for record in SeqIO.parse(input.background_seqs,"fasta"):
             for node in collapsed:
                 if record.id in collapsed[node]:
                     collapsed_seqs[node].append(record)
@@ -148,7 +148,7 @@ rule gather_fasta_seqs:
     input:
         collapsed_nodes = os.path.join(config["tempdir"],"collapsed_trees","{tree}_representatives.fasta"),
         aligned_query_seqs = config["aligned_query_seqs"],
-        cog_seqs = config["cog_seqs"],
+        background_seqs = config["background_seqs"],
         outgroup_fasta = config["outgroup_fasta"],
         combined_metadata = config["combined_metadata"],
         tree_taxa = rules.extract_taxa.output.tree_taxa,
@@ -185,7 +185,7 @@ rule gather_fasta_seqs:
                 fw.write(f">{record.description}\n{record.seq}\n")
                 added_seqs.append(record.id)
 
-            for record in SeqIO.parse(input.cog_seqs,"fasta"):
+            for record in SeqIO.parse(input.background_seqs,"fasta"):
                 if record.id in taxa:
                     fw.write(f">{record.description}\n{record.seq}\n")
                     added_seqs.append(record.id)

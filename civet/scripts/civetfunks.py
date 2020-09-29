@@ -24,19 +24,25 @@ def get_defaults():
                     "up_distance":2,
                     "down_distance":2,
                     "threshold":1,
-                    "add_bars":False,
+                    "sequencing_centre":"DEFAULT",
                     "tree_fields":"adm1",
+                    "local_lineages":False,
+                    "map_sequences":False,
+                    "map_info":False,
+                    "input_crs":False,
+                    "colour_map_by":False,
+                    "date_restriction":False,
                     "date_range_start":False,
                     "date_range_end":False,
                     "date_window":7,
-                    "global_search":False,
-                    "label_fields":"sequence_name",#this was none
-                    "date_fields":"sample_date",#this was none - this still needs to be None?
+                    "colour_by":"adm1=viridis",
+                    "label_fields":None,#this was none
+                    "date_fields":"sample_date",#this was none
                     "graphic_dict":"adm1",
-                    "date_restriction":False,
-                    "local_lineages":False,
-                    "map_sequences":False,
-                    "delay_collapse":False,
+                    "no_snipit":False,
+                    "include_snp_table":False,
+                    "include_bars":False,
+                    "cog_report":False,
                     "table_fields":["sample_date", "uk_lineage", "lineage", "phylotype"],
                     "threads":1,
                     "force":True,
@@ -45,13 +51,9 @@ def get_defaults():
                     }
     return default_dict
 
-def define_seq_db(global_arg,config,default_dict):
-    global_search = qcfunk.check_arg_config_default("global_search",global_arg, config, default_dict)
-    if global_search:
-        config["seq_db"] = config["cog_global_seqs"]
-    else:
-        config["seq_db"] = config["cog_seqs"]
-
+def define_seq_db(config,default_dict):
+    config["seq_db"] = config["background_seqs"]
+    
 
 def get_package_data(cog_report,thisdir,config,default_dict):
     reference_fasta = pkg_resources.resource_filename('civet', 'data/reference.fasta')
@@ -102,10 +104,8 @@ def get_package_data(cog_report,thisdir,config,default_dict):
 def print_data_error():
     sys.stderr.write(qcfunk.cyan(f"Error: data directory not found at {data_dir}.\n")+ f"""The directory should contain the following files:\n\
     - cog_global_tree.nexus\n\
-    - cog_metadata.csv\n\
     - cog_global_metadata.csv\n\
     - cog_global_alignment.fasta\n\
-    - cog_alignment.fasta\n\n\
 To run civet please either\n1) ssh into CLIMB and run with --CLIMB flag\n\
 2) Run using `--remote-sync` flag and your CLIMB username specified e.g. `-uun climb-covid19-otoolexyz`\n\
 3) Specify a local directory with the appropriate files\n\n""")
@@ -134,35 +134,26 @@ def get_remote_data(uun,data_dir,config):
             sys.stderr.write(qcfunk.cyan("Error: rsync command failed.\nCheck your ssh is configured with Host bham.covid19.climb.ac.uk\nAlternatively enter your CLIMB username with -uun e.g. climb-covid19-smithj\nAlso, check if you have access to CLIMB from this machine and check if you are in the UK\n\n"))
             sys.exit(-1)
 
-    cog_metadata,cog_global_metadata = ("","")
-    cog_seqs = ""
-    cog_tree = ""
+    background_metadata = ""
+    background_seqs = ""
+    background_tree = ""
 
-    cog_seqs = os.path.join(data_dir,"civet-cat","cog_alignment.fasta")
-    cog_metadata = os.path.join(data_dir,"civet-cat","cog_metadata.csv")
+    background_metadata = os.path.join(data_dir,"civet-cat","background_metadata.csv")
+    background_seqs= os.path.join(data_dir,"civet-cat","cog_global_alignment.fasta")
+    background_tree = os.path.join(data_dir,"civet-cat","cog_global_tree.nexus")
 
-    cog_global_metadata = os.path.join(data_dir,"civet-cat","cog_global_metadata.csv")
-    cog_global_seqs= os.path.join(data_dir,"civet-cat","cog_global_alignment.fasta")
-
-    cog_tree = os.path.join(data_dir,"civet-cat","cog_global_tree.nexus")
-
-    if not os.path.isfile(cog_seqs) or not os.path.isfile(cog_global_seqs) or not os.path.isfile(cog_metadata) or not os.path.isfile(cog_global_metadata) or not os.path.isfile(cog_tree):
+    if not os.path.isfile(background_tree) or not os.path.isfile(background_seqs) or not os.path.isfile(background_metadata):
         print_data_error()
         sys.exit(-1)
+    else:
+        config["background_metadata"] = background_metadata
+        config["background_seqs"] = background_seqs
+        config["background_tree"] = background_tree
 
-    config["cog_seqs"] = cog_seqs
-
-    config["cog_metadata"] = cog_metadata
-    config["cog_global_metadata"] = cog_global_metadata
-
-    config["cog_global_seqs"] = cog_global_seqs
-    config["cog_tree"] = cog_tree
-
-    print("Found cog data:")
-    print("    -",cog_seqs)
-    print("    -",cog_metadata)
-    print("    -",cog_global_metadata)
-    print("    -",cog_tree,"\n")
+        print("Found data:")
+        print("    -",background_seqs)
+        print("    -",background_metadata)
+        print("    -",background_tree,"\n")
 
 def get_datadir(args_climb,args_uun,args_datadir,remote,cwd,config,default_dict):
     data_dir = ""
@@ -192,34 +183,26 @@ def get_datadir(args_climb,args_uun,args_datadir,remote,cwd,config,default_dict)
             print_data_error()
             sys.exit(-1)
             
-        cog_metadata,cog_global_metadata = ("","")
-        cog_seqs = ""
-        cog_tree = ""
+        background_metadata = ""
+        background_seqs = ""
+        background_tree = ""
         
-        cog_seqs = os.path.join(data_dir,"cog_alignment.fasta")
-        cog_metadata = os.path.join(data_dir,"cog_metadata.csv")
+        background_metadata = os.path.join(data_dir,"cog_global_metadata.csv")
+        background_seqs= os.path.join(data_dir,"cog_global_alignment.fasta")
+        background_tree = os.path.join(data_dir,"cog_global_tree.nexus")
 
-        cog_global_metadata = os.path.join(data_dir,"cog_global_metadata.csv")
-        cog_global_seqs= os.path.join(data_dir,"cog_global_alignment.fasta")
-
-        cog_tree = os.path.join(data_dir,"cog_global_tree.nexus")
-
-        if not os.path.isfile(cog_seqs) or not os.path.isfile(cog_global_seqs) or not os.path.isfile(cog_metadata) or not os.path.isfile(cog_global_metadata) or not os.path.isfile(cog_tree):
+        if not os.path.isfile(background_tree) or not os.path.isfile(background_seqs) or not os.path.isfile(background_metadata):
             print_data_error()
             sys.exit(-1)
         else:
-            config["cog_seqs"] = cog_seqs
-            config["cog_metadata"] = cog_metadata
+            config["background_metadata"] = background_metadata
+            config["background_seqs"] = background_seqs
+            config["background_tree"] = background_tree
 
-            config["cog_global_metadata"] = cog_global_metadata
-            config["cog_global_seqs"] = cog_global_seqs
-            config["cog_tree"] = cog_tree
-
-            print("Found cog data:")
-            print("    -",cog_seqs)
-            print("    -",cog_metadata)
-            print("    -",cog_global_metadata)
-            print("    -",cog_tree,"\n")
+            print("Found data:")
+            print("    -",background_seqs)
+            print("    -",background_metadata)
+            print("    -",background_tree,"\n")
 
     elif remote:
         
@@ -253,4 +236,180 @@ def prepping_civet_arguments(name_stem_input, tree_fields_input, graphic_dict_in
   
     return name_stem, tree_fields, graphic_dict, label_fields, date_fields, table_fields
 
+def local_lineages_qc(config,default_dict):
+
+    query_file = config["query"]
+
+    if config["local_lineages"]:
+
+        if config["date_restriction"]:
+
+            if config["date_range_start"] and type(config["date_range_start"]) == str:
+                check_date_format(config["date_range_start"])
+            if config["date_range_end"] and type(config["date_range_end"]) == str:
+                check_date_format(config["date_range_end"])
+
+            if config["date_range_start"] and config["date_range_end"]:
+                print(qcfunk.green(f"Local lineage analysis restricted to {config['date_range_start']} to {config['date_range_end']}"))
+            elif config["date_range_start"]:
+                print(qcfunk.green(f"Local lineage analysis restricted to {config['date_range_start']} to present"))
+            else:
+                print(qcfunk.green(f"Local lineage analysis restricted to {config['date_window']} days around the sampling range"))
+
+def map_sequences_config(map_sequences,colour_map_by,map_inputs,input_crs,config,default_dict):
+    
+    if config["map_sequences"]:
+
+        map_inputs = ""
+        if config["map_info"]:
+            map_inputs = config["map_info"].replace(" ","")
+        else:
+            sys.stderr.write(qcfunk.cyan('Error: coordinates or outer postcode not supplied for mapping sequences. Please provide either x and y columns as a comma separated string, or column header containing outer postcode.'))
+            sys.exit(-1)
+
+        if len(map_inputs.split(",")) == 2: #If x and y coordinates are provided
+            if not config["input_crs"]:
+                sys.stderr.write('Error: input coordinate system not provided for mapping. Please provide --input-crs eg EPSG:3395')
+                sys.exit(-1)
+        else: #If an outer postcode column is provided
+            config["input_crs"] = "EPSG:4326"
+        
+        with open(config["query"], newline="") as f:
+            reader = csv.DictReader(f)
+            column_names = reader.fieldnames
+
+            relevant_cols = map_inputs.split(",")
+
+            if config["colour_map_by"]:
+                relevant_cols.append(colour_map_by)
+            
+            for map_arg in relevant_cols:
+                map_arg = map_arg.replace(" ","")
+                if map_arg not in column_names and map_arg not in config["background_metadata_headers"]:
+                    sys.stderr.write(qcfunk.cyan(f"Error: {map_arg} column not found in metadata file or background database for mapping sequences"))
+                    sys.exit(-1)
+
+        if config["colour_map_by"]:
+            if map_inputs == "adm2":
+                print(qcfunk.cyan(f"NOTE: --colour-map-by not set up to colour by adm2. Please provide outer postcode or coordinates"))
+            else:
+                print(qcfunk.green(f"Colouring map by: " + f"{colour_map_by}"))
+            config["colour_map_by"] = colour_map_by
+            
+        else:
+            config["colour_map_by"] = False
+
+        config["map_info"] = False
+        config["input_crs"] = False
+        config["colour_map_by"] = False
+
+
+def get_sequencing_centre_header(config):
+    
+    sc_list = ["PHEC", 'LIVE', 'BIRM', 'PHWC', 'CAMB', 'NORW', 'GLAS', 'EDIN', 'SHEF',
+                'EXET', 'NOTT', 'PORT', 'OXON', 'NORT', 'NIRE', 'GSTT', 'LOND', 'SANG',"NIRE"]
+
+    sequencing_centre = config["sequencing_centre"]
+    if sequencing_centre in sc_list or sequencing_centre == "DEFAULT":
+        package_png = os.path.join("data","headers",f"{sequencing_centre}.png")
+        sequencing_centre_source = pkg_resources.resource_filename('civet', package_png)
+        print(qcfunk.green(f"Using header file from:") + f" {package_png}\n")
+        config["sequencing_centre_source"] = sequencing_centre_source
+        config["sequencing_centre_dest"] = os.path.join(config["outdir"],"figures",f"{sequencing_centre}.png")
+        config["sequencing_centre_file"] = os.path.join(".","figures",f"{sequencing_centre}.png")
+        config["sequencing_centre"] = sequencing_centre
+    else:
+        sc_string = "\n".join(sc_list)
+        sys.stderr.write(qcfunk.cyan(f'Error: sequencing centre must be one of the following:\n{sc_string}\n'))
+        sys.exit(-1)
+
+def map_group_to_config(args,config,default_dict):
+
+    ## local_lineages
+    local_lineages = qcfunk.check_arg_config_default("local_lineages",args.local_lineages, config, default_dict)
+    config["local_lineages"] = local_lineages
+
+    ## date_restriction
+    date_restriction = qcfunk.check_arg_config_default("date_restriction",args.date_restriction, config, default_dict)
+    config["date_restriction"] = date_restriction
+
+    ## date_range_start
+    date_range_start = qcfunk.check_arg_config_default("date_range_start",args.date_range_start, config, default_dict)
+    config["date_range_start"] = date_range_start
+
+    ## date_range_end
+    date_range_end = qcfunk.check_arg_config_default("date_range_end",args.date_range_end, config, default_dict)
+    config["date_range_end"] = date_range_end
+
+    ## date_window
+    date_window = qcfunk.check_arg_config_default("date_window",args.date_window, config, default_dict)
+    config["date_window"] = date_window
+
+    ## map_sequences
+    map_sequences = qcfunk.check_arg_config_default("map_sequences",args.map_sequences, config, default_dict)
+    config["map_sequences"] = map_sequences
+
+    ## map_info
+    map_info = qcfunk.check_arg_config_default("map_info",args.map_info, config, default_dict)
+    config["map_info"] = map_info
+
+    ## input_crs
+    input_crs = qcfunk.check_arg_config_default("input_crs",args.input_crs, config, default_dict)
+    config["input_crs"] = input_crs
+
+    ## colour_map_by
+    colour_map_by = qcfunk.check_arg_config_default("colour_map_by",args.colour_map_by, config, default_dict)
+    config["colour_map_by"] = colour_map_by
+
+
+
+def report_group_to_config(args,config,default_dict):
+    ## sequencing_centre
+    sequencing_centre = qcfunk.check_arg_config_default("sequencing_centre",args.sequencing_centre, config, default_dict)
+    config["sequencing_centre"] = sequencing_centre
+    
+    ## colour_by
+    colour_by = qcfunk.check_arg_config_default("colour_by",args.colour_by, config, default_dict)
+    config["colour_by"] = colour_by
+
+    ## tree_fields
+    tree_fields = qcfunk.check_arg_config_default("tree_fields",args.tree_fields, config, default_dict)
+    config["tree_fields"] = tree_fields
+
+    ## label_fields
+    label_fields = qcfunk.check_arg_config_default("label_fields",args.label_fields, config, default_dict)
+    if not label_fields:
+        config["label_fields"] = config["input_column"]
+
+    ## node-summary
+    node_summary = qcfunk.check_arg_config_default("node_summary",args.node_summary, config, default_dict)
+    config["node_summary"] = node_summary
+
+    ## table_fields
+    table_fields = qcfunk.check_arg_config_default("table_fields",args.table_fields, config, default_dict)
+    config["table_fields"] = table_fields
+
+    ## include_snp_table
+    include_snp_table = qcfunk.check_arg_config_default("include_snp_table",args.include_snp_table, config, default_dict)
+    config["include_snp_table"] = include_snp_table
+
+    ## include_bars
+    include_bars = qcfunk.check_arg_config_default("include_bars",args.include_bars, config, default_dict)
+    config["include_bars"] = include_bars
+
+    ## cog_report
+    cog_report = qcfunk.check_arg_config_default("cog_report",args.cog_report, config, default_dict)
+    config["cog_report"] = cog_report
+
+    ## omit-appendix
+    omit_appendix = qcfunk.check_arg_config_default("omit_appendix",args.omit_appendix, config, default_dict)
+    config["omit_appendix"] = omit_appendix
+
+    ## no-snipit
+    no_snipit = qcfunk.check_arg_config_default("no_snipit",args.no_snipit, config, default_dict)
+    config["no_snipit"] = True
+    
+    ## private
+    private = qcfunk.check_arg_config_default("private",args.private, config, default_dict)
+    config["private"] = private
 
