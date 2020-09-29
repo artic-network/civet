@@ -23,21 +23,26 @@ def get_defaults():
                     "distance":2,
                     "up_distance":2,
                     "down_distance":2,
-                    "sequencing_centre":"DEFAULT",
                     "threshold":1,
-                    "add_bars":False,
+                    "sequencing_centre":"DEFAULT",
                     "tree_fields":"adm1",
+                    "local_lineages":False,
+                    "map_sequences":False,
+                    "map_info":False,
+                    "input_crs":False,
+                    "colour_map_by":False,
+                    "date_restriction":False,
                     "date_range_start":False,
                     "date_range_end":False,
                     "date_window":7,
-                    "global_search":False,
-                    "label_fields":"sequence_name",#this was none
+                    "colour_by":"adm1=viridis",
+                    "label_fields":None,#this was none
                     "date_fields":"sample_date",#this was none
                     "graphic_dict":"adm1",
-                    "date_restriction":False,
-                    "local_lineages":False,
-                    "map_sequences":False,
-                    "delay_collapse":False,
+                    "no_snipit":False,
+                    "include_snp_table":False,
+                    "include_bars":False,
+                    "cog_report":False,
                     "table_fields":["sample_date", "uk_lineage", "lineage", "phylotype"],
                     "threads":1,
                     "force":True,
@@ -219,85 +224,58 @@ def local_lineages_qc(config,default_dict):
                 check_date_format(config["date_range_end"])
 
             if config["date_range_start"] and config["date_range_end"]:
-                print(green(f"Local lineage analysis restricted to {config['date_range_start']} to {config['date_range_end']}"))
+                print(qcfunk.green(f"Local lineage analysis restricted to {config['date_range_start']} to {config['date_range_end']}"))
             elif config["date_range_start"]:
-                print(green(f"Local lineage analysis restricted to {config['date_range_start']} to present"))
+                print(qcfunk.green(f"Local lineage analysis restricted to {config['date_range_start']} to present"))
             else:
-                print(green(f"Local lineage analysis restricted to {config['date_window']} days around the sampling range"))
+                print(qcfunk.green(f"Local lineage analysis restricted to {config['date_window']} days around the sampling range"))
 
-def get_full_headers():
-    #could open and parse the cog metadata here to make it flexible
-    headers = ["central_sample_id", "biosample_source_id","sequence_name","secondary_identifier",
-                "sample_date","epi_week","country","adm1","adm2","outer_postcode","is_surveillance","is_community",
-                "is_hcw","is_travel_history","travel_history","lineage","lineage_support","uk_lineage","acc_lineage","del_lineage","phylotype"]
-
-    return headers
-
-def map_sequences_config(map_sequences,mapping_trait,map_inputs,input_crs,config,default_dict):
-
-    map_settings = False
-    query_file = config["query"]
-    full_metadata_headers = get_full_headers()
-
-    map_settings = config["map_sequences"]
+def map_sequences_config(map_sequences,colour_map_by,map_inputs,input_crs,config,default_dict):
     
-    if map_settings:
-        if "map_info" in config:
+    if config["map_sequences"]:
+
+        map_inputs = ""
+        if config["map_info"]:
             map_inputs = config["map_info"].replace(" ","")
-
-        if "mapping_trait" in config:
-            mapping_trait = config["mapping_trait"]
-
-        if not map_inputs:
-            sys.stderr.write(cyan('Error: coordinates or outer postcode not supplied for mapping sequences. Please provide either x and y columns as a comma separated string, or column header containing outer postcode.'))
-            sys.exit(-1)
         else:
-            if len(map_inputs.split(",")) == 2: #If x and y coordinates are provided
-                if input_crs:
-                    crs = input_crs
-                elif "input_crs" in config:
-                    crs = config["input_crs"]
-                else:
-                    sys.stderr.write('Error: input coordinate system not provided for mapping. Please provide --input-crs eg EPSG:3395')
-                    sys.exit(-1)
-            else: #If an outer postcode column is provided        
-                crs = "EPSG:4326"
-                            
-            config["map_info"] = map_inputs.replace(" ","")
-            config["input_crs"] = crs
+            sys.stderr.write(qcfunk.cyan('Error: coordinates or outer postcode not supplied for mapping sequences. Please provide either x and y columns as a comma separated string, or column header containing outer postcode.'))
+            sys.exit(-1)
 
-        with open(query_file, newline="") as f:
+        if len(map_inputs.split(",")) == 2: #If x and y coordinates are provided
+            if not config["input_crs"]:
+                sys.stderr.write('Error: input coordinate system not provided for mapping. Please provide --input-crs eg EPSG:3395')
+                sys.exit(-1)
+        else: #If an outer postcode column is provided
+            config["input_crs"] = "EPSG:4326"
+        
+        with open(config["query"], newline="") as f:
             reader = csv.DictReader(f)
             column_names = reader.fieldnames
-            relevant_cols = []
-            map_inputs_lst = map_inputs.split(",")
-            for i in map_inputs_lst:
-                relevant_cols.append(i)
-            
-            if mapping_trait:
-                relevant_cols.append(mapping_trait)
+
+            relevant_cols = map_inputs.split(",")
+
+            if config["colour_map_by"]:
+                relevant_cols.append(colour_map_by)
             
             for map_arg in relevant_cols:
                 map_arg = map_arg.replace(" ","")
-                if map_arg not in column_names and map_arg not in full_metadata_headers:
-                    sys.stderr.write(cyan(f"Error: {map_arg} field not found in metadata file or background database for mapping sequences"))
+                if map_arg not in column_names and map_arg not in config["background_metadata_headers"]:
+                    sys.stderr.write(qcfunk.cyan(f"Error: {map_arg} column not found in metadata file or background database for mapping sequences"))
                     sys.exit(-1)
 
-        if mapping_trait:
+        if config["colour_map_by"]:
             if map_inputs == "adm2":
-                print(cyan(f"NOTE: mapping trait provided, but summary map is not designed for showing trait. Please provide more detailed mapping information, eg outer postcode or coordinates"))
+                print(qcfunk.cyan(f"NOTE: --colour-map-by not set up to colour by adm2. Please provide outer postcode or coordinates"))
             else:
-                print(green(f"Colouring map by: " + f"{mapping_trait}"))
-            config["mapping_trait"] = mapping_trait
+                print(qcfunk.green(f"Colouring map by: " + f"{colour_map_by}"))
+            config["colour_map_by"] = colour_map_by
             
         else:
-            config["mapping_trait"] = False
-            
-    else:
-        config["map_sequences"] = False
+            config["colour_map_by"] = False
+
         config["map_info"] = False
         config["input_crs"] = False
-        config["mapping_trait"] = False
+        config["colour_map_by"] = False
 
 
 def get_sequencing_centre_header(config):
@@ -305,18 +283,18 @@ def get_sequencing_centre_header(config):
     sc_list = ["PHEC", 'LIVE', 'BIRM', 'PHWC', 'CAMB', 'NORW', 'GLAS', 'EDIN', 'SHEF',
                 'EXET', 'NOTT', 'PORT', 'OXON', 'NORT', 'NIRE', 'GSTT', 'LOND', 'SANG',"NIRE"]
 
-
+    sequencing_centre = config["sequencing_centre"]
     if sequencing_centre in sc_list or sequencing_centre == "DEFAULT":
         package_png = os.path.join("data","headers",f"{sequencing_centre}.png")
         sequencing_centre_source = pkg_resources.resource_filename('civet', package_png)
-        print(green(f"Using header file from:") + f" {package_png}\n")
+        print(qcfunk.green(f"Using header file from:") + f" {package_png}\n")
         config["sequencing_centre_source"] = sequencing_centre_source
         config["sequencing_centre_dest"] = os.path.join(config["outdir"],"figures",f"{sequencing_centre}.png")
         config["sequencing_centre_file"] = os.path.join(".","figures",f"{sequencing_centre}.png")
         config["sequencing_centre"] = sequencing_centre
     else:
         sc_string = "\n".join(sc_list)
-        sys.stderr.write(cyan(f'Error: sequencing centre must be one of the following:\n{sc_string}\n'))
+        sys.stderr.write(qcfunk.cyan(f'Error: sequencing centre must be one of the following:\n{sc_string}\n'))
         sys.exit(-1)
 
 def map_group_to_config(args,config,default_dict):
@@ -345,36 +323,37 @@ def map_group_to_config(args,config,default_dict):
     map_sequences = qcfunk.check_arg_config_default("map_sequences",args.map_sequences, config, default_dict)
     config["map_sequences"] = map_sequences
 
-    ## map_cols
-    map_cols = qcfunk.check_arg_config_default("map_cols",args.map_cols, config, default_dict)
-    config["map_cols"] = map_cols
+    ## map_info
+    map_info = qcfunk.check_arg_config_default("map_info",args.map_info, config, default_dict)
+    config["map_info"] = map_info
 
     ## input_crs
     input_crs = qcfunk.check_arg_config_default("input_crs",args.input_crs, config, default_dict)
     config["input_crs"] = input_crs
 
-    ## mapping_trait
-    mapping_trait = qcfunk.check_arg_config_default("mapping_trait",args.mapping_trait, config, default_dict)
-    config["mapping_trait"] = mapping_trait
+    ## colour_map_by
+    colour_map_by = qcfunk.check_arg_config_default("colour_map_by",args.colour_map_by, config, default_dict)
+    config["colour_map_by"] = colour_map_by
 
 
 
-def report_columns_to_config(args,config,default_dict):
+def report_group_to_config(args,config,default_dict):
     ## sequencing_centre
     sequencing_centre = qcfunk.check_arg_config_default("sequencing_centre",args.sequencing_centre, config, default_dict)
     config["sequencing_centre"] = sequencing_centre
     
-    ## display
-    display = qcfunk.check_arg_config_default("display",args.display, config, default_dict)
-    config["display"] = display
+    ## colour_by
+    colour_by = qcfunk.check_arg_config_default("colour_by",args.colour_by, config, default_dict)
+    config["colour_by"] = colour_by
 
-    ## fields
-    fields = qcfunk.check_arg_config_default("fields",args.fields, config, default_dict)
-    config["fields"] = fields
+    ## tree_fields
+    tree_fields = qcfunk.check_arg_config_default("tree_fields",args.tree_fields, config, default_dict)
+    config["tree_fields"] = tree_fields
 
     ## label_fields
     label_fields = qcfunk.check_arg_config_default("label_fields",args.label_fields, config, default_dict)
-    config["label_fields"] = label_fields
+    if not label_fields:
+        config["label_fields"] = config["input_column"]
 
     ## node-summary
     node_summary = qcfunk.check_arg_config_default("node_summary",args.node_summary, config, default_dict)
@@ -384,13 +363,13 @@ def report_columns_to_config(args,config,default_dict):
     table_fields = qcfunk.check_arg_config_default("table_fields",args.table_fields, config, default_dict)
     config["table_fields"] = table_fields
 
-    ## snp-data-table
-    snp_data_table = qcfunk.check_arg_config_default("snp_data_table",args.snp_data_table, config, default_dict)
-    config["snp_data_table"] = snp_data_table
+    ## include_snp_table
+    include_snp_table = qcfunk.check_arg_config_default("include_snp_table",args.include_snp_table, config, default_dict)
+    config["include_snp_table"] = include_snp_table
 
-    ## add-bars
-    add_bars = qcfunk.check_arg_config_default("add_bars",args.add_bars, config, default_dict)
-    config["add_bars"] = add_bars
+    ## include_bars
+    include_bars = qcfunk.check_arg_config_default("include_bars",args.include_bars, config, default_dict)
+    config["include_bars"] = include_bars
 
     ## cog_report
     cog_report = qcfunk.check_arg_config_default("cog_report",args.cog_report, config, default_dict)
@@ -399,6 +378,10 @@ def report_columns_to_config(args,config,default_dict):
     ## omit-appendix
     omit_appendix = qcfunk.check_arg_config_default("omit_appendix",args.omit_appendix, config, default_dict)
     config["omit_appendix"] = omit_appendix
+
+    ## no-snipit
+    no_snipit = qcfunk.check_arg_config_default("no_snipit",args.no_snipit, config, default_dict)
+    config["no_snipit"] = True
     
     ## private
     private = qcfunk.check_arg_config_default("private",args.private, config, default_dict)
