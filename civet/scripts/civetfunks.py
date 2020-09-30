@@ -34,6 +34,7 @@ def get_defaults():
                     "date_restriction":False,
                     "date_range_start":False,
                     "date_range_end":False,
+                    "node_summary":"country",
                     "date_window":7,
                     "colour_by":"adm1=viridis",
                     "label_fields":None,#this was none
