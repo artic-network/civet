@@ -109,13 +109,6 @@ civet -fm adm2=Edinburgh sample_date=2020-03-01:2020-04-01 [options]''')
     default_dict = cfunk.get_defaults()
 
     """
-    Output directory 
-    (needed prior to -i, in case input ids need to be written to a file)
-    """
-    # default output dir
-    qcfunk.get_outdir(args.outdir,cwd,config)
-
-    """
     Input file (-i/--input) 
     Valid inputs are input.csv; ID1,ID2,ID3; config.yaml/config.yml
     
@@ -129,9 +122,8 @@ civet -fm adm2=Edinburgh sample_date=2020-03-01:2020-04-01 [options]''')
     if configfile:
         config = qcfunk.parse_yaml_file(configfile, config)
     
-    
     """
-    Get tempdir and data dir. 
+    Get outdir, tempdir and data dir. 
     Check if data has the right columns needed.
     The following rely on things that come out of the 
     input config or csv files so shouldnt be moved up above that.
@@ -139,7 +131,9 @@ civet -fm adm2=Edinburgh sample_date=2020-03-01:2020-04-01 [options]''')
     - tempdir
     - datadir
     """
-    
+    # default output dir
+    qcfunk.get_outdir(args.outdir,cwd,config)
+
     # specifying temp directory, outdir if no_temp (tempdir becomes working dir)
     tempdir = qcfunk.get_temp_dir(args.tempdir, args.no_temp,cwd,config)
 
