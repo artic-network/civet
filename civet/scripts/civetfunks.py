@@ -132,15 +132,20 @@ def rsync_data_from_climb(uun, data_dir):
 
 def get_remote_data(uun,data_dir,config):
     config["remote"]= True
+    head,tail = os.path.split(data_dir)
+    if tail == "civet-cat":
+        path_for_syncing = head
+    else:
+        path_for_syncing = data_dir
     if uun:
         config["username"] = uun
-        rsync_data_from_climb(uun, data_dir)
+        rsync_data_from_climb(uun, path_for_syncing)
     elif "username" in config:
         uun = config["username"]
-        rsync_data_from_climb(uun, data_dir)
+        rsync_data_from_climb(uun, path_for_syncing)
     else:
-        rsync_command = f"rsync -avzh bham.covid19.climb.ac.uk:/cephfs/covid/bham/civet-cat '{data_dir}'"
-        print(f"Syncing civet data to {data_dir}")
+        rsync_command = f"rsync -avzh bham.covid19.climb.ac.uk:/cephfs/covid/bham/civet-cat '{path_for_syncing}'"
+        print(f"Syncing civet data to {path_for_syncing}")
         status = os.system(rsync_command)
         if status != 0:
             sys.stderr.write(qcfunk.cyan("Error: rsync command failed.\nCheck your ssh is configured with Host bham.covid19.climb.ac.uk\nAlternatively enter your CLIMB username with -uun e.g. climb-covid19-smithj\nAlso, check if you have access to CLIMB from this machine and check if you are in the UK\n\n"))
@@ -150,9 +155,11 @@ def get_remote_data(uun,data_dir,config):
     background_seqs = ""
     background_tree = ""
 
-    background_metadata = os.path.join(data_dir,"civet-cat","cog_global_metadata.csv")
-    background_seqs= os.path.join(data_dir,"civet-cat","cog_global_alignment.fasta")
-    background_tree = os.path.join(data_dir,"civet-cat","cog_global_tree.nexus")
+    background_metadata = os.path.join(path_for_syncing,"civet-cat","cog_global_metadata.csv")
+    background_seqs= os.path.join(path_for_syncing,"civet-cat","cog_global_alignment.fasta")
+    background_tree = os.path.join(path_for_syncing,"civet-cat","cog_global_tree.nexus")
+    
+    config["datadir"] = os.path.join(path_for_syncing,"civet-cat")
 
     if not os.path.isfile(background_tree) or not os.path.isfile(background_seqs) or not os.path.isfile(background_metadata):
         print_data_error(data_dir)
