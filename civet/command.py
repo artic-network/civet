@@ -18,6 +18,7 @@ from . import _program
 from reportfunk.funks import io_functions as qcfunk
 from reportfunk.funks import report_functions as rfunk
 from reportfunk.funks import custom_logger as custom_logger
+from reportfunk.funks import log_handler_handle as lh
 import civetfunks as cfunk
 
 thisdir = os.path.abspath(os.path.dirname(__file__))
@@ -268,7 +269,8 @@ civet -fm adm2=Edinburgh sample_date=2020-03-01:2020-04-01 [options]''')
         config["log_string"] = ""
     else:
         quiet_mode = True
-        config["log_string"] = f"--quiet --log-handler-script custom_logger.py "
+        lh_path = os.path.realpath(lh.__file__)
+        config["log_string"] = f"--quiet --log-handler-script {lh_path} "
 
 
     threads = qcfunk.check_arg_config_default("threads",args.threads,config,default_dict)

@@ -10,10 +10,6 @@ import os
 if config.get("force"):
     config["force"] = "--forceall "
 
-if config["quiet_mode"]==True:
-    config["quiet_mode"] = "--quiet"
-else:
-    config["quiet_mode"] = ""
 
 ##### Target rules #####
 if config.get("launch_browser"):

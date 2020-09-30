@@ -14,9 +14,10 @@ rule non_cog_minimap2_to_reference:
         reference = config["reference_fasta"]
     output:
         sam = os.path.join(config["tempdir"],"post_qc_query.reference_mapped.sam")
+    log: os.path.join(config["tempdir"],"logs/minimap2.log")
     shell:
         """
-        minimap2 -a -x asm5 {input.reference:q} {input.fasta:q} > {output.sam:q}
+        minimap2 -a -x asm5 {input.reference:q} {input.fasta:q} -o {output.sam:q} &> {log}
         """
 
 rule non_cog_remove_insertions_and_trim_and_pad:
