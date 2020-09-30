@@ -23,8 +23,8 @@ def get_defaults():
                     "authors": "", # List of authors, affiliations and contact details
                     "description": "",
                     "conclusions": "",
-                    "maxambig":0.5,
-                    "minlen":10000,
+                    "max_ambiguity":0.5,
+                    "min_length":10000,
                     "datadir":"civet-cat",
                     "input_column":"name",
                     "data_column":"central_sample_id",

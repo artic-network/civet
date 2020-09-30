@@ -38,8 +38,8 @@ civet -fm adm2=Edinburgh sample_date=2020-03-01:2020-04-01 [options]''')
     io_group.add_argument('-fm','--from-metadata',nargs='*', dest="from_metadata",help="Generate a query from the metadata file supplied. Define a search that will be used to pull out sequences of interest from the large phylogeny. E.g. -fm adm2=Edinburgh sample_date=2020-03-01:2020-04-01")
     io_group.add_argument('-o','--outdir', action="store",help="Output directory. Default: current working directory")
     io_group.add_argument('-f','--fasta', action="store",help="Optional fasta query.", dest="fasta")
-    io_group.add_argument('--max-ambig', action="store", type=float,help="Maximum proportion of Ns allowed to attempt analysis. Default: 0.5",dest="maxambig")
-    io_group.add_argument('--min-length', action="store", type=int,help="Minimum query length allowed to attempt analysis. Default: 10000",dest="minlen")
+    io_group.add_argument('--max-ambiguity', action="store", type=float,help="Maximum proportion of Ns allowed to attempt analysis. Default: 0.5",dest="max_ambiguity")
+    io_group.add_argument('--min-length', action="store", type=int,help="Minimum query length allowed to attempt analysis. Default: 10000",dest="min_length")
 
     data_group = parser.add_argument_group('data source options')
     data_group.add_argument('-d','--datadir', action="store",help="Local directory that contains the data files. Default: civet-cat")
@@ -157,6 +157,10 @@ civet -fm adm2=Edinburgh sample_date=2020-03-01:2020-04-01 [options]''')
             if config["query"]:
                 sys.stderr.write(qcfunk.cyan('Error: please specifiy either -fm/--from-metadata or an input csv/ID string.\n'))
                 sys.exit(-1)
+        elif "fasta" in config:
+            if config["fasta"]:
+                sys.stderr.write(qcfunk.cyan('Error: fasta file option cannot be used in conjunction with -fm/--from-metadata.\nPlease specifiy an input csv with your fasta file.\n'))
+                sys.exit(-1)
 
         metadata = config["background_metadata"]
         query = qcfunk.generate_query_from_metadata(args.from_metadata,metadata,config)
@@ -180,7 +184,7 @@ civet -fm adm2=Edinburgh sample_date=2020-03-01:2020-04-01 [options]''')
     qcfunk.get_query_fasta(args.fasta,cwd, config)
     
     # run qc on the input sequence file
-    qcfunk.input_file_qc(args.minlen,args.maxambig,config,default_dict)
+    qcfunk.input_file_qc(args.min_length,args.max_ambiguity,config,default_dict)
 
     """
     Accessing the civet package data and 
