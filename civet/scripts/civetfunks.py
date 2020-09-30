@@ -44,6 +44,7 @@ def get_defaults():
                     "include_snp_table":False,
                     "include_bars":False,
                     "cog_report":False,
+                    "omit_appendix":False,
                     "table_fields":["sample_date", "uk_lineage", "lineage", "phylotype"],
                     "threads":1,
                     "force":True,
