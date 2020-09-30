@@ -159,6 +159,10 @@ civet -fm adm2=Edinburgh sample_date=2020-03-01:2020-04-01 [options]''')
     """
     # generate query from metadata
     if args.from_metadata or "from_metadata" in config:
+        if config["query"]:
+            sys.stderr.write(qcfunk.cyan('Error: please specifiy either -fm/--from-metadata or an input csv/ID string.\n'))
+            sys.exit(-1)
+
         metadata = config["background_metadata"]
         query = qcfunk.generate_query_from_metadata(args.from_metadata,metadata,config)
 

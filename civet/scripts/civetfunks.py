@@ -269,7 +269,7 @@ def map_sequences_config(map_sequences,colour_map_by,map_inputs,input_crs,config
 
         if len(map_inputs.split(",")) == 2: #If x and y coordinates are provided
             if not config["input_crs"]:
-                sys.stderr.write('Error: input coordinate system not provided for mapping. Please provide --input-crs eg EPSG:3395')
+                sys.stderr.write(qcfunk.cyan('Error: input coordinate system not provided for mapping. Please provide --input-crs eg EPSG:3395'))
                 sys.exit(-1)
         else: #If an outer postcode column is provided
             config["input_crs"] = "EPSG:4326"
