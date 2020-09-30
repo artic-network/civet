@@ -21,7 +21,7 @@ rule extract_taxa:
 rule gather_fasta_seqs:
     input:
         aligned_query_seqs = config["aligned_query_seqs"],
-        cog_seqs = config["cog_seqs"],
+        background_seqs = config["background_seqs"],
         outgroup_fasta = config["outgroup_fasta"],
         tree_taxa = rules.extract_taxa.output.tree_taxa
     output:
@@ -41,7 +41,7 @@ rule gather_fasta_seqs:
                 if record.id in taxa:
                     fw.write(f">{record.description}\n{record.seq}\n")
 
-            for record in SeqIO.parse(input.cog_seqs,"fasta"):
+            for record in SeqIO.parse(input.background_seqs,"fasta"):
                 if record.id in taxa:
                     fw.write(f">{record.description}\n{record.seq}\n")
 
