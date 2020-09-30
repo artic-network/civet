@@ -150,7 +150,7 @@ civet -fm adm2=Edinburgh sample_date=2020-03-01:2020-04-01 [options]''')
     qcfunk.data_columns_to_config(args,config,default_dict)
 
     # check if metadata has the right columns, background_metadata_header added to config
-    qcfunk.check_metadata_for_seach_columns(config,default_dict)
+    qcfunk.check_metadata_for_search_columns(config,default_dict)
 
     """
     from metadata parsing 

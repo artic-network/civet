@@ -12,27 +12,27 @@ conclusions: > # Free-text concluding text that will be inserted at the bottom o
   ### Conclusions \n
   An outbreak occurred.
 omit_appendix: True
-# fields: adm1,adm2
-# graphic_dict: {adm1: "default", adm2: "viridis" }
-# label_fields: [name, sample_date]
-# table_fields: [uk_lineage,adm1,adm2]
-#display_name: display
+fields: adm1,adm2
+#graphic_dict: {adm1: "default", adm2: "viridis" }
+#label_fields: [name, sample_date]
+#table_fields: [uk_lineage,adm1,adm2]
+display_name: display
 snps_in_seq_table: True
-node_summary: lineage
+node_summary: country
 sample_date_column: "sample_date"
-# up-distance: 2
-# down-distance: 2
-# threshold: 1
-from-metadata: ["adm2=Edinburgh","sample_date=2020-05-01:2020-05-15"]
-# date-fields: ["sample_date", "date_2", "date_3"]
+up-distance: 2
+down-distance: 2
+threshold: 1
+#from-metadata: ["adm2=Edinburgh","sample_date=2020-05-01:2020-05-15"]
+#date-fields: ["sample_date", "date_2", "date_3"]
 # ids:
 #   - EDB001
 #   - EDB002
 #   - EDB004
 query: test.csv
-# fasta: test.fasta
-# add_bars: False
-# map_sequences: True
+fasta: test.fasta
+add_bars: False
+#map_sequences: True
 # map_cols: outer_postcode
 # input_crs: "EPSG:4326"
 # mapping_trait: care_home
