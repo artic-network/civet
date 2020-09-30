@@ -143,6 +143,9 @@ def get_remote_data(uun,data_dir,config):
     elif "username" in config:
         uun = config["username"]
         rsync_data_from_climb(uun, path_for_syncing)
+    elif "uun" in config:
+        uun = config["uun"]
+        rsync_data_from_climb(uun, path_for_syncing)
     else:
         rsync_command = f"rsync -avzh bham.covid19.climb.ac.uk:/cephfs/covid/bham/civet-cat '{path_for_syncing}'"
         print(f"Syncing civet data to {path_for_syncing}")
@@ -158,7 +161,7 @@ def get_remote_data(uun,data_dir,config):
     background_metadata = os.path.join(path_for_syncing,"civet-cat","cog_global_metadata.csv")
     background_seqs= os.path.join(path_for_syncing,"civet-cat","cog_global_alignment.fasta")
     background_tree = os.path.join(path_for_syncing,"civet-cat","cog_global_tree.nexus")
-    
+
     config["datadir"] = os.path.join(path_for_syncing,"civet-cat")
 
     if not os.path.isfile(background_tree) or not os.path.isfile(background_seqs) or not os.path.isfile(background_metadata):

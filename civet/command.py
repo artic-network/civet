@@ -176,6 +176,9 @@ civet -fm adm2=Edinburgh sample_date=2020-03-01:2020-04-01 [options]''')
     # check query exists or add ids to temp query file
     qcfunk.check_query_file(query, cwd, config)
 
+    # check if metadata has the right columns, background_metadata_header added to config
+    qcfunk.check_query_for_input_column(config,default_dict)
+
     """
     Input fasta file 
     sourcing and qc checks
@@ -291,7 +294,7 @@ civet -fm adm2=Edinburgh sample_date=2020-03-01:2020-04-01 [options]''')
     snakefile = qcfunk.get_snakefile(thisdir)
 
     if args.verbose:
-        
+        print("\n**** CONFIG ****")
         for k in sorted(config):
             print(qcfunk.green(k), config[k])
         status = snakemake.snakemake(snakefile, printshellcmds=True, forceall=True, force_incomplete=True,
