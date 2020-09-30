@@ -101,7 +101,7 @@ def get_package_data(cog_report,thisdir,config,default_dict):
 
     config["report_template"] = report_template
 
-def print_data_error():
+def print_data_error(data_dir):
     sys.stderr.write(qcfunk.cyan(f"Error: data directory not found at {data_dir}.\n")+ f"""The directory should contain the following files:\n\
     - cog_global_tree.nexus\n\
     - cog_global_metadata.csv\n\
@@ -143,7 +143,7 @@ def get_remote_data(uun,data_dir,config):
     background_tree = os.path.join(data_dir,"civet-cat","cog_global_tree.nexus")
 
     if not os.path.isfile(background_tree) or not os.path.isfile(background_seqs) or not os.path.isfile(background_metadata):
-        print_data_error()
+        print_data_error(data_dir)
         sys.exit(-1)
     else:
         config["background_metadata"] = background_metadata
@@ -180,7 +180,7 @@ def get_datadir(args_climb,args_uun,args_datadir,remote,cwd,config,default_dict)
 
     if not remote:
         if not os.path.exists(data_dir):
-            print_data_error()
+            print_data_error(data_dir)
             sys.exit(-1)
             
         background_metadata = ""
@@ -192,7 +192,7 @@ def get_datadir(args_climb,args_uun,args_datadir,remote,cwd,config,default_dict)
         background_tree = os.path.join(data_dir,"cog_global_tree.nexus")
 
         if not os.path.isfile(background_tree) or not os.path.isfile(background_seqs) or not os.path.isfile(background_metadata):
-            print_data_error()
+            print_data_error(data_dir)
             sys.exit(-1)
         else:
             config["background_metadata"] = background_metadata
