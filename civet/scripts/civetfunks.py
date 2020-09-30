@@ -138,7 +138,7 @@ def get_remote_data(uun,data_dir,config):
     background_seqs = ""
     background_tree = ""
 
-    background_metadata = os.path.join(data_dir,"civet-cat","background_metadata.csv")
+    background_metadata = os.path.join(data_dir,"civet-cat","cog_global_metadata.csv")
     background_seqs= os.path.join(data_dir,"civet-cat","cog_global_alignment.fasta")
     background_tree = os.path.join(data_dir,"civet-cat","cog_global_tree.nexus")
 
