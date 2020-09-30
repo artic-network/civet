@@ -182,8 +182,8 @@ def get_datadir(args_climb,args_uun,args_datadir,remote,cwd,config,default_dict)
         data_dir = os.path.join(cwd, args_datadir)
 
     elif "datadir" in config:
-        data_dir = os.path.join(cwd, args_datadir)
-
+        expanded_path = os.path.expanduser(config["datadir"])
+        data_dir = os.path.join(config["path_to_query"], expanded_path)
     else:
         if remote:
             data_dir = cwd
