@@ -5,7 +5,8 @@ import argparse
 import csv 
 import sys
 from Bio import SeqIO
-from datetime import datetime 
+from datetime import date
+
 import tempfile
 import pkg_resources
 import yaml
@@ -13,9 +14,18 @@ import yaml
 from reportfunk.funks import io_functions as qcfunk
 from reportfunk.funks import prep_data_functions as prep_data
 
+today = date.today()
+
 def get_defaults():
-    default_dict = {"maxambig":0.5,
-                    "minlen":10000,
+    default_dict = {
+                    "title": "Cluster investigation",
+                    "outbreak_id": "",
+                    "report_date": today,# date investigation was opened
+                    "authors": "", # List of authors, affiliations and contact details
+                    "description": "",
+                    "conclusions": "",
+                    "max_ambiguity":0.5,
+                    "min_length":10000,
                     "datadir":"civet-cat",
                     "input_column":"name",
                     "data_column":"central_sample_id",
@@ -35,6 +45,7 @@ def get_defaults():
                     "date_restriction":False,
                     "date_range_start":False,
                     "date_range_end":False,
+                    "node_summary":"country",
                     "date_window":7,
                     "colour_by":"adm1=viridis",
                     "label_fields":False,
@@ -44,6 +55,7 @@ def get_defaults():
                     "include_snp_table":False,
                     "include_bars":False,
                     "cog_report":False,
+                    "omit_appendix":False,
                     "table_fields":["sample_date", "uk_lineage", "lineage", "phylotype"],
                     "threads":1,
                     "force":True,
@@ -121,15 +133,23 @@ def rsync_data_from_climb(uun, data_dir):
 
 def get_remote_data(uun,data_dir,config):
     config["remote"]= True
+    head,tail = os.path.split(data_dir)
+    if tail == "civet-cat":
+        path_for_syncing = head
+    else:
+        path_for_syncing = data_dir
     if uun:
         config["username"] = uun
-        rsync_data_from_climb(uun, data_dir)
+        rsync_data_from_climb(uun, path_for_syncing)
     elif "username" in config:
         uun = config["username"]
-        rsync_data_from_climb(uun, data_dir)
+        rsync_data_from_climb(uun, path_for_syncing)
+    elif "uun" in config:
+        uun = config["uun"]
+        rsync_data_from_climb(uun, path_for_syncing)
     else:
-        rsync_command = f"rsync -avzh bham.covid19.climb.ac.uk:/cephfs/covid/bham/civet-cat '{data_dir}'"
-        print(f"Syncing civet data to {data_dir}")
+        rsync_command = f"rsync -avzh bham.covid19.climb.ac.uk:/cephfs/covid/bham/civet-cat '{path_for_syncing}'"
+        print(f"Syncing civet data to {path_for_syncing}")
         status = os.system(rsync_command)
         if status != 0:
             sys.stderr.write(qcfunk.cyan("Error: rsync command failed.\nCheck your ssh is configured with Host bham.covid19.climb.ac.uk\nAlternatively enter your CLIMB username with -uun e.g. climb-covid19-smithj\nAlso, check if you have access to CLIMB from this machine and check if you are in the UK\n\n"))
@@ -139,9 +159,11 @@ def get_remote_data(uun,data_dir,config):
     background_seqs = ""
     background_tree = ""
 
-    background_metadata = os.path.join(data_dir,"civet-cat","cog_global_metadata.csv")
-    background_seqs= os.path.join(data_dir,"civet-cat","cog_global_alignment.fasta")
-    background_tree = os.path.join(data_dir,"civet-cat","cog_global_tree.nexus")
+    background_metadata = os.path.join(path_for_syncing,"civet-cat","cog_global_metadata.csv")
+    background_seqs= os.path.join(path_for_syncing,"civet-cat","cog_global_alignment.fasta")
+    background_tree = os.path.join(path_for_syncing,"civet-cat","cog_global_tree.nexus")
+
+    config["datadir"] = os.path.join(path_for_syncing,"civet-cat")
 
     if not os.path.isfile(background_tree) or not os.path.isfile(background_seqs) or not os.path.isfile(background_metadata):
         print_data_error(data_dir)
@@ -171,8 +193,8 @@ def get_datadir(args_climb,args_uun,args_datadir,remote,cwd,config,default_dict)
         data_dir = os.path.join(cwd, args_datadir)
 
     elif "datadir" in config:
-        data_dir = os.path.join(cwd, args_datadir)
-
+        expanded_path = os.path.expanduser(config["datadir"])
+        data_dir = os.path.join(config["path_to_query"], expanded_path)
     else:
         if remote:
             data_dir = cwd

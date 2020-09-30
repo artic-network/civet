@@ -108,7 +108,7 @@ rule get_closest_cog:
                         "reference_fasta={input.reference_fasta:q} "
                         "--cores {workflow.cores}")
         else:
-            shell("touch {output.closest_cog:q} && touch {output.aligned_query:q} && echo 'no closest to find'")
+            shell("touch {output.closest_cog:q} && touch {output.aligned_query:q} && echo 'No closest sequences to find'")
 
 
 rule combine_metadata:
