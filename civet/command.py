@@ -256,6 +256,11 @@ civet -fm adm2=Edinburgh sample_date=2020-03-01:2020-04-01 [options]''')
     # summarising collapsed nodes config
     qcfunk.node_summary(args.node_summary,config)
 
+
+    """
+    Finally add in all the default options that 
+    were not specified already
+    """
     for key in default_dict:
         if key not in config:
             config[key] = default_dict[key]

@@ -5,15 +5,25 @@ import argparse
 import csv 
 import sys
 from Bio import SeqIO
-from datetime import datetime 
+from datetime import date
+
 import tempfile
 import pkg_resources
 import yaml
 
 from reportfunk.funks import io_functions as qcfunk
 
+today = date.today()
+
 def get_defaults():
-    default_dict = {"maxambig":0.5,
+    default_dict = {
+                    "title": "Cluster investigation",
+                    "outbreak_id": "",
+                    "report_date": today,# date investigation was opened
+                    "authors": "", # List of authors, affiliations and contact details
+                    "description": "",
+                    "conclusions": "",
+                    "maxambig":0.5,
                     "minlen":10000,
                     "datadir":"civet-cat",
                     "input_column":"name",
