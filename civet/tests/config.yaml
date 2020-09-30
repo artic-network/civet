@@ -23,14 +23,14 @@ sample_date_column: "sample_date"
 # up-distance: 2
 # down-distance: 2
 # threshold: 1
-#from-metadata: ["adm2=Edinburgh","sample_date=2020-05-01:2020-05-15"]
+from-metadata: ["adm2=Edinburgh","sample_date=2020-05-01:2020-05-15"]
 # date-fields: ["sample_date", "date_2", "date_3"]
 # ids:
 #   - EDB001
 #   - EDB002
 #   - EDB004
 query: test.csv
-fasta: test.fasta
+# fasta: test.fasta
 # add_bars: False
 # map_sequences: True
 # map_cols: outer_postcode

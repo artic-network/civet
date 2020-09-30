@@ -159,7 +159,7 @@ civet -fm adm2=Edinburgh sample_date=2020-03-01:2020-04-01 [options]''')
     """
     # generate query from metadata
     if args.from_metadata or "from_metadata" in config:
-        metadata = config["metadata"]
+        metadata = config["background_metadata"]
         query = qcfunk.generate_query_from_metadata(args.from_metadata,metadata,config)
 
     """
@@ -213,7 +213,7 @@ civet -fm adm2=Edinburgh sample_date=2020-03-01:2020-04-01 [options]''')
     qcfunk.data_columns_to_config(args,config,default_dict)
 
     # parse the input csv, check col headers and get fields if fields specified
-    qcfunk.check_label_and_tree_and_date_fields(args.tree_fields, args.label_fields,args.colour_by, args.date_fields, args.input_column, args.display_name, config,default_dict)
+    qcfunk.check_label_and_tree_and_date_fields(args.tree_fields, args.label_fields,args.colour_by, args.date_fields, args.input_column, args.display_name, config, default_dict,config["background_metadata"])
         
     # map sequences configuration
     cfunk.map_sequences_config(args.map_sequences,args.colour_map_by,args.map_info,args.input_crs,config,default_dict)
