@@ -19,7 +19,6 @@ def parse_args():
     parser.add_argument("--in-metadata", action="store", type=str, dest="in_metadata")
     parser.add_argument("--in-seqs", action="store", type=str, dest="in_seqs")
     parser.add_argument("--not-in-cog", action="store", type=str, dest="not_in_cog")
-    parser.add_argument("--all-cog",action="store_true",dest="all_cog")
     parser.add_argument("--input-column",action="store",dest="input_column")
     return parser.parse_args()
 
@@ -52,16 +51,11 @@ def check_cog_db():
                     row["cog_id"] = row[column_to_match]
                     row["query"]=row["sequence_name"]
                     row["closest"]=row["sequence_name"]
-                    if args.all_cog:
-                        row["source"]="COG database"
-                    else:
-                        row["source"]="phylogeny"
+                    row["source"]="phylogeny"
                     in_cog_metadata.append(row)
                     in_cog_names[row[column_to_match]] = row["sequence_name"]
-    if args.all_cog:
-        print(qcfunk.green(f"Number of query records found in CLIMB:")+f" {len(in_cog_metadata)}")
-    else:
-        print(qcfunk.green(f"Number of query records found in tree:")+f" {len(in_cog_metadata)}")
+    
+    print(qcfunk.green(f"Number of query records found in tree:")+f" {len(in_cog_metadata)}")
     with open(args.in_metadata, "w") as fw:
         header_names.append("query_id")
         header_names.append("cog_id")
@@ -81,17 +75,18 @@ def check_cog_db():
                     fw.write(f">{name} sequence_name={record.id} status=in_cog\n{record.seq}\n")
 
     with open(args.not_in_cog, "w") as fw:
-        if args.all_cog:
-            print(qcfunk.cyan("\nNot found in full cog database:"))
-        else:
-            print(qcfunk.cyan("\nNot found in phylogeny:"))
         
+        c = 0
+        not_found_str = ""
         fw.write(f"{input_column}\n")
         for query in query_names:
             if query not in found:
                 fw.write(query + '\n')
-                print(f"\t- {query}")
-        print("\n")
+                not_found_str += (f"\t- {query}\n")
+                c+=1
+        if c != 0:
+            print(qcfunk.cyan("\nNot found in phylogeny:"))
+            print(not_found_str)
 
 
 
