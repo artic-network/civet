@@ -27,11 +27,11 @@ cwd = os.getcwd()
 def main(sysargs = sys.argv[1:]):
 
     parser = argparse.ArgumentParser(prog = _program, 
-    description='civet: Cluster Investivation & Virus Epidemiology Tool', 
-    usage='''civet -i <input.csv> [options]
-civet -i EDB3588,EDB3589 [options]
-civet -i <config.yaml>
-civet -fm adm2=Edinburgh sample_date=2020-03-01:2020-04-01 [options]''')
+    description=qcfunk.green('civet: Cluster Investivation & Virus Epidemiology Tool'), 
+    usage='''\tcivet -i input.csv [options]
+\tcivet -i EDB1234,EDB4321 [options]
+\tcivet -i <config.yaml> [options]
+\tcivet -fm adm2=Edinburgh sample_date=2020-03-01:2020-04-01 [options]\n\n''')
 
     io_group = parser.add_argument_group('input output options')
     io_group.add_argument('-i',"--input", action="store",help="Input config file in yaml format, csv file (with minimally an input_column header, Default=`name`) or comma-separated id string with one or more query ids. Example: `EDB3588,EDB3589`.", dest="input")
@@ -69,7 +69,7 @@ civet -fm adm2=Edinburgh sample_date=2020-03-01:2020-04-01 [options]''')
     tree_group.add_argument('--distance', action="store",help="Extraction from large tree radius. Default: 2", dest="distance",type=int)
     tree_group.add_argument('--up-distance', action="store",help="Upstream distance to extract from large tree. Default: 2", dest="up_distance",type=int)
     tree_group.add_argument('--down-distance', action="store",help="Downstream distance to extract from large tree. Default: 2", dest="down_distance",type=int)
-    tree_group.add_argument('--collapse-threshold', action='store',type=int,help="Minimum number of nodes to collapse on. Default: 1", dest="threshold")
+    tree_group.add_argument('--collapse-threshold', action='store',type=int,help="Minimum number of nodes to collapse on. Default: 1", dest="collapse_threshold")
 
     map_group = parser.add_argument_group('map rendering options')
     map_group.add_argument('--local-lineages',action="store_true",dest="local_lineages",help="Contextualise the cluster lineages at local regional scale. Requires at least one adm2 value in query csv.")
@@ -237,6 +237,9 @@ civet -fm adm2=Edinburgh sample_date=2020-03-01:2020-04-01 [options]''')
 
     # extraction radius configuration
     qcfunk.distance_config(args.distance,args.up_distance,args.down_distance,config,default_dict) 
+
+    # extraction radius configuration
+    qcfunk.collapse_config(args.collapse_threshold,config,default_dict) 
 
     """
     Parsing the report_group arguments, 
