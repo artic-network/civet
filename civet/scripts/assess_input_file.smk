@@ -28,7 +28,7 @@ rule check_cog_db:
                         --in-metadata {output.cog:q} \
                         --in-seqs {output.background_seqs:q} \
                         --input-column {config[input_column]} \
-                        --not-in-cog {output.not_cog:q}
+                        --not-in-cog {output.not_cog:q} 
         """
 
 rule get_closest_cog:
@@ -36,80 +36,35 @@ rule get_closest_cog:
         snakefile = os.path.join(workflow.current_basedir,"find_closest_cog.smk"),
         reference_fasta = config["reference_fasta"],
         background_seqs = config["background_seqs"],
-        background_metadata = config["background_metadata"],
-        seq_db = config["seq_db"],
-        not_cog_csv = rules.check_cog_db.output.not_cog, #use
-        in_background_metadata = rules.check_cog_db.output.cog
+        background_metadata = config["background_metadata"]
     output:
         closest_cog = os.path.join(config["tempdir"],"closest_cog.csv"),
-        combined_query = os.path.join(config["tempdir"],"to_find_closest.fasta"),
-        aligned_query = os.path.join(config["tempdir"],"post_qc_query.aligned.fasta"),
-        not_processed = os.path.join(config["tempdir"], "no_seq_to_process.csv")
+        aligned_query = os.path.join(config["tempdir"],"post_qc_query.aligned.fasta")
     run:
-        query_with_no_seq = []
-        to_find_closest = {}
-
-        column_name = config["input_column"]
-        not_cog = []
-        with open(input.not_cog_csv, newline = "") as f: # getting list of non-cog queries
-            reader = csv.DictReader(f)
-            for row in reader:
-                not_cog.append(row[column_name])
-        
-        failed_qc = []
-        if config["qc_fail"] != "":
-            with open(config["qc_fail"]) as f:
-                reader = csv.DictReader(f)
-                for row in reader:
-                    failed_qc.append(row[column_name])
-
         if config["fasta"] != "":
-             # get set with supplied sequences
+            if config["num_seqs"] != 0:
+                num_seqs = config["num_seqs"]
+                print(qcfunk.green(f"Passing {num_seqs} sequences into search pipeline:"))
+
                 for record in SeqIO.parse(config["post_qc_query"], "fasta"):
-                    if record.id in not_cog:
-                        to_find_closest[record.id] = ("fasta",record.seq) # overwrites with supplied seq if found in all cog
+                    print(f"    - {record.id}")
 
-        with open(output.combined_query, "w") as fw:
-            for seq in to_find_closest:
-                fw.write(f">{seq} status={to_find_closest[seq][0]}\n{to_find_closest[seq][1]}\n")
-
-        for query in not_cog: # get set with no sequences supplied
-            if query not in to_find_closest and query not in failed_qc:
-                query_with_no_seq.append(query)
-
-        if len(list(set(query_with_no_seq))) != 0:
-            print(qcfunk.cyan("Not found in COG and a fasta file not provided, CIVET was unable to add them into phylogenies:"))
-        
-        with open(output.not_processed, "w") as fw:
-            for query in list(set(query_with_no_seq)):
-                fw.write(f"{query},fail=no sequence provided\n")
-                print(f"\t- {query}")
-        print("\n")
-
-        if to_find_closest != {}:
-            print(qcfunk.green(f"Passing {len(to_find_closest)} sequences into nearest COG search pipeline:"))
-            for seq in to_find_closest:
-                print(f"    - {seq}    {to_find_closest[seq][0]}")
-
-            # config["to_find_closest"]=output.combined_query
-
-            shell("snakemake --nolock --snakefile {input.snakefile:q} "
-                        "{config[force]} "
-                        "{config[log_string]}"
-                        "--directory {config[tempdir]:q} "
-                        "--config "
-                        "tempdir={config[tempdir]:q} "
-                        "background_metadata={input.background_metadata:q} "
-                        "background_seqs={input.background_seqs:q} "
-                        "to_find_closest={output.combined_query:q} "
-                        "data_column={config[data_column]} "
-                        "trim_start={config[trim_start]} "
-                        "trim_end={config[trim_end]} "
-                        "reference_fasta={input.reference_fasta:q} "
-                        "--cores {workflow.cores}")
+                shell("snakemake --nolock --snakefile {input.snakefile:q} "
+                            "{config[force]} "
+                            "{config[log_string]}"
+                            "--directory {config[tempdir]:q} "
+                            "--config "
+                            "tempdir={config[tempdir]:q} "
+                            "background_metadata={input.background_metadata:q} "
+                            "background_seqs={input.background_seqs:q} "
+                            "to_find_closest='{config[post_qc_query]}' "
+                            "data_column={config[data_column]} "
+                            "trim_start={config[trim_start]} "
+                            "trim_end={config[trim_end]} "
+                            "reference_fasta={input.reference_fasta:q} "
+                            "--cores {workflow.cores}")
         else:
             shell("touch {output.closest_cog:q} && touch {output.aligned_query:q} && echo 'No closest sequences to find'")
-
 
 rule combine_metadata:
     input:
@@ -178,7 +133,6 @@ rule process_catchments:
         catchment_prompt = rules.prune_out_catchments.output.txt,
         background_seqs = config["background_seqs"],
         outgroup_fasta = config["outgroup_fasta"]
-        # not_cog_csv = rules.check_cog_all.output.not_cog
     params:
         tree_dir = os.path.join(config["tempdir"],"catchment_trees")
     log: os.path.join(config["outdir"],"logs","catchment.log")
@@ -198,7 +152,6 @@ rule process_catchments:
             query_seqs +=1
 
         if query_seqs !=0:
-            
             
             snakestring = f"'{input.snakefile_collapse_before}' "
             print(f"Processing catchment trees")
