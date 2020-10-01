@@ -95,7 +95,7 @@ rule summarise_polytomies:
         --index-column protect \
         --in-format newick \
         --out-format newick \
-        --threshold {config[threshold]} \
+        --threshold {config[collapse_threshold]} \
         --output-tsv {output.collapsed_information:q}
         """
 

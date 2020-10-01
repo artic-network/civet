@@ -54,7 +54,7 @@ rule summarise_polytomies:
         -o {output.collapsed_tree:q} \
         --metadata {input.metadata:q} \
         --index-column protect \
-        --threshold {config[threshold]} \
+        --threshold {config[collapse_threshold]} \
         --in-format newick \
         --out-format newick \
         --output-tsv {output.collapsed_information:q}

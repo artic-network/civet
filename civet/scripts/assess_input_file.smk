@@ -171,7 +171,6 @@ rule prune_out_catchments:
 
 rule process_catchments:
     input:
-        snakefile_collapse_after = os.path.join(workflow.current_basedir,"process_catchment_trees.smk"), #alternative snakefiles
         snakefile_collapse_before = os.path.join(workflow.current_basedir,"process_collapsed_trees.smk"),
         snakefile_just_collapse = os.path.join(workflow.current_basedir,"just_collapse_trees.smk"),
         combined_metadata = rules.combine_metadata.output.combined_csv, 
@@ -215,7 +214,7 @@ rule process_catchments:
                         "aligned_query_seqs={input.query_seqs:q} "
                         "background_seqs={input.background_seqs:q} "
                         "combined_metadata={input.combined_metadata:q} "
-                        "threshold={config[threshold]} "
+                        "collapse_threshold={config[collapse_threshold]} "
                         "--cores {workflow.cores} >& {log}")
         else:
             print(f"No new sequences to add in, just collapsing trees")
@@ -227,7 +226,7 @@ rule process_catchments:
                             f"catchment_str={catchment_str} "
                             "outdir={config[outdir]:q} "
                             "tempdir={config[tempdir]:q} "
-                            "threshold={config[threshold]} "
+                            "collapse_threshold={config[collapse_threshold]} "
                             "combined_metadata={input.combined_metadata:q} "
                             "--cores {workflow.cores} >& {log}")
 
@@ -262,7 +261,7 @@ rule find_snps:
                             "outgroup_fasta={input.outgroup_fasta:q} "
                             "aligned_query_seqs={input.query_seqs:q} "
                             "background_seqs={input.background_seqs:q} "
-                            "threshold={config[threshold]} "
+                            "collapse_threshold={config[collapse_threshold]} "
                             "--cores {workflow.cores}")
 
 rule regional_mapping:
