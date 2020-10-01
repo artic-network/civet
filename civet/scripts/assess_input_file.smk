@@ -169,16 +169,41 @@ rule prune_out_catchments:
         && touch "{output.txt}" 
         """
 
+rule monitor_cluster:
+    input:
+        catchment_prompt = rules.prune_out_catchments.output.txt,
+        metadata = rules.combine_metadata.output.combined_csv
+    output:
+        metadata = os.path.join(config["outdir"],"monitor_cluster/updated_cluster.csv")
+    shell:
+        if config["cluster"]:
+            shell(f"snakemake --nolock --snakefile {snakestring}"
+                            "{config[force]} "
+                            "{config[log_string]} "
+                            "--directory {config[tempdir]:q} "
+                            "--config "
+                            f"catchment_str={catchment_str} "
+                            "outdir={config[outdir]:q} "
+                            "tempdir={config[tempdir]:q} "
+                            "outgroup_fasta={input.outgroup_fasta:q} "
+                            "aligned_query_seqs={input.query_seqs:q} "
+                            "background_seqs={input.background_seqs:q} "
+                            "combined_metadata={input.combined_metadata:q} "
+                            "collapse_threshold={config[collapse_threshold]} "
+                            "--cores {workflow.cores} >& {log}")
+        else:
+            shell("cp {input.metadata} {output.metadata:q}")
+
+
 rule process_catchments:
     input:
         snakefile_collapse_before = os.path.join(workflow.current_basedir,"process_collapsed_trees.smk"),
         snakefile_just_collapse = os.path.join(workflow.current_basedir,"just_collapse_trees.smk"),
-        combined_metadata = rules.combine_metadata.output.combined_csv, 
+        # combined_metadata = rules.combine_metadata.output.combined_csv, 
         query_seqs = rules.get_closest_cog.output.aligned_query, #datafunk-processed seqs
-        catchment_prompt = rules.prune_out_catchments.output.txt,
+        combined_metadata = rules.monitor_cluster.output.metadata,
         background_seqs = config["background_seqs"],
         outgroup_fasta = config["outgroup_fasta"]
-        # not_cog_csv = rules.check_cog_all.output.not_cog
     params:
         tree_dir = os.path.join(config["tempdir"],"catchment_trees")
     log: os.path.join(config["outdir"],"logs","catchment.log")

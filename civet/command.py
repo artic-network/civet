@@ -84,6 +84,7 @@ def main(sysargs = sys.argv[1:]):
     map_group.add_argument("--colour-map-by", required=False, dest="colour_map_by", help="Column to colour mapped sequences by")
     
     misc_group = parser.add_argument_group('misc options')
+    misc_group.add_argument("--cluster",action="store_true",help="Run cluster civet pipeline. Requires -i/--input csv/ IDs",dest="cluster")
     misc_group.add_argument('-b','--launch-browser', action="store_true",help="Optionally launch md viewer in the browser using grip",dest="launch_browser")
     misc_group.add_argument('-c','--generate-config',dest="generate_config",action="store_true",help="Rather than running a civet report, generate a config file based on the command line arguments provided")
     misc_group.add_argument('--tempdir',action="store",help="Specify where you want the temp stuff to go. Default: $TMPDIR")
