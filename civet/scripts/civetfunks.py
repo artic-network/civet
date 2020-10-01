@@ -65,6 +65,7 @@ def get_defaults():
                     "table_fields":["sample_date", "uk_lineage", "lineage", "phylotype"],
                     "threads":1,
                     "force":True,
+                    "cluster":False,
                     "trim_start":265,   # where to pad to using datafunk
                     "trim_end":29674,
                     "protect": False,
@@ -262,6 +263,10 @@ def get_datadir(args_climb,args_uun,args_datadir,args_metadata,remote,cwd,config
         get_remote_data(args_uun, background_metadata, data_dir, config)
 
     config["datadir"]=data_dir
+
+def get_cluster_config(cluster_arg,config,default_dict):
+    cluster = qcfunk.check_arg_config_default("cluster",args.cluster, config, default_dict)
+    config["cluster"] = cluster
 
 
 def prepping_civet_arguments(name_stem_input, tree_fields_input, graphic_dict_input, label_fields_input, date_fields_input, table_fields_input):
