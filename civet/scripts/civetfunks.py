@@ -34,7 +34,7 @@ def get_defaults():
                     "distance":2,
                     "up_distance":None,
                     "down_distance":None,
-                    "threshold":1,
+                    "collapse_threshold":1,
                     "sequencing_centre":"DEFAULT",
                     "tree_fields":"adm1",
                     "local_lineages":False,

@@ -188,7 +188,14 @@ def main(sysargs = sys.argv[1:]):
     qcfunk.get_query_fasta(args.fasta,cwd, config)
     
     # run qc on the input sequence file
-    qcfunk.input_file_qc(args.min_length,args.max_ambiguity,config,default_dict)
+    count_seqs = qcfunk.input_file_qc(args.min_length,args.max_ambiguity,config,default_dict)
+    
+    """
+    Quick check in background data
+    """
+    if count_seqs == 0:
+        # check if any queries in background or if fasta supplied
+        qcfunk.check_background_for_queries(config,default_dict)
 
     """
     Accessing the civet package data and 
