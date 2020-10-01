@@ -12,6 +12,7 @@ import pkg_resources
 import yaml
 
 from reportfunk.funks import io_functions as qcfunk
+from reportfunk.funks import prep_data_functions as prep_data
 
 today = date.today()
 
@@ -47,8 +48,8 @@ def get_defaults():
                     "node_summary":"country",
                     "date_window":7,
                     "colour_by":"adm1=viridis",
-                    "label_fields":None,#this was none
-                    "date_fields":"sample_date",#this was none
+                    "label_fields":False,
+                    "date_fields":False,
                     "graphic_dict":"adm1",
                     "no_snipit":False,
                     "include_snp_table":False,
@@ -235,10 +236,10 @@ def get_datadir(args_climb,args_uun,args_datadir,remote,cwd,config,default_dict)
 
 def prepping_civet_arguments(name_stem_input, tree_fields_input, graphic_dict_input, label_fields_input, date_fields_input, table_fields_input):
 
-    tree_fields = prep_argument_list(tree_fields_input, "NONE")
-    label_fields = prep_argument_list(label_fields_input, "NONE")
-    date_fields = prep_argument_list(date_fields_input, "NONE")
-    table_fields = prep_argument_list(table_fields_input, "NONE")
+    tree_fields = prep_data.prep_argument_list(tree_fields_input)
+    label_fields = prep_data.prep_argument_list(label_fields_input)
+    date_fields = prep_data.prep_argument_list(date_fields_input)
+    table_fields = prep_data.prep_argument_list(table_fields_input) 
 
     if "/" in name_stem_input:
         name_stem = name_stem_input.split("/")[-1]
@@ -401,7 +402,7 @@ def report_group_to_config(args,config,default_dict):
     ## label_fields
     label_fields = qcfunk.check_arg_config_default("label_fields",args.label_fields, config, default_dict)
     if not label_fields:
-        config["label_fields"] = config["input_column"]
+        config["label_fields"] = False
 
     ## node-summary
     node_summary = qcfunk.check_arg_config_default("node_summary",args.node_summary, config, default_dict)

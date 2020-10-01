@@ -19,6 +19,7 @@ from reportfunk.funks import prep_data_functions as prep_data
 from reportfunk.funks import tree_functions as tree_viz
 from reportfunk.funks import parsing_functions as dp
 from reportfunk.funks import table_functions as table_func
+import civetfunks as cfunk
 
 
 ```
@@ -28,8 +29,8 @@ from reportfunk.funks import table_functions as table_func
 ```
 ```python, name="prepare_arguments", echo=False, results='raw'
 
-name_stem, tree_fields, graphic_dict, label_fields, date_fields, table_fields = prep_data.prepping_civet_arguments(name_stem, tree_fields, graphic_dict, label_fields, date_fields, table_fields)
-adm2_to_adm1 = prep_data.prepping_adm2_adm1_data(full_metadata_file)
+name_stem, tree_fields, graphic_dict, label_fields, date_fields, table_fields = cfunk.prepping_civet_arguments(name_stem, tree_fields, graphic_dict, label_fields, date_fields, table_fields)
+adm2_to_adm1 = prep_data.prepping_adm2_adm1_data(background_metadata)
 mapping_json_files = [uk_map, channels_map, ni_map]
 
 font_props = font_manager.FontProperties(family=["sans-serif"])
@@ -39,7 +40,7 @@ pyplot.rcParams.update({'figure.max_open_warning': 0})
 mpl.rcParams['font.weight']=50
 mpl.rcParams['axes.labelweight']=50
 
-inputs = [tree_fields, label_fields, graphic_dict, node_summary, map_sequences, mapping_trait, map_cols]
+inputs = [tree_fields, label_fields, graphic_dict, node_summary, map_sequences, colour_map_by, map_info]
 ```
 
 ```python, name="header",echo=False, results='raw'
@@ -62,7 +63,7 @@ print(f"![]({sequencing_centre_file})")
 
 ```python, name="parse metadata", echo=False, results='raw'
 database_column = "sequence_name"
-full_tax_dict, query_dict, tree_to_tip = dp.parse_all_metadata(treedir, filtered_cog_metadata, full_metadata_file, query, input_column, database_column, sample_date_column, display_name, label_fields, tree_fields, table_fields, node_summary, UK_adm2_dict=adm2_to_adm1,date_fields=date_fields, UK=True)
+full_tax_dict, query_dict, tree_to_tip = dp.parse_all_metadata(treedir, filtered_background_metadata, background_metadata, query, input_column, database_column, display_name, sample_date_column, label_fields, tree_fields, table_fields, node_summary, UK_adm2_adm1_dict=adm2_to_adm1,date_fields=date_fields, UK=True)
 
 time_outputs = time_func.summarise_dates(query_dict)
 if type(time_outputs) != bool:
@@ -74,7 +75,7 @@ else:
 
 ```python, name="QC fails", echo=False, results="raw"
 if qc_fail != "": 
-    fail_dict = dp.investigate_QC_fails(qc_fail, full_tax_dict)
+    fail_dict = dp.investigate_QC_fails(qc_fail)
     if len(fail_dict) > 0:
         print("The following sequences have failed QC:\n")
         for seq, reason in fail_dict.items():
