@@ -243,6 +243,9 @@ def main(sysargs = sys.argv[1:]):
     # extraction radius configuration
     qcfunk.collapse_config(args.collapse_threshold,config,default_dict) 
 
+    # cluster civet flag 
+    cfunk.get_cluster_config(args.cluster, config, default_dict)
+
     """
     Parsing the report_group arguments, 
     config or default options
@@ -276,8 +279,9 @@ def main(sysargs = sys.argv[1:]):
     Miscellaneous options parsing
 
     """
-    if args.launch_browser:
-        config["launch_browser"]=True
+    
+    launch_browser = qcfunk.check_arg_config_default("launch_browser",args.launch_browser,config,default_dict)
+    config["launch_browser"]= launch_browser
 
     # don't run in quiet mode if verbose specified
     if args.verbose:
