@@ -43,6 +43,7 @@ def main(sysargs = sys.argv[1:]):
 
     data_group = parser.add_argument_group('data source options')
     data_group.add_argument('-d','--datadir', action="store",help="Local directory that contains the data files. Default: civet-cat")
+    data_group.add_argument("-m","--background-metadata",action="store",dest="background_metadata",help="Custom metadata file that corresponds to the large global tree/ alignment. Should have a column `sequence_name`.")
     data_group.add_argument('--CLIMB', action="store_true",dest="climb",help="Indicates you're running CIVET from within CLIMB, uses default paths in CLIMB to access data")
     data_group.add_argument("-r",'--remote-sync', action="store_true",dest="remote",help="Remotely access lineage trees from CLIMB")
     data_group.add_argument("-uun","--your-user-name", action="store", help="Your CLIMB COG-UK username. Required if running with --remote-sync flag", dest="uun")
@@ -69,7 +70,7 @@ def main(sysargs = sys.argv[1:]):
     tree_group.add_argument('--distance', action="store",help="Extraction from large tree radius. Default: 2", dest="distance",type=int)
     tree_group.add_argument('--up-distance', action="store",help="Upstream distance to extract from large tree. Default: 2", dest="up_distance",type=int)
     tree_group.add_argument('--down-distance', action="store",help="Downstream distance to extract from large tree. Default: 2", dest="down_distance",type=int)
-    tree_group.add_argument('--collapse-threshold', action='store',type=int,help="Minimum number of nodes to collapse on. Default: 1", dest="collapse_threshold")
+    tree_group.add_argument('--collapse-threshold', action='store',help="Minimum number of nodes to collapse on. Default: 1", dest="collapse_threshold",type=int)
 
     map_group = parser.add_argument_group('map rendering options')
     map_group.add_argument('--local-lineages',action="store_true",dest="local_lineages",help="Contextualise the cluster lineages at local regional scale. Requires at least one adm2 value in query csv.")
@@ -138,7 +139,7 @@ def main(sysargs = sys.argv[1:]):
     tempdir = qcfunk.get_temp_dir(args.tempdir, args.no_temp,cwd,config)
 
     # find the data dir
-    cfunk.get_datadir(args.climb,args.uun,args.datadir,args.remote,cwd,config,default_dict)
+    cfunk.get_datadir(args.climb,args.uun,args.datadir,args.background_metadata,args.remote,cwd,config,default_dict)
 
     # add data and input columns to config
     qcfunk.data_columns_to_config(args,config,default_dict)
@@ -187,7 +188,14 @@ def main(sysargs = sys.argv[1:]):
     qcfunk.get_query_fasta(args.fasta,cwd, config)
     
     # run qc on the input sequence file
-    qcfunk.input_file_qc(args.min_length,args.max_ambiguity,config,default_dict)
+    num_seqs = qcfunk.input_file_qc(args.min_length,args.max_ambiguity,config,default_dict)
+    
+    """
+    Quick check in background data
+    """
+    if num_seqs == 0:
+        # check if any queries in background or if fasta supplied
+        qcfunk.check_background_for_queries(config,default_dict)
 
     """
     Accessing the civet package data and 

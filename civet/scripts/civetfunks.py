@@ -33,11 +33,11 @@ def get_defaults():
                     "input_column":"name",
                     "data_column":"central_sample_id",
                     "sample_date_column":"sample_date",
-                    "display_name":None,
+                    "display_name":False,
                     "private":True,
                     "distance":2,
-                    "up_distance":None,
-                    "down_distance":None,
+                    "up_distance":False,
+                    "down_distance":False,
                     "collapse_threshold":1,
                     "sequencing_centre":"DEFAULT",
                     "tree_fields":"adm1",
@@ -113,13 +113,13 @@ def get_package_data(thisdir,config):
     config["report_template"] = report_template
 
 def print_data_error(data_dir):
-    sys.stderr.write(qcfunk.cyan(f"Error: data directory not found at {data_dir}.\n")+ f"""The directory should contain the following files:\n\
+    sys.stderr.write(qcfunk.cyan(f"Error: data directory should contain the following files or additionally supply a background metadata file:\n") + f"\
     - cog_global_tree.nexus\n\
     - cog_global_metadata.csv\n\
-    - cog_global_alignment.fasta\n\
+    - cog_global_alignment.fasta\n"+qcfunk.cyan(f"\
 To run civet please either\n1) ssh into CLIMB and run with --CLIMB flag\n\
 2) Run using `--remote-sync` flag and your CLIMB username specified e.g. `-uun climb-covid19-otoolexyz`\n\
-3) Specify a local directory with the appropriate files\n\n""")
+3) Specify a local directory with the appropriate files, optionally supply a custom metadata file\n\n"""))
 
 def rsync_data_from_climb(uun, data_dir):
     rsync_command = f"rsync -avzh {uun}@bham.covid19.climb.ac.uk:/cephfs/covid/bham/civet-cat '{data_dir}'"
@@ -129,7 +129,7 @@ def rsync_data_from_climb(uun, data_dir):
         sys.stderr.write(qcfunk.cyan("Error: rsync command failed.\nCheck your user name is a valid CLIMB username e.g. climb-covid19-smithj\nAlso, check if you have access to CLIMB from this machine and are in the UK\n\n"))
         sys.exit(-1)
 
-def get_remote_data(uun,data_dir,config):
+def get_remote_data(uun,background_metadata,data_dir,config):
     config["remote"]= True
     head,tail = os.path.split(data_dir)
     if tail == "civet-cat":
@@ -153,15 +153,19 @@ def get_remote_data(uun,data_dir,config):
             sys.stderr.write(qcfunk.cyan("Error: rsync command failed.\nCheck your ssh is configured with Host bham.covid19.climb.ac.uk\nAlternatively enter your CLIMB username with -uun e.g. climb-covid19-smithj\nAlso, check if you have access to CLIMB from this machine and check if you are in the UK\n\n"))
             sys.exit(-1)
 
-    background_metadata = ""
     background_seqs = ""
     background_tree = ""
-
-    background_metadata = os.path.join(path_for_syncing,"civet-cat","cog_global_metadata.csv")
+    
+    if not background_metadata:
+        background_metadata = os.path.join(path_for_syncing,"civet-cat","cog_global_metadata.csv")
+    
     background_seqs= os.path.join(path_for_syncing,"civet-cat","cog_global_alignment.fasta")
     background_tree = os.path.join(path_for_syncing,"civet-cat","cog_global_tree.nexus")
 
     config["datadir"] = os.path.join(path_for_syncing,"civet-cat")
+    if not os.path.exists(config["datadir"]):
+        print(qcfunk.cyan(f"Error: data directory not found at {data_dir}.\n"))
+        sys.exit(-1)
 
     if not os.path.isfile(background_tree) or not os.path.isfile(background_seqs) or not os.path.isfile(background_metadata):
         print_data_error(data_dir)
@@ -176,8 +180,23 @@ def get_remote_data(uun,data_dir,config):
         print("    -",background_metadata)
         print("    -",background_tree,"\n")
 
-def get_datadir(args_climb,args_uun,args_datadir,remote,cwd,config,default_dict):
+def get_datadir(args_climb,args_uun,args_datadir,args_metadata,remote,cwd,config,default_dict):
     data_dir = ""
+    background_metadata = ""
+
+    if args_metadata:
+        background_metadata = os.path.join(cwd, args_metadata)
+        if not os.path.exists(background_metadata):
+            sys.stderr.write(qcfunk.cyan(f"Error: can't find metadata file at {background_metadata}.\n"))
+            sys.exit(-1)
+
+    elif "background_metadata" in config:
+        expanded_path = os.path.expanduser(config["background_metadata"])
+        background_metadata = os.path.join(config["path_to_query"], expanded_path)
+        if not os.path.exists(background_metadata):
+            sys.stderr.write(qcfunk.cyan(f"Error: can't find metadata file at {background_metadata}.\n"))
+            sys.exit(-1)
+            
     if args_climb:
         data_dir = "/cephfs/covid/bham/civet-cat"
         if os.path.exists(data_dir):
@@ -204,11 +223,12 @@ def get_datadir(args_climb,args_uun,args_datadir,remote,cwd,config,default_dict)
             print_data_error(data_dir)
             sys.exit(-1)
             
-        background_metadata = ""
+        
         background_seqs = ""
         background_tree = ""
         
-        background_metadata = os.path.join(data_dir,"cog_global_metadata.csv")
+        if not background_metadata:
+            background_metadata = os.path.join(data_dir,"cog_global_metadata.csv")
         background_seqs= os.path.join(data_dir,"cog_global_alignment.fasta")
         background_tree = os.path.join(data_dir,"cog_global_tree.nexus")
 
@@ -227,7 +247,7 @@ def get_datadir(args_climb,args_uun,args_datadir,remote,cwd,config,default_dict)
 
     elif remote:
         
-        get_remote_data(args_uun, data_dir, config)
+        get_remote_data(args_uun, background_metadata, data_dir, config)
 
     config["datadir"]=data_dir
 
