@@ -46,21 +46,17 @@ def make_report():
         change_line_dict = {}
 
         for key, value in config.items():
-            if key == "cog_global_metadata":
-                new_key = "full_metadata_file"
-            else:
-                new_key = key
-
             if type(value) == bool:
-                new_value = f'{new_key} = {value}\n'
+                new_value = f'{key} = {value}\n'
             else:
-                new_value = f'{new_key} = "{value}"\n'
-            change_line_dict[new_key] = new_value
+                new_value = f'{key} = "{value}"\n'
+            
+            change_line_dict[key] = new_value
         
-        if config["add_bars"]:
-            change_line_dict["add_bars"] = f'add_bars = "{config["add_bars"]}"\n'
-        else:
-            change_line_dict["add_bars"] = 'add_bars = ""\n'
+        # if config["include_bars"]:
+        #     change_line_dict["include_bars"] = f'add_bars = "{config["add_bars"]}"\n'
+        # else:
+        #     change_line_dict["include_bars"] = 'add_bars = ""\n'
 
         with open(config["report_template"]) as f:
             for l in f:

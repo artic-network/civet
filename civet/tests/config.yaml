@@ -1,25 +1,26 @@
 report: Outbreak # the report template to use
 
 sequencing-centre: EDIN # the header to use
-title: Test outbreak investigation
-outbreak-id: outbreak1
-report_date: 2020-08-01 # date investigation was opened
-authors: Verity, Aine, Andrew # List of authors, affiliations and contact details
-description: > # Free-text description that will be inserted at the top of the report - can use markdown for formatting. Please use \n to indicate new lines.
+#title: Test outbreak investigation
+#outbreak-id: outbreak1
+#report_date: 2020-08-01 # date investigation was opened
+#authors: Verity, Aine, Andrew # List of authors, affiliations and contact details
+#description: > # Free-text description that will be inserted at the top of the report - can use markdown for formatting. Please use \n to indicate new lines.
   ### Background \n
-  This report describes the investigation into an outbreak in the made-up region.
-conclusions: > # Free-text concluding text that will be inserted at the bottom of the report
+ # This report describes the investigation into an outbreak in the made-up region.
+#conclusions: > # Free-text concluding text that will be inserted at the bottom of the report
   ### Conclusions \n
-  An outbreak occurred.
+ # An outbreak occurred.
 omit_appendix: True
-fields: adm1,adm2
-#graphic_dict: {adm1: "default", adm2: "viridis" }
+tree_fields: adm1,HCW_status
+# colour_by: adm1:viridis,HCW_status:Paired
 #label_fields: [name, sample_date]
-#table_fields: [uk_lineage,adm1,adm2]
-display_name: display
-snps_in_seq_table: True
-node_summary: country
-sample_date_column: "sample_date"
+#table_fields: ["uk_lineage"]
+#display_name: display
+# include_snp_table: True
+# no_snipit: True
+# node_summary: lineage
+sample_date_column: "date_2"
 up-distance: 2
 down-distance: 2
 threshold: 1
@@ -31,7 +32,7 @@ threshold: 1
 #   - EDB004
 query: test.csv
 fasta: test.fasta
-add_bars: False
+include_bars: True
 #map_sequences: True
 # map_cols: outer_postcode
 # input_crs: "EPSG:4326"

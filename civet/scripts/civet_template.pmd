@@ -29,7 +29,7 @@ import civetfunks as cfunk
 ```
 ```python, name="prepare_arguments", echo=False, results='raw'
 
-name_stem, tree_fields, graphic_dict, label_fields, date_fields, table_fields = cfunk.prepping_civet_arguments(name_stem, tree_fields, graphic_dict, label_fields, date_fields, table_fields)
+name_stem, tree_fields, colour_by, label_fields, date_fields, table_fields = cfunk.prepping_civet_arguments(name_stem, tree_fields, colour_by, label_fields, date_fields, table_fields)
 adm2_to_adm1 = prep_data.prepping_adm2_adm1_data(background_metadata)
 mapping_json_files = [uk_map, channels_map, ni_map]
 
@@ -40,7 +40,7 @@ pyplot.rcParams.update({'figure.max_open_warning': 0})
 mpl.rcParams['font.weight']=50
 mpl.rcParams['axes.labelweight']=50
 
-inputs = [tree_fields, label_fields, graphic_dict, node_summary, map_sequences, colour_map_by, map_info]
+inputs = [tree_fields, label_fields, colour_by, node_summary, map_sequences, colour_map_by, map_info]
 ```
 
 ```python, name="header",echo=False, results='raw'
@@ -114,24 +114,24 @@ else:
 
 ```python, name="first_table", echo=False, results="tex"
 if cog_number != 0 and not_in_cog_number != 0:
-    df_cog, df_seqs = table_func.make_full_civet_table(query_dict, tree_fields, label_fields, input_column, outdir, table_fields, snps_in_seq_table)
+    df_cog, df_seqs = cfunk.make_full_civet_table(query_dict, tree_fields, label_fields, input_column, outdir, table_fields, include_snp_table)
     print("**Table 1** | Queries found in COG-UK database.\n")
     print(df_cog.to_markdown())
     print("\n")
     print("**Table 2** | Queries matched to closest COG-UK sequence using input sequences\n")
     print(df_seqs.to_markdown())
 elif cog_number == 0 and not_in_cog_number != 0:
-    df_seqs = table_func.make_full_civet_table(query_dict, tree_fields, label_fields, input_column,outdir, table_fields, snps_in_seq_table)
+    df_seqs = cfunk.make_full_civet_table(query_dict, tree_fields, label_fields, input_column,outdir, table_fields, include_snp_table)
     print("**Table 1** | Queries matched to closest COG-UK sequence using input sequences\n")
     print(df_seqs.to_markdown())
 elif not_in_cog_number == 0 and cog_number != 0:
-    df_cog = table_func.make_full_civet_table(query_dict, tree_fields, label_fields, input_column, outdir, table_fields, snps_in_seq_table)
+    df_cog = cfunk.make_full_civet_table(query_dict, tree_fields, label_fields, input_column, outdir, table_fields, include_snp_table)
     print("**Table 1** | Queries found in COG-UK database.\n")
     print(df_cog.to_markdown())
 ```
 
 ```python, name="make_trees", echo=False, include=False, figure=False
-too_tall_trees, overall_tree_number, colour_dict_dict, overall_df_dict, tree_order = tree_viz.make_all_of_the_trees(treedir, tree_name_stem, full_tax_dict, query_dict, tree_fields, label_fields, graphic_dict, private)
+too_tall_trees, overall_tree_number, colour_dict_dict, overall_df_dict, tree_order = tree_viz.make_all_of_the_trees(treedir, tree_name_stem, full_tax_dict, query_dict, tree_fields, label_fields, colour_by, private)
 ```
 ```python, name="make_legend", echo=False, include=False, results='tex'
 for trait, colour_dict in colour_dict_dict.items():
@@ -173,7 +173,8 @@ for i in range(1,overall_tree_number+1):
     if dates_present and lookup in tree_to_time_series.keys():
         print("![](" + figdir + "/" + name_stem + "_time_plot_" + str(tree_to_time_series[lookup]) + ".png)")
 
-    print(f"![]({figdir}/genome_graph_{lookup}.png)")
+    if not no_snipit:
+        print(f"![]({figdir}/genome_graph_{lookup}.png)")
 
 if too_tall_trees != []:
     for tree in too_tall_trees:
@@ -181,14 +182,14 @@ if too_tall_trees != []:
 ```
 
 ```python, name="tree_background", echo=False, include=False,  results='raw'
-if add_bars:
+if include_bars:
     print("""### Tree background\n\nThe following plots describe the data in the collapsed nodes in more detail.\nIf more than one """ + node_summary + """ was present, the bar chart describes the number of sequences present in each """ + node_summary + """. \nWhere there were 10 options or more, the largest 10 have been taken.""")
     bar_count = tree_viz.describe_collapsed_nodes(full_tax_dict, tree_name_stem, treedir, node_summary)
     if node_summary == "country":
         print("If a UK sequence is present in the collapsed node, it is always shown in the plot.")
 ```
 ```python, name="show_background",echo=False,include=False,results='raw'
-if add_bars:
+if include_bars:
     if bar_count == 0:
         print(f"There were no nodes that needed to be shown, as there were no collapsed nodes with more than two of {node_summary} in.")
     for i in range(bar_count):

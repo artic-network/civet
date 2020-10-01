@@ -6,6 +6,8 @@ import csv
 import sys
 from Bio import SeqIO
 from datetime import date
+from collections import defaultdict
+import pandas as pd
 
 import tempfile
 import pkg_resources
@@ -13,12 +15,13 @@ import yaml
 
 from reportfunk.funks import io_functions as qcfunk
 from reportfunk.funks import prep_data_functions as prep_data
+from reportfunk.funks import table_functions as table_func
 
 today = date.today()
 
 def get_defaults():
     default_dict = {
-                    "title": "Cluster investigation",
+                    "title": "# Cluster investigation",
                     "outbreak_id": "",
                     "report_date": today,# date investigation was opened
                     "authors": "", # List of authors, affiliations and contact details
@@ -29,12 +32,13 @@ def get_defaults():
                     "datadir":"civet-cat",
                     "input_column":"name",
                     "data_column":"central_sample_id",
+                    "sample_date_column":"sample_date",
                     "display_name":None,
-                    "private":False,
+                    "private":True,
                     "distance":2,
                     "up_distance":None,
                     "down_distance":None,
-                    "threshold":1,
+                    "collapse_threshold":1,
                     "sequencing_centre":"DEFAULT",
                     "tree_fields":"adm1",
                     "local_lineages":False,
@@ -50,7 +54,6 @@ def get_defaults():
                     "colour_by":"adm1=viridis",
                     "label_fields":False,
                     "date_fields":False,
-                    "graphic_dict":"adm1",
                     "no_snipit":False,
                     "include_snp_table":False,
                     "include_bars":False,
@@ -68,7 +71,7 @@ def define_seq_db(config,default_dict):
     config["seq_db"] = config["background_seqs"]
     
 
-def get_package_data(cog_report,thisdir,config,default_dict):
+def get_package_data(thisdir,config):
     reference_fasta = pkg_resources.resource_filename('civet', 'data/reference.fasta')
     outgroup_fasta = pkg_resources.resource_filename('civet', 'data/outgroup.fasta')
     polytomy_figure = pkg_resources.resource_filename('civet', 'data/polytomies.png')
@@ -101,13 +104,8 @@ def get_package_data(cog_report,thisdir,config,default_dict):
     config["HB_translations"] = spatial_translations_1
     config["PC_translations"] = spatial_translations_2
 
-    if cog_report:
-        report_template = os.path.join(thisdir, 'scripts','COG_template.pmd')
-    elif "cog_report" in config:
-        report_template = os.path.join(thisdir, 'scripts','COG_template.pmd')
-    else:
-        report_template = os.path.join(thisdir, 'scripts','civet_template.pmd')
-    
+    report_template = os.path.join(thisdir, 'scripts','civet_template.pmd')
+
     if not os.path.exists(report_template):
         sys.stderr.write(qcfunk.cyan(f'Error: cannot find report_template at {report_template}\n'))
         sys.exit(-1)
@@ -247,10 +245,14 @@ def prepping_civet_arguments(name_stem_input, tree_fields_input, graphic_dict_in
         name_stem = name_stem_input
 
     graphic_dict = {}
-    splits = graphic_dict_input.split(",")
+    if type(graphic_dict_input) == str:
+        splits = graphic_dict_input.split(",")
+    else:
+        splits = graphic_dict_input
+    
     for element in splits:
-        key = element.split(":")[0]
-        value = element.split(":")[1]
+        key = element.split(":")[0].replace(" ","").replace("'","")
+        value = element.split(":")[1].replace(" ","").replace("'","")
         graphic_dict[key] = value
             
     for key in graphic_dict.keys():
@@ -390,6 +392,10 @@ def report_group_to_config(args,config,default_dict):
     ## sequencing_centre
     sequencing_centre = qcfunk.check_arg_config_default("sequencing_centre",args.sequencing_centre, config, default_dict)
     config["sequencing_centre"] = sequencing_centre
+
+    ## display_name
+    display_name = qcfunk.check_arg_config_default("display_name", args.display_name, config, default_dict)
+    config["display_name"] = display_name
     
     ## colour_by
     colour_by = qcfunk.check_arg_config_default("colour_by",args.colour_by, config, default_dict)
@@ -403,6 +409,14 @@ def report_group_to_config(args,config,default_dict):
     label_fields = qcfunk.check_arg_config_default("label_fields",args.label_fields, config, default_dict)
     if not label_fields:
         config["label_fields"] = False
+
+    ##date_fields
+    date_fields = qcfunk.check_arg_config_default("date_fields", args.date_fields, config, default_dict)
+    config["date_fields"] = date_fields
+
+    ##sample date column
+    sample_date_column = qcfunk.check_arg_config_default("sample_date_column", args.sample_date_column,config,default_dict)
+    config["sample_date_column"] = sample_date_column
 
     ## node-summary
     node_summary = qcfunk.check_arg_config_default("node_summary",args.node_summary, config, default_dict)
@@ -420,19 +434,97 @@ def report_group_to_config(args,config,default_dict):
     include_bars = qcfunk.check_arg_config_default("include_bars",args.include_bars, config, default_dict)
     config["include_bars"] = include_bars
 
-    ## cog_report
-    cog_report = qcfunk.check_arg_config_default("cog_report",args.cog_report, config, default_dict)
-    config["cog_report"] = cog_report
-
     ## omit-appendix
     omit_appendix = qcfunk.check_arg_config_default("omit_appendix",args.omit_appendix, config, default_dict)
     config["omit_appendix"] = omit_appendix
 
     ## no-snipit
     no_snipit = qcfunk.check_arg_config_default("no_snipit",args.no_snipit, config, default_dict)
-    config["no_snipit"] = True
+    config["no_snipit"] = no_snipit
     
     ## private
     private = qcfunk.check_arg_config_default("private",args.private, config, default_dict)
     config["private"] = private
 
+def make_full_civet_table(query_dict, tree_fields, label_fields, input_column, outdir, table_fields, include_snp_table):
+
+    df_dict_incog = defaultdict(list)
+    df_dict_seqprovided = defaultdict(list)
+
+    incog = 0
+    seqprovided = 0
+    incogs = False
+    seqprovideds = False
+
+    for query in query_dict.values():
+
+        if query.in_db:
+            df_dict = df_dict_incog
+            incog += 1
+        else:
+            df_dict = df_dict_seqprovided
+            seqprovided += 1
+        
+        if query.display_name != query.name:
+            df_dict["Query ID"].append(query.display_name.replace("|","\|"))
+        else:
+            df_dict["Query ID"].append(query.query_id.replace("|","\|"))
+        
+        if query.in_db: 
+            df_dict["Sequence name in Tree"].append(query.name)        
+
+        df_dict["Sample date"].append(query.sample_date)
+
+        if not query.in_db: 
+            df_dict["Closest sequence in Tree"].append(query.closest)
+            df_dict["Distance to closest sequence"].append(query.closest_distance)
+            df_dict["SNPs"].append(query.snps)
+
+        df_dict["UK lineage"].append(query.uk_lin)
+        df_dict["Global lineage"].append(query.global_lin)
+        df_dict["Phylotype"].append(query.phylotype)
+
+        if query.tree != "NA":
+            tree_number = query.tree.split("_")[-1]
+            pretty_tree = "Tree " + str(tree_number)
+            df_dict["Tree"].append(pretty_tree)
+        else:
+            df_dict["Tree"].append("NA") #this should never happen, it's more error catching
+
+        if tree_fields != []:
+            for i in tree_fields:
+                df_dict[i].append(query.attribute_dict[i])
+        
+        if label_fields != []:
+            for i in label_fields: 
+                if i not in tree_fields and i != "sample_date" and i != input_column:
+                    df_dict[i].append(query.attribute_dict[i])
+
+    if incog != 0:
+        df_incog = pd.DataFrame(df_dict_incog)
+        file_name = os.path.join(outdir,"Sequences_already_in_cog")
+        df_incog.to_csv(file_name, index=False)
+        df_incog.set_index("Query ID", inplace=True)
+        incogs = True
+    
+    if seqprovided != 0:
+        df_seqprovided = pd.DataFrame(df_dict_seqprovided)
+        file_name = os.path.join(outdir,"Sequences_provided")
+        df_seqprovided.to_csv(file_name, index=False)
+        df_seqprovided.set_index("Query ID", inplace=True)
+        seqprovideds = True
+
+    output = table_func.make_custom_table(query_dict, table_fields, include_snp_table)
+
+    # print(output)
+    # print(len(output))
+
+    # for i in output:
+    #     print(type(i))
+
+
+    # for i in output:
+    #     print("item")
+    #     print(i)
+
+    return output

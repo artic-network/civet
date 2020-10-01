@@ -52,18 +52,18 @@ def main(sysargs = sys.argv[1:]):
     report_group = parser.add_argument_group('report customisation')
     report_group.add_argument('-sc',"--sequencing-centre", action="store",help="Customise report with logos from sequencing centre.", dest="sequencing_centre")
     report_group.add_argument("--display-name", action="store", help="Column in input csv file with display names for seqs. Default: same as input column", dest="display_name")
+    report_group.add_argument("--sample-date-column", action="store", help="Column in input csv with sampling date in it. Default='sample_date'", dest="sample_date_column")
     report_group.add_argument('--colour-by', action="store", help="Comma separated string of fields to display as coloured dots rather than text in report trees. Optionally add colour scheme eg adm1=viridis", dest="colour_by")
     report_group.add_argument('--tree-fields', action="store",help="Comma separated string of fields to display in the trees in the report. Default: country", dest="tree_fields")
     report_group.add_argument('--label-fields', action="store", help="Comma separated string of fields to add to tree report labels.", dest="label_fields")
     report_group.add_argument("--date-fields", action="store", help="Comma separated string of metadata headers containing date information.", dest="date_fields")
     report_group.add_argument("--node-summary", action="store", help="Column to summarise collapsed nodes by. Default = Global lineage", dest="node_summary")
-    report_group.add_argument("--table-fields", action="store", help="Fields to include in the table produced in the report", dest="table_fields")
-    report_group.add_argument("--include-snp-table", action="store", help="Include information about closest sequence in database in table. Default is False", dest="include_snp_table")
+    report_group.add_argument("--table-fields", action="store", help="Fields to include in the table produced in the report. Query ID, name of sequence in tree and the local tree it's found in will always be shown", dest="table_fields")
+    report_group.add_argument("--include-snp-table", action="store_true", help="Include information about closest sequence in database in table. Default is False", dest="include_snp_table")
     report_group.add_argument('--no-snipit', action="store_true",help="Don't run snipit graph", dest="no_snipit")
     report_group.add_argument('--include-bars', action="store_true",help="Render barcharts in the output report", dest="include_bars")
-    report_group.add_argument('--cog-report', action="store_true",help="Run summary cog report. Default: outbreak investigation",dest="cog_report")
     report_group.add_argument('--omit-appendix', action="store_true", help="Omit the appendix section. Default=False", dest="omit_appendix")
-    report_group.add_argument('--private', action="store_true", help="remove adm2 references from background sequences. Default=False")
+    report_group.add_argument('--private', action="store_true", help="remove adm2 references from background sequences. Default=True")
 
     tree_group = parser.add_argument_group('tree context options')
     tree_group.add_argument('--distance', action="store",help="Extraction from large tree radius. Default: 2", dest="distance",type=int)
@@ -195,7 +195,7 @@ def main(sysargs = sys.argv[1:]):
     the sequencing centre header
     """
     # accessing package data and adding to config dict
-    cfunk.get_package_data(args.cog_report,thisdir,config,default_dict)
+    cfunk.get_package_data(thisdir,config)
 
     """
     Report options and args added to config, seq header file retrieved
@@ -219,7 +219,7 @@ def main(sysargs = sys.argv[1:]):
     qcfunk.data_columns_to_config(args,config,default_dict)
 
     # parse the input csv, check col headers and get fields if fields specified
-    qcfunk.check_label_and_tree_and_date_fields(args.tree_fields, args.label_fields,args.colour_by, args.date_fields, args.input_column, args.display_name, config, default_dict,config["background_metadata"])
+    qcfunk.check_label_and_tree_and_date_fields(config, default_dict)
         
     # map sequences configuration
     cfunk.map_sequences_config(args.map_sequences,args.colour_map_by,args.map_info,args.input_crs,config,default_dict)
@@ -247,19 +247,15 @@ def main(sysargs = sys.argv[1:]):
     """
 
     # make title
-    rfunk.make_title(config)
+    rfunk.make_title(config, default_dict)
     # deal with free text
-    rfunk.free_text_args(config)
-    rfunk.appendix(args.omit_appendix,config)
-
-    #deal with figures
-    rfunk.bars(args.include_bars, config)
+    rfunk.free_text_args(config, default_dict)
 
     #get table headers
     qcfunk.check_table_fields(args.table_fields, args.include_snp_table, config,default_dict)
         
     # summarising collapsed nodes config
-    qcfunk.node_summary(args.node_summary,config)
+    qcfunk.check_summary_field("node_summary",config, default_dict)
 
 
     """
