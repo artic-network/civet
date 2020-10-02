@@ -287,6 +287,10 @@ def local_lineages_qc(config,default_dict):
 
     if config["local_lineages"]:
 
+        if "adm2" not in config["background_metadata_header"] and "adm2" not in config["query_metadata_header"]:
+            sys.stderr.write(qcfunk.cyan('Error: no geographic information found for local lineage analysis. Please provide a column in the query or background with the header "adm2"'))
+            sys.exit(-1)
+
         if config["date_restriction"]:
 
             if config["date_range_start"] and type(config["date_range_start"]) == str:
@@ -320,9 +324,9 @@ def local_lineages_to_config(central, neighbouring, region, config):
         config["lineage_tables"] = []
         config["lineage_maps"] = []
 
-def map_sequences_config(map_sequences,colour_map_by,map_inputs,input_crs,config,default_dict):
+def map_sequences_config(config):
     
-    background_headers = config["background_metadata_headers"]
+    background_headers = config["background_metadata_header"]
     query_headers = config["query_metadata_header"]
 
     if config["map_sequences"]:
@@ -344,7 +348,7 @@ def map_sequences_config(map_sequences,colour_map_by,map_inputs,input_crs,config
         relevant_cols = map_inputs.split(",")
 
         if config["colour_map_by"]:
-            relevant_cols.append(colour_map_by)
+            relevant_cols.append(config["colour_map_by"])
         
         for map_arg in relevant_cols:
             map_arg = map_arg.replace(" ","")
@@ -356,7 +360,7 @@ def map_sequences_config(map_sequences,colour_map_by,map_inputs,input_crs,config
             if map_inputs == "adm2":
                 print(qcfunk.cyan(f"NOTE: --colour-map-by not set up to colour by adm2. Please provide outer postcode or coordinates"))
             else:
-                print(qcfunk.green(f"Colouring map by: " + f"{colour_map_by}"))
+                print(qcfunk.green(f"Colouring map by: {config['colour_map_by']}"))
                         
 
 def get_sequencing_centre_header(config):

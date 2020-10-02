@@ -230,7 +230,7 @@ def main(sysargs = sys.argv[1:]):
     qcfunk.check_label_and_tree_and_date_fields(config, default_dict)
         
     # map sequences configuration
-    cfunk.map_sequences_config(args.map_sequences,args.colour_map_by,args.map_info,args.input_crs,config,default_dict)
+    cfunk.map_sequences_config(config)
     
     # local lineages qc
     cfunk.local_lineages_qc(config,default_dict)
