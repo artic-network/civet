@@ -97,11 +97,14 @@ def main(sysargs = sys.argv[1:]):
     """
     Exit with help menu if no args supplied
     """
-    if len(sysargs)<1 or args.help: 
+    if len(sysargs)<1: 
         parser.print_help()
         sys.exit(0)
     else:
         args = parser.parse_args(sysargs)
+        if args.help:
+            parser.print_help()
+            sys.exit(0)
     
     cfunk.preamble()
     
