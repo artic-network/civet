@@ -548,3 +548,21 @@ def make_full_civet_table(query_dict, tree_fields, label_fields, input_column, o
     #     print(i)
 
     return output
+
+def preamble():
+    print(qcfunk.green("""\n
+                    __              __    
+              ____ |__|__  __ _____/  |_ 
+             / ___\|  \  \/ // __ \   __|
+            \  \___|  |\   /\  ___/|  |  
+             \____/ __| \_/  \____/ __|  
+
+**** Cluster Investigation and Virus Epidemiology Tool ****
+
+      ****************************************
+
+            Aine O'Toole & Verity Hill
+                  Rambaut Group
+               Edinburgh University
+
+\n"""))

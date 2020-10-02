@@ -26,12 +26,13 @@ cwd = os.getcwd()
 
 def main(sysargs = sys.argv[1:]):
 
-    parser = argparse.ArgumentParser(prog = _program, 
-    description=qcfunk.green('civet: Cluster Investivation & Virus Epidemiology Tool'), 
-    usage='''\tcivet -i input.csv [options]
-\tcivet -i EDB1234,EDB4321 [options]
+    parser = argparse.ArgumentParser(add_help=False, prog = _program, 
+    description=cfunk.preamble(), 
+    usage='''
 \tcivet -i <config.yaml> [options]
-\tcivet -fm adm2=Edinburgh sample_date=2020-03-01:2020-04-01 [options]\n\n''')
+\tcivet -i input.csv [options]
+\tcivet -i ID1,IS2 [options]
+\tcivet -fm <column=match> [options]\n\n''')
 
     io_group = parser.add_argument_group('input output options')
     io_group.add_argument('-i',"--input", action="store",help="Input config file in yaml format, csv file (with minimally an input_column header, Default=`name`) or comma-separated id string with one or more query ids. Example: `EDB3588,EDB3589`.", dest="input")
@@ -91,15 +92,18 @@ def main(sysargs = sys.argv[1:]):
     misc_group.add_argument("--verbose",action="store_true",help="Print lots of stuff to screen")
     misc_group.add_argument('-t', '--threads', action='store',dest="threads",type=int,help="Number of threads")
     misc_group.add_argument("-v","--version", action='version', version=f"civet {__version__}")
+    misc_group.add_argument("-h","--help",action="store_true",dest="help")
     
     """
     Exit with help menu if no args supplied
     """
-    if len(sysargs)<1: 
+    if len(sysargs)<1 or args.help: 
         parser.print_help()
-        sys.exit(-1)
+        sys.exit(0)
     else:
         args = parser.parse_args(sysargs)
+    
+    cfunk.preamble()
     
     """
     Initialising dicts
