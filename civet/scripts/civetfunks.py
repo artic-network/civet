@@ -557,12 +557,12 @@ def preamble():
             \  \___|  |\   /\  ___/|  |  
              \____/ __| \_/  \____/ __|  
 
-**** Cluster Investigation and Virus Epidemiology Tool ****
+**** Cluster Investigation & Virus Epidemiology Tool ****
 
-      ****************************************
+        ****************************************
 
-            Aine O'Toole & Verity Hill
-                  Rambaut Group
-               Edinburgh University
+              Aine O'Toole & Verity Hill
+                    Rambaut Group
+                 Edinburgh University
 
 \n"""))
