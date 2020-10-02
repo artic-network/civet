@@ -82,8 +82,11 @@ def display_name(tree, tree_name, tree_dir, full_taxon_dict, query_dict, custom_
                     k.traits["display"] = f"{name}|{date}"
                     
                     if "adm2" in taxon_obj.attribute_dict.keys():
-                        adm2 = taxon_obj.attribute_dict["adm2"]
-                        k.traits["display"] = f"{name}|{adm2}|{date}"
+                        if taxon_obj.attribute_dict["adm2"] != "NA" and taxon_obj.attribute_dict["adm2"] != "":
+                            adm2 = taxon_obj.attribute_dict["adm2"]
+                            k.traits["display"] = f"{name}|{adm2}|{date}"
+                        else:
+                            k.traits["display"] =  f"{name}|{date}"
 
                     count = 0
                     if len(custom_tip_fields) > 0: 
@@ -506,7 +509,7 @@ def summarise_node_table(tree_dir, focal_tree, full_tax_dict):
 
                     if taxon_obj.attribute_dict["country"] == "UK":
                         if "adm2" in taxon_obj.attribute_dict.keys():
-                            if taxon_obj.attribute_dict["adm2"] != "":
+                            if taxon_obj.attribute_dict["adm2"] != "" and taxon_obj.attribute_dict["adm2"] != "NA":
                                 adm2_present.append(taxon_obj.attribute_dict["adm2"])
             
             if len(adm2_present) != 0:

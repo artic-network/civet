@@ -254,7 +254,8 @@ def parse_input_csv(input_csv, query_id_dict, desired_fields, label_fields, date
                                 taxon.attribute_dict["adm1"] = adm1
 
                 if cog_report:
-                    taxon.attribute_dict["adm2"]= sequence["adm2"] 
+                    if "adm2" in col_names:
+                        taxon.attribute_dict["adm2"]= sequence["adm2"] 
                     if "collection_date" in reader.fieldnames:
                         date_string = sequence["collection_date"]
                     else:
@@ -313,13 +314,18 @@ def parse_full_metadata(query_dict, label_fields, tree_fields,full_metadata, pre
             seq_name = sequence["sequence_name"]
 
             date = sequence["sample_date"]
-            adm2 = sequence["adm2"]
             country = sequence["country"]
 
             glob_lin = sequence["lineage"]
             phylotype = sequence["phylotype"]
 
             node_summary_trait = sequence[node_summary_option]
+
+            if "adm2" in col_names:
+                adm2 = sequence["adm2"]
+            else:
+                adm2 = "NA"
+
 
 
             if (uk_lin in present_lins or seq_name in present_in_tree) and seq_name not in query_dict.keys():
@@ -423,8 +429,8 @@ def make_initial_table(query_dict, desired_fields, label_fields, cog_report):
                 if i not in desired_fields and i != "sample_date" and i != "name":
                     df_dict[i].append(query.attribute_dict[i])
 
-        if cog_report:
-            df_dict['adm2'].append(query.attribute_dict["adm2"])
+        # if cog_report:
+        #     df_dict['adm2'].append(query.attribute_dict["adm2"])
 
     if incog != 0:
         df_incog = pd.DataFrame(df_dict_incog)
