@@ -340,8 +340,6 @@ def map_sequences_config(map_sequences,colour_map_by,map_inputs,input_crs,config
                 sys.exit(-1)
         else: #If an outer postcode column is provided
             config["input_crs"] = "EPSG:4326"
-        
-       
 
         relevant_cols = map_inputs.split(",")
 
