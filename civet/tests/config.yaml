@@ -32,12 +32,12 @@ threshold: 1
 #   - EDB004
 query: test.csv
 fasta: test.fasta
-include_bars: True
-#map_sequences: True
-# map_cols: outer_postcode
-# input_crs: "EPSG:4326"
-# mapping_trait: care_home
-# local_lineages: False
+# include_bars: True
+# map_sequences: True
+# map_info: x_col, y_col
+# input_crs: EPSG:4326
+# colour_map_by: care_home
+local_lineages: True
 # date_restriction: True 
 # date_range_start: 2020-07-01
 # date_range_end: 2020-08-31

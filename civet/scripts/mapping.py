@@ -356,8 +356,8 @@ def map_sequences_using_coordinates(input_csv, mapping_json_files, urban_centres
 
     cols = map_inputs.split(",")
     if len(cols) == 2:
-        x_col = cols[0]
-        y_col = cols[1]
+        x_col = cols[0].replace(" ","")
+        y_col = cols[1].replace(" ","")
         name_to_coords, name_to_trait = get_coords_from_file(input_csv, input_crs, colour_map_trait, x_col, y_col)
     elif len(cols) == 1:
         postcode_col = cols[0]

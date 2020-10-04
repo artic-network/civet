@@ -287,12 +287,16 @@ def local_lineages_qc(config,default_dict):
 
     if config["local_lineages"]:
 
+        if "adm2" not in config["background_metadata_header"] and "adm2" not in config["query_metadata_header"]:
+            sys.stderr.write(qcfunk.cyan('Error: no geographic information found for local lineage analysis. Please provide a column in the query or background with the header "adm2"'))
+            sys.exit(-1)
+
         if config["date_restriction"]:
 
             if config["date_range_start"] and type(config["date_range_start"]) == str:
-                check_date_format(config["date_range_start"])
+                qcfunk.check_date_format(config["date_range_start"], config_key="date_range_start")
             if config["date_range_end"] and type(config["date_range_end"]) == str:
-                check_date_format(config["date_range_end"])
+                qcfunk.check_date_format(config["date_range_end"], config_key="date_range_end")
 
             if config["date_range_start"] and config["date_range_end"]:
                 print(qcfunk.green(f"Local lineage analysis restricted to {config['date_range_start']} to {config['date_range_end']}"))
@@ -301,15 +305,37 @@ def local_lineages_qc(config,default_dict):
             else:
                 print(qcfunk.green(f"Local lineage analysis restricted to {config['date_window']} days around the sampling range"))
 
-def map_sequences_config(map_sequences,colour_map_by,map_inputs,input_crs,config,default_dict):
+        else:
+
+            print(qcfunk.green(f"Local lineage analysis not restricted by time, will show background lineage composition for the whole of the epidemic"))
+
+def local_lineages_to_config(central, neighbouring, region, config):
+
+    if config["local_lineages"] == True:
+        lineage_tables = []
+        for r,d,f in os.walk(os.path.join(config["outdir"], 'figures')):
+            for fn in f:
+                if fn.endswith("_lineageTable.md"):
+                    lineage_tables.append(os.path.join(config["outdir"], 'figures', fn))
+
+        config["lineage_tables"] = lineage_tables
+        config["lineage_maps"] = [central, neighbouring, region]
+    else:
+        config["lineage_tables"] = []
+        config["lineage_maps"] = []
+
+def map_sequences_config(config):
     
+    background_headers = config["background_metadata_header"]
+    query_headers = config["query_metadata_header"]
+
     if config["map_sequences"]:
 
         map_inputs = ""
         if config["map_info"]:
             map_inputs = config["map_info"].replace(" ","")
         else:
-            sys.stderr.write(qcfunk.cyan('Error: coordinates or outer postcode not supplied for mapping sequences. Please provide either x and y columns as a comma separated string, or column header containing outer postcode.'))
+            sys.stderr.write(qcfunk.cyan('Error: coordinates or outer postcode or adm2 not supplied for mapping sequences. Please provide either x and y columns as a comma separated string, or column header containing outer postcode.'))
             sys.exit(-1)
 
         if len(map_inputs.split(",")) == 2: #If x and y coordinates are provided
@@ -318,36 +344,24 @@ def map_sequences_config(map_sequences,colour_map_by,map_inputs,input_crs,config
                 sys.exit(-1)
         else: #If an outer postcode column is provided
             config["input_crs"] = "EPSG:4326"
+
+        relevant_cols = map_inputs.split(",")
+
+        if config["colour_map_by"]:
+            relevant_cols.append(config["colour_map_by"])
         
-        with open(config["query"], newline="") as f:
-            reader = csv.DictReader(f)
-            column_names = reader.fieldnames
-
-            relevant_cols = map_inputs.split(",")
-
-            if config["colour_map_by"]:
-                relevant_cols.append(colour_map_by)
-            
-            for map_arg in relevant_cols:
-                map_arg = map_arg.replace(" ","")
-                if map_arg not in column_names and map_arg not in config["background_metadata_headers"]:
-                    sys.stderr.write(qcfunk.cyan(f"Error: {map_arg} column not found in metadata file or background database for mapping sequences"))
-                    sys.exit(-1)
+        for map_arg in relevant_cols:
+            map_arg = map_arg.replace(" ","")
+            if map_arg not in query_headers and map_arg not in background_headers:
+                sys.stderr.write(qcfunk.cyan(f"Error: {map_arg} column not found in metadata file or background database for mapping sequences"))
+                sys.exit(-1)
 
         if config["colour_map_by"]:
             if map_inputs == "adm2":
                 print(qcfunk.cyan(f"NOTE: --colour-map-by not set up to colour by adm2. Please provide outer postcode or coordinates"))
             else:
-                print(qcfunk.green(f"Colouring map by: " + f"{colour_map_by}"))
-            config["colour_map_by"] = colour_map_by
-            
-        else:
-            config["colour_map_by"] = False
-
-        config["map_info"] = False
-        config["input_crs"] = False
-        config["colour_map_by"] = False
-
+                print(qcfunk.green(f"Colouring map by: {config['colour_map_by']}"))
+                        
 
 def get_sequencing_centre_header(config):
     

@@ -9,6 +9,7 @@ from reportfunk.funks import custom_logger as custom_logger
 
 
 from reportfunk.funks import io_functions as qcfunk
+import civetfunks as cfunk
 
 rule check_cog_db:
     input:
@@ -305,7 +306,7 @@ rule make_report:
         
         shell("cp {config[sequencing_centre_source]:q} {config[sequencing_centre_dest]:q}")
 
-        qcfunk.local_lineages_to_config(input.central, input.neighbouring, input.region, config)
+        cfunk.local_lineages_to_config(input.central, input.neighbouring, input.region, config)
 
         config["figdir"] = os.path.join(".","figures") #changed from rel_figdir
         config["treedir"] = os.path.join(config["outdir"],"local_trees")
