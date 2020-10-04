@@ -106,7 +106,6 @@ def main(sysargs = sys.argv[1:]):
             parser.print_help()
             sys.exit(0)
     
-    cfunk.preamble()
     
     """
     Initialising dicts
