@@ -16,6 +16,8 @@ description: >
 
 Using the flag "--sequencing-centre" on the command line or the option "sequencing_centre" in the config file followed by an accepted four letter abbreviation for the sequencing centre (eg EDIN for Edinburgh or BIRM for Birmingham) will add that sequencing centre's logo into the header of the report. If you do not specifiy a custom title, it will also add the abbreviation into the title.
 
+![](doc_figures/header_example.png)
+
 ## Display name
 
 Specify a column in the query csv to refer to query sequences by in the report instead of COG IDs. The default is the same as input column, which by default is name. This may be a patient ID for example to make it more quickly and easily interpretable. This name will be used in the phylogeny and the summary table.
@@ -46,7 +48,7 @@ NB Fields in colour-by must also be present in the tree-fields list.
 
 ![](doc_figures/tree_fields_graphic_dict.png)
 
-## Label fields
+## Label fields and private
 
 A comma separated string of metadata headers containing information to be displayed in the labels in the phylogeny.
 
@@ -80,6 +82,8 @@ Therefore once you specify *any* label fields, you must specify all those that y
 Provide column headers from the query metadata or the background metadata as a comma separated string that contain date information to plot those dates on a timeline. 
 
 NB all date formats must be in YYYY-MM-DD format.
+
+![](doc_figures/date_figure.png)
 
 ## Node summary and include bars
 
