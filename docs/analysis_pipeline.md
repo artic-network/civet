@@ -92,7 +92,7 @@ Passing through the configuration dictionary and setting the working directory t
 
 ### 12) Main analysis pipeline
 1) check_cog_db
-Check against the COG-UK phylogenetics database for your query id, will check search field, which by default is `central_sample_id`, this finds all sequences that will already be in the big tree
+Check against the COG-UK phylogenetics database for your query id, will check search field, which by default is `central_sample_id`, this finds all sequences that will already be in the big tree. Use `data_column` to configure a custom search field. 
 3) get_closest_cog
 If you have supplied an additional fasta file with sequences that haven't yet been uploaded to the COG-UK database, this side pipeline finds the closest matching sequence, details in Section 13. This workflow returns a csv of the closest hits within the background phylogeny for each query not already in the tree. This information gets added to the report. It also returns the input query sequences aligned, with the UTRs masked out. 
 4) combine_metadata
@@ -101,7 +101,12 @@ Metadata from the closest COG sequence is combined with the metadata found direc
 Using the names of the closest COG sequences and of the sequences already in the tree, local trees with a radius of `--distance` number of nodes are pulled out of the large global tree. 
 6) process_catchments
 Another sub-workflow that gets spawned off with the set of catchment trees produced from the prune_out_catchments rule. Full details of this step are found in Section 10, but in brief there are three alternative snakefiles can can be called at this step depending on whether --delay-tree-collapse has been called and depending on whether new sequences need to be added into the tree or not. The output of this step is a directory of "local_trees" that have the nodes we have not queried collapsed to the nearest polytomy, with an output summary file of the tips that had been in that sub-tree prior to collapse.
-7) make_report
+7) find_snps
+A side pipeline that runs `snipit` on your set of query sequences, producing a figure that summarises all the snps relative to the reference sequence. Turn these figures off with `--no-snipit`
+8) regional_mapping
+A side pipeline that will render maps summarising the variation in the local area surrounding your query sequences of interest. 
+9) regional_map_rendering
+Render the figures showing local maps
 
 ### 9) Making the report
 
