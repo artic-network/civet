@@ -1,6 +1,18 @@
-# Report options
 
-## Free text options
+<section id="banner">
+    <div class="content">
+      <header>
+        <h2>Report options</h2>
+        <p>Details of how to customise the civet report</p>
+      </header>
+    </div>
+    <span class="image object">
+        <img src="./figures/civet_logo.png" alt="" style="max-width:150px"/>
+        </span>
+</section>
+
+
+### Free text options
 
 Using the config file, there are several points where fully customisable free text can be added.
 These are: Title, outbreak ID, report date (default is today), author list, description (introduction) and conclusions. To include multi-line free text, put a ">" character and the start of the free text, and include the new line character ("\n") where the new lines should go.
@@ -12,23 +24,23 @@ description: >
    This report describes the investigation into an outbreak in the made-up region.
 ```
 
-## Sequencing centre 
+### Sequencing centre 
 
 Using the flag "--sequencing-centre" on the command line or the option "sequencing_centre" in the config file followed by an accepted four letter abbreviation for the sequencing centre (eg EDIN for Edinburgh or BIRM for Birmingham) will add that sequencing centre's logo into the header of the report. If you do not specifiy a custom title, it will also add the abbreviation into the title.
 
 ![](doc_figures/header_example.png)
 
-## Display name
+### Display name
 
 Specify a column in the query csv to refer to query sequences by in the report instead of COG IDs. The default is the same as input column, which by default is name. This may be a patient ID for example to make it more quickly and easily interpretable. This name will be used in the phylogeny and the summary table.
 
 ![](doc_figures/display_name.png)
 
-## Sample date column
+### Sample date column
 
 Specify column in the query csv that contains the sampling date. Default is "sample_date". 
 
-## Tree fields and colour by
+### Tree fields and colour by
 
 A comma separated string containing the column headers of metadata to show on the phylogeny. They will be shown to the right of the corresponding tip, and can be drawn from the query csv or the background metadata csv. 
 
@@ -48,7 +60,7 @@ NB Fields in colour-by must also be present in the tree-fields list.
 
 ![](doc_figures/tree_fields_graphic_dict.png)
 
-## Label fields and private
+### Label fields and private
 
 A comma separated string of metadata headers containing information to be displayed in the labels in the phylogeny.
 
@@ -77,7 +89,7 @@ regardless of CLIMB status or **--private** flag will show:
 
 Therefore once you specify *any* label fields, you must specify all those that you want other than the display name.
 
-## Date fields
+### Date fields
 
 Provide column headers from the query metadata or the background metadata as a comma separated string that contain date information to plot those dates on a timeline. 
 
@@ -85,7 +97,7 @@ NB all date formats must be in YYYY-MM-DD format.
 
 ![](doc_figures/date_figure.png)
 
-## Node summary and include bars
+### Node summary and include bars
 
 Provide a header in the background metadata table to summarise collapsed nodes by in the phylogeny. Default is country.
 
@@ -96,7 +108,7 @@ If **--include-bars** is called, this information will also be displayed as bar 
 ![](doc_figures/include_bars.png)
 
 
-## Table fields and include snp table
+### Table fields and include snp table
 
 The table shown in the report will always include:
 - Query ID
@@ -111,11 +123,11 @@ In addition, for those sequences not found in the metadata, **--include-snp-tabl
 
 in the second table.
 
-## No-snipit
+### No-snipit
 
 By using this flag, the Snipit table (table showing location of SNPs in the alignment) is removed from the report.
 
-## Omit appendix
+### Omit appendix
 
 Removes appendix from the report. 
 
