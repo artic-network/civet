@@ -13,7 +13,7 @@ If the sequences are already on CLIMB and part of the large tree, civet will pul
 A fully customisable report is generated, summarising information about the sequences of interest. The tips of these trees can be coloured by any categorical trait present in the input csv, and additional fields added to the tip labels. Optional figures may be added to describe the local background of UK lineages and to map the query sequences using coordinates, again colourable by a custom trait. 
 
 
-<strong> Find out more information about civet at civet.github.io </strong>
+<strong> Find out more information about civet at cog-uk.github.io/civet </strong>
 
 
 #### Full usage:
