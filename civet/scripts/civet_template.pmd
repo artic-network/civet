@@ -233,7 +233,8 @@ if map_sequences:
         if colour_map_by:
             print("This is shown in the map below, and is coloured by " + colour_map_by + " and urban centres are shown in the darker grey")
         else:
-            print("This is shown in the map below, with urban centres shown in the darker grey")
+            if map_info != "adm2":
+                print("This is shown in the map below, with urban centres shown in the darker grey")
 
     else:
         print("Insufficient geographical information to plot sequences")
