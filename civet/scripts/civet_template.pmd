@@ -136,7 +136,7 @@ elif not_in_cog_number == 0 and cog_number != 0:
 ```
 
 ```python, name="make_trees", echo=False, include=False, figure=False
-too_tall_trees, overall_tree_number, colour_dict_dict, overall_df_dict, tree_order, too_large_tree_dict = tree_viz.make_all_of_the_trees(treedir, tree_name_stem, full_tax_dict, query_dict, tree_fields, label_fields, colour_by, private, tree_to_all_tip, tree_to_tip)
+too_tall_trees, overall_tree_number, colour_dict_dict, overall_df_dict, tree_order, too_large_tree_dict, tallest_height,tree_to_num_tips = tree_viz.make_all_of_the_trees(treedir, tree_name_stem, full_tax_dict, query_dict, tree_fields, label_fields, colour_by, private, tree_to_all_tip, tree_to_tip)
 ```
 ```python, name="make_legend", echo=False, include=False, results='tex'
 for trait, colour_dict in colour_dict_dict.items():
@@ -169,8 +169,7 @@ for i in range(1,overall_tree_number+1):
         print(f"{len(tree_to_tip[lookup])} sequences of interest")
     print("   ")
 
-    print(f"![]({figdir}/{name_stem}_make_trees_{(i*2)-1}.png)")
-    print(f"![]({figdir}/{name_stem}_make_trees_{i*2}.png)")
+    print(f"![]({figdir}/{name_stem}_make_trees_{i}.png)")
 
     print(f'<img src="{figdir}/{name_stem}_make_legend_1.png" alt="drawing" style="width:100%;"/>')
     print("\n")
