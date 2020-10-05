@@ -11,6 +11,7 @@
         </span>
 </section>
 
+
 NB All of these options require some geographical information, either in the background data or the input query information.
 
 ### Local lineages and associated options
