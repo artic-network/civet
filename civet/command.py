@@ -72,6 +72,7 @@ def main(sysargs = sys.argv[1:]):
     tree_group.add_argument('--up-distance', action="store",help="Upstream distance to extract from large tree. Default: 2", dest="up_distance",type=int)
     tree_group.add_argument('--down-distance', action="store",help="Downstream distance to extract from large tree. Default: 2", dest="down_distance",type=int)
     tree_group.add_argument('--collapse-threshold', action='store',help="Minimum number of nodes to collapse on. Default: 1", dest="collapse_threshold",type=int)
+    tree_group.add_argument('-p','--protect',nargs='*', dest="protect",help="Protect nodes from collapse if they match the search query in the metadata file supplied. E.g. -p adm2=Edinburgh sample_date=2020-03-01:2020-04-01")
 
     map_group = parser.add_argument_group('map rendering options')
     map_group.add_argument('--local-lineages',action="store_true",dest="local_lineages",help="Contextualise the cluster lineages at local regional scale. Requires at least one adm2 value in query csv.")
@@ -86,7 +87,7 @@ def main(sysargs = sys.argv[1:]):
     
     misc_group = parser.add_argument_group('misc options')
     misc_group.add_argument('-b','--launch-browser', action="store_true",help="Optionally launch md viewer in the browser using grip",dest="launch_browser")
-    misc_group.add_argument('-c','--generate-config',dest="generate_config",action="store_true",help="Rather than running a civet report, generate a config file based on the command line arguments provided")
+    misc_group.add_argument('-c','--generate-config',dest="generate_config",action="store_true",help="Rather than running a civet report, just generate a config file based on the command line arguments provided")
     misc_group.add_argument('--tempdir',action="store",help="Specify where you want the temp stuff to go. Default: $TMPDIR")
     misc_group.add_argument("--no-temp",action="store_true",help="Output all intermediate files, for dev purposes.",dest="no_temp")
     misc_group.add_argument("--verbose",action="store_true",help="Print lots of stuff to screen")
@@ -274,7 +275,8 @@ def main(sysargs = sys.argv[1:]):
     # summarising collapsed nodes config
     qcfunk.check_summary_field("node_summary",config, default_dict)
 
-
+    qcfunk.collapse_summary_path_to_config(config)
+    
     """
     Finally add in all the default options that 
     were not specified already
