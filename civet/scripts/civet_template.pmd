@@ -24,7 +24,7 @@ import civetfunks as cfunk
 
 ```
 
-```python, name="insert_arguments", echo=True, results='raw'
+```python, name="insert_arguments", echo=False, results='raw'
 ##INSERT_ARGUMENTS
 ```
 ```python, name="prepare_arguments", echo=False, results='raw'

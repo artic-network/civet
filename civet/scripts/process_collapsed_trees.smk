@@ -74,14 +74,14 @@ rule protect_subtree_nodes:
                         c +=1
                         fw.write(f"{node_name},{c}\n")
             
-            # finds all nodes that start with collapsed_
-            with open(input.collapse_summary, "r") as f:
-                reader = csv.DictReader(f)
-                for row in reader:
-                    if row["name"].startswith("collapsed_"):
-                        c +=1
-                        node_name = row["name"]
-                        fw.write(f"{node_name},{c}\n")
+            # # finds all nodes that start with collapsed_
+            # with open(input.collapse_summary, "r") as f:
+            #     reader = csv.DictReader(f)
+            #     for row in reader:
+            #         if row["name"].startswith("collapsed_"):
+            #             c +=1
+            #             node_name = row["name"]
+            #             fw.write(f"{node_name},{c}\n")
 
             # find all query nodes that exist
             with open(input.metadata, newline="") as f:
@@ -134,16 +134,16 @@ rule get_collapsed_representative:
                 collapsed[collapsed_name] = taxa.split(",")
 
         # collapsed node information
-        with open(input.collapse_summary, "r") as f:
-                reader = csv.DictReader(f)
-                for row in reader:
-                    if row["name"].startswith("collapsed_"):
-                        # finds all nodes that start with collapsed_
-                        c +=1
-                        node_name = row["name"]
-                        taxa = row["content"].lstrip("[").rstrip("]").split(' ')
-                        # just taking the first taxon
-                        collapsed[node_name] = [taxa[0]]
+        # with open(input.collapse_summary, "r") as f:
+        #         reader = csv.DictReader(f)
+        #         for row in reader:
+        #             if row["name"].startswith("collapsed_"):
+        #                 # finds all nodes that start with collapsed_
+        #                 c +=1
+        #                 node_name = row["name"]
+        #                 taxa = row["content"].lstrip("[").rstrip("]").split(' ')
+        #                 # just taking the first taxon
+        #                 collapsed[node_name] = [taxa[0]]
 
         for record in SeqIO.parse(input.background_seqs,"fasta"):
             for node in collapsed:
