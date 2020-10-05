@@ -15,8 +15,7 @@ rule all:
 
 rule protect_subtree_nodes:
     input:
-        metadata = config["combined_metadata"],
-        collapse_summary = config["collapse_summary"]
+        metadata = config["combined_metadata"]
     params:
         tree_dir = os.path.join(config["tempdir"],"catchment_trees")
     output:
@@ -34,15 +33,15 @@ rule protect_subtree_nodes:
                         node_name = "_".join(tree.split("_")[1:])
                         fw.write(f"{node_name},{c}\n")
             
-            with open(input.collapse_summary, "r") as f:
-                reader = csv.DictReader(f)
-                for row in reader:
-                    if row["name"].startswith("collapsed_"):
-                        # finds all nodes that start with collapsed_
+           # finds all nodes in protect set
+            if config["protect"]:
+                with open(config["protect"], "r") as f:
+                    reader = csv.DictReader(f)
+                    for row in reader:
                         c +=1
-                        node_name = row["name"]
-                        fw.write(f"{node_name},{c}\n")
-                        
+                        protect_name = row["sequence_name"]
+                        fw.write(f"{protect_name},{c}\n")
+
             # find all query nodes that exist
             with open(input.metadata, newline="") as f:
                 reader = csv.DictReader(f)

@@ -135,7 +135,7 @@ rule process_catchments:
         background_seqs = config["background_seqs"],
         outgroup_fasta = config["outgroup_fasta"]
     params:
-        tree_dir = os.path.join(config["tempdir"],"catchment_trees")
+        tree_dir = os.path.join(config["outdir"],"catchment_trees")
     output:
         tree_summary = os.path.join(config["outdir"],"local_trees","collapse_report.txt")
     run:

@@ -256,6 +256,8 @@ def main(sysargs = sys.argv[1:]):
     # extraction radius configuration
     qcfunk.collapse_config(args.collapse_threshold,config,default_dict) 
 
+    qcfunk.parse_protect(args.protect,config["background_metadata"],config)
+
     """
     Parsing the report_group arguments, 
     config or default options
@@ -273,7 +275,7 @@ def main(sysargs = sys.argv[1:]):
     qcfunk.check_summary_field("node_summary",config, default_dict)
 
     qcfunk.collapse_summary_path_to_config(config)
-    
+
     """
     Finally add in all the default options that 
     were not specified already
