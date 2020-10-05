@@ -1,4 +1,23 @@
-## civet pipeline
+
+
+<section id="banner">
+    <div class="content">
+      <header>
+        <h2>civet pipeline</h2>
+        <p>Detailed description of civet analysis pipeline</p>
+      </header>
+    </div>
+    <span class="image object">
+        <img src="./figures/civet_logo.png" alt="" style="max-width:150px"/>
+        </span>
+</section>
+
+<img src="./figures/workflow_diagram.png" width="700">
+
+
+**An example report can be found [here](https://github.com/COG-UK/civet/blob/master/docs/civet_report_example.md).**
+
+The default output is a markdown file, which can then be converted to a file format of your choice. In addition to this, if you provide the `--launch-browser` option in the command line, an html document will be outputted using grip (https://github.com/joeyespo/grip), which will also appear in your browser. You can then save this as a pdf using your browser.
 
 
 - From the input csv (`<query>`), `civet` attempts to match the ids with COG-UK ids in the up-to-date metadata database.

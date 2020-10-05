@@ -2,116 +2,76 @@
 
 **C**luster **I**nvestigation & **V**irus **E**pidemiology **T**ool
 
-<img src="./docs/civet_logo.png" width="450">
+<img src="./docs/figures/civet_logo.png" width="450">
 
-civet is a tool developed with 'real-time' genomics in mind. With the large phylogeny available through the COG-UK infrastructure on CLIMB, civet will generate a report for a set of sequences of interest i.e. an outbreak investigation. If the sequences are already on CLIMB and part of the large tree, civet will pull out the local context of those sequences, merging the smaller local trees as appropriate. If sequences haven't yet been uploaded to CLIMB, for instance if they have just been sequenced, civet will find the closest sequence in the COG-UK database on climb, pull the local tree of that sequence out and add your sequence in. The local trees then get collapsed to display in detail only the sequences of interest so as not to inform investigations beyond what was suggested by epidemiological data. A report will then be generated which summarises the query sequences and renders the collapsed trees. The tips of these trees can be coloured by any categorical trait present in the input csv, and additional fields added to the tip labels. Optional figures may be added to describe the local background of UK lineages and to map the query sequences using coordinates, again colourable by a custom trait. 
+civet is a tool developed with 'real-time' genomics in mind. 
 
-## Quick links
+Using a background phylogeny, such as the large phylogeny available through the COG-UK infrastructure on CLIMB, civet will generate a report for a set of sequences of interest i.e. an outbreak investigation. 
 
-  * [Requirements](#requirements)
-  * [Install civet](#install-civet)
-  * [Check the install worked](#check-the-install-worked)
-  * [Updating civet](#updating-civet)
-  * [Usage](#usage)
-  * [Analysis pipeline](#analysis-pipeline)
-  * [Output](#output)
-  * [Source data](#source-data)
-  * [Authors](#authors)
-  * [Acknowledgements](#acknowledgements)
-  * [References](#references)
-  * [Software versions](#software-versions)
+If the sequences are already on CLIMB and part of the large tree, civet will pull out the local context of those sequences, merging the smaller local trees as appropriate. If sequences haven't yet been incorporated into the large phylogeny, for instance if they have just been sequenced, civet will find the closest sequence in the large tree, pull the local tree of that sequence out and add your sequence in. The local trees then get collapsed to display in detail only the sequences of interest so as not to inform investigations beyond what was suggested by epidemiological data. 
+
+A fully customisable report is generated, summarising information about the sequences of interest. The tips of these trees can be coloured by any categorical trait present in the input csv, and additional fields added to the tip labels. Optional figures may be added to describe the local background of UK lineages and to map the query sequences using coordinates, again colourable by a custom trait. 
 
 
-### Requirements
+<strong> Find out more information about civet at civet.github.io </strong>
 
-civet runs on MacOS and Linux. The conda environment recipe may not build on Windows and is not supported but can be run using the Windows subsystem for Linux.
-
-1. Some version of conda, we use Miniconda3. Can be downloaded from [here](https://docs.conda.io/en/latest/miniconda.html)
-2. Access to CLIMB
-3. Your input csv with minimally a column with `name` as a header
-4. Optional fasta file with sequences you know will not yet be on CLIMB
-
-### Install civet
-
-1. Clone this repository and ``cd civet``
-2. ``conda env create -f environment.yml``
-3. ``conda activate civet``
-4. ``python setup.py install`` or ``pip install .``
-
-> Note: we recommend using civet in the conda environment specified in the ``environment.yml`` file as per the instructions above. If you can't use conda for some reason, dependency details can be found in the ``environment.yml`` file.
-
-
-### Check the install worked
-
-Type (in the civet environment):
-
-```
-civet -v
-```
-and you should see the version of civet printed.
-
-
-### Updating civet
-
-> Note: Even if you have previously installed ``civet``, as it is being worked on intensively, we recommend you check for updates before running.
-
-To update:
-
-1. ``conda activate civet``
-2. ``git pull`` \
-pulls the latest changes from github
-3. ``python setup.py install`` \
-re-installs civet
-4. ``conda env update -f environment.yml`` \
-updates the conda environment 
-
-
-### Usage
-
-1. Activate the environment ``conda activate civet``
-2. Run ``civet config.yaml`` or ``civet input.csv -f input.fasta -r -uun <your-user-name>``, where `<your-user-name>` represents your unique CLIMB identifier.
-
-
-#### Input file (csv, ids or yaml)
-
-Civet can now accept a number of different inputs:
-- Input csv file with a column describing the sequences of interest. By default civet will look for a column called `name` but this can be changed with the `--input-column` flag. 
-- A comma separated string of ids that civet trys to match against the database (you can define what field you want to match against with `--search-field`, the default is will match against the COG-UK ID).
-- A yaml config file that describes the analysis you want to run and the type of report you want to generate. You can provide any of the command line arguments via this config file. This file can be generated from the set of command line arguments you want to specify when used in conjunction with the `--generate-config` flag. This way you don't have to re-run civet with a long string of commands each time. If the same option is specified in the config file and as a command line argument, the command line argument will overwrite the config file option. 
-
-
-Example usage:
-> ``civet civet/tests/test.csv --fasta civet/tests/test.fasta --remote -uun <your-user-name>``, where `<your-user-name>` represents your unique CLIMB identifier.
 
 #### Full usage:
 ```
-usage: civet <query> [options]
 
-civet: Cluster Investivation & Virus Epidemiology Tool
 
-optional arguments:
-  -h, --help            show this help message and exit
+                    __              __    
+              ____ |__|__  __ _____/  |_ 
+             / ___\|  \  \/ // __ \   __|
+            \  \___|  |\   /\  ___/|  |  
+             \____/ __| \_/  \____/ __|  
+
+**** Cluster Investigation & Virus Epidemiology Tool ****
+
+        ****************************************
+
+              Aine O'Toole & Verity Hill
+                    Rambaut Group
+                 Edinburgh University
+
+
+
+usage: 
+	civet -i <config.yaml> [options]
+	civet -i input.csv [options]
+	civet -i ID1,IS2 [options]
+	civet -fm <column=match> [options]
 
 input output options:
-  query                 Input csv file or input config file. CSV minimally has
-                        input_column header, Default=`name`. Can include
-                        additional fields to be incorporated into the
-                        analysis, e.g. `sample_date`
-  -i, --id-string       Indicates the input is a comma-separated id string
-                        with one or more query ids. Example:
-                        `EDB3588,EDB3589`.
+  -i INPUT, --input INPUT
+                        Input config file in yaml format, csv file (with
+                        minimally an input_column header, Default=`name`) or
+                        comma-separated id string with one or more query ids.
+                        Example: `EDB3588,EDB3589`.
+  -fm [FROM_METADATA [FROM_METADATA ...]], --from-metadata [FROM_METADATA [FROM_METADATA ...]]
+                        Generate a query from the metadata file supplied.
+                        Define a search that will be used to pull out
+                        sequences of interest from the large phylogeny. E.g.
+                        -fm adm2=Edinburgh sample_date=2020-03-01:2020-04-01
   -o OUTDIR, --outdir OUTDIR
                         Output directory. Default: current working directory
   -f FASTA, --fasta FASTA
                         Optional fasta query.
-  --max-ambig MAXAMBIG  Maximum proportion of Ns allowed to attempt analysis.
+  --max-ambiguity MAX_AMBIGUITY
+                        Maximum proportion of Ns allowed to attempt analysis.
                         Default: 0.5
-  --min-length MINLEN   Minimum query length allowed to attempt analysis.
+  --min-length MIN_LENGTH
+                        Minimum query length allowed to attempt analysis.
                         Default: 10000
 
 data source options:
   -d DATADIR, --datadir DATADIR
-                        Local directory that contains the data files
+                        Local directory that contains the data files. Default:
+                        civet-cat
+  -m BACKGROUND_METADATA, --background-metadata BACKGROUND_METADATA
+                        Custom metadata file that corresponds to the large
+                        global tree/ alignment. Should have a column
+                        `sequence_name`.
   --CLIMB               Indicates you're running CIVET from within CLIMB, uses
                         default paths in CLIMB to access data
   -r, --remote-sync     Remotely access lineage trees from CLIMB
@@ -121,20 +81,25 @@ data source options:
   --input-column INPUT_COLUMN
                         Column in input csv file to match with database.
                         Default: name
-  --search-field DATA_COLUMN
+  --data-column DATA_COLUMN
                         Option to search COG database for a different id type.
                         Default: COG-UK ID
-  -g, --global          Rather than finding closest match in COG database,
-                        search globally and find closest match in the entire
-                        database.
 
 report customisation:
   -sc SEQUENCING_CENTRE, --sequencing-centre SEQUENCING_CENTRE
                         Customise report with logos from sequencing centre.
-  --display DISPLAY     Comma separated string of fields to display as
+  --display-name DISPLAY_NAME
+                        Column in input csv file with display names for seqs.
+                        Default: same as input column
+  --sample-date-column SAMPLE_DATE_COLUMN
+                        Column in input csv with sampling date in it.
+                        Default='sample_date'
+  --colour-by COLOUR_BY
+                        Comma separated string of fields to display as
                         coloured dots rather than text in report trees.
                         Optionally add colour scheme eg adm1=viridis
-  --fields FIELDS       Comma separated string of fields to display in the
+  --tree-fields TREE_FIELDS
+                        Comma separated string of fields to display in the
                         trees in the report. Default: country
   --label-fields LABEL_FIELDS
                         Comma separated string of fields to add to tree report
@@ -145,9 +110,17 @@ report customisation:
   --node-summary NODE_SUMMARY
                         Column to summarise collapsed nodes by. Default =
                         Global lineage
-  --add-bars            Render boxplots in the output report
-  --cog-report          Run summary cog report. Default: outbreak
-                        investigation
+  --table-fields TABLE_FIELDS
+                        Fields to include in the table produced in the report.
+                        Query ID, name of sequence in tree and the local tree
+                        it's found in will always be shown
+  --include-snp-table   Include information about closest sequence in database
+                        in table. Default is False
+  --no-snipit           Don't run snipit graph
+  --include-bars        Render barcharts in the output report
+  --omit-appendix       Omit the appendix section. Default=False
+  --private             remove adm2 references from background sequences.
+                        Default=True
 
 tree context options:
   --distance DISTANCE   Extraction from large tree radius. Default: 2
@@ -157,7 +130,7 @@ tree context options:
   --down-distance DOWN_DISTANCE
                         Downstream distance to extract from large tree.
                         Default: 2
-  --collapse-threshold THRESHOLD
+  --collapse-threshold COLLAPSE_THRESHOLD
                         Minimum number of nodes to collapse on. Default: 1
 
 map rendering options:
@@ -176,121 +149,28 @@ map rendering options:
   --date-window DATE_WINDOW
                         Define the window +- either side of cluster sample
                         collection date-range. Default is 7 days.
-  --map-sequences       Map the coordinate points of sequences, coloured by a
-                        triat.
-  --map-inputs MAP_INPUTS
-                        columns containing EITHER x and y coordinates as a
+  --map-sequences       Map the sequences themselves by adm2, coordinates or
+                        otuer postcode.
+  --map-info MAP_INFO   columns containing EITHER x and y coordinates as a
                         comma separated string OR outer postcodes for mapping
-                        sequences
+                        sequences OR Adm2
   --input-crs INPUT_CRS
-                        Coordinate reference system of sequence coordinates
-  --mapping-trait MAPPING_TRAIT
+                        Coordinate reference system for sequence coordinates
+  --colour-map-by COLOUR_MAP_BY
                         Column to colour mapped sequences by
 
 misc options:
   -b, --launch-browser  Optionally launch md viewer in the browser using grip
-  --generate-config     Rather than running a civet report, generate a config
+  -c, --generate-config
+                        Rather than running a civet report, generate a config
                         file based on the command line arguments provided
-  -n, --dry-run         Go through the motions but don't actually run
   --tempdir TEMPDIR     Specify where you want the temp stuff to go. Default:
                         $TMPDIR
   --no-temp             Output all intermediate files, for dev purposes.
+  --verbose             Print lots of stuff to screen
   -t THREADS, --threads THREADS
                         Number of threads
-  --verbose             Print lots of stuff to screen
   -v, --version         show program's version number and exit
+  -h, --help
 
 ```
-
-
-### Analysis pipeline
-
-Detailed description of civet found [here](./docs/civet_detailed_description.md).
-
-Overview:
-
-<img src="./docs/workflow_diagram.png" width="700">
-
-- From the input csv (`<query>`), `civet` attempts to match the ids with COG-UK ids in the up-to-date metadata database.
-
-- If the id matches with a record in COG-UK, the corresponding metadata is pulled out.
-
-- If the id doesn't match with a record in COG-UK and a fasta sequence of that id has been provided, it's passed into a workflow to identify the closest sequence in COG-UK. In brief, this search consists of quality control steps that maps the sequence against a reference (`MN908947.3`), pads any indels relative to the reference and masks non-coding regions. civet then runs a `minimap2` search against the COG-UK database and finds the best hit to the query sequence.
-
-- The metadata for the closest sequences are also pulled out of the large COG-UK database.
-
-- Combining the metadata from the COG-UK records of the closest hit and the exact matching records found in COG-UK, `civet` queries the large global phylogeny (also from COG-UK database)containing all COG-UK and all GISAID sequences. The local trees around the relevant tips are pruned out of the large phylogeny, merging overlapping local phylogenys as needed.
-
-- If these local trees contain "closest-matching" tips, the sequence records for the tips on the tree and the sequences of the relevant queries are added into an alignment. Any peripheral sequences coming off of a polytomy are collapsed to a single node and summaries of the tip's contents are output.
-
-- After collapsing the nodes, civet runs `iqtree` on the new alignment, now with query sequences in. Optionally, the `--delay-tree-collapse` argument will wait to collapse nodes until after `iqtree` has added the new query sequences in, but be wary as some of these local trees can be very large and may take a number of hours to run. 
-
-- `civet` then generates a report summarising the query sequences, providing information about global and UK lineages.
-
-### Output
-
-Your output will be a markdown report, with summaries of lineages and genetic diversity present in your query. Trees are visualised in the report and compared to the diversity of lineages present in the community.
-
-**An example report can be found [here](https://github.com/COG-UK/civet/blob/master/docs/civet_report_example.md).**
-
-The default output is a markdown file, which can then be converted to a file format of your choice. In addition to this, if you provide the `--launch-browser` option in the command line, an html document will be outputted using grip (https://github.com/joeyespo/grip), which will also appear in your browser. You can then save this as a pdf using your browser.
-
-### Source data
-
-Data associated with COG-UK is pulled from CLIMB, which is why access to CLIMB is required to run remotely. 
-
-Data files:
-
-- `/cephfs/covid/bham/civet-cat/cog_global_tree.nexus`
-
-- `/cephfs/covid/bham/civet-cat/cog_metadata.csv`
-
-- `/cephfs/covid/bham/civet-cat/cog_metadata_all.csv`
-
-- `/cephfs/covid/bham/civet-cat/cog_global_alignment.fasta`
-
-- `/cephfs/covid/bham/civet-cat/cog_alignment.fasta`
-
-- `/cephfs/covid/bham/civet-cat/cog_alignment_all.fasta`
-
-### Authors
-
-`civet` was created by Áine O'Toole & Verity Hill & Rambaut Group on behalf of the COG_UK consortium.
-
-### Acknowledgements
-
-We acknowledge the hard work from all members of the COG-UK consortium that has gone into generating the data used by `civet`.
-
-`civet` makes use of [`datafunk`](https://github.com/cov-ert/datafunk) and [`clusterfunk`](https://github.com/cov-ert/clusterfunk) functions which have been written by members of the Rambaut Lab, specificially Rachel Colquhoun, JT McCrone, Ben Jackson and Shawn Yu.
-
-[`baltic`](https://github.com/evogytis/baltic/tree/master/baltic) by Gytis Dudas is used to visualize the trees.
-
-### References
-
-[`minimap2`](https://github.com/lh3/minimap2) 
-
-Heng Li, Minimap2: pairwise alignment for nucleotide sequences, Bioinformatics, Volume 34, Issue 18, 15 September 2018, Pages 3094–3100, https://doi.org/10.1093/bioinformatics/bty191
-
-[iqtree](http://www.iqtree.org/#download)
-
-L.-T. Nguyen, H.A. Schmidt, A. von Haeseler, B.Q. Minh (2015) IQ-TREE: A fast and effective stochastic algorithm for estimating maximum likelihood phylogenies.. Mol. Biol. Evol., 32:268-274. https://doi.org/10.1093/molbev/msu300
-
-D.T. Hoang, O. Chernomor, A. von Haeseler, B.Q. Minh, L.S. Vinh (2018) UFBoot2: Improving the ultrafast bootstrap approximation. Mol. Biol. Evol., 35:518–522. https://doi.org/10.1093/molbev/msx281
-
-Stéphane Guindon, Jean-François Dufayard, Vincent Lefort, Maria Anisimova, Wim Hordijk, Olivier Gascuel, New Algorithms and Methods to Estimate Maximum-Likelihood Phylogenies: Assessing the Performance of PhyML 3.0, Systematic Biology, Volume 59, Issue 3, May 2010, Pages 307–321, https://doi.org/10.1093/sysbio/syq010
-
-[snakemake](https://snakemake.readthedocs.io/en/stable/index.html)
-
-Köster, Johannes and Rahmann, Sven. “Snakemake - A scalable bioinformatics workflow engine”. Bioinformatics 2012.
-
-### Software versions
-
-    - python=3.6
-    - snakemake-minimal=5.13 
-    - iqtree=1.6.12
-    - minimap2=2.17-r941
-    - pandas==1.1.0
-    - pytools=2020.1
-    - dendropy=4.4.0
-    - tabulate=0.8.7
-    
