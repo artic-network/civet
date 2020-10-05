@@ -110,7 +110,8 @@ rule prune_out_catchments:
         outdir = os.path.join(config["tempdir"],"catchment_trees")
     output:
         txt = os.path.join(config["tempdir"],"catchment_trees","catchment_trees_prompt.txt")
-    shell:
+    run:
+        shell(
         """
         jclusterfunk context \
         -i "{input.tree}" \
@@ -123,7 +124,8 @@ rule prune_out_catchments:
         -m "{input.metadata}" \
         --id-column closest \
         && touch "{output.txt}" 
-        """
+        """)
+        config["collapse_summary"] = os.path.join(config["tempdir"],"catchment_trees", "tree_collapsed_nodes.csv")
 
 rule process_catchments:
     input:
@@ -136,7 +138,6 @@ rule process_catchments:
         outgroup_fasta = config["outgroup_fasta"]
     params:
         tree_dir = os.path.join(config["tempdir"],"catchment_trees")
-    log: os.path.join(config["outdir"],"logs","catchment.log")
     output:
         tree_summary = os.path.join(config["outdir"],"local_trees","collapse_report.txt")
     run:
@@ -169,7 +170,7 @@ rule process_catchments:
                         "background_seqs={input.background_seqs:q} "
                         "combined_metadata={input.combined_metadata:q} "
                         "collapse_threshold={config[collapse_threshold]} "
-                        "--cores {workflow.cores} >& {log}")
+                        "--cores {workflow.cores}")
         else:
             print(f"No new sequences to add in, just collapsing trees")
             shell("snakemake --nolock --snakefile {input.snakefile_just_collapse:q} "
@@ -182,7 +183,7 @@ rule process_catchments:
                             "tempdir={config[tempdir]:q} "
                             "collapse_threshold={config[collapse_threshold]} "
                             "combined_metadata={input.combined_metadata:q} "
-                            "--cores {workflow.cores} >& {log}")
+                            "--cores {workflow.cores}")
 
 rule find_snps:
     input:
@@ -194,7 +195,7 @@ rule find_snps:
     params:
         tree_dir = os.path.join(config["outdir"],"local_trees"),
     output:
-        genome_graphs = os.path.join(config["outdir"],"gather_prompt.txt") 
+        genome_graphs = os.path.join(config["tempdir"],"gather_prompt.txt") 
     run:
         local_trees = []
         for r,d,f in os.walk(params.tree_dir):
@@ -203,7 +204,7 @@ rule find_snps:
                     file_stem = ".".join(fn.split(".")[:-1])
                     local_trees.append(file_stem)
         local_str = ",".join(local_trees) #to pass to snakemake pipeline
-
+        temp_output = os.path.join(config["outdir"],"gather_prompt.txt") 
         shell("snakemake --nolock --snakefile {input.snakefile:q} "
                             "{config[force]} "
                             "{config[log_string]} "
@@ -216,7 +217,9 @@ rule find_snps:
                             "aligned_query_seqs={input.query_seqs:q} "
                             "background_seqs={input.background_seqs:q} "
                             "collapse_threshold={config[collapse_threshold]} "
-                            "--cores {workflow.cores}")
+                            "--cores {workflow.cores} "
+                            f"&& mv '{temp_output}' "
+                            "{config[tempdir]:q}")
 
 rule regional_mapping:
     input:
@@ -292,7 +295,7 @@ rule make_report:
         query = config["query"],
         combined_metadata = os.path.join(config["outdir"],"combined_metadata.csv"),
         background_metadata = config["background_metadata"],
-        snp_figure_prompt = os.path.join(config["outdir"],"gather_prompt.txt"),
+        snp_figure_prompt = rules.find_snps.output.genome_graphs,
         genome_graphs = rules.find_snps.output.genome_graphs, 
         central = os.path.join(config["outdir"], 'figures', "central_map_ukLin.png"),
         neighbouring = os.path.join(config["outdir"], 'figures', "neighboring_map_ukLin.png"),
