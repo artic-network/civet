@@ -68,7 +68,7 @@ print(f"![]({sequencing_centre_file})")
 
 ```python, name="parse metadata", echo=False, results='raw'
 database_column = "sequence_name"
-full_tax_dict, query_dict, tree_to_tip, tree_to_all_tip = dp.parse_all_metadata(treedir, filtered_background_metadata, background_metadata, query, input_column, database_column, display_name, sample_date_column, label_fields, tree_fields, table_fields, node_summary, UK_adm2_adm1_dict=adm2_to_adm1,date_fields=date_fields, UK=True)
+full_tax_dict, query_dict, tree_to_tip, tree_to_all_tip, inserted_node_dict = dp.parse_all_metadata(treedir, collapse_summary, filtered_background_metadata, background_metadata, query, input_column, database_column, display_name, sample_date_column, label_fields, tree_fields, table_fields, node_summary, UK_adm2_adm1_dict=adm2_to_adm1,date_fields=date_fields, UK=True)
 
 time_outputs = time_func.summarise_dates(query_dict)
 if type(time_outputs) != bool:
@@ -136,7 +136,7 @@ elif not_in_cog_number == 0 and cog_number != 0:
 ```
 
 ```python, name="make_trees", echo=False, include=False, figure=False
-too_tall_trees, overall_tree_number, colour_dict_dict, overall_df_dict, tree_order, too_large_tree_dict, tallest_height,tree_to_num_tips = tree_viz.make_all_of_the_trees(treedir, tree_name_stem, full_tax_dict, query_dict, tree_fields, label_fields, colour_by, private, tree_to_all_tip, tree_to_tip)
+too_tall_trees, overall_tree_number, colour_dict_dict, overall_df_dict, tree_order, too_large_tree_dict, tallest_height,tree_to_num_tips = tree_viz.make_all_of_the_trees(treedir, tree_name_stem, full_tax_dict, query_dict, tree_fields, label_fields, colour_by, private, tree_to_all_tip, tree_to_tip, inserted_node_dict)
 ```
 ```python, name="make_legend", echo=False, include=False, results='tex'
 for trait, colour_dict in colour_dict_dict.items():

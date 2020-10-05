@@ -20,7 +20,7 @@ tree_fields: adm1,HCW_status
 # include_snp_table: True
 # no_snipit: True
 # node_summary: lineage
-sample_date_column: "date_2"
+sample_date_column: "sample_date"
 up-distance: 2
 down-distance: 2
 threshold: 1
@@ -37,7 +37,7 @@ fasta: test.fasta
 # map_info: x_col, y_col
 # input_crs: EPSG:4326
 # colour_map_by: care_home
-local_lineages: True
+# local_lineages: True
 # date_restriction: True 
 # date_range_start: 2020-07-01
 # date_range_end: 2020-08-31
