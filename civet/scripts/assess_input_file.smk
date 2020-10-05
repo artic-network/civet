@@ -107,9 +107,9 @@ rule prune_out_catchments:
         tree = config["background_tree"],
         metadata = rules.combine_metadata.output.combined_csv
     params:
-        outdir = os.path.join(config["tempdir"],"catchment_trees")
+        outdir = os.path.join(config["outdir"],"catchment_trees")
     output:
-        txt = os.path.join(config["tempdir"],"catchment_trees","catchment_trees_prompt.txt")
+        summary = os.path.join(config["outdir"],"catchment_trees", "tree_collapsed_nodes.csv")
     run:
         shell(
         """
@@ -122,10 +122,8 @@ rule prune_out_catchments:
         -p tree_ \
         --ignore-missing \
         -m "{input.metadata}" \
-        --id-column closest \
-        && touch "{output.txt}" 
+        --id-column closest 
         """)
-        config["collapse_summary"] = os.path.join(config["tempdir"],"catchment_trees", "tree_collapsed_nodes.csv")
 
 rule process_catchments:
     input:
@@ -133,7 +131,7 @@ rule process_catchments:
         snakefile_just_collapse = os.path.join(workflow.current_basedir,"just_collapse_trees.smk"),
         combined_metadata = rules.combine_metadata.output.combined_csv, 
         query_seqs = rules.get_closest_cog.output.aligned_query, #datafunk-processed seqs
-        catchment_prompt = rules.prune_out_catchments.output.txt,
+        collapse_summary = rules.prune_out_catchments.output.summary,
         background_seqs = config["background_seqs"],
         outgroup_fasta = config["outgroup_fasta"]
     params:
@@ -169,6 +167,7 @@ rule process_catchments:
                         "aligned_query_seqs={input.query_seqs:q} "
                         "background_seqs={input.background_seqs:q} "
                         "combined_metadata={input.combined_metadata:q} "
+                        "collapse_summary={input.collapse_summary:q} "
                         "collapse_threshold={config[collapse_threshold]} "
                         "--cores {workflow.cores}")
         else:
@@ -182,6 +181,7 @@ rule process_catchments:
                             "outdir={config[outdir]:q} "
                             "tempdir={config[tempdir]:q} "
                             "collapse_threshold={config[collapse_threshold]} "
+                            "collapse_summary={input.collapse_summary:q} "
                             "combined_metadata={input.combined_metadata:q} "
                             "--cores {workflow.cores}")
 
@@ -217,9 +217,10 @@ rule find_snps:
                             "aligned_query_seqs={input.query_seqs:q} "
                             "background_seqs={input.background_seqs:q} "
                             "collapse_threshold={config[collapse_threshold]} "
-                            "--cores {workflow.cores} "
-                            f"&& mv '{temp_output}' "
-                            "{config[tempdir]:q}")
+                            "--cores {workflow.cores} ")
+        if not config["no_temp"]:
+            shell(f"&& mv '{temp_output}' "
+            "{config[tempdir]:q}")
 
 rule regional_mapping:
     input:

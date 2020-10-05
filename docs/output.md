@@ -44,6 +44,11 @@ A file of input fasta sequences that passed the quality control cut offs.
 
 A directory of the collapsed local trees, with corresponding text files of the content of each collapsed node. 
 
+<strong>catchment_trees</strong>
+
+A directory of the catchment trees, with corresponding text files of the content of each collapsed node (will not have the additional fasta input added in at this stage, these are the trees clipped directly out of the global tree). 
+
+
 <strong>figures</strong>
 
 A directory of figures that get included in the markdown report.

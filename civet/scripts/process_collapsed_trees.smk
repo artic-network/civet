@@ -54,7 +54,8 @@ rule combine_basal:
 
 rule protect_subtree_nodes:
     input:
-        metadata = config["combined_metadata"]
+        metadata = config["combined_metadata"],
+        collapse_summary = config["collapse_summary"]
     params:
         tree_dir = os.path.join(config["tempdir"],"catchment_trees")
     output:
@@ -63,6 +64,8 @@ rule protect_subtree_nodes:
         with open(output.metadata, "w") as fw:
             fw.write("protect,count\n")
             c =0
+
+            #Finds all subtree nodes that exist
             for r,d,f in os.walk(params.tree_dir):
                 for fn in f:
                     if fn.endswith(".newick"):
@@ -71,6 +74,16 @@ rule protect_subtree_nodes:
                         c +=1
                         fw.write(f"{node_name},{c}\n")
             
+            # finds all nodes that start with collapsed_
+            with open(input.collapse_summary, "r") as f:
+                reader = csv.DictReader(f)
+                for row in reader:
+                    if row["name"].startswith("collapsed_"):
+                        c +=1
+                        node_name = row["name"]
+                        fw.write(f"{node_name},{c}\n")
+
+            # find all query nodes that exist
             with open(input.metadata, newline="") as f:
                 reader = csv.DictReader(f)
                 for row in reader:
@@ -81,9 +94,10 @@ rule protect_subtree_nodes:
 rule summarise_polytomies:
     input:
         metadata = os.path.join(config["tempdir"],"protected","protected.csv"),
-        tree = os.path.join(config["tempdir"], "catchment_trees","{tree}.newick")
+        collapse_summary = config["collapse_summary"],
+        tree = os.path.join(config["outdir"], "catchment_trees","{tree}.newick")
     params:
-        tree_dir = os.path.join(config["tempdir"],"catchment_trees")
+        tree_dir = os.path.join(config["outdir"],"catchment_trees")
     output:
         collapsed_tree = os.path.join(config["tempdir"],"collapsed_trees","{tree}.tree"),
         collapsed_information = os.path.join(config["outdir"],"local_trees","{tree}.txt")
@@ -102,7 +116,8 @@ rule summarise_polytomies:
 rule get_collapsed_representative:
     input:
         background_seqs = config["background_seqs"],
-        collapsed_information = rules.summarise_polytomies.output.collapsed_information
+        collapsed_information = rules.summarise_polytomies.output.collapsed_information,
+        collapse_summary = config["collapse_summary"]
     params:
         tree_dir = os.path.join(config["tempdir"],"collapsed_trees")
     output:
@@ -111,11 +126,25 @@ rule get_collapsed_representative:
         collapsed = {}
         collapsed_seqs = collections.defaultdict(list)
         
+        # inserted node information
         with open(input.collapsed_information, "r") as f:
             for l in f:
                 l = l.rstrip("\n")
                 collapsed_name,taxa = l.split('\t')
                 collapsed[collapsed_name] = taxa.split(",")
+
+        # collapsed node information
+        with open(input.collapse_summary, "r") as f:
+                reader = csv.DictReader(f)
+                for row in reader:
+                    if row["name"].startswith("collapsed_"):
+                        # finds all nodes that start with collapsed_
+                        c +=1
+                        node_name = row["name"]
+                        taxa = row["content"].lstrip("[").rstrip("]").split(' ')
+                        # just taking the first taxon
+                        collapsed[node_name] = [taxa[0]]
+
         for record in SeqIO.parse(input.background_seqs,"fasta"):
             for node in collapsed:
                 if record.id in collapsed[node]:
