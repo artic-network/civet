@@ -217,9 +217,10 @@ rule find_snps:
                             "aligned_query_seqs={input.query_seqs:q} "
                             "background_seqs={input.background_seqs:q} "
                             "collapse_threshold={config[collapse_threshold]} "
-                            "--cores {workflow.cores} "
-                            f"&& mv '{temp_output}' "
-                            "{config[tempdir]:q}")
+                            "--cores {workflow.cores} ")
+        if not config["no_temp"]:
+            shell(f"mv '{temp_output}' "
+            "{config[tempdir]:q}")
 
 rule regional_mapping:
     input:
