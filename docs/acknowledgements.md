@@ -22,15 +22,15 @@ This project was part-funded by the ARTIC Network
 
 We acknowledge the hard work from all members of the COG-UK consortium that has gone into generating the data used by `civet`.
 
-`civet` makes use of [`datafunk`](https://github.com/cov-ert/datafunk),  `gofasta`, [`jclusterfunk`](https://github.com/cov-ert/jclusterfunk), [`clusterfunk`](https://github.com/cov-ert/clusterfunk) functions which have been written by members of the Rambaut Lab, specificially Andrew Rambaut, Rachel Colquhoun, JT McCrone, Ben Jackson and Shawn Yu.
+`civet` makes use of [`datafunk`](https://github.com/cov-ert/datafunk),  `gofasta`, [`jclusterfunk`](https://github.com/cov-ert/jclusterfunk), [`clusterfunk`](https://github.com/cov-ert/clusterfunk) functions which have been written by members of the Rambaut Lab, specificially Andrew Rambaut, Rachel Colquhoun, JT McCrone, Ben Jackson and Shawn Yu. The local lineages analysis in `civet` was written by Stefan Rooke.
 
 [`baltic`](https://github.com/evogytis/baltic/tree/master/baltic) by Gytis Dudas is used to visualize the trees.
 
-We acknowledge the hard work and open-science of the individual research labs and public health bodies that have made their genome data accessible on GISAID. A detailed table of acknowledgements for the SARS-CoV-2 genome sequences used to build this lineage system is hosted [`here`](https://github.com/cov-ert/clusterfunk))
+We acknowledge the hard work and open-science of the individual research labs and public health bodies that have made their genome data accessible on GISAID. A detailed table of acknowledgements for the SARS-CoV-2 genome sequences used to build this lineage system is hosted [here](https://github.com/cov-ert/clusterfunk))
 
 ### References
 
-[`minimap2`](https://github.com/lh3/minimap2) 
+[minimap2](https://github.com/lh3/minimap2) 
 
 Heng Li, Minimap2: pairwise alignment for nucleotide sequences, Bioinformatics, Volume 34, Issue 18, 15 September 2018, Pages 3094–3100, https://doi.org/10.1093/bioinformatics/bty191
 
