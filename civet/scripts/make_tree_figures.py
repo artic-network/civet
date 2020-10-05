@@ -93,7 +93,7 @@ def display_name(tree, tree_name, tree_dir, full_taxon_dict, query_dict, custom_
                         if name in query_dict.keys(): 
                             for label_element in custom_tip_fields:
                                 if count == 0:
-                                    display_name = taxon_obj.attribute_dict[label_element] 
+                                    display_name = name
                                 else:   
                                     display_name = display_name + "|" + taxon_obj.attribute_dict[label_element]
                                 count += 1
