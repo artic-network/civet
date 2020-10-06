@@ -11,6 +11,8 @@ from reportfunk.funks import custom_logger as custom_logger
 from reportfunk.funks import io_functions as qcfunk
 import civetfunks as cfunk
 
+output_prefix = config["output_prefix"]
+
 rule check_cog_db:
     input:
         query = config["query"],
@@ -237,7 +239,7 @@ rule regional_mapping:
         combined_metadata = os.path.join(config["outdir"],"combined_metadata.csv"),
         background_metadata = config["background_metadata"]
     params:
-        figdir = os.path.join(config["outdir"],'figures'),
+        figdir = os.path.join(config["outdir"],"report",'figures'),
     output:
         central = os.path.join(config["tempdir"], "central_map_ukLin.vl.json"),
         neighboring = os.path.join(config["tempdir"], "neighboring_map_ukLin.vl.json"),
@@ -274,9 +276,9 @@ rule regional_map_rendering:
         neighboring = os.path.join(config["tempdir"], "neighboring_map_ukLin.vg.json"),
         region = os.path.join(config["tempdir"], "region_map_ukLin.vg.json")
     output:
-        central = os.path.join(config["outdir"], 'figures', "central_map_ukLin.png"),
-        neighboring = os.path.join(config["outdir"], 'figures', "neighboring_map_ukLin.png"),
-        region = os.path.join(config["outdir"], 'figures', "region_map_ukLin.png")
+        central = os.path.join(config["outdir"], "report",'figures', "central_map_ukLin.png"),
+        neighboring = os.path.join(config["outdir"], "report",'figures', "neighboring_map_ukLin.png"),
+        region = os.path.join(config["outdir"], "report",'figures', "region_map_ukLin.png")
     run:
         if config["local_lineages"] == True:
             shell(
@@ -307,26 +309,28 @@ rule make_report:
         background_metadata = config["background_metadata"],
         snp_figure_prompt = rules.find_snps.output.genome_graphs,
         genome_graphs = rules.find_snps.output.genome_graphs, 
-        central = os.path.join(config["outdir"], 'figures', "central_map_ukLin.png"),
-        neighbouring = os.path.join(config["outdir"], 'figures', "neighboring_map_ukLin.png"),
-        region = os.path.join(config["outdir"], 'figures', "region_map_ukLin.png")
+        central = os.path.join(config["outdir"], "report",'figures', "central_map_ukLin.png"),
+        neighbouring = os.path.join(config["outdir"],"report", 'figures', "neighboring_map_ukLin.png"),
+        region = os.path.join(config["outdir"],"report", 'figures', "region_map_ukLin.png")
     output:
-        poly_fig = os.path.join(config["outdir"],"figures","polytomies.png"),
-        footer_fig = os.path.join(config["outdir"], "figures", "footer.png"),
-        yaml = os.path.join(config["outdir"],"config.final.yaml"),
-        outfile = os.path.join(config["outdir"], "civet_report.md")
+        poly_fig = os.path.join(config["outdir"],"report","figures","polytomies.png"),
+        footer_fig = os.path.join(config["outdir"],"report", "figures", "footer.png"),
+        yaml = os.path.join(config["outdir"],f"{output_prefix}.yaml"),
+        outfile = os.path.join(config["outdir"],"report", f"{output_prefix}.md")
     run:
         
         shell("cp {config[sequencing_centre_source]:q} {config[sequencing_centre_dest]:q}")
 
         cfunk.local_lineages_to_config(input.central, input.neighbouring, input.region, config)
 
+        output_prefix = config["output_prefix"]
+
         config["figdir"] = os.path.join(".","figures") #changed from rel_figdir
         config["treedir"] = os.path.join(config["outdir"],"local_trees")
-        config["outfile"] = os.path.join(config["outdir"], "civet_report.md")
-        config["summary_dir"] = os.path.join(config["outdir"], "summary_files")
+        config["outfile"] = os.path.join(config["outdir"],"report", f"{output_prefix}.md")
+        config["summary_dir"] = os.path.join(config["outdir"],"report", "summary_files")
         config["filtered_background_metadata"] = input.combined_metadata
-        config["name_stem"] = "civet_report" #may need to change this if we still have different templates - if we don't then we can hard
+        config["name_stem"] = output_prefix
         qcfunk.get_tree_name_stem(config["treedir"],config)
 
         with open(output.yaml, 'w') as fw:
@@ -340,14 +344,15 @@ rule make_report:
 
 rule launch_grip:
     input:
-        mdfile = os.path.join(config["outdir"], "civet_report.md")
+        mdfile = os.path.join(config["outdir"],"report", f"{output_prefix}.md")
     output:
-        out_file = os.path.join(config["outdir"],"civet_report.html")
+        out_file = os.path.join(config["outdir"],"report",f"{output_prefix}.html")
     run:
         shell("grip {input.mdfile:q} --export")
-        for i in range(8000, 8100):
-            try:
-                shell("grip {input.mdfile:q} -b {i}")
-                break
-            except:
-                print("Trying next port")
+        if config["launch_browser"]:
+            for i in range(8000, 8100):
+                try:
+                    shell("grip {input.mdfile:q} -b {i}")
+                    break
+                except:
+                    print("Trying next port")

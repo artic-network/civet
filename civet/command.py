@@ -296,9 +296,7 @@ def main(sysargs = sys.argv[1:]):
     Miscellaneous options parsing
 
     """
-    if args.launch_browser:
-        config["launch_browser"]=True
-
+    
     # don't run in quiet mode if verbose specified
     if args.verbose:
         quiet_mode = False
@@ -308,6 +306,8 @@ def main(sysargs = sys.argv[1:]):
         lh_path = os.path.realpath(lh.__file__)
         config["log_string"] = f"--quiet --log-handler-script {lh_path} "
 
+    launch_browser = qcfunk.check_arg_config_default("launch_browser",args.launch_browser,config,default_dict)
+    config["launch_browser"] = launch_browser
 
     threads = qcfunk.check_arg_config_default("threads",args.threads,config,default_dict)
     config["threads"]= int(threads)
