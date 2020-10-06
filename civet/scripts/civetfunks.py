@@ -619,7 +619,7 @@ def header():
 \n"""))
 
 def preamble(v):
-    header()
+    header(v)
     funding()
     acknowledgements()
 
@@ -669,8 +669,8 @@ def acknowledgements():
                         :nikosmanesis:      :jaynaraghwani:   
 """))
 
-def be_arty():
-    header()
+def be_arty(v):
+    header(v)
     logo()
 
 def logo():
