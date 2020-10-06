@@ -255,3 +255,5 @@ misc options:
   -h, --help
 
 ```
+
+### [Next: Analysis pipeline](./analysis_pipeline.md)

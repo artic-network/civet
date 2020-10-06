@@ -7,7 +7,7 @@ Instructions for installing civet locally
 
 ### Requirements
 
-civet runs on MacOS and Linux. The conda environment recipe may not build on Windows and is not supported but can be run using the Windows subsystem for Linux.
+<strong>civet</strong> runs on MacOS and Linux. The conda environment recipe may not build on Windows (and is not supported) but <strong>civet</strong> can be run using the Windows subsystem for Linux.
 
 1. Some version of conda, we use Miniconda3. Can be downloaded from [here](https://docs.conda.io/en/latest/miniconda.html)
 2. Access to CLIMB or to a local data directory
@@ -48,3 +48,5 @@ If you have previously installed civet using ``pip``, you will need to update ci
 4. ``conda env update -f environment.yml`` \
 updates the conda environment 
 
+
+### [Next: Input options](./input_options.md)

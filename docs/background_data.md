@@ -59,6 +59,4 @@ Some data can be provided in either the query csv or the background metadata:
 - If the default options for ``--table-fields`` argument are used, **uk_lineage, lineage, phylotype** must be included in the background metadata or the query csv.
 
 
-
-
-
+### [Next: Usage](./usage.md)

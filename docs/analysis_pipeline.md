@@ -159,3 +159,5 @@ Processes the tip names to make them readable for the baltic tree parser.
 Converts each tree from newick to nexus format.
 11) summarise_processing
 Combines all the information about collapsed tips into a single file.
+
+### [Next: Output](./output.md)

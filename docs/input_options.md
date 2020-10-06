@@ -61,3 +61,5 @@ civet -fm sample_date=2020-05-01:2020-06-01
 ```
 
 A <strong>civet</strong> instance is then run with the sequences that match the search parameters.
+
+### [Next: Background data](./background_data.md)
