@@ -1,1 +1,14 @@
-theme: jekyll-theme-minimal
+theme: minima
+
+header_pages:
+    - index.md
+    - installation.md
+    - input_options.md
+    - background_data.md
+    - usage.md
+    - analysis_pipeline.md
+    - output.md
+    - report_docs.md
+    - map_options.md
+    - civet_report_example.md
+    - acknowledgements.md
