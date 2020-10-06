@@ -4,65 +4,65 @@
 
 ### Created by
 ```
-            Aine O'Toole & Verity Hill       
-                    Rambaut Group              
-                Edinburgh University   
+    Aine O'Toole & Verity Hill       
+            Rambaut Group              
+        Edinburgh University   
 ```
 
 ### Contributors
 ```                                              
-          Ben Jackson         gofasta       
-          JT McCrone          clusterfunk     
-          Stefan Rooke        local map 
-          Andrew Rambaut      jclusterfunk 
+    Ben Jackson         gofasta       
+    JT McCrone          clusterfunk     
+    Stefan Rooke        local map 
+    Andrew Rambaut      jclusterfunk 
 ```
 
 ### Funding
 ```
-                                              
-                  ARTIC Network               
-      Wellcome Trust Collaborators Award      
-                  206298/Z/17/Z               
-                                              
-          COVID-19 Genomics UK Consortium     
-      UK Department of Health and Social Care 
-          UK Research and Innovation          
-                                              
-                  ReservoirDOCs               
-  European Research Council Consolidator Grant
-                  ERC-2016-COG                
-                                              
+                                            
+                ARTIC Network               
+    Wellcome Trust Collaborators Award      
+                206298/Z/17/Z               
+                                            
+        COVID-19 Genomics UK Consortium     
+    UK Department of Health and Social Care 
+        UK Research and Innovation          
+                                            
+                ReservoirDOCs               
+European Research Council Consolidator Grant
+                ERC-2016-COG                
+                                            
 ```
 
 ### Acknowledgements
 ```
-    We thank the following for helpful suggestions, 
-    comments, beta-testing, feature requests and
-    patience.                
-                                            
-        :nickloman:         :mattloose:     
-        :mattbashton:       :tomconnor:     
-        :rebeccadewar:      :martinmchugh:    
-        :richardmyers:      :meerachand:    
-        :samnicholls:       :radpoplawski:   
-        :davidaanensen:     :benlindsey:    
-        :jeffbarrett:       :derekfairley:   
-        :josephhughes:      :davidrobertson:  
-        :richardorton:      :mattholden:
-        :ulfschaefer:       :nataliegroves:   
-        :nikosmanesis:      :jaynaraghwani:   
+We thank the following for helpful suggestions, 
+comments, beta-testing, feature requests and
+patience.                
+                                        
+    :nickloman:         :mattloose:     
+    :mattbashton:       :tomconnor:     
+    :rebeccadewar:      :martinmchugh:    
+    :richardmyers:      :meerachand:    
+    :samnicholls:       :radpoplawski:   
+    :davidaanensen:     :benlindsey:    
+    :jeffbarrett:       :derekfairley:   
+    :josephhughes:      :davidrobertson:  
+    :richardorton:      :mattholden:
+    :ulfschaefer:       :nataliegroves:   
+    :nikosmanesis:      :jaynaraghwani:   
 
 
-    We acknowledge the hard work from all members of the 
-    COG-UK consortium that has gone into generating the 
-    data used by `civet`.
+We acknowledge the hard work from all members of the 
+COG-UK consortium that has gone into generating the 
+data used by `civet`.
 
-    We acknowledge the hard work and open-science of the 
-    individual research labs and public health bodies 
-    that have made their genome data accessible on GISAID. 
-    A detailed table of acknowledgements for the SARS-CoV-2
-    genome sequences used to build this lineage system is 
-    hosted [here](https://github.com/cov-ert/clusterfunk))
+We acknowledge the hard work and open-science of the 
+individual research labs and public health bodies 
+that have made their genome data accessible on GISAID. 
+A detailed table of acknowledgements for the SARS-CoV-2
+genome sequences used to build this lineage system is 
+hosted [here](https://github.com/cov-ert/clusterfunk))
 
 ```
 ### References
