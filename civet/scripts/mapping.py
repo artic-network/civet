@@ -407,15 +407,22 @@ def local_lineages_section(lineage_maps, lineage_tables):
     #print('\n')
     print(f'Tabulated lineage data for the **central** health-board region:')
     with open(centralLoc[0], 'r') as file:
-        # contents = file.read()
-        # print (contents)
+        count = 0
         for l in file:
-            l = l.rstrip("\n")
+            if count == 0:
+                l = l.rstrip("\n")
+            else:
+                l=l
             print(l)
     print(f'Tabulated lineage data for the **neighbouring** health-board regions:')
 
     for each in tableList:
-        with open(each, "r") as file:                
+        with open(each, "r") as file: 
+            count = 0               
             for l in file:
-                l = l.rstrip("\n")
+                if count == 0:
+                    l = l.rstrip("\n")
+                else:
+                    l=l
+                
                 print(l)

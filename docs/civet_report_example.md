@@ -243,6 +243,7 @@ Tabulated lineage data for the **neighbouring** health-board regions:
 | UK55         |       1 |                  |         |
 
 ### Forth_Valley
+
 | UK Lineage   |   Count | Global Lineage   | Count   |
 |:-------------|--------:|:-----------------|:--------|
 | UK5098       |      21 | B.1              | 44.0    |
@@ -267,6 +268,7 @@ Tabulated lineage data for the **neighbouring** health-board regions:
 | UK1074       |       2 |                  |         |
 
 ### Lanarkshire
+
 | UK Lineage   |   Count | Global Lineage   | Count   |
 |:-------------|--------:|:-----------------|:--------|
 | UK1437       |      65 | B.1.93           | 64.0    |
