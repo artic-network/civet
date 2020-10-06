@@ -1,3 +1,6 @@
+![](./doc_figures/website_header.png)
+
+
 ## Output
 
 Description of output civet files

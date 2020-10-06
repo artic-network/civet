@@ -1,4 +1,6 @@
 
+![](./doc_figures/website_header.png)
+
 ## Installation
 
 Instructions for installing civet locally
