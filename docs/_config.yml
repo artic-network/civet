@@ -1,4 +1,4 @@
-theme: minima
+theme: jekyll-theme-minimal
 
 title: ['civet: cluster investigation & virus epidemiology tool']
 logo: /doc_figures/civet_logo.png
