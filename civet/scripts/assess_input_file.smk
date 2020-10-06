@@ -130,6 +130,7 @@ rule process_catchments:
         snakefile_collapse_before = os.path.join(workflow.current_basedir,"process_collapsed_trees.smk"),
         snakefile_just_collapse = os.path.join(workflow.current_basedir,"just_collapse_trees.smk"),
         combined_metadata = rules.combine_metadata.output.combined_csv, 
+        query=config["query"],
         query_seqs = rules.get_closest_cog.output.aligned_query, #datafunk-processed seqs
         collapse_summary = rules.prune_out_catchments.output.summary,
         background_seqs = config["background_seqs"],
@@ -165,6 +166,8 @@ rule process_catchments:
                         "tempdir={config[tempdir]:q} "
                         "outgroup_fasta={input.outgroup_fasta:q} "
                         "aligned_query_seqs={input.query_seqs:q} "
+                        "query={input.query:q} "
+                        "input_column={config[input_column]} "
                         "background_seqs={input.background_seqs:q} "
                         "combined_metadata={input.combined_metadata:q} "
                         "collapse_summary={input.collapse_summary:q} "
