@@ -124,51 +124,64 @@ def print_data_error(data_dir):
     - cog_global_metadata.csv\n\
     - cog_global_alignment.fasta\n"+qcfunk.cyan(f"\
 To run civet please either\n1) ssh into CLIMB and run with --CLIMB flag\n\
-2) Run using `--remote-sync` flag and your CLIMB username specified e.g. `-uun climb-covid19-otoolexyz`\n\
+2) Run using `--remote-sync` flag and your CLIMB username specified e.g. `-uun climb-covid19-smithj`\n\
 3) Specify a local directory with the appropriate files, optionally supply a custom metadata file\n\n"""))
 
 def rsync_data_from_climb(uun, data_dir):
-    rsync_command = f"rsync -avzh {uun}@bham.covid19.climb.ac.uk:/cephfs/covid/bham/civet-cat '{data_dir}'"
+    rsync_command = f"rsync -avzh --exclude 'cog/*' {uun}@bham.covid19.climb.ac.uk:/cephfs/covid/bham/results/phylogenetics/latest/civet/ '{data_dir}'"
     print(qcfunk.green(f"Syncing civet data to {data_dir}"))
     status = os.system(rsync_command)
     if status != 0:
         sys.stderr.write(qcfunk.cyan("Error: rsync command failed.\nCheck your user name is a valid CLIMB username e.g. climb-covid19-smithj\nAlso, check if you have access to CLIMB from this machine and are in the UK\n\n"))
         sys.exit(-1)
 
+def get_background_files(data_dir,background_metadata):
+    background_seqs = ""
+    background_tree = ""
+    data_date = ""
+    for r,d,f in os.walk(data_dir):
+        for fn in f:
+            if fn.endswith(".fasta") and fn.startswith("cog_global_"):
+                background_seqs = os.path.join(data_dir, fn)
+                data_date = fn.split("_")[2]
+                if not data_date.startswith("20"):
+                    data_date = ""
+            elif fn.endswith(".nexus") and fn.startswith("cog_global_"):
+                background_tree = os.path.join(data_dir, fn)
+            elif background_metadata == "" and fn.endswith(".csv") and fn.startswith("cog_global_"):
+                background_metadata = os.path.join(data_dir, fn)
+
+    return background_seqs, background_tree, background_metadata, data_date
+    
+
 def get_remote_data(uun,background_metadata,data_dir,config):
     config["remote"]= True
     head,tail = os.path.split(data_dir)
-    if tail == "civet-cat":
-        path_for_syncing = head
-    else:
-        path_for_syncing = data_dir
+    # if tail == "civet-cat":
+    #     path_for_syncing = head
+    # else:
+    #     path_for_syncing = data_dir
     if uun:
         config["username"] = uun
-        rsync_data_from_climb(uun, path_for_syncing)
+        rsync_data_from_climb(uun, data_dir)
     elif "username" in config:
         uun = config["username"]
-        rsync_data_from_climb(uun, path_for_syncing)
+        rsync_data_from_climb(uun, data_dir)
     elif "uun" in config:
         uun = config["uun"]
-        rsync_data_from_climb(uun, path_for_syncing)
+        rsync_data_from_climb(uun, data_dir)
     else:
-        rsync_command = f"rsync -avzh bham.covid19.climb.ac.uk:/cephfs/covid/bham/civet-cat '{path_for_syncing}'"
-        print(f"Syncing civet data to {path_for_syncing}")
+        rsync_command = f"rsync -avzh --exclude 'cog' bham.covid19.climb.ac.uk:/cephfs/covid/bham/results/phylogenetics/latest/civet/ '{data_dir}'"
+        print(f"Syncing civet data to {data_dir}")
         status = os.system(rsync_command)
         if status != 0:
             sys.stderr.write(qcfunk.cyan("Error: rsync command failed.\nCheck your ssh is configured with Host bham.covid19.climb.ac.uk\nAlternatively enter your CLIMB username with -uun e.g. climb-covid19-smithj\nAlso, check if you have access to CLIMB from this machine and check if you are in the UK\n\n"))
             sys.exit(-1)
 
-    background_seqs = ""
-    background_tree = ""
-    
-    if not background_metadata:
-        background_metadata = os.path.join(path_for_syncing,"civet-cat","cog_global_metadata.csv")
-    
-    background_seqs= os.path.join(path_for_syncing,"civet-cat","cog_global_alignment.fasta")
-    background_tree = os.path.join(path_for_syncing,"civet-cat","cog_global_tree.nexus")
+    background_seqs, background_tree, background_metadata, data_date = get_background_files(data_dir,background_metadata)
 
-    config["datadir"] = os.path.join(path_for_syncing,"civet-cat")
+    config["datadir"] = data_dir
+    config["data_date"] = data_date
     if not os.path.exists(config["datadir"]):
         print(qcfunk.cyan(f"Error: data directory not found at {data_dir}.\n"))
         sys.exit(-1)
@@ -181,7 +194,7 @@ def get_remote_data(uun,background_metadata,data_dir,config):
         config["background_seqs"] = background_seqs
         config["background_tree"] = background_tree
 
-        print(qcfunk.gree("Found data:"))
+        print(qcfunk.green("Found data:"))
         print("    -",background_seqs)
         print("    -",background_metadata)
         print("    -",background_tree,"\n")
@@ -204,7 +217,7 @@ def get_datadir(args_climb,args_uun,args_datadir,args_metadata,remote,cwd,config
             sys.exit(-1)
             
     if args_climb:
-        data_dir = "/cephfs/covid/bham/civet-cat"
+        data_dir = "/cephfs/covid/bham/results/phylogenetics/latest/civet/cog"
         if os.path.exists(data_dir):
             config["remote"] = False
             config["username"] = ""
@@ -219,24 +232,17 @@ def get_datadir(args_climb,args_uun,args_datadir,args_metadata,remote,cwd,config
         expanded_path = os.path.expanduser(config["datadir"])
         data_dir = os.path.join(config["path_to_query"], expanded_path)
     else:
-        if remote:
-            data_dir = cwd
-        else:
-            data_dir = os.path.join(cwd, default_dict["datadir"])
+        data_dir = os.path.join(cwd, default_dict["datadir"])
 
     if not remote:
         if not os.path.exists(data_dir):
             print_data_error(data_dir)
             sys.exit(-1)
             
-        
-        background_seqs = ""
-        background_tree = ""
-        
-        if not background_metadata:
-            background_metadata = os.path.join(data_dir,"cog_global_metadata.csv")
-        background_seqs= os.path.join(data_dir,"cog_global_alignment.fasta")
-        background_tree = os.path.join(data_dir,"cog_global_tree.nexus")
+        background_seqs, background_tree, background_metadata, data_date = get_background_files(data_dir,background_metadata)
+
+        config["datadir"] = data_dir
+        config["data_date"] = data_date
 
         if not os.path.isfile(background_tree) or not os.path.isfile(background_seqs) or not os.path.isfile(background_metadata):
             print_data_error(data_dir)
