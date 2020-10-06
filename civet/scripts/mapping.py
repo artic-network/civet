@@ -406,12 +406,23 @@ def local_lineages_section(lineage_maps, lineage_tables):
     #print ("![]("+linmapList[1]+")")
     #print('\n')
     print(f'Tabulated lineage data for the **central** health-board region:')
-    with open(centralLoc[0]) as file:
-        contents = file.read()
-        print (contents)
+    with open(centralLoc[0], 'r') as file:
+        count = 0
+        for l in file:
+            if count == 0:
+                l = l.rstrip("\n")
+            else:
+                l=l
+            print(l)
     print(f'Tabulated lineage data for the **neighbouring** health-board regions:')
 
     for each in tableList:
-        with open(each) as file:
-            contents = file.read()
-            print (contents)
+        with open(each, "r") as file: 
+            count = 0               
+            for l in file:
+                if count == 0:
+                    l = l.rstrip("\n")
+                else:
+                    l=l
+                
+                print(l)

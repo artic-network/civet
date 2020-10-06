@@ -35,3 +35,28 @@ If the user has background data locally (or would like to run on CLIMB with a di
 ```
 civet -i input.csv -d path/to/data_directory 
 ```
+
+By default, civet will look for a csv containing background data in the data directory. However, to provide custom background data, use the ``--background-metadata`` flag. 
+
+The following fields must be **always** present in this background metadata, or civet will not run properly:
+
+- **sequence_name** containing names of every sequence
+- **country** containing the country of sampling
+- A field to match the input data with containing COG IDs. The default header for this column is set to **central_sample_id**, but this can be changed by altering the ``--data-column`` argument
+- A date column containing the date of sampling. The default header for this column is set to **sample_date**, but can be changed by altering the ``--database-sample-date-column`` argument.
+
+The other fields depend on what you have supplied as optional in the report:
+- **node_summary:** if you have altered this argument, the column header in the background metadata that this has been set to must be supplied.
+- If the ``--local-lineages`` analysis is being undertaken, **adm2** must be provided.
+
+
+Some data can be provided in either the query csv or the background metadata:
+
+- Any field you include in ``--table-fields``, ``--label-fields`` or ``--tree-fields``. 
+- If the default options for the ``--colour-by`` argument are used, **adm1** must be provided in either the background metadata or the query csv.
+- If the default options for ``--table-fields`` argument are used, **uk_lineage, lineage, phylotype** must be included in the background metadata or the query csv.
+
+
+
+
+
