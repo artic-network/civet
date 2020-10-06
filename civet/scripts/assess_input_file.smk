@@ -211,7 +211,7 @@ rule find_snps:
                     file_stem = ".".join(fn.split(".")[:-1])
                     local_trees.append(file_stem)
         local_str = ",".join(local_trees) #to pass to snakemake pipeline
-        temp_output = os.path.join(config["outdir"],"gather_prompt.txt") 
+
         shell("snakemake --nolock --snakefile {input.snakefile:q} "
                             "{config[force]} "
                             "{config[log_string]} "
@@ -229,9 +229,7 @@ rule find_snps:
                             "input_column={config[input_column]:q} "
                             "data_column={config[data_column]:q} "
                             "--cores {workflow.cores} ")
-        if not config["no_temp"]:
-            shell(f"mv '{temp_output}' "
-            "{config[tempdir]:q}")
+
 
 rule regional_mapping:
     input:

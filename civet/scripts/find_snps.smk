@@ -8,7 +8,7 @@ config["tree_stems"] = config["catchment_str"].split(",")
 rule all:
     input:
         expand(os.path.join(config["outdir"],"figures","genome_graph_{tree}.png"), tree=config["tree_stems"]),
-        os.path.join(config["outdir"],"gather_prompt.txt")
+        os.path.join(config["tempdir"],"gather_prompt.txt")
 
 rule extract_taxa:
     input:
@@ -113,7 +113,7 @@ rule gather_graphs:
     input:
         expand(os.path.join(config["outdir"],"figures","genome_graph_{tree}.png"), tree=config["tree_stems"])
     output:
-        os.path.join(config["outdir"],"gather_prompt.txt")
+        os.path.join(config["tempdir"],"gather_prompt.txt")
     shell:
         "touch {output}"
     

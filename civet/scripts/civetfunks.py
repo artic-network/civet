@@ -565,7 +565,7 @@ def make_full_civet_table(query_dict, tree_fields, label_fields, input_column, o
 
     return output
 
-def preamble():
+def preamble(v):
     print(qcfunk.green("""\n
                     __              __    
               ____ |__|__  __ _____/  |_ 
@@ -574,14 +574,14 @@ def preamble():
              \____/ __| \_/  \____/ __|  
 
 **** Cluster Investigation & Virus Epidemiology Tool ****
-
+""")+qcfunk.green(f"""
+                        {v}""")+qcfunk.green("""
         ****************************************
                                                 
             Aine O'Toole & Verity Hill       
                     Rambaut Group              
                 Edinburgh University          
 \n"""))
-
     funding()
     acknowledgements()
 
@@ -589,17 +589,17 @@ def funding():
     print(qcfunk.green("""
         Funding:                
                                                 
-                    ARTIC Network              
-        Wellcome Trust Collaborators Award    
-                    206298/Z/17/Z              
+                    ARTIC Network               
+        Wellcome Trust Collaborators Award      
+                    206298/Z/17/Z               
                                                 
             COVID-19 Genomics UK Consortium     
         UK Department of Health and Social Care 
-            UK Research and Innovation       
+            UK Research and Innovation          
                                                 
-                    ReservoirDOCs              
-        European Research Council Consolidator Grant
-                    ERC-2016-COG              
+                    ReservoirDOCs               
+      European Research Council Consolidator Grant
+                    ERC-2016-COG                
                                                 
 """))
 
@@ -626,7 +626,7 @@ def acknowledgements():
             :davidaanensen:     :benlindsey:    
             :jeffbarrett:       :derekfairley:   
             :josephhughes:      :davidrobertson:  
-            :richardorton:      :jaynaraghwani:   
+            :richardorton:      :mattholden:
             :ulfschaefer:       :nataliegroves:   
-            :nikosmanesis:                
+            :nikosmanesis:      :jaynaraghwani:   
 """))

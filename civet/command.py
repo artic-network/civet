@@ -27,7 +27,7 @@ cwd = os.getcwd()
 def main(sysargs = sys.argv[1:]):
 
     parser = argparse.ArgumentParser(add_help=False, prog = _program, 
-    description=cfunk.preamble(), 
+    description=cfunk.preamble(__version__), 
     usage='''
 \tcivet -i <config.yaml> [options]
 \tcivet -i input.csv [options]
