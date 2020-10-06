@@ -8,6 +8,7 @@ from Bio import SeqIO
 from datetime import date
 from collections import defaultdict
 import pandas as pd
+import random
 
 import tempfile
 import pkg_resources
@@ -33,6 +34,7 @@ def get_defaults():
                     "datadir":"civet-cat",
                     "input_column":"name",
                     "data_column":"central_sample_id",
+                    "database_sample_date_column":"sample_date",
                     "sample_date_column":"sample_date",
                     "display_name":False,
                     "private":True,
@@ -289,7 +291,10 @@ def local_lineages_qc(config,default_dict):
     if config["local_lineages"]:
 
         if "adm2" not in config["background_metadata_header"] and "adm2" not in config["query_metadata_header"]:
-            sys.stderr.write(qcfunk.cyan('Error: no geographic information found for local lineage analysis. Please provide a column in the query or background with the header "adm2"'))
+            sys.stderr.write(qcfunk.cyan('Error: no geographic information found for local lineage analysis. Please provide a column in the background metadata (at least) with the header "adm2"'))
+            sys.exit(-1)
+        elif "uk_lineage" not in config["background_metadata_header"]:
+            sys.stderr.write(qcfunk.cyan('Error: no uk lineage information found for local lineage analysis. Please provide a column in the background metadata with the header "uk_lineage"'))
             sys.exit(-1)
 
         if config["date_restriction"]:
@@ -453,6 +458,9 @@ def report_group_to_config(args,config,default_dict):
     sample_date_column = qcfunk.check_arg_config_default("sample_date_column", args.sample_date_column,config,default_dict)
     config["sample_date_column"] = sample_date_column
 
+    database_sample_date_column = qcfunk.check_arg_config_default("database_sample_date_column", args.database_sample_date_column, config, default_dict)
+    config["database_sample_date_column"] = database_sample_date_column
+
     ## node-summary
     node_summary = qcfunk.check_arg_config_default("node_summary",args.node_summary, config, default_dict)
     config["node_summary"] = node_summary
@@ -581,3 +589,22 @@ def preamble():
                  Edinburgh University
 
 \n"""))
+
+def generate_false_names(taxon_dict, query_dict, outdir):
+
+    fw = open(os.path.join(outdir, "false_names_to_real_names.csv"), 'w')
+    fw.write("COG_ID,displayed_name\n")
+
+    total = len(taxon_dict)
+
+    count = 0
+    for name,tax in sorted(taxon_dict.items(), key=lambda x: random.random()):
+        if name not in query_dict and tax.country == "UK":
+            display_name = "sequence_" + str(count)
+            count += 1
+            tax.display_name = display_name
+            fw.write(tax.name + "," + tax.display_name + "\n")
+
+    fw.close()
+
+    return taxon_dict
