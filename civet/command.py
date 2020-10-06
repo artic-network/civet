@@ -27,7 +27,7 @@ cwd = os.getcwd()
 def main(sysargs = sys.argv[1:]):
 
     parser = argparse.ArgumentParser(add_help=False, prog = _program, 
-    description=cfunk.preamble(__version__), 
+    description=cfunk.preamble(__version__,False), 
     usage='''
 \tcivet -i <config.yaml> [options]
 \tcivet -i input.csv [options]
@@ -91,6 +91,7 @@ def main(sysargs = sys.argv[1:]):
     misc_group.add_argument('--tempdir',action="store",help="Specify where you want the temp stuff to go. Default: $TMPDIR")
     misc_group.add_argument("--no-temp",action="store_true",help="Output all intermediate files, for dev purposes.",dest="no_temp")
     misc_group.add_argument("--verbose",action="store_true",help="Print lots of stuff to screen")
+    misc_group.add_argument("--art",action="store_true",help="Print art")
     misc_group.add_argument('-t', '--threads', action='store',dest="threads",type=int,help="Number of threads")
     misc_group.add_argument("-v","--version", action='version', version=f"civet {__version__}")
     misc_group.add_argument("-h","--help",action="store_true",dest="help")
@@ -107,6 +108,9 @@ def main(sysargs = sys.argv[1:]):
             parser.print_help()
             sys.exit(0)
     
+    if args.art:
+        cfunk.preamble(__version__,True)
+        sys.exit(0) 
     
     """
     Initialising dicts
