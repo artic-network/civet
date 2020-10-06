@@ -12,10 +12,10 @@ authors: Verity, Áine, Andrew # List of authors, affiliations and contact detai
   ### Conclusions \n
  # An outbreak occurred.
 # omit_appendix: True
-tree_fields: adm1,HCW_status
-colour_by: adm1:viridis
+# tree_fields: adm1,HCW_status
+# colour_by: adm1:viridis
 #label_fields: [name, sample_date]
-#table_fields: ["uk_lineage"]
+table_fields: ["sample_date"]
 #display_name: display
 include_snp_table: True
 # no_snipit: True
@@ -34,9 +34,9 @@ query: test.csv
 fasta: test.fasta
 include_bars: True
 map_sequences: True
-map_info: x_col, y_col
-input_crs: EPSG:4326
-colour_map_by: care_home
+map_info: adm2
+# input_crs: EPSG:4326
+# colour_map_by: care_home
 local_lineages: True
 # date_restriction: True 
 # date_range_start: 2020-07-01
