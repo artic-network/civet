@@ -1,5 +1,5 @@
 ## civet pipeline
-<img src="./figures/workflow_diagram.png" width="700">
+<img src="./doc_figures/workflow_diagram.png" width="700">
 
 
 **An example report can be found [here](./civet_report_example.md).**

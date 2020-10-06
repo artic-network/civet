@@ -164,7 +164,9 @@ The below figure visualises the relative proportions of assigned UK-Lineages for
 ![](./figures/region_map_ukLin.png)
 
 Tabulated lineage data for the **central** health-board region:
+
 ### Lothian
+
 | UK Lineage   |   Count | Global Lineage   | Count   |
 |:-------------|--------:|:-----------------|:--------|
 | UK109        |     275 | B.1              | 396.0   |
@@ -189,7 +191,9 @@ Tabulated lineage data for the **central** health-board region:
 | UK436        |      12 |                  |         |
 
 Tabulated lineage data for the **neighbouring** health-board regions:
-### Borders
+
+## Borders
+
 | UK Lineage   |   Count | Global Lineage   | Count   |
 |:-------------|--------:|:-----------------|:--------|
 | UK175        |      83 | B.1.89           | 66.0    |
@@ -214,6 +218,7 @@ Tabulated lineage data for the **neighbouring** health-board regions:
 | UK5098       |       1 |                  |         |
 
 ### Fife
+
 | UK Lineage   |   Count | Global Lineage   | Count   |
 |:-------------|--------:|:-----------------|:--------|
 | UK5          |      15 | B.1              | 13.0    |
