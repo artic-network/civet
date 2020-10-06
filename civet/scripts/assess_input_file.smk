@@ -169,6 +169,7 @@ rule process_catchments:
                         "combined_metadata={input.combined_metadata:q} "
                         "collapse_summary={input.collapse_summary:q} "
                         "collapse_threshold={config[collapse_threshold]} "
+                        "protect={config[protect]} "
                         "--cores {workflow.cores}")
         else:
             print(f"No new sequences to add in, just collapsing trees")
@@ -183,6 +184,7 @@ rule process_catchments:
                             "collapse_threshold={config[collapse_threshold]} "
                             "collapse_summary={input.collapse_summary:q} "
                             "combined_metadata={input.combined_metadata:q} "
+                            "protect={config[protect]} "
                             "--cores {workflow.cores}")
 
 rule find_snps:
@@ -191,9 +193,11 @@ rule find_snps:
         snakefile = os.path.join(workflow.current_basedir,"find_snps.smk"),
         query_seqs = rules.get_closest_cog.output.aligned_query, #datafunk-processed seqs
         background_seqs = config["background_seqs"],
-        outgroup_fasta = config["outgroup_fasta"]
+        outgroup_fasta = config["outgroup_fasta"],
+        combined_metadata = rules.combine_metadata.output.combined_csv,
+        query = config["query"]
     params:
-        tree_dir = os.path.join(config["outdir"],"local_trees"),
+        tree_dir = os.path.join(config["outdir"],"local_trees")
     output:
         genome_graphs = os.path.join(config["tempdir"],"gather_prompt.txt") 
     run:
@@ -216,7 +220,11 @@ rule find_snps:
                             "outgroup_fasta={input.outgroup_fasta:q} "
                             "aligned_query_seqs={input.query_seqs:q} "
                             "background_seqs={input.background_seqs:q} "
-                            "collapse_threshold={config[collapse_threshold]} "
+                            "query={input.query:q} "
+                            "combined_metadata={input.combined_metadata:q} "
+                            "display_name={config[display_name]:q} "
+                            "input_column={config[input_column]:q} "
+                            "data_column={config[data_column]:q} "
                             "--cores {workflow.cores} ")
         if not config["no_temp"]:
             shell(f"&& mv '{temp_output}' "

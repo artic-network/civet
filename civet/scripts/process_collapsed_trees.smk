@@ -129,7 +129,7 @@ rule get_collapsed_representative:
             for l in f:
                 l = l.rstrip("\n")
                 collapsed_name,taxa = l.split('\t')
-                collapsed[collapsed_name] = taxa[0]
+                collapsed[collapsed_name] = taxa.split(",")[0]
 
         with open(output.representative_seq, "w") as fw:
             for record in SeqIO.parse(input.background_seqs,"fasta"):

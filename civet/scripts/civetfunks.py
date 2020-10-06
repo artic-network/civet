@@ -63,7 +63,8 @@ def get_defaults():
                     "threads":1,
                     "force":True,
                     "trim_start":265,   # where to pad to using datafunk
-                    "trim_end":29674
+                    "trim_end":29674,
+                    "protect": False
                     }
     return default_dict
 
