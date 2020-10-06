@@ -17,7 +17,7 @@ rule protect_subtree_nodes:
     input:
         metadata = config["combined_metadata"]
     params:
-        tree_dir = os.path.join(config["tempdir"],"catchment_trees")
+        tree_dir = os.path.join(config["outdir"],"catchment_trees")
     output:
         metadata = os.path.join(config["tempdir"],"protected","protected.csv")
     run:
@@ -52,10 +52,10 @@ rule protect_subtree_nodes:
 
 rule summarise_polytomies:
     input:
-        tree = os.path.join(config["tempdir"], "catchment_trees","{tree}.newick"),
+        tree = os.path.join(config["outdir"], "catchment_trees","{tree}.newick"),
         metadata = os.path.join(config["tempdir"],"protected","protected.csv")
     params:
-        tree_dir = os.path.join(config["tempdir"],"catchment_trees")
+        tree_dir = os.path.join(config["outdir"],"catchment_trees")
     output:
         collapsed_tree = os.path.join(config["tempdir"],"collapsed_trees","{tree}.tree"),
         collapsed_information = os.path.join(config["outdir"],"local_trees","{tree}.txt")
