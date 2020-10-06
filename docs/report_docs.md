@@ -26,11 +26,16 @@ description: >
 
 Using the flag "--sequencing-centre" on the command line or the option "sequencing_centre" in the config file followed by an accepted four letter abbreviation for the sequencing centre (eg EDIN for Edinburgh or BIRM for Birmingham) will add that sequencing centre's logo into the header of the report. 
 
-If you do not specifiy a custom title, it will also add the sequencing centre four letter abbreviation into the title.
+Current accepted headers are:
+BIRM (Birmingham), CAMB (Cambridge), EDIN (Edinburgh), EXET (Exeter), GLAS (Glasgow), GSTT (Guy's and St Thomas'), LIVE (Liverpool), LOND (London), NIRE (Northern Ireland), NORT (Northumbria), NORW (Norwich), NOTT (Nottingham), OXON (Oxford), PHEC (Public Health England), PHWC (Public Health Wales), PORT (Portsmouth), SANG (Sanger), SHEF (Sheffield)
+
+The civet developers are open to requests for new headers. Please file a Github issue and we will respond as soon as we can.
+
+If a custom title is not specified, it will also add the sequencing centre four letter abbreviation into the title.
 
 ![](doc_figures/header_example.png)
 
-### Display name
+### --display-name
 
 Specify a column in the query csv to refer to query sequences by in the report instead of COG IDs. The default is the same as input column, which by default is name. This may be a patient ID for example to make it more quickly and easily interpretable. This name will be used in the phylogeny and the summary table.
 
