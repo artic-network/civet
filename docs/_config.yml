@@ -1,6 +1,6 @@
 theme: jekyll-theme-minimal
 
-title: ['civet: cluster investigation & virus epidemiology tool']
+title: civet
 logo: /doc_figures/civet_logo.png
 header_pages:
     - index.md
