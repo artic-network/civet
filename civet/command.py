@@ -27,7 +27,7 @@ cwd = os.getcwd()
 def main(sysargs = sys.argv[1:]):
 
     parser = argparse.ArgumentParser(add_help=False, prog = _program, 
-    description=cfunk.preamble(__version__,False), 
+    description=cfunk.preamble(__version__), 
     usage='''
 \tcivet -i <config.yaml> [options]
 \tcivet -i input.csv [options]
@@ -111,7 +111,7 @@ def main(sysargs = sys.argv[1:]):
             sys.exit(0)
     
     if args.art:
-        cfunk.preamble(__version__,True)
+        cfunk.be_arty()
         sys.exit(0) 
     
     """
@@ -297,7 +297,7 @@ def main(sysargs = sys.argv[1:]):
     Miscellaneous options parsing
 
     """
-    
+
     # don't run in quiet mode if verbose specified
     if args.verbose:
         quiet_mode = False

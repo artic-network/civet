@@ -600,7 +600,7 @@ def generate_false_names(taxon_dict, query_dict, outdir):
 
     return taxon_dict
 
-def preamble(v,print_logo):
+def header():
     print(qcfunk.green("""\n
                                     __              __    
                               ____ |__|__  __ _____/  |_ 
@@ -618,12 +618,10 @@ def preamble(v,print_logo):
                                 Edinburgh University          
 \n"""))
 
-
-    if print_logo:
-        logo()
+def preamble(v):
+    header()
     funding()
     acknowledgements()
-
 
 def funding():
     print(qcfunk.green("""
@@ -671,6 +669,9 @@ def acknowledgements():
                         :nikosmanesis:      :jaynaraghwani:   
 """))
 
+def be_arty():
+    header()
+    logo()
 
 def logo():
     print("""
