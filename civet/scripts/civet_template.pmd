@@ -284,9 +284,9 @@ print("Numpy version " + np.__version__)
 print("Scipy version " + sp.__version__)
 print("No version number for Baltic")
 
-print("COG data is now submitted every day, so the background data was updated yesterday")
+print("The COG data for this report was drawn from " + data_date)
 
-print("CIVET version is 0.1")
+print("CIVET version is 2.0")
 ```
 
 ## Acknowledgements

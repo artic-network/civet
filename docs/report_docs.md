@@ -1,13 +1,19 @@
 ![](./doc_figures/website_header.png)
 
 ## Report options
-How to customise the civet report
-
+Options to customise the civet report.
 
 ### Free text options
 
-Using the config file, there are several points where fully customisable free text can be added.
-These are: Title, outbreak ID, report date (default is today), author list, description (introduction) and conclusions. To include multi-line free text, put a ">" character and the start of the free text, and include the new line character ("\n") where the new lines should go.
+Using the config file, there are several points where fully customisable free text can be added:
+- Title
+- Outbreak ID
+- Report date (default is the day the report is run)
+- Author list
+- Description (introduction)
+- Conclusions
+
+To include multi-line free text, put a ">" character and the start of the free text, and include the new line character ("\n") where the new lines should go.
 
 Eg:
 ```
@@ -16,9 +22,11 @@ description: >
    This report describes the investigation into an outbreak in the made-up region.
 ```
 
-### Sequencing centre 
+### --sequencing-centre 
 
-Using the flag "--sequencing-centre" on the command line or the option "sequencing_centre" in the config file followed by an accepted four letter abbreviation for the sequencing centre (eg EDIN for Edinburgh or BIRM for Birmingham) will add that sequencing centre's logo into the header of the report. If you do not specifiy a custom title, it will also add the abbreviation into the title.
+Using the flag "--sequencing-centre" on the command line or the option "sequencing_centre" in the config file followed by an accepted four letter abbreviation for the sequencing centre (eg EDIN for Edinburgh or BIRM for Birmingham) will add that sequencing centre's logo into the header of the report. 
+
+If you do not specifiy a custom title, it will also add the sequencing centre four letter abbreviation into the title.
 
 ![](doc_figures/header_example.png)
 
