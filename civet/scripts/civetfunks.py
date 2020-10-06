@@ -669,8 +669,7 @@ def acknowledgements():
                         :nikosmanesis:      :jaynaraghwani:   
 """))
 
-def be_arty(v):
-    header(v)
+def be_arty():
     logo()
 
 def logo():
