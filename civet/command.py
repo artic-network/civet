@@ -41,7 +41,7 @@ def main(sysargs = sys.argv[1:]):
     io_group.add_argument('-f','--fasta', action="store",help="Optional fasta query.", dest="fasta")
     io_group.add_argument('--max-ambiguity', action="store", type=float,help="Maximum proportion of Ns allowed to attempt analysis. Default: 0.5",dest="max_ambiguity")
     io_group.add_argument('--min-length', action="store", type=int,help="Minimum query length allowed to attempt analysis. Default: 10000",dest="min_length")
-    io_grounp.add_argument('--output-prefix',action="store",help="Prefix of output directory & report name: Default: civet",dest="output_prefix")
+    io_group.add_argument('--output-prefix',action="store",help="Prefix of output directory & report name: Default: civet",dest="output_prefix")
 
     data_group = parser.add_argument_group('data source options')
     data_group.add_argument('-d','--datadir', action="store",help="Local directory that contains the data files. Default: civet-cat")
