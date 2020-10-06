@@ -1,6 +1,6 @@
 ![](./doc_figures/website_header.png)
 
-## Contributors and acknowledgements
+# Contributors and acknowledgements
 
 ### Created by
 ```

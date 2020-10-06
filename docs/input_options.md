@@ -1,6 +1,6 @@
 ![](./doc_figures/website_header.png)
 
-## Input options
+# Input options
 
 Details of how to investigate an outbreak using civet
 

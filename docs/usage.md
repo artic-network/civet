@@ -1,7 +1,7 @@
 ![](./doc_figures/website_header.png)
 
 
-## Usage
+# Usage
 How to investigate an outbreak using civet
 
 ### Input files
