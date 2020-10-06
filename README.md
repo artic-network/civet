@@ -30,7 +30,7 @@ A fully customisable report is generated, summarising information about the sequ
 
 <strong>civet</strong> was created by Áine O'Toole & Verity Hill, Rambaut Group, Edinburgh University
 
-<strong> Find out more information about civet at cog-uk.github.io/civet </strong>
+<strong> Find out more information about civet at https://cog-uk.github.io/civet/</strong>
 
 
 #### Full usage:

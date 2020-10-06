@@ -6,8 +6,6 @@ Description of output civet files
 
 A markdown report is generated, with summaries of lineages and genetic diversity present in your query. Trees are visualised in the report and compared to the diversity of lineages present in the community. Optional figures include summary barcharts of collapsed-node composition, genome 'snipit' graphs and maps of the local community diversity. Full report options described [here](./report_docs.md).
 
-<strong>civet_
-
 <strong>combined_metadata.csv</strong>
 
 A metadata file with the background metadata pulled out for the query sequences of interest, including the metadata for the 'closest' sequences that were found for the optional input fasta file.

@@ -65,7 +65,8 @@ def get_defaults():
                     "force":True,
                     "trim_start":265,   # where to pad to using datafunk
                     "trim_end":29674,
-                    "protect": False
+                    "protect": False,
+                    "output_prefix":"civet"
                     }
     return default_dict
 
