@@ -37,9 +37,7 @@ rule get_sequence_names:
             reader = csv.DictReader(f)
             for row in reader:
                 queries[row[input_column]] = row[display_name]
-        print("QUERIES")
-        for k in queries:
-            print(k, queries[k])
+
         # in combined metadata, match the input column to the data column
         # add sequence name -> display name mapping
         name_maps = {}
@@ -55,22 +53,20 @@ rule get_sequence_names:
         for query in queries:
             if query not in name_maps.values():
                 name_maps[query] = queries[query]
-        print("NAMEMAPS")
-        for k in name_maps:
-            print(k, name_maps[k])
+
         # get all the taxa from a given local tree
         taxa = []
         with open(input.tree_taxa, "r") as f:
             for l in f:
                 l = l.rstrip("\n")
                 taxa.append(l)
-        print(taxa)
+
         with open(output.seq_names, "w") as fw:
             fw.write("name,label\n")
             fw.write("Reference,Reference\n")
             for name in name_maps:
                 if name in taxa:
-                    print("SEQ NAME",name, name_maps[name])
+
                     fw.write(f"{name},{name_maps[name]}\n")
 
 rule gather_fasta_seqs:

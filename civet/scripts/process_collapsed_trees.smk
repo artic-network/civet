@@ -54,7 +54,8 @@ rule combine_basal:
 
 rule protect_subtree_nodes:
     input:
-        metadata = config["combined_metadata"]
+        metadata = config["combined_metadata"],
+        query = config["query"]
     params:
         tree_dir = os.path.join(config["outdir"],"catchment_trees")
     output:
@@ -81,8 +82,16 @@ rule protect_subtree_nodes:
                         c +=1
                         protect_name = row["sequence_name"]
                         fw.write(f"{protect_name},{c}\n")
-
+            
             # find all query nodes that exist
+            with open(input.query, newline="") as f:
+                reader = csv.DictReader(f)
+                for row in reader:
+                    query_name = row[config["input_column"]]
+                    c+=1
+                    fw.write(f"{query_name},{c}\n")
+
+            # find all query metadata nodes that exist
             with open(input.metadata, newline="") as f:
                 reader = csv.DictReader(f)
                 for row in reader:
