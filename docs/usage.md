@@ -7,7 +7,7 @@
       </header>
     </div>
     <span class="image object">
-        <img src="./figures/civet_logo.png" alt="" style="max-width:150px"/>
+        <img src="./doc_figures/civet_logo.png" alt="" style="max-width:150px"/>
         </span>
 </section>
 
@@ -260,5 +260,5 @@ misc options:
                         Number of threads
   -v, --version         show program's version number and exit
   -h, --help
-  
+
 ```
