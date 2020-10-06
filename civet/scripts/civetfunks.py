@@ -600,7 +600,7 @@ def generate_false_names(taxon_dict, query_dict, outdir):
 
     return taxon_dict
 
-def header():
+def header(v):
     print(qcfunk.green("""\n
                                     __              __    
                               ____ |__|__  __ _____/  |_ 
