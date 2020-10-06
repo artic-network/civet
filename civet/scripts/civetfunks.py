@@ -574,24 +574,6 @@ def make_full_civet_table(query_dict, tree_fields, label_fields, input_column, o
 
     return output
 
-def preamble(v,print_logo):
-    print(qcfunk.green("""\n
-                                    __              __    
-                              ____ |__|__  __ _____/  |_ 
-                             / ___\|  \  \/ // __ \   __|
-                            \  \___|  |\   /\  ___/|  |  
-                             \____/ __| \_/  \____/ __|  
-
-                **** Cluster Investigation & Virus Epidemiology Tool ****
-                """)+qcfunk.green(f"""
-                                        {v}""")+qcfunk.green("""
-                        ****************************************
-                                                                
-                            Aine O'Toole & Verity Hill       
-                                    Rambaut Group              
-                                Edinburgh University          
-\n"""))
-
 def generate_false_names(taxon_dict, query_dict, outdir):
 
     fw = open(os.path.join(outdir, "false_names_to_real_names.csv"), 'w')
@@ -611,11 +593,29 @@ def generate_false_names(taxon_dict, query_dict, outdir):
 
     return taxon_dict
 
+def preamble(v,print_logo):
+    print(qcfunk.green("""\n
+                                    __              __    
+                              ____ |__|__  __ _____/  |_ 
+                             / ___\|  \  \/ // __ \   __|
+                            \  \___|  |\   /\  ___/|  |  
+                             \____/ __| \_/  \____/ __|  
 
-if print_logo:
-    logo()
-funding()
-acknowledgements()
+                **** Cluster Investigation & Virus Epidemiology Tool ****
+                """)+qcfunk.green(f"""
+                                        {v}""")+qcfunk.green("""
+                        ****************************************
+                                                                
+                            Aine O'Toole & Verity Hill       
+                                    Rambaut Group              
+                                Edinburgh University          
+\n"""))
+
+
+    if print_logo:
+        logo()
+    funding()
+    acknowledgements()
 
 
 def funding():
