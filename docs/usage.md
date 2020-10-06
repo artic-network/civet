@@ -1,15 +1,6 @@
 
-<section id="banner">
-    <div class="content">
-      <header>
-        <h2>Usage</h2>
-        <p>Details of how to investigate an outbreak using civet</p>
-      </header>
-    </div>
-    <span class="image object">
-        <img src="./doc_figures/civet_logo.png" alt="" style="max-width:150px"/>
-        </span>
-</section>
+## Usage
+How to investigate an outbreak using civet
 
 ### Input files
 

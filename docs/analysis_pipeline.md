@@ -1,17 +1,4 @@
-
-
-<section id="banner">
-    <div class="content">
-      <header>
-        <h2>civet pipeline</h2>
-        <p>Detailed description of civet analysis pipeline</p>
-      </header>
-    </div>
-    <span class="image object">
-        <img src="./doc_figures/civet_logo.png" alt="" style="max-width:150px"/>
-        </span>
-</section>
-
+## civet pipeline
 <img src="./figures/workflow_diagram.png" width="700">
 
 

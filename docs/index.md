@@ -1,7 +1,6 @@
 # civet
 **C**luster **I**nvestigation & **V**irus **E**pidemiology **T**ool
 
-<img src="./doc_figures/civet_logo.png" width="350">
 
 <strong>civet</strong> is a tool developed with 'real-time' genomics in mind. 
 

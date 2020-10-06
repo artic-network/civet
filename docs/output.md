@@ -1,15 +1,6 @@
+## Output
 
-<section id="banner">
-    <div class="content">
-      <header>
-        <h2>Output</h2>
-        <p>Description of output civet files</p>
-      </header>
-    </div>
-    <span class="image object">
-        <img src="./doc_figures/civet_logo.png" alt="" style="max-width:150px"/>
-        </span>
-</section>
+Description of output civet files
 
 <strong>civet_report.md</strong>
 
