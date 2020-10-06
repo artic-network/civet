@@ -66,7 +66,9 @@ def get_defaults():
                     "threads":1,
                     "force":True,
                     "trim_start":265,   # where to pad to using datafunk
-                    "trim_end":29674
+                    "trim_end":29674,
+                    "protect": False,
+                    "output_prefix":"civet"
                     }
     return default_dict
 
@@ -572,22 +574,22 @@ def make_full_civet_table(query_dict, tree_fields, label_fields, input_column, o
 
     return output
 
-def preamble():
+def preamble(v,print_logo):
     print(qcfunk.green("""\n
-                    __              __    
-              ____ |__|__  __ _____/  |_ 
-             / ___\|  \  \/ // __ \   __|
-            \  \___|  |\   /\  ___/|  |  
-             \____/ __| \_/  \____/ __|  
+                                    __              __    
+                              ____ |__|__  __ _____/  |_ 
+                             / ___\|  \  \/ // __ \   __|
+                            \  \___|  |\   /\  ___/|  |  
+                             \____/ __| \_/  \____/ __|  
 
-**** Cluster Investigation & Virus Epidemiology Tool ****
-
-        ****************************************
-
-              Aine O'Toole & Verity Hill
-                    Rambaut Group
-                 Edinburgh University
-
+                **** Cluster Investigation & Virus Epidemiology Tool ****
+                """)+qcfunk.green(f"""
+                                        {v}""")+qcfunk.green("""
+                        ****************************************
+                                                                
+                            Aine O'Toole & Verity Hill       
+                                    Rambaut Group              
+                                Edinburgh University          
 \n"""))
 
 def generate_false_names(taxon_dict, query_dict, outdir):
@@ -608,3 +610,90 @@ def generate_false_names(taxon_dict, query_dict, outdir):
     fw.close()
 
     return taxon_dict
+
+
+if print_logo:
+    logo()
+funding()
+acknowledgements()
+
+
+def funding():
+    print(qcfunk.green("""
+                    Funding:                
+                                                                
+                                    ARTIC Network               
+                        Wellcome Trust Collaborators Award      
+                                    206298/Z/17/Z               
+                                                                
+                            COVID-19 Genomics UK Consortium     
+                        UK Department of Health and Social Care 
+                            UK Research and Innovation          
+                                                                
+                                    ReservoirDOCs               
+                    European Research Council Consolidator Grant
+                                    ERC-2016-COG                
+                                                             
+"""))
+
+def acknowledgements():
+    print(qcfunk.green("""
+                    Code contributors:           
+                                                            
+                        Ben Jackson         gofasta       
+                        JT McCrone          clusterfunk     
+                        Stefan Rooke        local map 
+                        Andrew Rambaut      jclusterfunk    
+                                                            
+                    Acknowledgements:            
+                                                            
+                    We thank the following for helpful suggestions, 
+                    comments, beta-testing, feature requests and
+                    patience.                
+                                                            
+                        :nickloman:         :mattloose:     
+                        :mattbashton:       :tomconnor:     
+                        :rebeccadewar:      :martinmchugh:    
+                        :richardmyers:      :meerachand:    
+                        :samnicholls:       :radpoplawski:   
+                        :davidaanensen:     :benlindsey:    
+                        :jeffbarrett:       :derekfairley:   
+                        :josephhughes:      :davidrobertson:  
+                        :richardorton:      :mattholden:
+                        :ulfschaefer:       :nataliegroves:   
+                        :nikosmanesis:      :jaynaraghwani:   
+"""))
+
+
+def logo():
+    print("""
+                                       &@                                       
+                           *@@,,,,,,,,,,,,,,,,,,,,,@@/                          
+                      %@,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,@%                     
+                   @,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,@                  
+                @,,,,,,,,,,,,,,,,%(**(,,,,,,,,,,,,,,,,,,,,,,,,,,@               
+              @,,,,,,,,,,,,,,,%(((((%**%((((((%,,,,,,,,,,,,,,,,,,,@             
+            @,,,,,,,,,,,,,,,%((((((((((%**%((((%,,,,,,,,,,,,,,,,,,,,@           
+          @,,,,,,,,,,,,,,,%,,,,,,%(((######((((%,,,,,,,,,,,,,,,,,,,,,,@         
+         @,,,,,,,,,%(((%(****#,,,,###****##((((#,,,,,,,,,,,,,,,,,,,,,,,@        
+        @,,,,,,,,,,,,,,,((((%(((((##***%#%,,,,,#,,,,,,,,,,,,,,,,,,,,,,,,@       
+       @,,,,,,,,,,,,,,#(((((((((((%((*%(((((#,,*,,,,,,,,,,,,,,,,,,,,,,,,,@      
+      /*,,,,,,,,,,,,%((((((((((((((((##%(*********%,,,,,,,,,,,,,,,,,,,,,,*      
+      @,,,,,,,,,,,%((((((((((((((((((((####  #(%*****%,,,,,,,,,,,,,,,,,,,,@     
+      @,,,,,,,,,,(((((((((((((%##%%########(**%**,,,,,,,,,,,,,,,,,,,,,,,,,@     
+      @,,,,/**#((((%%***#%#(%***********##,/##%/**%,,,,,,,,,,,,,,,,,,,,,,,@     
+      @,,,,,****(((((((((((%*****(, ,,,.*/***%(*/###%,,,,,,,,,,,,,,,,,,,,,@     
+      @,,,,,%****((((((((((((((((#*****,,,,,,,,,,,*%%,%###%%%/,**,,,,,,,,,@     
+       @,,,,%******((((((((((((((((((%***%,,,,,,,,,,###,,,,,,,/#**%,,,,,,@      
+       (*,,/*********((((((((((((((((%*,,,,,,,,,,,###,,,,/*,,,*(****,,,,/.      
+        (%****(%#****/(((((((((((((,,,,,,,,,,,,,,##(,,,,/(,,,%,,****,,,*#       
+          @*******##((((((((((((((((((((*,,,,,,,%#(,,,,,,,,,/,,***%,(%@         
+           @***************************%,,,,,,,,%#(,,,,,,,%,,%*,,,%,,@          
+             @********************%/*******,,,,,,,%,,,*#/(,*,,,,,,,@            
+               @********************/******%,,,,%##%,,,,,,,,,,,,,@              
+                 @@*******************###((((%#####,,,,,,,,,,,@@                
+                    *@************%##((***((((####%,,,,,,,,@*                   
+                         @@(***/#%*****%(((((%###,,,,,@@                        
+                               @@@@/*((((((((%@@@@                              
+
+""")

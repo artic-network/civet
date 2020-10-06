@@ -1,15 +1,7 @@
 
-<section id="banner">
-    <div class="content">
-      <header>
-        <h2>Installation</h2>
-        <p>Instructions for installing civet locally</p>
-      </header>
-    </div>
-    <span class="image object">
-        <img src="./figures/civet_logo.png" alt="" style="max-width:150px"/>
-        </span>
-</section>
+## Installation
+
+Instructions for installing civet locally
 
 ### Requirements
 

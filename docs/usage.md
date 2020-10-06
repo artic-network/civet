@@ -1,15 +1,6 @@
 
-<section id="banner">
-    <div class="content">
-      <header>
-        <h2>Usage</h2>
-        <p>Details of how to investigate an outbreak using civet</p>
-      </header>
-    </div>
-    <span class="image object">
-        <img src="./figures/civet_logo.png" alt="" style="max-width:150px"/>
-        </span>
-</section>
+## Usage
+How to investigate an outbreak using civet
 
 ### Input files
 
@@ -60,6 +51,7 @@ civet -i config.yaml
 
 ```
 
+
                     __              __    
               ____ |__|__  __ _____/  |_ 
              / ___\|  \  \/ // __ \   __|
@@ -68,13 +60,55 @@ civet -i config.yaml
 
 **** Cluster Investigation & Virus Epidemiology Tool ****
 
+                        2.0
         ****************************************
+                                                
+            Aine O'Toole & Verity Hill       
+                    Rambaut Group              
+                Edinburgh University          
 
-              Aine O'Toole & Verity Hill
-                    Rambaut Group
-                 Edinburgh University
 
 
+        Funding:                
+                                                
+                    ARTIC Network               
+        Wellcome Trust Collaborators Award      
+                    206298/Z/17/Z               
+                                                
+            COVID-19 Genomics UK Consortium     
+        UK Department of Health and Social Care 
+            UK Research and Innovation          
+                                                
+                    ReservoirDOCs               
+      European Research Council Consolidator Grant
+                    ERC-2016-COG                
+                                                
+
+
+        Code contributors:           
+                                                
+            Ben Jackson         gofasta       
+            JT McCrone          clusterfunk     
+            Stefan Rooke        local map 
+            Andrew Rambaut      jclusterfunk    
+                                                
+        Acknowledgements:            
+                                                
+        We thank the following for helpful suggestions, 
+        comments, beta-testing, feature requests and
+        patience.                
+                                                
+            :nickloman:         :mattloose:     
+            :mattbashton:       :tomconnor:     
+            :rebeccadewar:      :martinmchugh:    
+            :richardmyers:      :meerachand:    
+            :samnicholls:       :radpoplawski:   
+            :davidaanensen:     :benlindsey:    
+            :jeffbarrett:       :derekfairley:   
+            :josephhughes:      :davidrobertson:  
+            :richardorton:      :mattholden:
+            :ulfschaefer:       :nataliegroves:   
+            :nikosmanesis:      :jaynaraghwani:   
 
 usage: 
 	civet -i <config.yaml> [options]
@@ -172,6 +206,10 @@ tree context options:
                         Default: 2
   --collapse-threshold COLLAPSE_THRESHOLD
                         Minimum number of nodes to collapse on. Default: 1
+  -p [PROTECT [PROTECT ...]], --protect [PROTECT [PROTECT ...]]
+                        Protect nodes from collapse if they match the search
+                        query in the metadata file supplied. E.g. -p
+                        adm2=Edinburgh sample_date=2020-03-01:2020-04-01
 
 map rendering options:
   --local-lineages      Contextualise the cluster lineages at local regional
@@ -202,8 +240,9 @@ map rendering options:
 misc options:
   -b, --launch-browser  Optionally launch md viewer in the browser using grip
   -c, --generate-config
-                        Rather than running a civet report, generate a config
-                        file based on the command line arguments provided
+                        Rather than running a civet report, just generate a
+                        config file based on the command line arguments
+                        provided
   --tempdir TEMPDIR     Specify where you want the temp stuff to go. Default:
                         $TMPDIR
   --no-temp             Output all intermediate files, for dev purposes.
@@ -212,4 +251,5 @@ misc options:
                         Number of threads
   -v, --version         show program's version number and exit
   -h, --help
+
 ```

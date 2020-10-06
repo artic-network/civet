@@ -1,21 +1,10 @@
+## Output
 
-<section id="banner">
-    <div class="content">
-      <header>
-        <h2>Output</h2>
-        <p>Description of output civet files</p>
-      </header>
-    </div>
-    <span class="image object">
-        <img src="./figures/civet_logo.png" alt="" style="max-width:150px"/>
-        </span>
-</section>
+Description of output civet files
 
 <strong>civet_report.md</strong>
 
 A markdown report is generated, with summaries of lineages and genetic diversity present in your query. Trees are visualised in the report and compared to the diversity of lineages present in the community. Optional figures include summary barcharts of collapsed-node composition, genome 'snipit' graphs and maps of the local community diversity. Full report options described [here](./report_docs.md).
-
-<strong>civet_
 
 <strong>combined_metadata.csv</strong>
 

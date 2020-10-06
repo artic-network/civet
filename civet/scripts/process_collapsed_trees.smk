@@ -14,7 +14,7 @@ rule all:
 
 rule get_basal_representative:
     input:
-        tree = os.path.join(config["tempdir"], "catchment_trees","{tree}.newick")
+        tree = os.path.join(config["outdir"], "catchment_trees","{tree}.newick")
     output:
         basal = os.path.join(config["tempdir"],"representatives","{tree}.txt")
     shell:
@@ -55,9 +55,9 @@ rule combine_basal:
 rule protect_subtree_nodes:
     input:
         metadata = config["combined_metadata"],
-        collapse_summary = config["collapse_summary"]
+        query = config["query"]
     params:
-        tree_dir = os.path.join(config["tempdir"],"catchment_trees")
+        tree_dir = os.path.join(config["outdir"],"catchment_trees")
     output:
         metadata = os.path.join(config["tempdir"],"protected","protected.csv")
     run:
@@ -72,9 +72,26 @@ rule protect_subtree_nodes:
                         tree = ".".join(fn.split(".")[:-1])
                         node_name = "_".join(tree.split("_")[1:])
                         c +=1
-                        fw.write(f"{node_name},{c}\n") 
-
+                        fw.write(f"{node_name},{c}\n")
+            
+            # finds all nodes in protect set
+            if config["protect"]:
+                with open(config["protect"], "r") as f:
+                    reader = csv.DictReader(f)
+                    for row in reader:
+                        c +=1
+                        protect_name = row["sequence_name"]
+                        fw.write(f"{protect_name},{c}\n")
+            
             # find all query nodes that exist
+            with open(input.query, newline="") as f:
+                reader = csv.DictReader(f)
+                for row in reader:
+                    query_name = row[config["input_column"]]
+                    c+=1
+                    fw.write(f"{query_name},{c}\n")
+
+            # find all query metadata nodes that exist
             with open(input.metadata, newline="") as f:
                 reader = csv.DictReader(f)
                 for row in reader:
@@ -107,8 +124,7 @@ rule summarise_polytomies:
 rule get_collapsed_representative:
     input:
         background_seqs = config["background_seqs"],
-        collapsed_information = rules.summarise_polytomies.output.collapsed_information,
-        collapse_summary = config["collapse_summary"]
+        collapsed_information = rules.summarise_polytomies.output.collapsed_information
     params:
         tree_dir = os.path.join(config["tempdir"],"collapsed_trees")
     output:
@@ -122,27 +138,13 @@ rule get_collapsed_representative:
             for l in f:
                 l = l.rstrip("\n")
                 collapsed_name,taxa = l.split('\t')
-                collapsed[collapsed_name] = taxa.split(",")
-
-        for record in SeqIO.parse(input.background_seqs,"fasta"):
-            for node in collapsed:
-                if record.id in collapsed[node]:
-                    collapsed_seqs[node].append(record)
+                collapsed[collapsed_name] = taxa.split(",")[0]
 
         with open(output.representative_seq, "w") as fw:
-            for node in collapsed_seqs:
-                records = collapsed_seqs[node]
-                sorted_with_amb = []
-                for record in records:
-                    amb_count = 0
-                    for base in record.seq:
-                        if base.upper() not in ["A","T","C","G","-"]:
-                            amb_count +=1
-                    amb_pcent = (100*amb_count) / len(record.seq)
-                    sorted_with_amb.append((record.id, amb_pcent, record.seq))
-                sorted_with_amb = sorted(sorted_with_amb, key = lambda x : x[1])
-                rep = sorted_with_amb[0]
-                fw.write(f">{node} representative={rep[0]} ambiguity={rep[1]}\n{rep[2]}\n")
+            for record in SeqIO.parse(input.background_seqs,"fasta"):
+                for node in collapsed:
+                    if record.id == collapsed[node]:
+                        fw.write(f">{node} representative={record.id}\n{record.seq}\n")
         
 rule extract_taxa:
     input:

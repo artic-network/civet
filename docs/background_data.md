@@ -1,17 +1,3 @@
-
-<section id="banner">
-    <div class="content">
-      <header>
-        <h2>Background data</h2>
-        <p>How to access global background data</p>
-      </header>
-    </div>
-    <span class="image object">
-        <img src="./figures/civet_logo.png" alt="" style="max-width:150px"/>
-        </span>
-</section>
-
-
 ### Input background data
 
 <strong>civet</strong> summarises information around a set of sequences of interest. It relies on the user providing a background tree, alignment and metadata file. 

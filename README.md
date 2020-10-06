@@ -2,18 +2,35 @@
 
 **C**luster **I**nvestigation & **V**irus **E**pidemiology **T**ool
 
-<img src="./docs/figures/civet_logo.png" width="450">
+<img src="./docs/doc_figures/civet_logo.png" width="350">
 
-civet is a tool developed with 'real-time' genomics in mind. 
+<strong>civet</strong> is a tool developed with 'real-time' genomics in mind. 
 
-Using a background phylogeny, such as the large phylogeny available through the COG-UK infrastructure on CLIMB, civet will generate a report for a set of sequences of interest i.e. an outbreak investigation. 
+Using a background phylogeny, such as the large phylogeny available through the COG-UK infrastructure on CLIMB, <strong>civet</strong> will generate a report for a set of sequences of interest i.e. an outbreak investigation. 
 
-If the sequences are already on CLIMB and part of the large tree, civet will pull out the local context of those sequences, merging the smaller local trees as appropriate. If sequences haven't yet been incorporated into the large phylogeny, for instance if they have just been sequenced, civet will find the closest sequence in the large tree, pull the local tree of that sequence out and add your sequence in. The local trees then get collapsed to display in detail only the sequences of interest so as not to inform investigations beyond what was suggested by epidemiological data. 
+If the sequences are already on CLIMB and part of the large tree, <strong>civet</strong> will pull out the local context of those sequences, merging the smaller local trees as appropriate. If sequences haven't yet been incorporated into the large phylogeny, for instance if they have just been sequenced, <strong>civet</strong> will find the closest sequence in the large tree, pull the local tree of that sequence out and add your sequence in. The local trees then get collapsed to display in detail only the sequences of interest so as not to inform investigations beyond what was suggested by epidemiological data. 
 
 A fully customisable report is generated, summarising information about the sequences of interest. The tips of these trees can be coloured by any categorical trait present in the input csv, and additional fields added to the tip labels. Optional figures may be added to describe the local background of UK lineages and to map the query sequences using coordinates, again colourable by a custom trait. 
 
 
-<strong> Find out more information about civet at cog-uk.github.io/civet </strong>
+### civet documentation
+  * [Install and update civet](./docs/installation.md)
+  * [Input options](./docs/input_options.md)
+  * [Background data](./docs/background_data.md)
+  * [Usage](./docs/usage.md)
+  * [Analysis pipeline](./docs/analysis_pipeline.md)
+  * [Output](./docs/output.md)
+  * [Report options and descriptions](./docs/report_docs.md)
+  * [Mapping options and usage instructions](./docs/map_options_docs.md)
+  * [Example report](./docs/civet_report_example.md)
+  * [Contributors & acknowledgements](./docs/acknowledgements.md)
+  * [Software versions](./docs/acknowledgements.md)
+
+
+
+<strong>civet</strong> was created by Áine O'Toole & Verity Hill, Rambaut Group, Edinburgh University
+
+<strong> Find out more information about civet at https://cog-uk.github.io/civet/</strong>
 
 
 #### Full usage:
@@ -28,13 +45,55 @@ A fully customisable report is generated, summarising information about the sequ
 
 **** Cluster Investigation & Virus Epidemiology Tool ****
 
+                        2.0
         ****************************************
+                                                
+            Aine O'Toole & Verity Hill       
+                    Rambaut Group              
+                Edinburgh University          
 
-              Aine O'Toole & Verity Hill
-                    Rambaut Group
-                 Edinburgh University
 
 
+        Funding:                
+                                                
+                    ARTIC Network               
+        Wellcome Trust Collaborators Award      
+                    206298/Z/17/Z               
+                                                
+            COVID-19 Genomics UK Consortium     
+        UK Department of Health and Social Care 
+            UK Research and Innovation          
+                                                
+                    ReservoirDOCs               
+      European Research Council Consolidator Grant
+                    ERC-2016-COG                
+                                                
+
+
+        Code contributors:           
+                                                
+            Ben Jackson         gofasta       
+            JT McCrone          clusterfunk     
+            Stefan Rooke        local map 
+            Andrew Rambaut      jclusterfunk    
+                                                
+        Acknowledgements:            
+                                                
+        We thank the following for helpful suggestions, 
+        comments, beta-testing, feature requests and
+        patience.                
+                                                
+            :nickloman:         :mattloose:     
+            :mattbashton:       :tomconnor:     
+            :rebeccadewar:      :martinmchugh:    
+            :richardmyers:      :meerachand:    
+            :samnicholls:       :radpoplawski:   
+            :davidaanensen:     :benlindsey:    
+            :jeffbarrett:       :derekfairley:   
+            :josephhughes:      :davidrobertson:  
+            :richardorton:      :mattholden:
+            :ulfschaefer:       :nataliegroves:   
+            :nikosmanesis:      :jaynaraghwani:   
 
 usage: 
 	civet -i <config.yaml> [options]
@@ -132,6 +191,10 @@ tree context options:
                         Default: 2
   --collapse-threshold COLLAPSE_THRESHOLD
                         Minimum number of nodes to collapse on. Default: 1
+  -p [PROTECT [PROTECT ...]], --protect [PROTECT [PROTECT ...]]
+                        Protect nodes from collapse if they match the search
+                        query in the metadata file supplied. E.g. -p
+                        adm2=Edinburgh sample_date=2020-03-01:2020-04-01
 
 map rendering options:
   --local-lineages      Contextualise the cluster lineages at local regional
@@ -162,8 +225,9 @@ map rendering options:
 misc options:
   -b, --launch-browser  Optionally launch md viewer in the browser using grip
   -c, --generate-config
-                        Rather than running a civet report, generate a config
-                        file based on the command line arguments provided
+                        Rather than running a civet report, just generate a
+                        config file based on the command line arguments
+                        provided
   --tempdir TEMPDIR     Specify where you want the temp stuff to go. Default:
                         $TMPDIR
   --no-temp             Output all intermediate files, for dev purposes.
@@ -172,5 +236,4 @@ misc options:
                         Number of threads
   -v, --version         show program's version number and exit
   -h, --help
-
 ```

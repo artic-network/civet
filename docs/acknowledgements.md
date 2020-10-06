@@ -1,34 +1,74 @@
-
-<section id="banner">
-    <div class="content">
-      <header>
-        <h2>Contributors and acknowledgements</h2>
-        <p>Contributions, References and Data</p>
-      </header>
-    </div>
-    <span class="image object">
-        <img src="./figures/civet_logo.png" alt="" style="max-width:150px"/>
-        </span>
-</section>
-
+## Contributors and acknowledgements
 
 ### Authors
+```
+            Aine O'Toole & Verity Hill       
+                    Rambaut Group              
+                Edinburgh University   
+```
 
-`civet` was created by Áine O'Toole & Verity Hill
+### Contributors
+```
+      Code contributors:           
+                                              
+          Ben Jackson         gofasta       
+          JT McCrone          clusterfunk     
+          Stefan Rooke        local map 
+          Andrew Rambaut      jclusterfunk 
+```
+
+### Funding
+```
+                                              
+                  ARTIC Network               
+      Wellcome Trust Collaborators Award      
+                  206298/Z/17/Z               
+                                              
+          COVID-19 Genomics UK Consortium     
+      UK Department of Health and Social Care 
+          UK Research and Innovation          
+                                              
+                  ReservoirDOCs               
+  European Research Council Consolidator Grant
+                  ERC-2016-COG                
+                                              
+```
 
 ### Acknowledgements
+```
+    We thank the following for helpful suggestions, 
+    comments, beta-testing, feature requests and
+    patience.                
+                                            
+        :nickloman:         :mattloose:     
+        :mattbashton:       :tomconnor:     
+        :rebeccadewar:      :martinmchugh:    
+        :richardmyers:      :meerachand:    
+        :samnicholls:       :radpoplawski:   
+        :davidaanensen:     :benlindsey:    
+        :jeffbarrett:       :derekfairley:   
+        :josephhughes:      :davidrobertson:  
+        :richardorton:      :mattholden:
+        :ulfschaefer:       :nataliegroves:   
+        :nikosmanesis:      :jaynaraghwani:   
 
-This project was part-funded by the ARTIC Network 
 
-We acknowledge the hard work from all members of the COG-UK consortium that has gone into generating the data used by `civet`.
+    We acknowledge the hard work from all members of the 
+    COG-UK consortium that has gone into generating the 
+    data used by `civet`.
 
-`civet` makes use of [`datafunk`](https://github.com/cov-ert/datafunk),  `gofasta`, [`jclusterfunk`](https://github.com/cov-ert/jclusterfunk), [`clusterfunk`](https://github.com/cov-ert/clusterfunk) functions which have been written by members of the Rambaut Lab, specificially Andrew Rambaut, Rachel Colquhoun, JT McCrone, Ben Jackson and Shawn Yu. The local lineages analysis in `civet` was written by Stefan Rooke.
+    We acknowledge the hard work and open-science of the 
+    individual research labs and public health bodies 
+    that have made their genome data accessible on GISAID. 
+    A detailed table of acknowledgements for the SARS-CoV-2
+    genome sequences used to build this lineage system is 
+    hosted [here](https://github.com/cov-ert/clusterfunk))
 
-[`baltic`](https://github.com/evogytis/baltic/tree/master/baltic) by Gytis Dudas is used to visualize the trees.
-
-We acknowledge the hard work and open-science of the individual research labs and public health bodies that have made their genome data accessible on GISAID. A detailed table of acknowledgements for the SARS-CoV-2 genome sequences used to build this lineage system is hosted [here](https://github.com/cov-ert/clusterfunk))
-
+```
 ### References
+
+[baltic](https://github.com/evogytis/baltic/tree/master/baltic) 
+Gytic Dudas
 
 [minimap2](https://github.com/lh3/minimap2) 
 
@@ -47,7 +87,7 @@ Stéphane Guindon, Jean-François Dufayard, Vincent Lefort, Maria Anisimova, Wim
 Köster, Johannes and Rahmann, Sven. “Snakemake - A scalable bioinformatics workflow engine”. Bioinformatics 2012.
 
 ### Software versions
-
+```
     - python=3.6
     - snakemake-minimal=5.13 
     - iqtree=1.6.12
@@ -57,3 +97,4 @@ Köster, Johannes and Rahmann, Sven. “Snakemake - A scalable bioinformatics wo
     - dendropy=4.4.0
     - tabulate=0.8.7
     
+```

@@ -1,41 +1,8 @@
-
-
-<section id="banner">
-    <div class="content">
-      <header>
-        <h2>civet pipeline</h2>
-        <p>Detailed description of civet analysis pipeline</p>
-      </header>
-    </div>
-    <span class="image object">
-        <img src="./figures/civet_logo.png" alt="" style="max-width:150px"/>
-        </span>
-</section>
-
+## civet pipeline
 <img src="./figures/workflow_diagram.png" width="700">
 
 
-**An example report can be found [here](https://github.com/COG-UK/civet/blob/master/docs/civet_report_example.md).**
-
-The default output is a markdown file, which can then be converted to a file format of your choice. In addition to this, if you provide the `--launch-browser` option in the command line, an html document will be outputted using grip (https://github.com/joeyespo/grip), which will also appear in your browser. You can then save this as a pdf using your browser.
-
-
-- From the input csv (`<query>`), `civet` attempts to match the ids with COG-UK ids in the up-to-date metadata database.
-
-- If the id matches with a record in COG-UK, the corresponding metadata is pulled out.
-
-- If the id doesn't match with a record in COG-UK and a fasta sequence of that id has been provided, it's passed into a workflow to identify the closest sequence in COG-UK. In brief, this search consists of quality control steps that maps the sequence against a reference (`MN908947.3`), pads any indels relative to the reference and masks non-coding regions. civet then runs a `minimap2` search against the COG-UK database and finds the best hit to the query sequence.
-
-- The metadata for the closest sequences are also pulled out of the large COG-UK database.
-
-- Combining the metadata from the COG-UK records of the closest hit and the exact matching records found in COG-UK, `civet` queries the large global phylogeny (also from COG-UK database)containing all COG-UK and all GISAID sequences. The local trees around the relevant tips are pruned out of the large phylogeny, merging overlapping local phylogenys as needed.
-
-- If these local trees contain "closest-matching" tips, the sequence records for the tips on the tree and the sequences of the relevant queries are added into an alignment. Any peripheral sequences coming off of a polytomy are collapsed to a single node and summaries of the tip's contents are output.
-
-- After collapsing the nodes, civet runs `iqtree` on the new alignment, now with query sequences in. Optionally, the `--delay-tree-collapse` argument will wait to collapse nodes until after `iqtree` has added the new query sequences in, but be wary as some of these local trees can be very large and may take a number of hours to run. 
-
-- `civet` then generates a report summarising the query sequences, providing information about global and UK lineages.
-
+**An example report can be found [here](./civet_report_example.md).**
 
 ### 1) Initialising directories & detect input type
 

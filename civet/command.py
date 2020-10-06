@@ -27,7 +27,7 @@ cwd = os.getcwd()
 def main(sysargs = sys.argv[1:]):
 
     parser = argparse.ArgumentParser(add_help=False, prog = _program, 
-    description=cfunk.preamble(), 
+    description=cfunk.preamble(__version__,False), 
     usage='''
 \tcivet -i <config.yaml> [options]
 \tcivet -i input.csv [options]
@@ -41,6 +41,7 @@ def main(sysargs = sys.argv[1:]):
     io_group.add_argument('-f','--fasta', action="store",help="Optional fasta query.", dest="fasta")
     io_group.add_argument('--max-ambiguity', action="store", type=float,help="Maximum proportion of Ns allowed to attempt analysis. Default: 0.5",dest="max_ambiguity")
     io_group.add_argument('--min-length', action="store", type=int,help="Minimum query length allowed to attempt analysis. Default: 10000",dest="min_length")
+    io_group.add_argument('--output-prefix',action="store",help="Prefix of output directory & report name: Default: civet",dest="output_prefix")
 
     data_group = parser.add_argument_group('data source options')
     data_group.add_argument('-d','--datadir', action="store",help="Local directory that contains the data files. Default: civet-cat")
@@ -92,6 +93,7 @@ def main(sysargs = sys.argv[1:]):
     misc_group.add_argument('--tempdir',action="store",help="Specify where you want the temp stuff to go. Default: $TMPDIR")
     misc_group.add_argument("--no-temp",action="store_true",help="Output all intermediate files, for dev purposes.",dest="no_temp")
     misc_group.add_argument("--verbose",action="store_true",help="Print lots of stuff to screen")
+    misc_group.add_argument("--art",action="store_true",help="Print art")
     misc_group.add_argument('-t', '--threads', action='store',dest="threads",type=int,help="Number of threads")
     misc_group.add_argument("-v","--version", action='version', version=f"civet {__version__}")
     misc_group.add_argument("-h","--help",action="store_true",dest="help")
@@ -108,6 +110,9 @@ def main(sysargs = sys.argv[1:]):
             parser.print_help()
             sys.exit(0)
     
+    if args.art:
+        cfunk.preamble(__version__,True)
+        sys.exit(0) 
     
     """
     Initialising dicts
@@ -141,7 +146,7 @@ def main(sysargs = sys.argv[1:]):
     - datadir
     """
     # default output dir
-    qcfunk.get_outdir(args.outdir,cwd,config)
+    qcfunk.get_outdir(args.outdir,args.output_prefix,cwd,config,default_dict)
 
     # specifying temp directory, outdir if no_temp (tempdir becomes working dir)
     tempdir = qcfunk.get_temp_dir(args.tempdir, args.no_temp,cwd,config)
@@ -260,6 +265,8 @@ def main(sysargs = sys.argv[1:]):
     # extraction radius configuration
     qcfunk.collapse_config(args.collapse_threshold,config,default_dict) 
 
+    qcfunk.parse_protect(args.protect,config["background_metadata"],config)
+
     """
     Parsing the report_group arguments, 
     config or default options
@@ -277,7 +284,7 @@ def main(sysargs = sys.argv[1:]):
     qcfunk.check_summary_field("node_summary",config, default_dict)
 
     qcfunk.collapse_summary_path_to_config(config)
-    
+
     """
     Finally add in all the default options that 
     were not specified already
