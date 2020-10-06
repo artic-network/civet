@@ -62,4 +62,14 @@ civet -fm sample_date=2020-05-01:2020-06-01
 
 A <strong>civet</strong> instance is then run with the sequences that match the search parameters.
 
+### -p / --protect
+
+In the same ``column_name=match_string`` pair format as the `--from-metadata` search, the user can protect certain sequences from being collapsed in the report. 
+
+For example:
+```
+civet -i input.csv -p adm2=Edinburgh sample_date=2020-09-01:2020-10-01
+```
+runs a civet report using the input specified in input.csv, but any sequences from Edinburgh in September that are present in the local trees will be displayed and not collapsed.
+
 ### [Next: Background data](./background_data.md)

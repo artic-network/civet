@@ -2,7 +2,7 @@
 
 ## Contributors and acknowledgements
 
-### Authors
+### Created by
 ```
             Aine O'Toole & Verity Hill       
                     Rambaut Group              
@@ -10,9 +10,7 @@
 ```
 
 ### Contributors
-```
-      Code contributors:           
-                                              
+```                                              
           Ben Jackson         gofasta       
           JT McCrone          clusterfunk     
           Stefan Rooke        local map 
@@ -70,6 +68,7 @@
 ### References
 
 [baltic](https://github.com/evogytis/baltic/tree/master/baltic) 
+
 Gytic Dudas
 
 [minimap2](https://github.com/lh3/minimap2) 
