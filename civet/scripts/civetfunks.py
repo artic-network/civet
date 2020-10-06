@@ -52,6 +52,7 @@ def get_defaults():
                     "date_restriction":False,
                     "date_range_start":False,
                     "date_range_end":False,
+                    "launch_browser":False,
                     "node_summary":"country",
                     "date_window":7,
                     "colour_by":"adm1=viridis",
@@ -180,7 +181,7 @@ def get_remote_data(uun,background_metadata,data_dir,config):
         config["background_seqs"] = background_seqs
         config["background_tree"] = background_tree
 
-        print("Found data:")
+        print(qcfunk.gree("Found data:"))
         print("    -",background_seqs)
         print("    -",background_metadata)
         print("    -",background_tree,"\n")
@@ -321,10 +322,10 @@ def local_lineages_to_config(central, neighbouring, region, config):
 
     if config["local_lineages"] == True:
         lineage_tables = []
-        for r,d,f in os.walk(os.path.join(config["outdir"], 'figures')):
+        for r,d,f in os.walk(os.path.join(config["outdir"],"report", 'figures')):
             for fn in f:
                 if fn.endswith("_lineageTable.md"):
-                    lineage_tables.append(os.path.join(config["outdir"], 'figures', fn))
+                    lineage_tables.append(os.path.join(config["outdir"],"report", 'figures', fn))
 
         config["lineage_tables"] = lineage_tables
         config["lineage_maps"] = [central, neighbouring, region]
@@ -382,8 +383,8 @@ def get_sequencing_centre_header(config):
         sequencing_centre_source = pkg_resources.resource_filename('civet', package_png)
         print(qcfunk.green(f"Using header file from:") + f" {package_png}\n")
         config["sequencing_centre_source"] = sequencing_centre_source
-        config["sequencing_centre_dest"] = os.path.join(config["outdir"],"figures",f"{sequencing_centre}.png")
-        config["sequencing_centre_file"] = os.path.join(".","figures",f"{sequencing_centre}.png")
+        config["sequencing_centre_dest"] = os.path.join(config["outdir"],"report","figures",f"{sequencing_centre}.png")
+        config["sequencing_centre_file"] = os.path.join(".","report","figures",f"{sequencing_centre}.png")
         config["sequencing_centre"] = sequencing_centre
     else:
         sc_string = "\n".join(sc_list)

@@ -7,7 +7,7 @@ config["tree_stems"] = config["catchment_str"].split(",")
 
 rule all:
     input:
-        expand(os.path.join(config["outdir"],"figures","genome_graph_{tree}.png"), tree=config["tree_stems"]),
+        expand(os.path.join(config["outdir"],"report","figures","genome_graph_{tree}.png"), tree=config["tree_stems"]),
         os.path.join(config["tempdir"],"gather_prompt.txt")
 
 rule extract_taxa:
@@ -101,9 +101,9 @@ rule make_snp_figure:
         aln = rules.gather_fasta_seqs.output.aln,
         names = rules.get_sequence_names.output.seq_names
     params:
-        out_stem = os.path.join(config["outdir"],"figures","genome_graph_{tree}")
+        out_stem = os.path.join(config["outdir"],"report","figures","genome_graph_{tree}")
     output:
-        os.path.join(config["outdir"],"figures","genome_graph_{tree}.png")
+        os.path.join(config["outdir"],"report","figures","genome_graph_{tree}.png")
     shell:
         """
         snipit {input.aln:q} -r "Reference" -o {params.out_stem} -l {input.names}
@@ -111,7 +111,7 @@ rule make_snp_figure:
 
 rule gather_graphs:
     input:
-        expand(os.path.join(config["outdir"],"figures","genome_graph_{tree}.png"), tree=config["tree_stems"])
+        expand(os.path.join(config["outdir"],"report","figures","genome_graph_{tree}.png"), tree=config["tree_stems"])
     output:
         os.path.join(config["tempdir"],"gather_prompt.txt")
     shell:
