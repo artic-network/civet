@@ -1,15 +1,18 @@
-
+<!-- 
 <section id="banner">
     <div class="content">
       <header>
         <h2>Report options</h2>
-        <p>Details of how to customise the civet report</p>
+        <p></p>
       </header>
     </div>
     <span class="image object">
         <img src="./doc_figures/civet_logo.png" alt="" style="max-width:150px"/>
         </span>
-</section>
+</section> -->
+
+## Report options
+Details of how to customise the civet report
 
 
 ### Free text options
