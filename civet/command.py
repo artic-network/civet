@@ -89,7 +89,7 @@ def main(sysargs = sys.argv[1:]):
     misc_group.add_argument('-b','--launch-browser', action="store_true",help="Optionally launch md viewer in the browser using grip",dest="launch_browser")
     misc_group.add_argument('-c','--generate-config',dest="generate_config",action="store_true",help="Rather than running a civet report, just generate a config file based on the command line arguments provided")
     misc_group.add_argument('--tempdir',action="store",help="Specify where you want the temp stuff to go. Default: $TMPDIR")
-    misc_group.add_argument("--no-temp",action="store_true",help="Output all intermediate files, for dev purposes.")
+    misc_group.add_argument("--no-temp",action="store_true",help="Output all intermediate files, for dev purposes.",dest="no_temp")
     misc_group.add_argument("--verbose",action="store_true",help="Print lots of stuff to screen")
     misc_group.add_argument('-t', '--threads', action='store',dest="threads",type=int,help="Number of threads")
     misc_group.add_argument("-v","--version", action='version', version=f"civet {__version__}")
@@ -153,6 +153,9 @@ def main(sysargs = sys.argv[1:]):
 
     # check if metadata has the right columns, background_metadata_header added to config
     qcfunk.check_metadata_for_search_columns(config,default_dict)
+
+    no_temp = qcfunk.check_arg_config_default("no_temp",args.no_temp, config, default_dict)
+    config["no_temp"] = no_temp
 
     """
     from metadata parsing 

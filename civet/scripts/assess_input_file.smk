@@ -230,7 +230,7 @@ rule find_snps:
                             "data_column={config[data_column]:q} "
                             "--cores {workflow.cores} ")
         if not config["no_temp"]:
-            shell(f"&& mv '{temp_output}' "
+            shell(f"mv '{temp_output}' "
             "{config[tempdir]:q}")
 
 rule regional_mapping:

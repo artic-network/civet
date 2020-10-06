@@ -1,8 +1,20 @@
-# Mapping options
+
+<section id="banner">
+    <div class="content">
+      <header>
+        <h2>Mapping options</h2>
+        <p>Details of how to visualise the geographical data in sequences using civet</p>
+      </header>
+    </div>
+    <span class="image object">
+        <img src="./figures/civet_logo.png" alt="" style="max-width:150px"/>
+        </span>
+</section>
+
 
 NB All of these options require some geographical information, either in the background data or the input query information.
 
-## Local lineages and associated options
+### Local lineages and associated options
 
 The local lineages option runs an analysis to show the composition of background lineages. It shows the distribution of UK lineages in the Adm2 regions that the query sequences are in, as well as the neighbouring adm2 regions. This can be used to see whether the distribution of UK lineages found in the query dataset is representative of the nearby region or not.
 
@@ -24,7 +36,7 @@ Example is shown below:
 ![](doc_figures/local_neighbouring.png)
 
 
-## Map sequences and associated options
+### Map sequences and associated options
 
 To plot the sequences in the query, use the **--map-sequences** option.
 

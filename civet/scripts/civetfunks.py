@@ -29,6 +29,7 @@ def get_defaults():
                     "conclusions": "",
                     "max_ambiguity":0.5,
                     "min_length":10000,
+                    "no_temp":True,
                     "datadir":"civet-cat",
                     "input_column":"name",
                     "data_column":"central_sample_id",
