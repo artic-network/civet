@@ -1,3 +1,5 @@
+![](./doc_figures/website_header.png)
+
 ### Input background data
 
 <strong>civet</strong> summarises information around a set of sequences of interest. It relies on the user providing a background tree, alignment and metadata file. 

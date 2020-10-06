@@ -1,3 +1,5 @@
+![](./doc_figures/website_header.png)
+
 
 ## Usage
 How to investigate an outbreak using civet

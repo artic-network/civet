@@ -1,3 +1,6 @@
+![](./doc_figures/website_header.png)
+
+
 ## civet pipeline
 <img src="./doc_figures/workflow_diagram.png" width="700">
 

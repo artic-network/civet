@@ -1,3 +1,6 @@
+![](./doc_figures/website_header.png)
+
+
 ## Mapping options
 
 How to visualise the geographical data in sequences using civet

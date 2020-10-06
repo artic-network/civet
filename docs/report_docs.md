@@ -1,3 +1,5 @@
+![](./doc_figures/website_header.png)
+
 ## Report options
 How to customise the civet report
 
