@@ -251,7 +251,7 @@ rule iqtree_catchment:
     output:
         tree = os.path.join(config["tempdir"], "renamed_trees","{tree}.query.aln.fasta.treefile")
     shell:
-        "iqtree -s {input.aln:q} -au -m HKY -nt 1 -redo -o outgroup"
+        "iqtree -s {input.aln:q} -au -m HKY -nt 1 -redo -o outgroup -quiet"
 
 
 rule restore_tip_names:
