@@ -41,7 +41,7 @@ setup(name='civet',
             "scipy>=1.4.1",
             "numpy>=1.13.3",
             "geopandas>=0.7.0",
-            "snipit"
+            "snipit>=1.0.3"
         ],
       cmdclass={
         'npm_install': NPMInstall
