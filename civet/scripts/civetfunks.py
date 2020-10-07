@@ -37,7 +37,6 @@ def get_defaults():
                     "database_sample_date_column":"sample_date",
                     "sample_date_column":"sample_date",
                     "display_name":False,
-                    "private":True,
                     "distance":2,
                     "up_distance":False,
                     "down_distance":False,
@@ -69,7 +68,8 @@ def get_defaults():
                     "trim_start":265,   # where to pad to using datafunk
                     "trim_end":29674,
                     "protect": False,
-                    "output_prefix":"civet"
+                    "output_prefix":"civet",
+                    "safety_level":1
                     }
     return default_dict
 
@@ -494,9 +494,6 @@ def report_group_to_config(args,config,default_dict):
     no_snipit = qcfunk.check_arg_config_default("no_snipit",args.no_snipit, config, default_dict)
     config["no_snipit"] = no_snipit
     
-    ## private
-    private = qcfunk.check_arg_config_default("private",args.private, config, default_dict)
-    config["private"] = private
 
 def make_full_civet_table(query_dict, tree_fields, label_fields, input_column, outdir, table_fields, include_snp_table):
 

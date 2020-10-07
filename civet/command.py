@@ -67,7 +67,6 @@ def main(sysargs = sys.argv[1:]):
     report_group.add_argument('--no-snipit', action="store_true",help="Don't run snipit graph", dest="no_snipit")
     report_group.add_argument('--include-bars', action="store_true",help="Render barcharts in the output report", dest="include_bars")
     report_group.add_argument('--omit-appendix', action="store_true", help="Omit the appendix section. Default=False", dest="omit_appendix")
-    report_group.add_argument('--private', action="store_true", help="remove adm2 references from background sequences. Default=True")
 
     tree_group = parser.add_argument_group('tree context options')
     tree_group.add_argument('--distance', action="store",help="Extraction from large tree radius. Default: 2", dest="distance",type=int)
@@ -88,6 +87,7 @@ def main(sysargs = sys.argv[1:]):
     map_group.add_argument("--colour-map-by", required=False, dest="colour_map_by", help="Column to colour mapped sequences by")
     
     misc_group = parser.add_argument_group('misc options')
+    misc_group.add_argument("--safety-level", action="store", type=int, dest="safety_level",help="Level of anonymisation for users. Options: 0 (no anonymity), 1 (no COGIDs on background data), 2 (no adm2 on data). Default: 1")
     misc_group.add_argument('-b','--launch-browser', action="store_true",help="Optionally launch md viewer in the browser using grip",dest="launch_browser")
     misc_group.add_argument('-c','--generate-config',dest="generate_config",action="store_true",help="Rather than running a civet report, just generate a config file based on the command line arguments provided")
     misc_group.add_argument('--tempdir',action="store",help="Specify where you want the temp stuff to go. Default: $TMPDIR")
@@ -311,7 +311,26 @@ def main(sysargs = sys.argv[1:]):
     config["launch_browser"] = launch_browser
 
     threads = qcfunk.check_arg_config_default("threads",args.threads,config,default_dict)
-    config["threads"]= int(threads)
+    try:
+        threads = int(threads)
+        config["threads"]= int(threads)
+    except:
+        sys.stderr.write(qcfunk.cyan('Error: Please specifiy an integer for variable `threads`.\n'))
+        sys.exit(-1)
+
+    safety_level = qcfunk.check_arg_config_default("safety_level",args.safety_level,config,default_dict)
+    
+    try:
+        safety_level = int(safety_level)
+    except:
+        sys.stderr.write(qcfunk.cyan('Error: Please specifiy either 0, 1 or 2 for variable `safety_level`.\n'))
+        sys.exit(-1)
+
+    if safety_level in [0,1,2]:
+        config["safety_level"]= int(safety_level)
+    else:
+        sys.stderr.write(qcfunk.cyan('Error: Please specifiy either 0, 1 or 2 for variable `safety_level`.\n'))
+        sys.exit(-1)
 
     if args.generate_config:
         qcfunk.make_config_file("civet_config.yaml",config)
