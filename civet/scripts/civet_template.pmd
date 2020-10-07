@@ -11,6 +11,7 @@ import scipy as sp
 import warnings
 warnings.filterwarnings("ignore")
 from dateutil.relativedelta import relativedelta, FR
+import datetime as dt
 
 import mapping as mapping
 
@@ -284,7 +285,12 @@ print("Numpy version " + np.__version__)
 print("Scipy version " + sp.__version__)
 print("No version number for Baltic")
 
-print("COG data is now submitted every day, so the background data was updated yesterday")
+if data_date != "":
+    print("COG data from " + data_date + " was used as background data.")
+else:
+    yesterday = dt.date.today() - dt.timedelta(1)
+    print("COG data from " + str(yesterday))
+
 
 print("CIVET version is 0.1")
 ```

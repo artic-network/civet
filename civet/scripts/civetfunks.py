@@ -554,14 +554,14 @@ def make_full_civet_table(query_dict, tree_fields, label_fields, input_column, o
 
     if incog != 0:
         df_incog = pd.DataFrame(df_dict_incog)
-        file_name = os.path.join(outdir,"Sequences_already_in_cog")
+        file_name = os.path.join(outdir,"Civet_metadata_from_cog.csv")
         df_incog.to_csv(file_name, index=False)
         df_incog.set_index("Query ID", inplace=True)
         incogs = True
     
     if seqprovided != 0:
         df_seqprovided = pd.DataFrame(df_dict_seqprovided)
-        file_name = os.path.join(outdir,"Sequences_provided")
+        file_name = os.path.join(outdir,"Civet_metadata_from_fasta.csv")
         df_seqprovided.to_csv(file_name, index=False)
         df_seqprovided.set_index("Query ID", inplace=True)
         seqprovideds = True
