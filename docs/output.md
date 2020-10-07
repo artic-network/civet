@@ -1,33 +1,45 @@
 ![](./doc_figures/website_header.png)
 
 
-## Output
+## Output options
 
-Description of output civet files
-
-The output directory can be specified with `-o / --outdir`, or an output prefix can be specified with `--output-prefix`. If no output directory is specified, by default the directory will be a timstamped directory beginning with the `output_prefix` and the report files will be called `output_prefix`.md  (Default: civet)
+Description of output civet directory
 
 
+### -o / --output-prefix and --outdir
 
-<strong>civet_report.md</strong>
+An output prefix can be specified with `-o /--output-prefix`. If no output directory is specified, by default the directory will be a timstamped directory beginning with the `output_prefix` and the report files will be called `output_prefix`.md  (Default: civet) The output directory can be specified with `--outdir`, which overwrites the `--output_prefix` directory name. See example in the figure below:
 
-A markdown report is generated, with summaries of lineages and genetic diversity present in your query. Trees are visualised in the report and compared to the diversity of lineages present in the community. Optional figures include summary barcharts of collapsed-node composition, genome 'snipit' graphs and maps of the local community diversity. Full report options described [here](./report_docs.md).
 
-<strong>Civet_metadata_from_cog.csv<strong>
+![](./doc_figures/civet_outdir.png)
 
-A csv containing all the metadata for the queries provided that were found in the COG database, drawn from any query metadata provided and supplemented with any found in the background metadata. A filtered version is presented in the report itself.
+### Output files
 
-<strong>Civet_metadata_from_fasta.csv<strong>
+<strong>catchment_trees</strong>
 
-As above, but for the any sequences provided in a fasta file which were not found in the COG database.
+A directory of the catchment trees, with corresponding text files of the content of each collapsed node (will not have the additional fasta input added in at this stage, these are the trees clipped directly out of the global tree)
 
-<strong>config.final.yaml</strong>
+<strong>local_trees</strong>
+
+A directory of the collapsed local trees, with corresponding text files of the content of each collapsed node. 
+
+<strong>report</strong>
+
+A directory containing a report in markdown and html formats. The report has summaries of lineages and genetic diversity present in the sequences of interest. Trees are visualised in the report and compared to the diversity of lineages present in the community. Optional figures include summary barcharts of collapsed-node composition, genome 'snipit' graphs and maps of the local community diversity. Full report options described [here](./report_docs.md).
+
+This directory also contains a `figures` directory that contains the figures linked to the report.  
+
+<strong>civet_metadata.csv</strong>
+
+A csv containing all the metadata for the queries provided that were found in the COG database, drawn from any query metadata provided and supplemented with any found in the background metadata. A filtered version is presented in the report itself. It also includes any sequences provided in a fasta file which were not found in the COG database.
+
+<strong>Config yaml file</strong>
 
 The final config file that gets passed to the report (can be used as a template to run additional analyses).
 
 <strong>query.failed_qc.csv</strong>
 
-If a fasta file is input, this file shows details of any sequences that didn't pass the quality control cut offs and why. For example:
+If a fasta file is input, this file will show details of any sequences that didn't pass the quality control cut offs and why. For example:
 
 | name | reason_for_failure |
 | --- | --- |
@@ -40,21 +52,8 @@ If a fasta file is input, this file shows details of any sequences that didn't p
 
 A file of input fasta sequences that passed the quality control cut offs.
 
-<strong>local_trees</strong>
 
-A directory of the collapsed local trees, with corresponding text files of the content of each collapsed node. 
-
-<strong>catchment_trees</strong>
-
-A directory of the catchment trees, with corresponding text files of the content of each collapsed node (will not have the additional fasta input added in at this stage, these are the trees clipped directly out of the global tree). 
-
-
-<strong>figures</strong>
-
-A directory of figures that get included in the markdown report.
-
-
-<strong>--no-temp</strong>
+### --no-temp
 
 With the ``--no-temp`` flag, many more intermediate files are output, including the local tree files prior to collapse. 
 

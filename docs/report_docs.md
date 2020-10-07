@@ -1,6 +1,6 @@
 ![](./doc_figures/website_header.png)
 
-## Report options
+# Report options
 How to customise the civet report
 
 
@@ -52,8 +52,9 @@ NB Fields in colour-by must also be present in the tree-fields list.
 
 ![](doc_figures/tree_fields_graphic_dict.png)
 
-### Label fields and private
+### --label-fields and --safety-level
 
+<strong>--label-fields</strong> 
 A comma separated string of metadata headers containing information to be displayed in the labels in the phylogeny.
 
 By default, the display name and sample date will be used, and if adm2 is present in either metadata (for example if you ran on CLIMB) this will also be shown unless the **--private** flag is used. 
@@ -62,11 +63,10 @@ If any fields are provided using the label fields option, these will be overwrit
 
 For example, a sequence has the following metadata:
 
-Display_name: EDB1234
-Adm1: Scotland
-Adm2: Edinburgh
-Date: 2020-09-23
-Care home: A
+| display name | adm1 | adm2 | date | care home | 
+| --- | --- | --- | --- | --- |
+| EDB1234 | Scotland | Edinburgh | 2020-09-23 | A | 
+
 
 The default label not on CLIMB or with the **--private** flag would be:
 "EDB1234|2020-09-23"

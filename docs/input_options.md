@@ -102,4 +102,15 @@ civet -i input.csv -p adm2=Edinburgh sample_date=2020-09-01:2020-10-01
 ```
 runs a civet report using the input specified in input.csv, but any sequences from Edinburgh in September that are present in the local trees will be displayed and not collapsed.
 
+### -f / --fasta
+
+Optional input fasta file with sequences not yet added to the background data. These will be added into the tree next to their closest sequence found in the background data.
+
+<strong>--max-ambiguity</strong> 
+Maximum proportion of Ns allowed to attempt analysis. Default: 0.5 (i.e. 50% N content)
+
+<strong>--min-length</strong>
+Minimum query length allowed to attempt analysis. Default: 10000
+
+
 ### [Next: Background data](./background_data.md)
