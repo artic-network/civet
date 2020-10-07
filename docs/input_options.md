@@ -30,18 +30,20 @@ fasta: test.fasta
 
 # Output options:
 output_prefix: outbreak001
-safety_level: 1 # Anonymises background COG-IDs but shows adm2
+safety_level: 1 
+# Anonymises background COG-IDs 
+# but shows adm2
 
 # Tree options:
 distance: 2
-protect: adm2=Edinburgh sample_date=2020-05-01:2020-06-01 
-#^^Sequences from Edinburgh in the date range not collapsed in the tree
+protect: adm2=Edinburgh
+
 
 # Customise the report:
-sequencing-centre: EDIN # the header to use
+sequencing-centre: EDIN 
 title: Outbreak 001 Report
-report_date: 2020-08-01 # date investigation was opened
-authors: Verity, Aine, Andrew # List of authors, affiliations and contact details
+report_date: 2020-08-01 
+authors: Verity, Aine
 omit_appendix: True
 tree_fields: adm1,HCW_status
 colour_by: adm1:viridis,HCW_status:Paired
