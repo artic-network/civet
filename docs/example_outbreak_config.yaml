@@ -28,7 +28,7 @@ map_info: x_coordinate, y_coordinate #columns containing x and y coordinates of 
 input_crs: EPSG:4326 #Cooordinate reference system the above coordinates are in
 colour_map_by: care_home
 local_lineages: True #Analyse what UK lineages are in the geographical area around the queries
-date_restriction: True  #Restrict this to the last couple of weeks
+date_restriction: True  #Restrict this to the last couple of week
 date_range_start: 2020-09-20
 date_range_end: 2020-10-05
 

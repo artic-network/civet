@@ -7,7 +7,15 @@ How to customise the civet report
 ### Free text options
 
 Using the config file, there are several points where fully customisable free text can be added.
-These are: Title, outbreak ID, report date (default is today), author list, description (introduction) and conclusions. To include multi-line free text, put a ">" character and the start of the free text, and include the new line character ("\n") where the new lines should go.
+These are: 
+- title
+- outbreak-id
+- report-date (default is the day the report is run) 
+- author list 
+- description (introduction)
+- conclusions
+
+To include multi-line free text, put a ">" character and the start of the free text, and include the new line character ("\n") where the new lines should go.
 
 Eg:
 ```
@@ -16,23 +24,29 @@ description: >
    This report describes the investigation into an outbreak in the made-up region.
 ```
 
-### Sequencing centre 
+### --sequenceing-centre
 
 Using the flag "--sequencing-centre" on the command line or the option "sequencing_centre" in the config file followed by an accepted four letter abbreviation for the sequencing centre (eg EDIN for Edinburgh or BIRM for Birmingham) will add that sequencing centre's logo into the header of the report. If you do not specifiy a custom title, it will also add the abbreviation into the title.
 
+Current accepted headers are:
+
+BIRM (Birminghan), CAMB (Cambridge), EDIN (Edinburgh), EXET (Exeter), GLAS (Glasgow), GSTT (Guy's and St Thomas'), LIVE (Liverpool), LOND (London), NIRE (Northern Ireland), NORT (Northumberland), NORW (Norwich), NOTT (Nottingham), OXON (Oxford), PHEC (Public Health England), PHWC (Public Health Wales), PORT (Portsmouth), SANG (Sanger) and SHEF (Sheffield)
+
+The civet creators are open to adding new headers to civet. Please file a github issue and we will address it as soon as we can.
+
 ![](doc_figures/header_example.png)
 
-### Display name
+### --display-name
 
-Specify a column in the query csv to refer to query sequences by in the report instead of COG IDs. The default is the same as input column, which by default is name. This may be a patient ID for example to make it more quickly and easily interpretable. This name will be used in the phylogeny and the summary table.
+Specify a column in the query csv to refer to query sequences by in the report instead of COG IDs. The default is the same as input column. This may be a patient ID for example to make it more quickly and easily interpretable. This name will be used in the phylogeny and the summary table.
 
 ![](doc_figures/display_name.png)
 
-### Sample date column
+### --sample-date-column
 
 Specify column in the query csv that contains the sampling date. Default is "sample_date". 
 
-### Tree fields and colour by
+### --tree-fields and --colour-by
 
 A comma separated string containing the column headers of metadata to show on the phylogeny. They will be shown to the right of the corresponding tip, and can be drawn from the query csv or the background metadata csv. 
 

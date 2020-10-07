@@ -31,7 +31,9 @@ This directory also contains a `figures` directory that contains the figures lin
 
 <strong>civet_metadata.csv</strong>
 
-A csv containing all the metadata for the queries provided that were found in the COG database, drawn from any query metadata provided and supplemented with any found in the background metadata. A filtered version is presented in the report itself. It also includes any sequences provided in a fasta file which were not found in the COG database.
+A csv containing all the metadata for the queries provided that were found in the COG database, drawn from any query metadata provided and supplemented with any found in the background metadata. It also includes any sequences provided in a fasta file which were not found in the COG database, with accompanying metadata. Finally, it also includes sequences which are not in the query, but are present in non-collapsed nodes in the trees. 
+
+A filtered version of this table is provided in the report, and can be customised using `--table-fields` (see [here](https://github.com/COG-UK/civet/docs/report_docs.md))
 
 <strong>Config yaml file</strong>
 
