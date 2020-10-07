@@ -495,75 +495,65 @@ def report_group_to_config(args,config,default_dict):
     config["no_snipit"] = no_snipit
     
 
-def make_full_civet_table(query_dict, tree_fields, label_fields, input_column, outdir, table_fields, include_snp_table):
+def make_full_civet_table(query_dict, full_taxon_dict, tree_fields, label_fields, input_column, outdir, table_fields):
 
-    df_dict_incog = defaultdict(list)
-    df_dict_seqprovided = defaultdict(list)
+    df_dict = defaultdict(list)
 
-    incog = 0
-    seqprovided = 0
-    incogs = False
-    seqprovideds = False
+    for name,taxon in full_taxon_dict.items():
+            
+        if name in query_dict or taxon.protected:
 
-    for query in query_dict.values():
+            df_dict["Query ID"].append(taxon.name.replace("|","\|"))
+            df_dict["Name used in report"].append(taxon.display_name.replace("|","\|"))
 
-        if query.in_db:
-            df_dict = df_dict_incog
-            incog += 1
-        else:
-            df_dict = df_dict_seqprovided
-            seqprovided += 1
-        
-        df_dict["Query ID"].append(query.display_name.replace("|","\|"))
+            if taxon.in_db: 
+                df_dict["Sequence name in Tree"].append(taxon.name)   
+            else:
+                df_dict["Sequence name in Tree"].append("")     
 
-        
-        if query.in_db: 
-            df_dict["Sequence name in Tree"].append(query.name)        
+            df_dict["Sample date"].append(taxon.sample_date)
 
-        df_dict["Sample date"].append(query.sample_date)
+            if not taxon.in_db and not taxon.protected: 
+                df_dict["Closest sequence in Tree"].append(taxon.closest)
+                df_dict["Distance to closest sequence"].append(taxon.closest_distance)
+                df_dict["SNPs"].append(taxon.snps)
+            else:
+                df_dict["Closest sequence in Tree"].append("")
+                df_dict["Distance to closest sequence"].append("")
+                df_dict["SNPs"].append("")
 
-        if not query.in_db: 
-            df_dict["Closest sequence in Tree"].append(query.closest)
-            df_dict["Distance to closest sequence"].append(query.closest_distance)
-            df_dict["SNPs"].append(query.snps)
+            if taxon.in_db:
+                df_dict["Found in COG"].append("True")
+            elif taxon.protected:
+                df_dict["Found in COG"].append("Background sequence")
+            else:
+                df_dict["Found in COG"].append("False")
 
-        df_dict["UK lineage"].append(query.uk_lin)
-        df_dict["Global lineage"].append(query.global_lin)
-        df_dict["Phylotype"].append(query.phylotype)
+            df_dict["UK lineage"].append(taxon.uk_lin)
+            df_dict["Global lineage"].append(taxon.global_lin)
+            df_dict["Phylotype"].append(taxon.phylotype)
 
-        if query.tree != "NA":
-            tree_number = query.tree.split("_")[-1]
-            pretty_tree = "Tree " + str(tree_number)
-            df_dict["Tree"].append(pretty_tree)
-        else:
-            df_dict["Tree"].append("NA") #this should never happen, it's more error catching
+            if taxon.tree != "NA":
+                tree_number = taxon.tree.split("_")[-1]
+                pretty_tree = "Tree " + str(tree_number)
+                df_dict["Tree"].append(pretty_tree)
+            else:
+                df_dict["Tree"].append("") #this should never happen, it's more error catching
 
-        if tree_fields != []:
-            for i in tree_fields:
-                df_dict[i].append(query.attribute_dict[i])
-        
-        if label_fields != []:
-            for i in label_fields: 
-                if i not in tree_fields and i != "sample_date" and i != input_column:
-                    df_dict[i].append(query.attribute_dict[i])
+            if tree_fields != []:
+                for i in tree_fields:
+                    df_dict[i].append(taxon.attribute_dict[i])
+            
+            if label_fields != []:
+                for i in label_fields: 
+                    if i not in tree_fields and i != "sample_date" and i != input_column:
+                        df_dict[i].append(taxon.attribute_dict[i])
 
-    if incog != 0:
-        df_incog = pd.DataFrame(df_dict_incog)
-        file_name = os.path.join(outdir,"Civet_metadata_from_cog.csv")
-        df_incog.to_csv(file_name, index=False)
-        df_incog.set_index("Query ID", inplace=True)
-        incogs = True
-    
-    if seqprovided != 0:
-        df_seqprovided = pd.DataFrame(df_dict_seqprovided)
-        file_name = os.path.join(outdir,"Civet_metadata_from_fasta.csv")
-        df_seqprovided.to_csv(file_name, index=False)
-        df_seqprovided.set_index("Query ID", inplace=True)
-        seqprovideds = True
+    df = pd.DataFrame(df_dict)
 
-    output = table_func.make_custom_table(query_dict, table_fields, include_snp_table)
+    file_name = os.path.join(outdir,"civet_metadata.csv")
+    df.to_csv(file_name, index=False)
 
-    return output
 
 def anonymise_sequences(taxon_dict, query_dict, safety_level, from_metadata): 
     #if it's in the query and the display_name is given, then that should be what the seq name is
@@ -571,28 +561,35 @@ def anonymise_sequences(taxon_dict, query_dict, safety_level, from_metadata):
     count = 0
     for name,tax in sorted(taxon_dict.items(), key=lambda x: random.random()):
         
-        if (name in query_dict and not from_metadata) or safety_level == 0 or safety_level == 2:
-           tax.display_name = tax.input_display_name #ie don't anonymise it if they've provided it themselves OR safe status is 0
+        if (name in query_dict and not from_metadata): 
+            tax.display_name = tax.input_display_name #ie don't anonymise it if they've provided it themselves OR safe status is 0
 
-        elif safety_level == 1:
-            if (name not in query_dict or from_metadata != "") and tax.country  == "UK":
-                display_name = "seq_" + str(count)
-                count += 1
-                tax.display_name = display_name
-            elif name in query_dict and from_metadata == "": #this probably doesn't need to be here, but just to be on the safe side
+        else:
+            if safety_level == "0" or safety_level == "2":
                 tax.display_name = tax.input_display_name
+
+            elif safety_level == "1":
+                if (name not in query_dict or from_metadata != "") and tax.country  == "UK":
+                    display_name = "seq_" + str(count)
+                    count += 1
+                    tax.display_name = display_name
+
+                elif tax.country != "UK":
+                    tax.display_name = tax.input_display_name
+
+        taxon_dict[name] = tax
 
     return taxon_dict
 
 
-def generate_labels(tax,safety_level, label_fields):
-
+def generate_labels(tax,safety_level, custom_tip_fields):
+    
     name = tax.display_name
     date = tax.sample_date
     
     display_name = f"{name}|{date}"
     
-    if "adm2" in tax.attribute_dict.keys() and safety_level != 2: #if it's being run locally OR if safe status is on no adm2 for distribution
+    if "adm2" in tax.attribute_dict.keys() and safety_level != "2": #if it's being run locally OR if safe status is on no adm2 for distribution
         adm2 = tax.attribute_dict["adm2"]
         display_name = f"{name}|{adm2}|{date}"
 

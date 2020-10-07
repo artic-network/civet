@@ -122,25 +122,27 @@ else:
 
 
 ```python, name="first_table", echo=False, results="tex"
+output = table_func.make_custom_table(query_dict, table_fields, include_snp_table)
 if cog_number != 0 and not_in_cog_number != 0:
-    df_cog, df_seqs = cfunk.make_full_civet_table(query_dict, tree_fields, label_fields, input_column, outdir, table_fields, include_snp_table)
+    df_cog, df_seqs = output
     print("**Table 1** | Queries found in COG-UK database.\n")
     print(df_cog.to_markdown())
     print("\n")
     print("**Table 2** | Queries matched to closest COG-UK sequence using input sequences\n")
     print(df_seqs.to_markdown())
 elif cog_number == 0 and not_in_cog_number != 0:
-    df_seqs = cfunk.make_full_civet_table(query_dict, tree_fields, label_fields, input_column,outdir, table_fields, include_snp_table)
+    df_seqs = output
     print("**Table 1** | Queries matched to closest COG-UK sequence using input sequences\n")
     print(df_seqs.to_markdown())
 elif not_in_cog_number == 0 and cog_number != 0:
-    df_cog = cfunk.make_full_civet_table(query_dict, tree_fields, label_fields, input_column, outdir, table_fields, include_snp_table)
+    df_cog = output
     print("**Table 1** | Queries found in COG-UK database.\n")
     print(df_cog.to_markdown())
 ```
 
 ```python, name="make_trees", echo=False, include=False, figure=False
-too_tall_trees, overall_tree_number, colour_dict_dict, overall_df_dict, tree_order, too_large_tree_dict, tallest_height,tree_to_num_tips = tree_viz.make_all_of_the_trees(treedir, tree_name_stem, full_tax_dict, query_dict, tree_fields, label_fields, colour_by, private, tree_to_all_tip, tree_to_tip, inserted_node_dict, safety_level=safety_level)
+too_tall_trees, overall_tree_number, colour_dict_dict, overall_df_dict, tree_order, too_large_tree_dict, tallest_height,tree_to_num_tips = tree_viz.make_all_of_the_trees(treedir, tree_name_stem, full_tax_dict, query_dict, tree_fields, label_fields, colour_by, tree_to_all_tip, tree_to_tip, inserted_node_dict, safety_level=safety_level)
+
 ```
 ```python, name="make_legend", echo=False, include=False, results='tex'
 for trait, colour_dict in colour_dict_dict.items():
@@ -261,7 +263,9 @@ if local_lineages:
 ##CONCLUSIONS
 
 ```
-
+```python, name='write_summary_file', echo=False, results='raw'
+cfunk.make_full_civet_table(query_dict, full_tax_dict, tree_fields, label_fields, input_column, outdir, table_fields)
+```
 
 ##APPENDIX
 
