@@ -517,10 +517,8 @@ def make_full_civet_table(query_dict, tree_fields, label_fields, input_column, o
             df_dict = df_dict_seqprovided
             seqprovided += 1
         
-        if query.display_name != query.name:
-            df_dict["Query ID"].append(query.display_name.replace("|","\|"))
-        else:
-            df_dict["Query ID"].append(query.query_id.replace("|","\|"))
+        df_dict["Query ID"].append(query.display_name.replace("|","\|"))
+
         
         if query.in_db: 
             df_dict["Sequence name in Tree"].append(query.name)        
@@ -568,37 +566,50 @@ def make_full_civet_table(query_dict, tree_fields, label_fields, input_column, o
 
     output = table_func.make_custom_table(query_dict, table_fields, include_snp_table)
 
-    # print(output)
-    # print(len(output))
-
-    # for i in output:
-    #     print(type(i))
-
-
-    # for i in output:
-    #     print("item")
-    #     print(i)
-
     return output
 
-def generate_false_names(taxon_dict, query_dict, outdir):
-
-    fw = open(os.path.join(outdir, "false_names_to_real_names.csv"), 'w')
-    fw.write("COG_ID,displayed_name\n")
-
-    total = len(taxon_dict)
+def anonymise_sequences(taxon_dict, query_dict, safe_status, from_metadata): 
+    #if it's in the query and the display_name is given, then that should be what the seq name is
 
     count = 0
     for name,tax in sorted(taxon_dict.items(), key=lambda x: random.random()):
-        if name not in query_dict and tax.country == "UK":
-            display_name = "sequence_" + str(count)
-            count += 1
-            tax.display_name = display_name
-            fw.write(tax.name + "," + tax.display_name + "\n")
+        
+        if (name in query_dict and not from_metadata) or safe_status == 0 or safe_status == 2:
+           tax.display_name = tax.input_display_name #ie don't anonymise it if they've provided it themselves OR safe status is 0
 
-    fw.close()
+        elif safe_status == 1:
+            if (name not in query_dict or from_metadata != "") and tax.country  == "UK":
+                display_name = "seq_" + str(count)
+                count += 1
+                tax.display_name = display_name
+            elif name in query_dict and from_metadata == "": #this probably doesn't need to be here, but just to be on the safe side
+                tax.display_name = tax.input_display_name
 
     return taxon_dict
+
+
+def generate_labels(tax,safe_status, label_fields):
+
+    name = tax.display_name
+    date = tax.sample_date
+    
+    display_name = f"{name}|{date}"
+    
+    if "adm2" in tax.attribute_dict.keys() and safe_status != 2: #if it's being run locally OR if safe status is on no adm2 for distribution
+        adm2 = tax.attribute_dict["adm2"]
+        display_name = f"{name}|{adm2}|{date}"
+
+    count = 0
+    if len(custom_tip_fields) > 0: 
+        for label_element in custom_tip_fields:
+            if count == 0:
+                display_name = name
+            else:   
+                display_name = display_name + "|" + tax.attribute_dict[label_element]
+            count += 1
+    
+    return display_name
+
 
 def header(v):
     print(qcfunk.green("""\n
