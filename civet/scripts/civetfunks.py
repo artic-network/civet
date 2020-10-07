@@ -568,16 +568,16 @@ def make_full_civet_table(query_dict, tree_fields, label_fields, input_column, o
 
     return output
 
-def anonymise_sequences(taxon_dict, query_dict, safe_status, from_metadata): 
+def anonymise_sequences(taxon_dict, query_dict, safety_level, from_metadata): 
     #if it's in the query and the display_name is given, then that should be what the seq name is
 
     count = 0
     for name,tax in sorted(taxon_dict.items(), key=lambda x: random.random()):
         
-        if (name in query_dict and not from_metadata) or safe_status == 0 or safe_status == 2:
+        if (name in query_dict and not from_metadata) or safety_level == 0 or safety_level == 2:
            tax.display_name = tax.input_display_name #ie don't anonymise it if they've provided it themselves OR safe status is 0
 
-        elif safe_status == 1:
+        elif safety_level == 1:
             if (name not in query_dict or from_metadata != "") and tax.country  == "UK":
                 display_name = "seq_" + str(count)
                 count += 1
@@ -588,14 +588,14 @@ def anonymise_sequences(taxon_dict, query_dict, safe_status, from_metadata):
     return taxon_dict
 
 
-def generate_labels(tax,safe_status, label_fields):
+def generate_labels(tax,safety_level, label_fields):
 
     name = tax.display_name
     date = tax.sample_date
     
     display_name = f"{name}|{date}"
     
-    if "adm2" in tax.attribute_dict.keys() and safe_status != 2: #if it's being run locally OR if safe status is on no adm2 for distribution
+    if "adm2" in tax.attribute_dict.keys() and safety_level != 2: #if it's being run locally OR if safe status is on no adm2 for distribution
         adm2 = tax.attribute_dict["adm2"]
         display_name = f"{name}|{adm2}|{date}"
 
