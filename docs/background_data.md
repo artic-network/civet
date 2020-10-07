@@ -54,11 +54,16 @@ This can also be run on CLIMB without the --CLIMB flag to specify an older versi
 ```
 civet -i input.csv -d path/to/data_directory 
 ```
+### --background-metadata
+
+By default, civet will look for a csv containing background data in the data directory. However, to provide custom background data, use 
+1) the ``--background-metadata`` flag
+or
+2) add `background_metadata: path/to/metadata.csv` to the config file
 
 
 ### Background metadata requirements
 
-By default, civet will look for a csv containing background data in the data directory. However, to provide custom background data, use the ``--background-metadata`` flag. 
 
 The following fields must be **always** present in this background metadata, or civet will not run:
 

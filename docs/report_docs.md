@@ -3,6 +3,13 @@
 # Report options
 How to customise the civet report
 
+### --safety-level
+An integer value (0, 1 or 2) that configures the level of anonymisation needed in the report. Default: 1
+
+0) Anonymisation off. COG-IDs and adm2 metadata shown for all sequences
+1) No COG-IDs shown for anything but query sequences specified with the `-i / --input` flag. If run on CLIMB, adm2 present in the report. 
+2) COG-IDs shown on query sequenecs and background sequences, but none show adm2 (equivalent to the 'publically available' data)
+
 
 ### Free text options
 
@@ -71,7 +78,9 @@ NB Fields in colour-by must also be present in the tree-fields list.
 <strong>--label-fields</strong> 
 A comma separated string of metadata headers containing information to be displayed in the labels in the phylogeny.
 
-By default, the display name and sample date will be used, and if adm2 is present in either metadata (for example if you ran on CLIMB) this will also be shown unless the **--private** flag is used. 
+
+
+By default, the `input_column` and `sample_date` (if provided) will be used. Depending on the --safety-level and if adm2 is present in either metadata (for example if you ran on CLIMB) this will also be shown unless the **--private** flag is used. 
 
 If any fields are provided using the label fields option, these will be overwritten, and the display name and specified fields will be shown. 
 
