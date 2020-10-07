@@ -1,7 +1,7 @@
 
 ![](./doc_figures/website_header.png)
 
-## Installation
+# Installation
 
 Instructions for installing civet locally
 
@@ -10,7 +10,7 @@ Instructions for installing civet locally
 <strong>civet</strong> runs on MacOS and Linux. The conda environment recipe may not build on Windows (and is not supported) but <strong>civet</strong> can be run using the Windows subsystem for Linux.
 
 1. Some version of conda, we use Miniconda3. Can be downloaded from [here](https://docs.conda.io/en/latest/miniconda.html)
-2. Access to CLIMB or to a local data directory
+2. Access to CLIMB or to a local data directory. More information about this data [here](./background_data.md)
 
 ### Install civet
 
@@ -44,9 +44,12 @@ To update:
 pulls the latest changes from github
 3. ``python setup.py install`` \
 re-installs civet
-If you have previously installed civet using ``pip``, you will need to update civet in the same way (``pip install .``).  
 4. ``conda env update -f environment.yml`` \
 updates the conda environment 
+
+### Troubleshooting update
+- If you have previously installed civet using ``pip``, you will need to update civet in the same way (``pip install .``)
+- Try ``pip uninstall civet`` and then re-install with `python setup.py install`
 
 
 ### [Next: Input options](./input_options.md)
