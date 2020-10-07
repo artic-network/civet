@@ -3,14 +3,6 @@
 # Report options
 How to customise the civet report
 
-### --safety-level
-An integer value (0, 1 or 2) that configures the level of anonymisation needed in the report. Default: 1
-
-0) Anonymisation off. COG-IDs and adm2 metadata shown for all sequences
-1) No COG-IDs shown for anything but query sequences specified with the `-i / --input` flag. If run on CLIMB, adm2 present in the report. 
-2) COG-IDs shown on query sequenecs and background sequences, but none show adm2 (equivalent to the 'publically available' data)
-
-
 ### Free text options
 
 Using the config file, there are several points where fully customisable free text can be added.
@@ -31,13 +23,13 @@ description: >
    This report describes the investigation into an outbreak in the made-up region.
 ```
 
-### --sequenceing-centre
+### --sequencing-centre
 
 Using the flag "--sequencing-centre" on the command line or the option "sequencing_centre" in the config file followed by an accepted four letter abbreviation for the sequencing centre (eg EDIN for Edinburgh or BIRM for Birmingham) will add that sequencing centre's logo into the header of the report. If you do not specifiy a custom title, it will also add the abbreviation into the title.
 
 Current accepted headers are:
 
-BIRM (Birminghan), CAMB (Cambridge), EDIN (Edinburgh), EXET (Exeter), GLAS (Glasgow), GSTT (Guy's and St Thomas'), LIVE (Liverpool), LOND (London), NIRE (Northern Ireland), NORT (Northumberland), NORW (Norwich), NOTT (Nottingham), OXON (Oxford), PHEC (Public Health England), PHWC (Public Health Wales), PORT (Portsmouth), SANG (Sanger) and SHEF (Sheffield)
+BIRM (Birmingham), CAMB (Cambridge), EDIN (Edinburgh), EXET (Exeter), GLAS (Glasgow), GSTT (Guy's and St Thomas'), LIVE (Liverpool), LOND (London), NIRE (Northern Ireland), NORT (Northumberland), NORW (Norwich), NOTT (Nottingham), OXON (Oxford), PHEC (Public Health England), PHWC (Public Health Wales), PORT (Portsmouth), SANG (Sanger) and SHEF (Sheffield)
 
 The civet creators are open to adding new headers to civet. Please file a github issue and we will address it as soon as we can.
 
@@ -57,7 +49,7 @@ Specify column in the query csv that contains the sampling date. Default is "sam
 
 A comma separated string containing the column headers of metadata to show on the phylogeny. They will be shown to the right of the corresponding tip, and can be drawn from the query csv or the background metadata csv. 
 
-The default is to place the text found in the appropriate entry in the metadata into the tree. However, by using --colour-by the data can be shown as coloured tips instead. A colour scheme can also be provided, as long as it is matplotlib compatible (see https://matplotlib.org/3.1.1/gallery/color/colormap_reference.html for a list of approved colour maps). The default is "Paired".
+The default is to place the text found in the appropriate entry in the metadata into the tree. However, by using **--colour-by** the data can be shown as coloured circles instead. A colour scheme can also be provided, as long as it is matplotlib compatible (see https://matplotlib.org/3.1.1/gallery/color/colormap_reference.html for a list of approved colour maps). The default is "Paired".
 
 To use colour-by, provide a comma separated string of fields. To add the colour scheme, use a ":" or a "=". For example:
 
@@ -67,7 +59,7 @@ will colour adm1 and adm2 with the specified colour schemes, and care_home by th
 
 Any tree fields will be shown in between the tip and the label, going from left to right.
 
-If no colour-by is provided, the tips will be coloured by adm1 ie England, Scotland, Wales or Northern Ireland.
+If no colour-by option is provided, the tips will be coloured by adm1 ie England, Scotland, Wales or Northern Ireland.
 
 NB Fields in colour-by must also be present in the tree-fields list.
 
@@ -75,36 +67,45 @@ NB Fields in colour-by must also be present in the tree-fields list.
 
 ### --label-fields and --safety-level
 
+<strong>--safety-level</strong>
+
+An integer value (0, 1 or 2) that configures the level of anonymisation needed in the report. Default: 1
+
+0) Anonymisation off. COG-IDs and adm2 metadata shown for all sequences if adm2 present in either query or background metadata
+1) No COG-IDs shown for anything but query sequences specified with the `-i / --input` flag (i.e. not with the `--from-metadata` option). If run on CLIMB, adm2 present in the report. 
+2) COG-IDs shown on query sequenecs and background sequences, but none show adm2 (equivalent to the 'publically available' data)
+
+The query sequences, if they are specified as a list of sequences or in a csv, will always show either their name or the specified `--display-name` regardless of safety level.
+
 <strong>--label-fields</strong> 
 A comma separated string of metadata headers containing information to be displayed in the labels in the phylogeny.
 
-
-
-By default, the `input_column` and `sample_date` (if provided) will be used. Depending on the --safety-level and if adm2 is present in either metadata (for example if you ran on CLIMB) this will also be shown unless the **--private** flag is used. 
+By default, the `input_column` and `sample_date` (if provided) will be used. Depending on the --safety-level and if adm2 is present in either metadata (for example if you ran on CLIMB) this will also be shown. 
 
 If any fields are provided using the label fields option, these will be overwritten, and the display name and specified fields will be shown. 
 
-For example, a sequence has the following metadata:
+For example, a query sequence has the following metadata:
 
 | display name | adm1 | adm2 | date | care home | 
 | --- | --- | --- | --- | --- |
 | EDB1234 | Scotland | Edinburgh | 2020-09-23 | A | 
 
-
-The default label not on CLIMB or with the **--private** flag would be:
-"EDB1234|2020-09-23"
-
-On CLIMB and with no **--private** flag it would be:
+Under safety level 0 and safety level 1, the default label would be:
 "EDB1234|Edinburgh|2020-09-23"
 
-and using 
+Under safety level 2, the default label would be:
+"EDB1234|2020-09-23"
+
+and using  
 ```--label-fields adm1,care_home``` 
-regardless of CLIMB status or **--private** flag will show:
-"EDB1234 |Scotland|A"
+regardless of safety level will show:
+"EDB1234|Scotland|A"
 
 Therefore once you specify *any* label fields, you must specify all those that you want other than the display name.
 
-### Date fields
+**Note: the label-fields overwrites the safety level for all query data. If you specify adm2, regardless of safety level, the query sequences will show adm2 in their labels**. However, the appropriate anonymisation of the COG IDs will still take place if safety level is 1 and the queries were found using `--from-metadata`, and background sequence labels are assigned by safety level.
+
+### --date-fields
 
 Provide column headers from the query metadata or the background metadata as a comma separated string that contain date information to plot those dates on a timeline. 
 
@@ -112,7 +113,7 @@ NB all date formats must be in YYYY-MM-DD format.
 
 ![](doc_figures/date_figure.png)
 
-### Node summary and include bars
+### --node-summaruy and --include-bars
 
 Provide a header in the background metadata table to summarise collapsed nodes by in the phylogeny. Default is country.
 
@@ -123,7 +124,7 @@ If **--include-bars** is called, this information will also be displayed as bar 
 ![](doc_figures/include_bars.png)
 
 
-### Table fields and include snp table
+### --table-fields and --include-snp-table
 
 The table shown in the report will always include:
 - Query ID
@@ -138,11 +139,11 @@ In addition, for those sequences not found in the metadata, **--include-snp-tabl
 
 in the second table.
 
-### No-snipit
+### --no-snipit
 
 By using this flag, the Snipit table (table showing location of SNPs in the alignment) is removed from the report.
 
-### Omit appendix
+### --omit-appendix
 
 Removes appendix from the report. 
 
