@@ -214,7 +214,7 @@ rule find_snps:
                     local_trees.append(file_stem)
         local_str = ",".join(local_trees) #to pass to snakemake pipeline
         
-        if config["from_metadata"]:
+        if config["from_metadata"] or config["no_snipit"]:
             shell("touch {output.genome_graphs} ")
         else:
             shell("snakemake --nolock --snakefile {input.snakefile:q} "

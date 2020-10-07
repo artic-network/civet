@@ -180,6 +180,7 @@ def main(sysargs = sys.argv[1:]):
                 sys.exit(-1)
 
         metadata = config["background_metadata"]
+        config["no_snipit"]=True
         query = qcfunk.generate_query_from_metadata(args.from_metadata,metadata,config)
     else:
         config["from_metadata"] = False
