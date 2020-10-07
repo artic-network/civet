@@ -27,10 +27,13 @@ Detailed description of the civet analysis pipeline
 - If SSH keys not configured, specify `--remote` alongside `-uun` 
 - Check background metadata has `data_column` (default: central_sample_id)
 
-###  ``-fm / --from-metadata``
+###  -fm / --from-metadata
 
 - Exit if used in conjunction with input.csv, ID string or fasta options (not compatible yet)
-- Find all records in the background metadata that match search criteria and pass on into civet
+- Find all records in the background metadata that match search criteria and pass on into civet as queries
+
+### --protect 
+- Find all records in the background metadata that match search criteria and pass on into civet to not collapse
 
 
 ###  QC on input csv
