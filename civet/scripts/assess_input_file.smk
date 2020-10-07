@@ -213,24 +213,27 @@ rule find_snps:
                     file_stem = ".".join(fn.split(".")[:-1])
                     local_trees.append(file_stem)
         local_str = ",".join(local_trees) #to pass to snakemake pipeline
-
-        shell("snakemake --nolock --snakefile {input.snakefile:q} "
-                            "{config[force]} "
-                            "{config[log_string]} "
-                            "--directory {config[tempdir]:q} "
-                            "--config "
-                            f"catchment_str={local_str} "
-                            "outdir={config[outdir]:q} "
-                            "tempdir={config[tempdir]:q} "
-                            "outgroup_fasta={input.outgroup_fasta:q} "
-                            "aligned_query_seqs={input.query_seqs:q} "
-                            "background_seqs={input.background_seqs:q} "
-                            "query={input.query:q} "
-                            "combined_metadata={input.combined_metadata:q} "
-                            "display_name={config[display_name]:q} "
-                            "input_column={config[input_column]:q} "
-                            "data_column={config[data_column]:q} "
-                            "--cores {workflow.cores} ")
+        
+        if config["from_metadata"]:
+            shell("touch {output.genome_graphs} ")
+        else:
+            shell("snakemake --nolock --snakefile {input.snakefile:q} "
+                                "{config[force]} "
+                                "{config[log_string]} "
+                                "--directory {config[tempdir]:q} "
+                                "--config "
+                                f"catchment_str={local_str} "
+                                "outdir={config[outdir]:q} "
+                                "tempdir={config[tempdir]:q} "
+                                "outgroup_fasta={input.outgroup_fasta:q} "
+                                "aligned_query_seqs={input.query_seqs:q} "
+                                "background_seqs={input.background_seqs:q} "
+                                "query={input.query:q} "
+                                "combined_metadata={input.combined_metadata:q} "
+                                "display_name={config[display_name]:q} "
+                                "input_column={config[input_column]:q} "
+                                "data_column={config[data_column]:q} "
+                                "--cores {workflow.cores} ")
 
 
 rule regional_mapping:

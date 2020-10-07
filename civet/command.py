@@ -181,7 +181,8 @@ def main(sysargs = sys.argv[1:]):
 
         metadata = config["background_metadata"]
         query = qcfunk.generate_query_from_metadata(args.from_metadata,metadata,config)
-
+    else:
+        config["from_metadata"] = False
     """
     The query file could have been from one of
     - input.csv
