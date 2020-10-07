@@ -1,0 +1,34 @@
+report: Outbreak # the report template to use
+
+sequencing-centre: EDIN # the header to use
+title: Cluster investigation
+outbreak-id: outbreak1
+report_date: 2020-10-05 # date investigation was opened - default is today
+authors: Verity, Áine, Andrew # List of authors, affiliations and contact details
+description: > # Free-text description that will be inserted at the top of the report - can use markdown for formatting. Please use \n to indicate new lines.
+  ## Background \n
+ This report describes the investigation into an outbreak in the made-up region.
+conclusions: > # Free-text concluding text that will be inserted at the bottom of the report
+  ## Conclusions \n
+ An outbreak occurred.
+tree_fields: adm1,HCW_status #To indicate specific fields by the tips in the tree - must be provided in query or background metadata
+colour-by: adm1, HCW_status:Paired #This will colour tips on the tree by these fields. Adm1 will be using the default colour scheme, and HCW_status will use the matplotlib colour map "Paired"
+label_fields: [sample_date, care_home] #These fields will be added to labels on the tree and on the timeline (if timeline is shown)
+table_fields: [uk_lineage, phylotype, global_lineage] #These will be added to the summary table at the top. NB the full table is written to civet_metadata.csv
+display_name: patient_ID #A more informative name to replace COG IDs throughout the report. Please provide in the query metadata csv.
+include_snp_table: True #Include information about closest sequence found in tree in the table (ie SNP distance and a list of SNPs) for queries not found in the database.
+node_summary: lineage #Summarise the collapsed nodes by this field.
+date-fields: ["sample_date", "symptom_onset"] #Generates timeline using these date fields.
+safety_level: 0 #if you were running on CLIMB
+query: input.csv
+fasta: input.fasta
+include_bars: True #Summary bar charts about collapsed nodes by node_summary option.
+map_sequences: True 
+map_info: x_coordinate, y_coordinate #columns containing x and y coordinates of sequences 
+input_crs: EPSG:4326 #Cooordinate reference system the above coordinates are in
+colour_map_by: care_home
+local_lineages: True #Analyse what UK lineages are in the geographical area around the queries
+date_restriction: True  #Restrict this to the last couple of weeks
+date_range_start: 2020-09-20
+date_range_end: 2020-10-05
+
