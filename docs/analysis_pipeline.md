@@ -9,13 +9,13 @@
 
 ### 1) Initialising directories & detect input type
 
-- Initialise config dictionary to pass through to snakemake, load defaults
-- Detect the input type (``-i / --input``), either csv, yaml/yml or a string of IDS
+- Detect the input type (``-i / --input``), either csv, yaml/yml or a string of IDS (or else a `-fm` search pattern).
 - If a string of IDs, they're written to a temporary 'input.csv' file
-- If a yaml file is detected, all options specified are loaded and added to config dict
+- Loads default values
+- If a yaml file is detected, all options specified are loaded and overwrite defaults
+- Any command line arguments then overwrite the options specified in config file 
 - Output directory:
 	if given, get path and create directory if necessary
-	if not given, create a timestamped output directory
 - Set up temporary directory, can be configured but by default is $TEMPDIR. If `--no-temp`, set temporary directory to the output directory
 
 ### 2) Finding COG-UK data

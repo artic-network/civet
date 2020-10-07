@@ -74,7 +74,7 @@ rule combine_metadata:
         closest_cog = rules.get_closest_cog.output.closest_cog,
         in_cog = rules.check_cog_db.output.cog
     output:
-        combined_csv = os.path.join(config["outdir"],"combined_metadata.csv")
+        combined_csv = os.path.join(config["tempdir"],"combined_metadata.csv")
     run:
         c = 0
         with open(input.in_cog, newline="") as f:
@@ -236,7 +236,7 @@ rule find_snps:
 rule regional_mapping:
     input:
         query = config['query'],
-        combined_metadata = os.path.join(config["outdir"],"combined_metadata.csv"),
+        combined_metadata = os.path.join(config["tempdir"],"combined_metadata.csv"),
         background_metadata = config["background_metadata"]
     params:
         figdir = os.path.join(config["outdir"],"report",'figures'),
@@ -305,7 +305,7 @@ rule make_report:
     input:
         lineage_trees = rules.process_catchments.output.tree_summary,
         query = config["query"],
-        combined_metadata = os.path.join(config["outdir"],"combined_metadata.csv"),
+        combined_metadata = os.path.join(config["tempdir"],"combined_metadata.csv"),
         background_metadata = config["background_metadata"],
         snp_figure_prompt = rules.find_snps.output.genome_graphs,
         genome_graphs = rules.find_snps.output.genome_graphs, 

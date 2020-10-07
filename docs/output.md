@@ -5,6 +5,10 @@
 
 Description of output civet files
 
+The output directory can be specified with `-o / --outdir`, or an output prefix can be specified with `--output-prefix`. If no output directory is specified, by default the directory will be a timstamped directory beginning with the `output_prefix` and the report files will be called `output_prefix`.md  (Default: civet)
+
+
+
 <strong>civet_report.md</strong>
 
 A markdown report is generated, with summaries of lineages and genetic diversity present in your query. Trees are visualised in the report and compared to the diversity of lineages present in the community. Optional figures include summary barcharts of collapsed-node composition, genome 'snipit' graphs and maps of the local community diversity. Full report options described [here](./report_docs.md).
