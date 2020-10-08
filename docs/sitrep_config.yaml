@@ -16,8 +16,7 @@ node_summary: country
 up-distance: 2
 down-distance: 2
 threshold: 1
-from-metadata: ["sample_date=2020-09-22:2020-10-06"]
-date-fields: ["sample_date", "date_2", "date_3"]
+from-metadata: ["sample_date=2020-08-01:2020-08-02"]
 safety_level: 0 #as if it were run on CLIMB
 include_bars: True
 map_sequences: True
