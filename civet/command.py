@@ -269,11 +269,16 @@ def main(sysargs = sys.argv[1:]):
     qcfunk.collapse_config(args.collapse_threshold,config,default_dict) 
 
 <<<<<<< HEAD
+<<<<<<< HEAD
     qcfunk.parse_protect(args.protect,config["background_metadata"],config)
 =======
     # cluster civet flag 
     cfunk.get_cluster_config(args.cluster, config, default_dict)
 >>>>>>> cluster civet pipeline with placeholders for jclusterfunks
+=======
+    # cluster civet flag 
+    cfunk.get_cluster_config(args.cluster, config, default_dict)
+>>>>>>> 1a3efeeb382021b31cbb67ea751cd346863f184d
 
     """
     Parsing the report_group arguments, 
@@ -306,11 +311,17 @@ def main(sysargs = sys.argv[1:]):
 
     """
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
     
     launch_browser = qcfunk.check_arg_config_default("launch_browser",args.launch_browser,config,default_dict)
     config["launch_browser"]= launch_browser
 >>>>>>> cluster civet pipeline with placeholders for jclusterfunks
+=======
+    
+    launch_browser = qcfunk.check_arg_config_default("launch_browser",args.launch_browser,config,default_dict)
+    config["launch_browser"]= launch_browser
+>>>>>>> 1a3efeeb382021b31cbb67ea751cd346863f184d
 
     # don't run in quiet mode if verbose specified
     if args.verbose:

@@ -153,6 +153,32 @@ rule monitor_cluster:
             shell("cp {input.metadata} {output.metadata:q}")
 
 
+rule monitor_cluster:
+    input:
+        catchment_prompt = rules.prune_out_catchments.output.txt,
+        metadata = rules.combine_metadata.output.combined_csv
+    output:
+        metadata = os.path.join(config["outdir"],"monitor_cluster/updated_cluster.csv")
+    shell:
+        if config["cluster"]:
+            shell(f"snakemake --nolock --snakefile {snakestring}"
+                            "{config[force]} "
+                            "{config[log_string]} "
+                            "--directory {config[tempdir]:q} "
+                            "--config "
+                            f"catchment_str={catchment_str} "
+                            "outdir={config[outdir]:q} "
+                            "tempdir={config[tempdir]:q} "
+                            "outgroup_fasta={input.outgroup_fasta:q} "
+                            "aligned_query_seqs={input.query_seqs:q} "
+                            "background_seqs={input.background_seqs:q} "
+                            "combined_metadata={input.combined_metadata:q} "
+                            "collapse_threshold={config[collapse_threshold]} "
+                            "--cores {workflow.cores} >& {log}")
+        else:
+            shell("cp {input.metadata} {output.metadata:q}")
+
+
 rule process_catchments:
     input:
         snakefile_collapse_before = os.path.join(workflow.current_basedir,"process_collapsed_trees.smk"),
