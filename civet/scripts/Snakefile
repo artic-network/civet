@@ -4,62 +4,19 @@ import csv
 from Bio import SeqIO
 import os
 
+output_prefix = config["output_prefix"]
 ##### Configuration #####
 
 if config.get("force"):
     config["force"] = "--forceall "
 
-if config.get("sequencing_centre"):
-    
-    header = config["sequencing_centre"]
-    filename = os.path.basename(header)
-    moved_file = os.path.join(config["outdir"],"figures",filename)
-    config["sequencing_centre_file"] = moved_file
-    if filename == "DEFAULT.png":
-        config["sequencing_centre_flag"] = ""
-    else:
-        config["sequencing_centre_flag"] = f"-sc {filename}"
-
-
-if config["global"] == "True":
-    config["seq_db"] = config["cog_global_seqs"]
-else:
-    config["seq_db"] = config["cog_seqs"]
-
-if config["quiet_mode"]=="True":
-    config["quiet_mode"] = "--quiet"
-else:
-    config["quiet_mode"] = ""
-
-config["up_distance"]=int(config["up_distance"])
-config["down_distance"]=int(config["down_distance"])
-
-if config["qc_fail"] != "":
-    fail_file = config["qc_fail"]
-    config["qc_fail_report"] = f"--failed-seqs {fail_file}"
-else:
-    config["qc_fail_report"] = ""
-
-if config["delay_collapse"] == "False":
-    config["delay_collapse"] = False
-elif config["delay_collapse"] == "True":
-    config["delay_collapse"] = True
 
 ##### Target rules #####
-if config.get("launch_browser"):
-    rule all:
-        input:
-            os.path.join(config["outdir"],"combined_metadata.csv"),
-            os.path.join(config["outdir"], "civet_report.md"),
-            os.path.join(config["outdir"],"local_trees","collapse_report.txt"),
-            os.path.join(config["outdir"],"civet_report.html")
-else:
-    rule all:
-        input:
-            os.path.join(config["outdir"],"combined_metadata.csv"),
-            os.path.join(config["outdir"], "civet_report.md"),
-            os.path.join(config["outdir"],"local_trees","collapse_report.txt")
-
+rule all:
+    input:
+        os.path.join(config["outdir"], "report",f"{output_prefix}.md"),
+        os.path.join(config["outdir"],"local_trees","collapse_report.txt"),
+        os.path.join(config["outdir"],"report",f"{output_prefix}.html")
 
 ##### Modules #####
 include: "assess_input_file.smk"

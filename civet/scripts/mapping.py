@@ -7,6 +7,7 @@ import matplotlib.pyplot as plt
 from shapely.geometry.point import Point
 import csv
 import adjustText as aT
+import os
 
 
 def prep_data(tax_dict, clean_locs_file):
@@ -15,8 +16,7 @@ def prep_data(tax_dict, clean_locs_file):
 
     for tax in tax_dict.values():
         if tax.attribute_dict["adm2"] != "":
-        
-            adm2s.append(tax.attribute_dict["adm2"])
+            adm2s.append(tax.attribute_dict["adm2"].upper())
 
     metadata_multi_loc = {}
     straight_map = {}
@@ -103,7 +103,6 @@ def prep_mapping_data(mapping_input, metadata_multi_loc):
 
     result = pd.merge(merged_locs, original, how="outer")
 
-
     return all_uk, result
 
 
@@ -143,7 +142,7 @@ def make_centroids(result,adm2s, straight_map):
         
     centroid_geo = geopandas.GeoDataFrame(centroid_df)
 
-    return centroid_geo
+    return centroid_geo, centroid_counts
 
 def make_map(centroid_geo, all_uk):
 
@@ -156,7 +155,7 @@ def make_map(centroid_geo, all_uk):
 
     base = all_uk.plot(ax=ax, color="steelblue")
 
-    centroids_final.plot(ax=base, color='goldenrod', markersize=centroids_final["seq_count"]*10)
+    centroids_final.plot(ax=base, color="goldenrod", markersize=centroids_final["seq_count"]*10)
 
     ax.axis("off")
 
@@ -167,13 +166,24 @@ def map_adm2(tax_dict, clean_locs_file, mapping_json_files): #So this takes adm2
 
     all_uk, result = prep_mapping_data(mapping_json_files, metadata_multi_loc)
 
-    centroid_geo = make_centroids(result, adm2s, straight_map)
+    output = make_centroids(result, adm2s, straight_map)
     
-    if type(centroid_geo) == bool:
+    if type(output) == bool:
         print("None of the sequences provided have adequate adm2 data and so cannot be mapped")
         return
+    else:
+        centroid_geo, adm2_counter = output
 
     make_map(centroid_geo, all_uk)
+
+    adm2_percentages = {}
+
+    total = len(adm2s)
+
+    for adm2, count in adm2_counter.items():
+        adm2_percentages[adm2] = round(((count/total)*100),2)
+
+    return adm2_counter, adm2_percentages
 
 def get_coords_from_file(input_csv, input_crs, colour_map_trait, x_col, y_col):
 
@@ -191,14 +201,14 @@ def get_coords_from_file(input_csv, input_crs, colour_map_trait, x_col, y_col):
             x = seq[x_col]
             y = seq[y_col]
             
-            if colour_map_trait != "False":
+            if colour_map_trait:
                 trait = seq[colour_map_trait]
             
             if x != "" and y != "":
                 #If we have the actual coordinates
                 name_to_coords[name] = (float(x),float(y))
 
-                if colour_map_trait != "False":
+                if colour_map_trait:
                     name_to_trait[name] = trait
 
     return name_to_coords, name_to_trait
@@ -230,14 +240,14 @@ def generate_coords_from_outer_postcode(pc_file, input_csv, postcode_col, colour
             name = seq["name"]
             outer_postcode = seq[postcode_col]
             
-            if colour_map_trait != "False":
+            if colour_map_trait:
                 trait = seq[colour_map_trait]
             
             if outer_postcode != "":
                 if outer_postcode in pc_to_coords.keys():
                     name_to_coords[name] = pc_to_coords[outer_postcode]
 
-                    if colour_map_trait != "False":
+                    if colour_map_trait:
                         name_to_trait[name] = trait
 
                 else:
@@ -260,7 +270,7 @@ def plot_coordinates(mapping_json_files, urban_centres, name_to_coords, name_to_
 
     for name, point in name_to_coords.items():
         df_dict["geometry"].append(Point(point))
-        if colour_map_trait != "False":
+        if colour_map_trait:
             df_dict[colour_map_trait].append(name_to_trait[name])
         
     crs = {'init':input_crs}
@@ -276,6 +286,9 @@ def plot_coordinates(mapping_json_files, urban_centres, name_to_coords, name_to_
         for l,j in zip(all_uk["NAME_2"], all_uk["geometry"]):
             if j.contains(i):
                 adm2_present.append(l)
+
+    if len(adm2_present) == 0:
+        return
 
     adm2_counter = Counter(adm2_present)
 
@@ -304,7 +317,7 @@ def plot_coordinates(mapping_json_files, urban_centres, name_to_coords, name_to_
     expanded_filter.plot(ax=base, color="whitesmoke", edgecolor="darkgrey")
     filtered_urban.plot(ax=base, color="lightgrey")
 
-    if colour_map_trait != "False":
+    if colour_map_trait:
         df_final.plot(ax=base, column=colour_map_trait, legend=True, markersize=10, legend_kwds={"fontsize":10, "bbox_to_anchor":(1.8,1), 'title':colour_map_trait, 'title_fontsize':10})
     else:
         df_final.plot(ax=base, markersize=10)
@@ -343,13 +356,76 @@ def map_sequences_using_coordinates(input_csv, mapping_json_files, urban_centres
 
     cols = map_inputs.split(",")
     if len(cols) == 2:
-        x_col = cols[0]
-        y_col = cols[1]
+        x_col = cols[0].replace(" ","")
+        y_col = cols[1].replace(" ","")
         name_to_coords, name_to_trait = get_coords_from_file(input_csv, input_crs, colour_map_trait, x_col, y_col)
     elif len(cols) == 1:
         postcode_col = cols[0]
         name_to_coords, name_to_trait = generate_coords_from_outer_postcode(pc_file, input_csv, postcode_col, colour_map_trait)
     
-    adm2_counter, adm2_percentages = plot_coordinates(mapping_json_files, urban_centres, name_to_coords, name_to_trait, input_crs, colour_map_trait)
+    mapping_output = plot_coordinates(mapping_json_files, urban_centres, name_to_coords, name_to_trait, input_crs, colour_map_trait)
 
-    return adm2_counter, adm2_percentages
+    return mapping_output
+
+
+def convert_str_to_list(string, rel_dir):
+
+    lst = []
+    
+    prep = string.split(",") 
+    for i in prep:
+        new = i.replace("'","").replace(" ","")
+        newer = new.strip("[").strip("]")
+        if rel_dir:
+            even_newer = newer.split("/figures")[1]
+            final = ("./figures" + even_newer)
+        else:
+            final = newer
+        
+        lst.append(final)
+    
+    return lst
+
+def local_lineages_section(lineage_maps, lineage_tables):
+
+    print("These figures show the background diversity of lineages in the local area to aid with identifying uncommon lineages.")
+    
+    big_list = convert_str_to_list(lineage_tables,False)
+    centralLoc = [t for t in big_list if "_central_" in t]
+    tableList = [t for t in big_list if "_central_" not in t]
+    centralName = centralLoc[0].split('/')[-1].split("_")[0]
+    
+    linmapList = convert_str_to_list(lineage_maps, True)        
+
+    print(f'Based on the sample density for submitted sequences with adm2 metadata, **{centralName}** was determined to be the focal NHS Health-board.\n')
+    print(f'The below figure visualises the relative proportion of assigned UK-Lineages for samples sampled in **{centralName}** for the defined time-frame.')
+    print ("![]("+linmapList[0]+")\n")
+    print(f'The below figure visualises the relative proportions of assigned UK-Lineages for samples collected in the whole region for the defined time-frame. Plot-size demonstrates relative numbers of sequences across given NHS healthboards.')
+    print ("![]("+linmapList[2]+")\n")
+    #print(f'The below figure visualises the relative proportion of assigned UK-Lineages for samples collected and sequenced within neighbouring healthboard regions for the defined time-frame.')
+    #print ("![]("+linmapList[1]+")")
+    #print('\n')
+    print(f'Tabulated lineage data for the **central** health-board region:\n')
+
+    with open(centralLoc[0], 'r') as file:
+        count = 0
+        for l in file:
+            if count != 0:
+                l = l.rstrip("\n")
+            else:
+                l=l
+            print(l)
+            count += 1
+    print(f'Tabulated lineage data for the **neighbouring** health-board regions:\n')
+
+    for each in tableList:
+        with open(each, "r") as file: 
+            count = 0               
+            for l in file:
+                if count != 0:
+                    l = l.rstrip("\n")
+                else:
+                    l=l
+                
+                print(l)
+                count += 1

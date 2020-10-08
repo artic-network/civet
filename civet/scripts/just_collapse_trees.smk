@@ -1,21 +1,4 @@
-"""
-Passed into config:
 
-catchment_str=tree_1,tree_2,...,tree_X
-"snakemake --nolock --snakefile {input.snakefile_collapse_before:q} "
-                            "{params.force} "
-                            "{params.quiet_mode} "
-                            # "--directory {params.tempdir:q} "
-                            "--config "
-                            f"catchment_str={catchment_str} "
-                            "outdir={params.outdir:q} "
-                            # "tempdir={params.tempdir:q} "
-                            "not_cog_csv={input.not_cog_csv:q} "
-                            "post_qc_query={input.not_cog_query_seqs:q} "
-                            "all_cog_seqs={input.all_cog_seqs:q} "
-                            "combined_metadata={input.combined_metadata:q} "
-                            "--cores {params.cores}"
-"""
 from Bio import Phylo
 from Bio import SeqIO
 import csv
@@ -34,7 +17,7 @@ rule protect_subtree_nodes:
     input:
         metadata = config["combined_metadata"]
     params:
-        tree_dir = os.path.join(config["tempdir"],"catchment_trees")
+        tree_dir = os.path.join(config["outdir"],"catchment_trees")
     output:
         metadata = os.path.join(config["tempdir"],"protected","protected.csv")
     run:
@@ -45,10 +28,21 @@ rule protect_subtree_nodes:
                 for fn in f:
                     if fn.endswith(".newick"):
                         c+=1
+                        #Finds all subtree nodes that exist
                         tree = ".".join(fn.split(".")[:-1])
                         node_name = "_".join(tree.split("_")[1:])
                         fw.write(f"{node_name},{c}\n")
             
+           # finds all nodes in protect set
+            if config["protect"]:
+                with open(config["protect"], "r") as f:
+                    reader = csv.DictReader(f)
+                    for row in reader:
+                        c +=1
+                        protect_name = row["sequence_name"]
+                        fw.write(f"{protect_name},{c}\n")
+
+            # find all query nodes that exist
             with open(input.metadata, newline="") as f:
                 reader = csv.DictReader(f)
                 for row in reader:
@@ -58,11 +52,10 @@ rule protect_subtree_nodes:
 
 rule summarise_polytomies:
     input:
-        tree = os.path.join(config["tempdir"], "catchment_trees","{tree}.newick"),
+        tree = os.path.join(config["outdir"], "catchment_trees","{tree}.newick"),
         metadata = os.path.join(config["tempdir"],"protected","protected.csv")
     params:
-        tree_dir = os.path.join(config["tempdir"],"catchment_trees"),
-        threshold = config["threshold"]
+        tree_dir = os.path.join(config["outdir"],"catchment_trees")
     output:
         collapsed_tree = os.path.join(config["tempdir"],"collapsed_trees","{tree}.tree"),
         collapsed_information = os.path.join(config["outdir"],"local_trees","{tree}.txt")
@@ -72,7 +65,7 @@ rule summarise_polytomies:
         -o {output.collapsed_tree:q} \
         --metadata {input.metadata:q} \
         --index-column protect \
-        --threshold {params.threshold} \
+        --threshold {config[collapse_threshold]} \
         --in-format newick \
         --out-format newick \
         --output-tsv {output.collapsed_information:q}

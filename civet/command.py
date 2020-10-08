@@ -1,661 +1,357 @@
 #!/usr/bin/env python3
 from civet import __version__
+
 import setuptools
 import argparse
 import os.path
 import snakemake
 import sys
-from tempfile import gettempdir
 import tempfile
-import pprint
-import json
 import csv
 import os
+import yaml
 from datetime import datetime
 from Bio import SeqIO
-
 import pkg_resources
 from . import _program
 
-"""
-Need query_csv, metadata, fasta (opt)
-"""
-
+from reportfunk.funks import io_functions as qcfunk
+from reportfunk.funks import report_functions as rfunk
+from reportfunk.funks import custom_logger as custom_logger
+from reportfunk.funks import log_handler_handle as lh
+import civetfunks as cfunk
 
 thisdir = os.path.abspath(os.path.dirname(__file__))
 cwd = os.getcwd()
 
 def main(sysargs = sys.argv[1:]):
 
-    parser = argparse.ArgumentParser(prog = _program, 
-    description='civet: Cluster Investivation & Virus Epidemiology Tool', 
-    usage='''civet <query> [options]''')
+    parser = argparse.ArgumentParser(add_help=False, prog = _program, 
+    description=cfunk.preamble(__version__), 
+    usage='''
+\tcivet -i <config.yaml> [options]
+\tcivet -i input.csv [options]
+\tcivet -i ID1,IS2 [options]
+\tcivet -fm <column=match> [options]\n\n''')
 
-    parser.add_argument('query',help="Input csv file with minimally `name` as a column header. Can include additional fields to be incorporated into the analysis, e.g. `sample_date`",)
-    parser.add_argument('-i',"--id-string", action="store_true",help="Indicates the input is a comma-separated id string with one or more query ids. Example: `EDB3588,EDB3589`.", dest="ids")
-    parser.add_argument('-f','--fasta', action="store",help="Optional fasta query.", dest="fasta")
-    parser.add_argument('-sc',"--sequencing-centre", action="store",help="Customise report with logos from sequencing centre.", dest="sequencing_centre")
-    parser.add_argument('--CLIMB', action="store_true",dest="climb",help="Indicates you're running CIVET from within CLIMB, uses default paths in CLIMB to access data")
-    parser.add_argument('--cog-report', action="store_true",help="Run summary cog report. Default: outbreak investigation",dest="cog_report")
-    parser.add_argument("-r",'--remote-sync', action="store_true",dest="remote",help="Remotely access lineage trees from CLIMB")
-    parser.add_argument("-uun","--your-user-name", action="store", help="Your CLIMB COG-UK username. Required if running with --remote-sync flag", dest="uun")
-    parser.add_argument('-o','--outdir', action="store",help="Output directory. Default: current working directory")
-    parser.add_argument('-b','--launch-browser', action="store_true",help="Optionally launch md viewer in the browser using grip",dest="launch_browser")
-    parser.add_argument('-d','--datadir', action="store",help="Local directory that contains the data files")
-    parser.add_argument('--fields', action="store",help="Comma separated string of fields to display in the trees in the report. Default: country")
-    parser.add_argument('--display', action="store", help="Comma separated string of fields to display as coloured dots rather than text in report trees. Optionally add colour scheme eg adm1=viridis", dest="display")
-    parser.add_argument('--label-fields', action="store", help="Comma separated string of fields to add to tree report labels.", dest="label_fields")
-    parser.add_argument("--date-fields", action="store", help="Comma separated string of metadata headers containing date information.", dest="date_fields")
-    parser.add_argument("--node-summary", action="store", help="Column to summarise collapsed nodes by. Default = Global lineage", dest="node_summary")
-    parser.add_argument('--search-field', action="store",help="Option to search COG database for a different id type. Default: COG-UK ID", dest="search_field",default="central_sample_id")
-    parser.add_argument('--distance', action="store",help="Extraction from large tree radius. Default: 2", dest="distance",default=2)
-    parser.add_argument('--up-distance', action="store",help="Upstream distance to extract from large tree. Default: 2", dest="up_distance",default=2)
-    parser.add_argument('--down-distance', action="store",help="Downstream distance to extract from large tree. Default: 2", dest="down_distance",default=2)
-    parser.add_argument('--add-boxplots', action="store_true",help="Render boxplots in the output report", dest="add_boxplots")
-    # parser.add_argument('--delay-tree-collapse',action="store_true",dest="delay_tree_collapse",help="Wait until after iqtree runs to collapse the polytomies. NOTE: This may result in large trees that take quite a while to run.")
-    parser.add_argument('-g','--global',action="store_true",dest="search_global",help="Search globally.")
-    parser.add_argument('-n', '--dry-run', action='store_true',help="Go through the motions but don't actually run")
-    parser.add_argument('--tempdir',action="store",help="Specify where you want the temp stuff to go. Default: $TMPDIR")
-    parser.add_argument("--no-temp",action="store_true",help="Output all intermediate files, for dev purposes.")
-    parser.add_argument('--collapse-threshold', action='store',type=int,help="Minimum number of nodes to collapse on. Default: 1", dest="threshold", default=1)
-    parser.add_argument('-t', '--threads', action='store',type=int,help="Number of threads")
-    parser.add_argument("--verbose",action="store_true",help="Print lots of stuff to screen")
-    parser.add_argument('--max-ambig', action="store", default=0.5, type=float,help="Maximum proportion of Ns allowed to attempt analysis. Default: 0.5",dest="maxambig")
-    parser.add_argument('--min-length', action="store", default=10000, type=int,help="Minimum query length allowed to attempt analysis. Default: 10000",dest="minlen")
-    parser.add_argument('--local-lineages',action="store_true",dest="local_lineages",help="Contextualise the cluster lineages at local regional scale. Requires at least one adm2 value in query csv.", default=False)
-    parser.add_argument('--date-restriction',action="store_true",dest="date_restriction",help="Chose whether to date-restrict comparative sequences at regional-scale.", default=False)
-    parser.add_argument('--date-range-start',action="store",default="None", type=str, dest="date_range_start", help="Define the start date from which sequences will COG sequences will be used for local context. YYYY-MM-DD format required.")
-    parser.add_argument('--date-range-end', action="store", default="None", type=str, dest="date_range_end", help="Define the end date from which sequences will COG sequences will be used for local context. YYYY-MM-DD format required.")
-    parser.add_argument('--date-window',action="store",default=7, type=int, dest="date_window",help="Define the window +- either side of cluster sample collection date-range. Default is 7 days.")
-    parser.add_argument("-v","--version", action='version', version=f"civet {__version__}")
+    io_group = parser.add_argument_group('input output options')
+    io_group.add_argument('-i',"--input", action="store",help="Input config file in yaml format, csv file (with minimally an input_column header, Default=`name`) or comma-separated id string with one or more query ids. Example: `EDB3588,EDB3589`.", dest="input")
+    io_group.add_argument('-fm','--from-metadata',nargs='*', dest="from_metadata",help="Generate a query from the metadata file supplied. Define a search that will be used to pull out sequences of interest from the large phylogeny. E.g. -fm adm2=Edinburgh sample_date=2020-03-01:2020-04-01")
+    io_group.add_argument('-o','--output-prefix',action="store",help="Prefix of output directory & report name: Default: civet",dest="output_prefix")
+    io_group.add_argument('--outdir', action="store",help="Output directory. Default: current working directory")
+    io_group.add_argument('-f','--fasta', action="store",help="Optional fasta query.", dest="fasta")
+    io_group.add_argument('--max-ambiguity', action="store", type=float,help="Maximum proportion of Ns allowed to attempt analysis. Default: 0.5",dest="max_ambiguity")
+    io_group.add_argument('--min-length', action="store", type=int,help="Minimum query length allowed to attempt analysis. Default: 10000",dest="min_length")
+    
+    data_group = parser.add_argument_group('data source options')
+    data_group.add_argument('-d','--datadir', action="store",help="Local directory that contains the data files. Default: civet-cat")
+    data_group.add_argument("-m","--background-metadata",action="store",dest="background_metadata",help="Custom metadata file that corresponds to the large global tree/ alignment. Should have a column `sequence_name`.")
+    data_group.add_argument('--CLIMB', action="store_true",dest="climb",help="Indicates you're running CIVET from within CLIMB, uses default paths in CLIMB to access data")
+    data_group.add_argument("-r",'--remote-sync', action="store_true",dest="remote",help="Remotely access lineage trees from CLIMB")
+    data_group.add_argument("-uun","--your-user-name", action="store", help="Your CLIMB COG-UK username. Required if running with --remote-sync flag", dest="uun")
+    data_group.add_argument('--input-column', action="store",help="Column in input csv file to match with database. Default: name", dest="input_column")
+    data_group.add_argument('--data-column', action="store",help="Option to search COG database for a different id type. Default: COG-UK ID", dest="data_column")
 
-    parser.add_argument("--map-sequences", action="store_true", dest="map_sequences", help="Map the coordinate points of sequences, coloured by a trait.")
-    parser.add_argument("--map-inputs", required=False, dest="map_inputs", help="columns containing EITHER x and y coordinates as a comma separated string OR outer postcodes for mapping sequences")
-    parser.add_argument("--input-crs", required=False, dest="input_crs", help="Coordinate reference system of sequence coordinates")
-    parser.add_argument("--mapping-trait", required=False, dest="mapping_trait", help="Column to colour mapped sequences by")
+    report_group = parser.add_argument_group('report customisation')
+    report_group.add_argument('-sc',"--sequencing-centre", action="store",help="Customise report with logos from sequencing centre.", dest="sequencing_centre")
+    report_group.add_argument("--display-name", action="store", help="Column in input csv file with display names for seqs. Default: same as input column", dest="display_name")
+    report_group.add_argument("--sample-date-column", action="store", help="Column in input csv with sampling date in it. Default='sample_date'", dest="sample_date_column")
+    report_group.add_argument("--database-sample-date-column", action="store", help="Colum in background metadata containing sampling date. Default='sample_date'", dest="database_sample_date_column")
+    report_group.add_argument('--colour-by', action="store", help="Comma separated string of fields to display as coloured dots rather than text in report trees. Optionally add colour scheme eg adm1=viridis", dest="colour_by")
+    report_group.add_argument('--tree-fields', action="store",help="Comma separated string of fields to display in the trees in the report. Default: country", dest="tree_fields")
+    report_group.add_argument('--label-fields', action="store", help="Comma separated string of fields to add to tree report labels.", dest="label_fields")
+    report_group.add_argument("--date-fields", action="store", help="Comma separated string of metadata headers containing date information.", dest="date_fields")
+    report_group.add_argument("--node-summary", action="store", help="Column to summarise collapsed nodes by. Default = Global lineage", dest="node_summary")
+    report_group.add_argument("--table-fields", action="store", help="Fields to include in the table produced in the report. Query ID, name of sequence in tree and the local tree it's found in will always be shown", dest="table_fields")
+    report_group.add_argument("--include-snp-table", action="store_true", help="Include information about closest sequence in database in table. Default is False", dest="include_snp_table")
+    report_group.add_argument('--no-snipit', action="store_true",help="Don't run snipit graph", dest="no_snipit")
+    report_group.add_argument('--include-bars', action="store_true",help="Render barcharts in the output report", dest="include_bars")
+    report_group.add_argument('--omit-appendix', action="store_true", help="Omit the appendix section. Default=False", dest="omit_appendix")
 
-    acceptable_colours = ['viridis', 'plasma', 'inferno', 'magma', 'cividis','Greys', 
-            'Purples', 'Blues', 'Greens', 'Oranges', 'Reds',
-            'YlOrBr', 'YlOrRd', 'OrRd', 'PuRd', 'RdPu', 'BuPu',
-            'GnBu', 'PuBu', 'YlGnBu', 'PuBuGn', 'BuGn', 'YlGn',
-            'binary', 'gist_yarg', 'gist_gray', 'gray', 'bone', 'pink',
-            'spring', 'summer', 'autumn', 'winter', 'cool', 'Wistia',
-            'hot', 'afmhot', 'gist_heat', 'copper',
-            'PiYG', 'PRGn', 'BrBG', 'PuOr', 'RdGy', 'RdBu',
-            'RdYlBu', 'RdYlGn', 'Spectral', 'coolwarm', 'bwr', 'seismic',
-            'twilight', 'twilight_shifted', 'hsv',
-            'Pastel1', 'Pastel2', 'Paired', 'Accent',
-            'Dark2', 'Set1', 'Set2', 'Set3',
-            'tab10', 'tab20', 'tab20b', 'tab20c',
-            'flag', 'prism', 'ocean', 'gist_earth', 'terrain', 'gist_stern',
-            'gnuplot', 'gnuplot2', 'CMRmap', 'cubehelix', 'brg',
-            'gist_rainbow', 'rainbow', 'jet', 'nipy_spectral', 'gist_ncar']
+    tree_group = parser.add_argument_group('tree context options')
+    tree_group.add_argument('--distance', action="store",help="Extraction from large tree radius. Default: 2", dest="distance",type=int)
+    tree_group.add_argument('--up-distance', action="store",help="Upstream distance to extract from large tree. Default: 2", dest="up_distance",type=int)
+    tree_group.add_argument('--down-distance', action="store",help="Downstream distance to extract from large tree. Default: 2", dest="down_distance",type=int)
+    tree_group.add_argument('--collapse-threshold', action='store',help="Minimum number of nodes to collapse on. Default: 1", dest="collapse_threshold",type=int)
+    tree_group.add_argument('-p','--protect',nargs='*', dest="protect",help="Protect nodes from collapse if they match the search query in the metadata file supplied. E.g. -p adm2=Edinburgh sample_date=2020-03-01:2020-04-01")
 
-    full_metadata_headers = ["central_sample_id", "biosample_source_id","sequence_name","secondary_identifier","sample_date","epi_week","country","adm1","adm2","outer_postcode","is_surveillance","is_community","is_hcw","is_travel_history","travel_history","lineage","lineage_support","uk_lineage","acc_lineage","del_lineage","phylotype"]
-
-
-    # Exit with help menu if no args supplied
+    map_group = parser.add_argument_group('map rendering options')
+    map_group.add_argument('--local-lineages',action="store_true",dest="local_lineages",help="Contextualise the cluster lineages at local regional scale. Requires at least one adm2 value in query csv.")
+    map_group.add_argument('--date-restriction',action="store_true",dest="date_restriction",help="Chose whether to date-restrict comparative sequences at regional-scale.")
+    map_group.add_argument('--date-range-start',action="store", type=str, dest="date_range_start", help="Define the start date from which sequences will COG sequences will be used for local context. YYYY-MM-DD format required.")
+    map_group.add_argument('--date-range-end', action="store", type=str, dest="date_range_end", help="Define the end date from which sequences will COG sequences will be used for local context. YYYY-MM-DD format required.")
+    map_group.add_argument('--date-window',action="store", type=int, dest="date_window",help="Define the window +- either side of cluster sample collection date-range. Default is 7 days.")
+    map_group.add_argument("--map-sequences", action="store_true", dest="map_sequences", help="Map the sequences themselves by adm2, coordinates or otuer postcode.")
+    map_group.add_argument("--map-info", required=False, dest="map_info", help="columns containing EITHER x and y coordinates as a comma separated string OR outer postcodes for mapping sequences OR Adm2")
+    map_group.add_argument("--input-crs", required=False, dest="input_crs", help="Coordinate reference system for sequence coordinates")
+    map_group.add_argument("--colour-map-by", required=False, dest="colour_map_by", help="Column to colour mapped sequences by")
+    
+    misc_group = parser.add_argument_group('misc options')
+    misc_group.add_argument("--safety-level", action="store", type=int, dest="safety_level",help="Level of anonymisation for users. Options: 0 (no anonymity), 1 (no COGIDs on background data), 2 (no adm2 on data). Default: 1")
+    misc_group.add_argument('-b','--launch-browser', action="store_true",help="Optionally launch md viewer in the browser using grip",dest="launch_browser")
+    misc_group.add_argument('-c','--generate-config',dest="generate_config",action="store_true",help="Rather than running a civet report, just generate a config file based on the command line arguments provided")
+    misc_group.add_argument('--tempdir',action="store",help="Specify where you want the temp stuff to go. Default: $TMPDIR")
+    misc_group.add_argument("--no-temp",action="store_true",help="Output all intermediate files, for dev purposes.",dest="no_temp")
+    misc_group.add_argument("--verbose",action="store_true",help="Print lots of stuff to screen")
+    misc_group.add_argument("--art",action="store_true",help="Print art")
+    misc_group.add_argument('-t', '--threads', action='store',dest="threads",type=int,help="Number of threads")
+    misc_group.add_argument("-v","--version", action='version', version=f"civet {__version__}")
+    misc_group.add_argument("-h","--help",action="store_true",dest="help")
+    
+    """
+    Exit with help menu if no args supplied
+    """
     if len(sysargs)<1: 
         parser.print_help()
-        sys.exit(-1)
+        sys.exit(0)
     else:
         args = parser.parse_args(sysargs)
-
-    # find the master Snakefile
-    snakefile = os.path.join(thisdir, 'scripts','Snakefile')
-    if not os.path.exists(snakefile):
-        sys.stderr.write('Error: cannot find Snakefile at {}\n Check installation'.format(snakefile))
-        sys.exit(-1)
+        if args.help:
+            parser.print_help()
+            sys.exit(0)
     
-    # find the query fasta
-    if args.fasta:
-        fasta = os.path.join(cwd, args.fasta)
-        if not os.path.exists(fasta):
-            sys.stderr.write('Error: cannot find fasta query at {}\n'.format(fasta))
-            sys.exit(-1)
-        else:
-            print(f"Input fasta file: {fasta}")
-    else:
-        fasta = ""
+    if args.art:
+        cfunk.be_arty()
+        sys.exit(0) 
+    
+    """
+    Initialising dicts
+    """
+    # create the config dict to pass through to the snakemake file
+    config = {}
+    # get the default values from civetfunks
+    default_dict = cfunk.get_defaults()
 
+    """
+    Input file (-i/--input) 
+    Valid inputs are input.csv; ID1,ID2,ID3; config.yaml/config.yml
+    
+    If there's an input fasta file- add to the config dict
+
+    """
+    # find the query csv, or string of ids, or config file
+    query,configfile = qcfunk.type_input_file(args.input,cwd,config)
+
+    # if a yaml file is detected, add everything in it to the config dict
+    if configfile:
+        config = qcfunk.parse_yaml_file(configfile, config)
+    
+    """
+    Get outdir, tempdir and data dir. 
+    Check if data has the right columns needed.
+    The following rely on things that come out of the 
+    input config or csv files so shouldnt be moved up above that.
+
+    - tempdir
+    - datadir
+    """
     # default output dir
-    outdir = ''
-    if args.outdir:
-        rel_outdir = args.outdir #for report weaving
-        outdir = os.path.join(cwd, args.outdir)
-        figdir = os.path.join(outdir, "figures")
-        if not os.path.exists(outdir):
-            os.mkdir(outdir)
-        if not os.path.exists(figdir):
-            os.mkdir(figdir)
-            
+    qcfunk.get_outdir(args.outdir,args.output_prefix,cwd,config,default_dict)
+
+    # specifying temp directory, outdir if no_temp (tempdir becomes working dir)
+    tempdir = qcfunk.get_temp_dir(args.tempdir, args.no_temp,cwd,config)
+
+    # find the data dir
+    cfunk.get_datadir(args.climb,args.uun,args.datadir,args.background_metadata,args.remote,cwd,config,default_dict)
+
+    # add data and input columns to config
+    qcfunk.data_columns_to_config(args,config,default_dict)
+
+    # check if metadata has the right columns, background_metadata_header added to config
+    qcfunk.check_metadata_for_search_columns(config,default_dict)
+
+    no_temp = qcfunk.check_arg_config_default("no_temp",args.no_temp, config, default_dict)
+    config["no_temp"] = no_temp
+
+    """
+    from metadata parsing 
+
+    relies on the data dir being found 
+    """
+    # generate query from metadata
+    if args.from_metadata or "from_metadata" in config:
+        if "query" in config:
+            if config["query"]:
+                sys.stderr.write(qcfunk.cyan('Error: please specifiy either -fm/--from-metadata or an input csv/ID string.\n'))
+                sys.exit(-1)
+        elif "fasta" in config:
+            if config["fasta"]:
+                sys.stderr.write(qcfunk.cyan('Error: fasta file option cannot be used in conjunction with -fm/--from-metadata.\nPlease specifiy an input csv with your fasta file.\n'))
+                sys.exit(-1)
+
+        metadata = config["background_metadata"]
+        config["no_snipit"]=True
+        query = qcfunk.generate_query_from_metadata(args.from_metadata,metadata,config)
     else:
-        timestamp = str(datetime.now().isoformat(timespec='milliseconds')).replace(":","").replace(".","").replace("T","-")
-        outdir = os.path.join(cwd, timestamp)
-        figdir = os.path.join(outdir, "figures")
-        if not os.path.exists(outdir):
-            os.mkdir(outdir)
-        if not os.path.exists(figdir):
-            os.mkdir(figdir)
-        
-        rel_outdir = os.path.join(".",timestamp)
+        config["from_metadata"] = False
+    """
+    The query file could have been from one of
+    - input.csv
+    - id string input, created csv
+    - from_metadata generated query csv
+
+    (all either specified in config or via command line)
+    """
+    # check query exists or add ids to temp query file
+    qcfunk.check_query_file(query, cwd, config)
+
+    # check if metadata has the right columns, background_metadata_header added to config
+    qcfunk.check_query_for_input_column(config,default_dict)
+
+    """
+    Input fasta file 
+    sourcing and qc checks
+    """
+    # find the query fasta
+    qcfunk.get_query_fasta(args.fasta,cwd, config)
     
-    print(f"Output files will be written to {outdir}\n")
+    # run qc on the input sequence file
+    num_seqs = qcfunk.input_file_qc(args.min_length,args.max_ambiguity,config,default_dict)
+    
+    """
+    Quick check in background data
+    """
+    if num_seqs == 0:
+        # check if any queries in background or if fasta supplied
+        qcfunk.check_background_for_queries(config,default_dict)
 
-    # specifying temp directory
-    tempdir = ''
-    if args.tempdir:
-        to_be_dir = os.path.join(cwd, args.tempdir)
-        if not os.path.exists(to_be_dir):
-            os.mkdir(to_be_dir)
-        temporary_directory = tempfile.TemporaryDirectory(suffix=None, prefix=None, dir=to_be_dir)
-        tempdir = temporary_directory.name
-    else:
-        temporary_directory = tempfile.TemporaryDirectory(suffix=None, prefix=None, dir=None)
-        tempdir = temporary_directory.name
+    """
+    Accessing the civet package data and 
+    selecting the mapping files, 
+    the sequencing centre header
+    """
+    # accessing package data and adding to config dict
+    cfunk.get_package_data(thisdir,config)
 
-    # if no temp, just write everything to outdir
-    if args.no_temp:
-        print(f"--no-temp: All intermediate files will be written to {outdir}")
-        tempdir = outdir
+    """
+    Report options and args added to config, seq header file retrieved
+    """
+    # check args, config, defaultdict for report group options
+    cfunk.report_group_to_config(args,config,default_dict)
 
-    # find the query csv, or string of ids
-    query = os.path.join(cwd, args.query)
-    if not os.path.exists(query):
-        if args.ids:
-            id_list = args.query.split(",")
-            query = os.path.join(tempdir, "query.csv")
-            with open(query,"w") as fw:
-                fw.write("name\n")
-                for i in id_list:
-                    fw.write(i+'\n')
-        else:
-            sys.stderr.write(f"Error: cannot find query file at {query}\n Check if the file exists, or if you're inputting an id string (e.g. EDB3588,EDB2533), please use in conjunction with the `--id-string` flag\n.")
-            sys.exit(-1)
-    else:
-        print(f"Input file: {query}")
+    # get seq centre header file from pkg data
+    cfunk.get_sequencing_centre_header(config)
 
+    
+    """
+    Mapping options parsing and 
+    qc of the input
+    """
+    
+    # check args, config, defaultdict for mapping group options
+    cfunk.map_group_to_config(args,config,default_dict)
+
+    # check args, config, defaultdict for data group options
+    qcfunk.data_columns_to_config(args,config,default_dict)
 
     # parse the input csv, check col headers and get fields if fields specified
-    fields = []
-    labels = []
-    queries = []
-    graphics_list = []
-    date_lst = []
-
-    with open(query, newline="") as f:
-        reader = csv.DictReader(f)
-        column_names = reader.fieldnames
-        if "name" not in column_names:
-            sys.stderr.write(f"Error: Input file missing header field `name`\n.")
-            sys.exit(-1)
-
-        if not args.fields:
-            fields.append("adm1")
-            print("No fields to colour by provided, will colour by adm1 by default.\n")
-        else:
-            desired_fields = args.fields.split(",")
-            for field in desired_fields:
-                if field in reader.fieldnames or field in full_metadata_headers:
-                    fields.append(field)
-                else:
-                    sys.stderr.write(f"Error: {field} field not found in metadata file or full metadata file")
-                    sys.exit(-1)
-
+    qcfunk.check_label_and_tree_and_date_fields(config, default_dict)
         
-        if not args.label_fields:
-            labels.append("NONE")
-        else:
-            label_fields = args.label_fields.split(",")
-            for label_f in label_fields:
-                if label_f in reader.fieldnames or label_f in full_metadata_headers:
-                    labels.append(label_f)
-                else:
-                    sys.stderr.write(f"Error: {label_f} field not found in metadata file or full metadata file")
-                    sys.exit(-1)
-
-        if not args.date_fields:
-            date_lst.append("NONE")
-        else:
-            date_fields = args.date_fields.split(",")
-            for date_f in date_fields:
-                if date_f in reader.fieldnames or date_f in full_metadata_headers:
-                    date_lst.append(date_f)
-                else:
-                    sys.stderr.write(f"Error: {date_f} field not found in query metadata file or full metadata file")
-                    sys.exit(-1)
-
-        if args.display:
-            sections = args.display.split(",")
-            for item in sections:
-                splits = item.split("=")
-                graphic_trait = splits[0]
-                if graphic_trait in reader.fieldnames:
-                    if len(splits) == 1:
-                        graphics_list.append(graphic_trait + ":default")
-                    else:
-                        colour_scheme = splits[1]
-                        if colour_scheme in acceptable_colours:
-                            graphics_list.append(graphic_trait + ":" + colour_scheme)
-                        else:
-                            sys.stderr.write(f"Error: {colour_scheme} not a matplotlib compatible colour scheme s")
-                            sys.stderr.write(f"Please use one of {acceptable_colours}")
-                            sys.exit(-1)
-                else:
-                    sys.stderr.write(f"Error: {graphic_trait} field not found in metadata file")
-                    sys.exit(-1)
-        else:
-            graphics_list.append("adm1:default")
-        
-        print("COG-UK ids to process:")
-        for row in reader:
-            queries.append(row["name"])
-            
-            print(row["name"])
-        print(f"Total: {len(queries)}")
-    print('\n')
-    # how many threads to pass
-    if args.threads:
-        threads = args.threads
-    else:
-        threads = 1
-    print(f"Number of threads: {threads}\n")
-
-    # create the config dict to pass through to the snakemake file
-    config = {
-        "query":query,
-        "fields":",".join(fields),
-        "label_fields":",".join(labels),
-        "date_fields":",".join(date_lst),
-        "outdir":outdir,
-        "tempdir":tempdir,
-        "trim_start":265,   # where to pad to using datafunk
-        "trim_end":29674,   # where to pad after using datafunk
-        "fasta":fasta,
-        "rel_outdir":rel_outdir,
-        "search_field":args.search_field,
-        "force":"True",
-        "date_range_start":args.date_range_start,
-        "date_range_end":args.date_range_end,
-        "date_window":args.date_window,
-        "graphic_dict":",".join(graphics_list)
-        }
-
-    if args.add_boxplots:
-        config["add_boxplots"]= True
-    else:
-        config["add_boxplots"]= False
-
-    if args.map_sequences:
-        config["map_sequences"] = True
-        if not args.map_inputs:
-            sys.stderr.write('Error: coordinates or outer postcode not supplied for mapping sequences. Please provide either x and y columns as a comma separated string, or column header containing outer postcode.')
-            sys.exit(-1)
-        if len(args.map_inputs.split(",")) == 2:
-            if not args.input_crs:
-                sys.stderr.write('Error: input coordinate system not provided for mapping. Please provide --input-crs eg EPSG:3395')
-                sys.exit(-1)
-            else:
-                input_crs = args.input_crs
-        else:
-            input_crs = "EPSG:4326"
-        
-        config["map_cols"] = args.map_inputs
-        config["input_crs"] = input_crs
-
-        relevant_cols = []
-        with open(query, newline="") as f:
-            reader = csv.DictReader(f)
-            column_names = reader.fieldnames
-            map_cols = args.map_inputs.split(",")
-            for i in map_cols:
-                relevant_cols.append(i)
-            relevant_cols.append(args.mapping_trait)
-            
-            for map_arg in relevant_cols:
-                if map_arg and map_arg not in reader.fieldnames:
-                    sys.stderr.write(f"Error: {map_arg} field not found in metadata file")
-                    sys.exit(-1)
-
-        if args.mapping_trait:
-            config["mapping_trait"] = args.mapping_trait
-        else:
-            config["mapping_trait"] = False
-            
-    else:
-        config["map_sequences"] = False
-        config["map_cols"] = False
-        config["input_crs"] = False
-        config["mapping_trait"] = False
-
-    if args.local_lineages:
-        config['local_lineages'] = "True"
-        with open(query, newline="") as f:
-            reader = csv.DictReader(f)
-            header = reader.fieldnames
-            if not "adm2" in header:
-                sys.stderr.write(f"Error: --local-lineages argument called, but input csv file doesn't have an adm2 column. Please provide that to have local lineage analysis.\n")
-                sys.exit(-1)
-    else:
-        config['local_lineages'] = "False"
-
-    if args.date_restriction:
-        config['date_restriction'] = "True"
-    else:
-        config['date_restriction'] = "False"
-
-    """ 
-    QC steps:
-    1) check csv header
-    2) check fasta file N content
-    3) write a file that contains just the seqs to run
-    """
-    # find the data files
-    data_dir = ""
-    if args.climb or args.datadir:
-        if args.climb:
-            data_dir = "/cephfs/covid/bham/civet-cat"
-            if os.path.exists(data_dir):
-                config["remote"] = "False"
-                config["username"] = ""
-            else:
-                sys.stderr.write(f"Error: --CLIMB argument called, but CLIMB data path doesn't exist.\n")
-                sys.exit(-1)
-
-        elif args.datadir:
-            data_dir = os.path.join(cwd, args.datadir)
-        if not args.remote:
-            cog_metadata,all_cog_metadata,cog_global_metadata = ("","","")
-            cog_seqs,all_cog_seqs = ("","")
-            cog_tree = ""
-            
-            cog_seqs = os.path.join(data_dir,"cog_alignment.fasta")
-            all_cog_seqs = os.path.join(data_dir,"cog_alignment_all.fasta")
-            
-            cog_metadata = os.path.join(data_dir,"cog_metadata.csv")
-            all_cog_metadata = os.path.join(data_dir,"cog_metadata_all.csv")
-
-            cog_global_metadata = os.path.join(data_dir,"cog_global_metadata.csv")
-            cog_global_seqs= os.path.join(data_dir,"cog_global_alignment.fasta")
-
-            cog_tree = os.path.join(data_dir,"cog_global_tree.nexus")
-
-            if not os.path.isfile(cog_seqs) or not os.path.isfile(cog_global_seqs) or not os.path.isfile(all_cog_seqs) or not os.path.isfile(cog_metadata) or not  os.path.isfile(all_cog_metadata) or not os.path.isfile(cog_global_metadata) or not os.path.isfile(cog_tree):
-                sys.stderr.write(f"""Error: cannot find correct data files at {data_dir}\nThe directory should contain the following files:\n\
-        - cog_global_tree.nexus\n\
-        - cog_alignment_all.fasta\n\
-        - cog_metadata.csv\n\
-        - cog_metadata_all.csv\n\
-        - cog_global_metadata.csv\n\
-        - cog_global_alignment.fasta\n\
-        - cog_alignment.fasta\n\n\
-    To run civet please either\n1) ssh into CLIMB and run with --CLIMB flag\n\
-    2) Run using `--remote-sync` flag and your CLIMB username specified e.g. `-uun climb-covid19-otoolexyz`\n\
-    3) Specify a local directory with the appropriate files\n\n""")
-                sys.exit(-1)
-            else:
-                config["cog_seqs"] = cog_seqs
-                config["all_cog_seqs"] = all_cog_seqs
-
-                config["cog_metadata"] = cog_metadata
-                config["all_cog_metadata"] = all_cog_metadata
-                config["cog_global_metadata"] = cog_global_metadata
-                config["cog_global_seqs"] = cog_global_seqs
-                config["cog_tree"] = cog_tree
-
-                print("Found cog data:")
-                print("    -",cog_seqs)
-                print("    -",all_cog_seqs)
-                print("    -",cog_metadata)
-                print("    -",all_cog_metadata)
-                print("    -",cog_global_metadata)
-                print("    -",cog_tree,"\n")
-
-    else:
-        print("No data directory specified, will save data in civet-cat in current working directory")
-        data_dir = cwd
-
-
-    # if remote flag, and uun provided, sync data from climb
-    if args.remote:
-        config["remote"]= "True"
-        if args.uun:
-            config["username"] = args.uun
-        
-            rsync_command = f"rsync -avzh {args.uun}@bham.covid19.climb.ac.uk:/cephfs/covid/bham/civet-cat '{data_dir}'"
-            print(f"Syncing civet data to {data_dir}")
-            status = os.system(rsync_command)
-            if status != 0:
-                sys.stderr.write("Error: rsync command failed.\nCheck your user name is a valid CLIMB username e.g. climb-covid19-smithj\nAlso, check if you have access to CLIMB from this machine and are in the UK\n\n")
-                sys.exit(-1)
-        else:
-            rsync_command = f"rsync -avzh bham.covid19.climb.ac.uk:/cephfs/covid/bham/civet-cat '{data_dir}'"
-            print(f"Syncing civet data to {data_dir}")
-            status = os.system(rsync_command)
-            if status != 0:
-                sys.stderr.write("Error: rsync command failed.\nCheck your ssh is configured with Host bham.covid19.climb.ac.uk\nAlternatively enter your CLIMB username with -uun e.g. climb-covid19-smithj\nAlso, check if you have access to CLIMB from this machine and are in the UK\n\n")
-                sys.exit(-1)
-        cog_metadata,all_cog_metadata,cog_global_metadata = ("","","")
-        cog_seqs,all_cog_seqs = ("","")
-        cog_tree = ""
-
-        cog_seqs = os.path.join(data_dir,"civet-cat","cog_alignment.fasta")
-        all_cog_seqs = os.path.join(data_dir,"civet-cat","cog_alignment_all.fasta")
-
-        cog_metadata = os.path.join(data_dir,"civet-cat","cog_metadata.csv")
-        all_cog_metadata = os.path.join(data_dir,"civet-cat","cog_metadata_all.csv")
-
-        cog_global_metadata = os.path.join(data_dir,"civet-cat","cog_global_metadata.csv")
-        cog_global_seqs= os.path.join(data_dir,"civet-cat","cog_global_alignment.fasta")
-
-        cog_tree = os.path.join(data_dir,"civet-cat","cog_global_tree.nexus")
-
-        config["cog_seqs"] = cog_seqs
-        config["all_cog_seqs"] = all_cog_seqs
-
-        config["cog_metadata"] = cog_metadata
-        config["all_cog_metadata"] = all_cog_metadata
-        config["cog_global_metadata"] = cog_global_metadata
-        config["cog_global_seqs"] = cog_global_seqs
-        config["cog_tree"] = cog_tree
-
-        print("Found cog data:")
-        print("    -",cog_seqs)
-        print("    -",all_cog_seqs)
-        print("    -",cog_metadata)
-        print("    -",all_cog_metadata)
-        print("    -",cog_global_metadata)
-        print("    -",cog_tree,"\n")
-
-    elif not args.datadir and not args.climb:
-        sys.stderr.write("""Error: no way to find source data.\n\nTo run civet please either\n1) ssh into CLIMB and run with --CLIMB flag\n\
-2) Run using `--remote-sync` flag and your CLIMB username specified e.g. `-uun climb-covid19-otoolexyz`\n\
-3) Specify a local directory with the appropriate files on. The following files are required:\n\
-- cog_global_tree.nexus\n\
-- cog_metadata.csv\n\
-- cog_metadata_all.csv\n\
-- cog_global_metadata.csv\n\
-- cog_global_alignment.fasta\n\
-- cog_alignment.fasta\n\n""")
-        sys.exit(-1)
-
-    # run qc on the input sequence file
-    if args.fasta:
-        do_not_run = []
-        run = []
-        for record in SeqIO.parse(args.fasta, "fasta"):
-            if len(record) <args.minlen:
-                record.description = record.description + f" fail=seq_len:{len(record)}"
-                do_not_run.append(record)
-                print(f"    - {record.id}\tsequence too short: Sequence length {len(record)}")
-            else:
-                num_N = str(record.seq).upper().count("N")
-                prop_N = round((num_N)/len(record.seq), 2)
-                if prop_N > args.maxambig: 
-                    record.description = record.description + f" fail=N_content:{prop_N}"
-                    do_not_run.append(record)
-                    print(f"    - {record.id}\thas an N content of {prop_N}")
-                else:
-                    run.append(record)
-
-        post_qc_query = os.path.join(outdir, 'query.post_qc.fasta')
-        with open(post_qc_query,"w") as fw:
-            SeqIO.write(run, fw, "fasta")
-        qc_fail = os.path.join(outdir,'query.failed_qc.csv')
-        with open(qc_fail,"w") as fw:
-            fw.write("name,reason_for_failure\n")
-            for record in do_not_run:
-                desc = record.description.split(" ")
-                for i in desc:
-                    if i.startswith("fail="):
-                        fw.write(f"{record.id},{i}\n")
-
-        config["post_qc_query"] = post_qc_query
-        config["qc_fail"] = qc_fail
-    else:
-        config["post_qc_query"] = ""
-        config["qc_fail"] = ""
-
-    if args.search_global:
-        config["global"]="True"
-    else:
-        config["global"]="False"
-
-    # delay tree colapse
-    # if args.delay_tree_collapse:
-    #     print("--delay-tree-collapse: Warning tree building may take a long time.")
-    #     config["delay_collapse"] = "True"
-    # else:
-    config["delay_collapse"] = "False"
-
-    # accessing package data and adding to config dict
-    reference_fasta = pkg_resources.resource_filename('civet', 'data/reference.fasta')
-    outgroup_fasta = pkg_resources.resource_filename('civet', 'data/outgroup.fasta')
-    polytomy_figure = pkg_resources.resource_filename('civet', 'data/polytomies.png')
-    footer_fig = pkg_resources.resource_filename('civet', 'data/footer.png')
-    clean_locs = pkg_resources.resource_filename('civet', 'data/mapping_files/adm2_cleaning.csv')
-    map_input_1 = pkg_resources.resource_filename('civet', 'data/mapping_files/gadm36_GBR_2.json')
-    map_input_2 = pkg_resources.resource_filename('civet', 'data/mapping_files/channel_islands.json')  
-    map_input_3 = pkg_resources.resource_filename('civet', 'data/mapping_files/NI_counties.geojson')  
-    map_input_4 = pkg_resources.resource_filename('civet', 'data/mapping_files/Mainland_HBs_gapclosed_mapshaped_d3.json')
-    map_input_5 = pkg_resources.resource_filename('civet', 'data/mapping_files/urban_areas_UK.geojson')
-    map_input_6 = pkg_resources.resource_filename('civet', 'data/mapping_files/UK_outPC_coords.csv')
-    spatial_translations_1 = pkg_resources.resource_filename('civet', 'data/mapping_files/HB_Translation.pkl')
-    spatial_translations_2 = pkg_resources.resource_filename('civet', 'data/mapping_files/adm2_regions_to_coords.csv')
-
-    if args.cog_report:
-        report_template = os.path.join(thisdir, 'scripts','COG_template.pmd')
-    else:
-        report_template = os.path.join(thisdir, 'scripts','civet_template.pmd')
+    # map sequences configuration
+    cfunk.map_sequences_config(config)
     
-    if not os.path.exists(report_template):
-        sys.stderr.write('Error: cannot find report_template at {}\n'.format(report_template))
-        sys.exit(-1)
+    # local lineages qc
+    cfunk.local_lineages_qc(config,default_dict)
 
-    with open(cog_global_metadata, newline="") as f:
-        reader = csv.DictReader(f)
-        column_names = reader.fieldnames
+    """
+    Parsing the tree_group arguments, 
+    config or default options
+    """
 
-        if not args.node_summary:
-                summary = "country"
-        else:
-            if args.node_summary in column_names:
-                summary = args.node_summary
-            else:
-                sys.stderr.write(f"Error: {args.node_summary} field not found in metadata file\n")
-                sys.exit(-1)
+    # global now the only search option
+    cfunk.define_seq_db(config,default_dict)
+
+    # extraction radius configuration
+    qcfunk.distance_config(args.distance,args.up_distance,args.down_distance,config,default_dict) 
+
+    # extraction radius configuration
+    qcfunk.collapse_config(args.collapse_threshold,config,default_dict) 
+
+    qcfunk.parse_protect(args.protect,config["background_metadata"],config)
+
+    """
+    Parsing the report_group arguments, 
+    config or default options
+    """
+
+    # make title
+    rfunk.make_title(config, default_dict)
+    # deal with free text
+    rfunk.free_text_args(config, default_dict)
+
+    #get table headers
+    qcfunk.check_table_fields(args.table_fields, args.include_snp_table, config,default_dict)
         
-        print(f"Going to summarise collapsed nodes by: {summary}")
-        config["node_summary"] = summary
+    # summarising collapsed nodes config
+    qcfunk.check_summary_field("node_summary",config, default_dict)
 
-    config["reference_fasta"] = reference_fasta
-    config["outgroup_fasta"] = outgroup_fasta
-    config["polytomy_figure"] = polytomy_figure
-    config["footer"] = footer_fig
-    config["report_template"] = report_template
-    config["clean_locs"] = clean_locs
-    config["uk_map"] = map_input_1
-    config["channels_map"] = map_input_2
-    config["ni_map"] = map_input_3
-    config["uk_map_d3"] = map_input_4
-    config["urban_centres"] = map_input_5
-    config["pc_file"] = map_input_6
-    config["HB_translations"] = spatial_translations_1
-    config["PC_translations"] = spatial_translations_2
+    qcfunk.collapse_summary_path_to_config(config)
 
-    sc_list = ["PHEC", 'LIVE', 'BIRM', 'PHWC', 'CAMB', 'NORW', 'GLAS', 'EDIN', 'SHEF',
-                 'EXET', 'NOTT', 'PORT', 'OXON', 'NORT', 'NIRE', 'GSTT', 'LOND', 'SANG',"NIRE"]
+    """
+    Finally add in all the default options that 
+    were not specified already
+    """
+    for key in default_dict:
+        if key not in config:
+            config[key] = default_dict[key]
 
-    if args.sequencing_centre:
-        if args.sequencing_centre in sc_list:
-            relative_file = os.path.join("data","headers",f"{args.sequencing_centre}.png")
-            header = pkg_resources.resource_filename('civet', relative_file)
-            print(f"using header file from {header}\n")
-            config["sequencing_centre"] = header
-        else:
-            sc_string = "\n".join(sc_list)
-            sys.stderr.write(f'Error: sequencing centre must be one of the following:\n{sc_string}\n')
-            sys.exit(-1)
-    else:
-        relative_file = os.path.join("data","headers","DEFAULT.png")
-        header = pkg_resources.resource_filename('civet', relative_file)
-        print(f"using header file from {header}\n")
-        config["sequencing_centre"] = header
+    """
+    Miscellaneous options parsing
 
-    if args.distance:
-        try:
-            distance = int(args.distance) 
-            config["up_distance"] = args.distance
-            config["down_distance"] = args.distance
-        except:
-            sys.stderr.write('Error: distance must be an integer\n')
-            sys.exit(-1)
-    else:
-        config["up_distance"] = "1"
-        config["down_distance"] = "1"
-
-    if args.up_distance:
-        try:
-            distance = int(args.up_distance) 
-            config["up_distance"] = args.up_distance
-        except:
-            sys.stderr.write('Error: up-distance must be an integer\n')
-            sys.exit(-1)
-
-    if args.down_distance:
-        try:
-            distance = int(args.down_distance) 
-            config["down_distance"] = args.down_distance
-        except:
-            sys.stderr.write('Error: down-distance must be an integer\n')
-            sys.exit(-1)
-
-
-    if args.threshold:
-        try:
-            threshold = int(args.threshold)
-            config["threshold"] = args.threshold
-        except:
-            sys.stderr.write('Error: threshold must be an integer\n')
-            sys.exit(-1)
-    else:
-        config["threshold"] = "1"
-
-    if args.launch_browser:
-        config["launch_browser"]="True"
+    """
 
     # don't run in quiet mode if verbose specified
     if args.verbose:
         quiet_mode = False
-        config["quiet_mode"]="False"
+        config["log_string"] = ""
     else:
         quiet_mode = True
-        config["quiet_mode"]="True"
+        lh_path = os.path.realpath(lh.__file__)
+        config["log_string"] = f"--quiet --log-handler-script {lh_path} "
 
-    status = snakemake.snakemake(snakefile, printshellcmds=True,
-                                 dryrun=args.dry_run, forceall=True,force_incomplete=True,workdir=tempdir,
-                                 config=config, cores=threads,lock=False,quiet=quiet_mode
-                                 )
+    launch_browser = qcfunk.check_arg_config_default("launch_browser",args.launch_browser,config,default_dict)
+    config["launch_browser"] = launch_browser
+
+    threads = qcfunk.check_arg_config_default("threads",args.threads,config,default_dict)
+    try:
+        threads = int(threads)
+        config["threads"]= int(threads)
+    except:
+        sys.stderr.write(qcfunk.cyan('Error: Please specifiy an integer for variable `threads`.\n'))
+        sys.exit(-1)
+
+    safety_level = qcfunk.check_arg_config_default("safety_level",args.safety_level,config,default_dict)
+    
+    try:
+        safety_level = int(safety_level)
+    except:
+        sys.stderr.write(qcfunk.cyan('Error: Please specifiy either 0, 1 or 2 for variable `safety_level`.\n'))
+        sys.exit(-1)
+
+    if safety_level in [0,1,2]:
+        config["safety_level"]= int(safety_level)
+    else:
+        sys.stderr.write(qcfunk.cyan('Error: Please specifiy either 0, 1 or 2 for variable `safety_level`.\n'))
+        sys.exit(-1)
+
+    if args.generate_config:
+        qcfunk.make_config_file("civet_config.yaml",config)
+    
+    # find the master Snakefile
+    snakefile = qcfunk.get_snakefile(thisdir)
+
+    if args.verbose:
+        print("\n**** CONFIG ****")
+        for k in sorted(config):
+            print(qcfunk.green(k), config[k])
+        status = snakemake.snakemake(snakefile, printshellcmds=True, forceall=True, force_incomplete=True,
+                                    workdir=tempdir,config=config, cores=threads,lock=False
+                                    )
+    else:
+        logger = custom_logger.Logger()
+        status = snakemake.snakemake(snakefile, printshellcmds=False, forceall=True,force_incomplete=True,workdir=tempdir,
+                                    config=config, cores=threads,lock=False,quiet=True,log_handler=logger.log_handler
+                                    )
 
     if status: # translate "success" into shell exit code of 0
        return 0
