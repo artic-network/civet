@@ -13,6 +13,7 @@ An output prefix can be specified with `-o /--output-prefix`. If no output direc
 
 ![](./doc_figures/civet_outdir.png)
 
+
 ### Output files
 
 <strong>catchment_trees</strong>
