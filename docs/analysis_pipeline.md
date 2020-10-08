@@ -221,7 +221,7 @@ For information on these optional figures and how to configure the core report, 
 
 Converts md to an html file and optionally launches the report in a browser window with `--launch-browser`
 
-<img src="./doc_figures/workflow_diagram.png" width="700">
+<!-- <img src="./doc_figures/workflow_diagram.png" width="700"> -->
 
 
 ### [Next: Output](./output.md)
