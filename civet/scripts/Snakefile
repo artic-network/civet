@@ -14,7 +14,6 @@ if config.get("force"):
 ##### Target rules #####
 rule all:
     input:
-        os.path.join(config["outdir"],"combined_metadata.csv"),
         os.path.join(config["outdir"], "report",f"{output_prefix}.md"),
         os.path.join(config["outdir"],"local_trees","collapse_report.txt"),
         os.path.join(config["outdir"],"report",f"{output_prefix}.html")

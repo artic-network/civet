@@ -1,23 +1,33 @@
 ![](./doc_figures/website_header.png)
 
-### Input background data
+# Input background data
 
 <strong>civet</strong> summarises information around a set of sequences of interest. It relies on the user providing a background tree, alignment and metadata file. 
 
 The data files <strong>civet</strong>  looks for are:
 ```
-cog_global_alignment.fasta
-cog_global_metadata.csv
-cog_global_tree.nexus
+cog_global_2020-XX-YY_alignment.fasta
+cog_global_2020-XX-YY_metadata.csv
+cog_global_2020-XX-YY_tree.nexus
 ```
 
-<strong>--CLIMB</strong>
+### --CLIMB
 
-For SARS-CoV-2, this data is hosted on CLIMB as part of COG-UK. To run <strong>civet</strong>  on CLIMB with the latest data, use the ``--CLIMB`` flag (or specify ``CLIMB: True`` in the config file) command to <strong>civet</strong> . This provides <strong>civet</strong>  with the path to the latest data on CLIMB. 
+For SARS-CoV-2, this data is hosted on CLIMB as part of COG-UK. To run <strong>civet</strong>  on CLIMB with the latest data, either
+1) Use the ``--CLIMB`` flag 
+or
+2) Specify ``CLIMB: True`` in the config.yaml file 
 
-<strong>-r / --remote</strong>
+This provides <strong>civet</strong>  with the path to the latest data on CLIMB and allows the user to access adm2 information. 
 
-Alternatively, run <strong>civet</strong>  remotely from CLIMB with the ``-r / --remote`` flag or by adding ``remote: True`` to the. If SSH keys are configured, simply run:
+### -r / --remote
+
+Alternatively, run <strong>civet</strong>  remotely from CLIMB with 
+1) The ``-r / --remote`` flag 
+or
+2) By adding ``remote: True`` to the config file. 
+
+If SSH keys are configured, simply run:
 
 ```
 civet -i input.csv -r 
@@ -27,20 +37,35 @@ Otherwise, provide a climb username with ``-uun / --username``:
 civet -i input.csv -r -uun climb-covid19-smithj
 ```
 
+Notes:
+- This data will access a version of the COG-UK data that is publically available (does not contain adm2 information)
+- To access CLIMB in this way, you must have a valid COG-UK CLIMB username and be in the UK
+
 By default, the data will be pulled down to a directory called ``civet-cat`` in the current working directory. 
-<strong>-d / --datadir</strong>
 
-The user can specify a custom directory with the ``-d / --datadir`` flag. 
+### -d / --datadir
 
-If the user has background data locally (or would like to run on CLIMB with a different version of the data), by specifying ``--datadir`` without the remote flag, <strong>civet</strong>  can just accept the data in that directory as input background data.
+The user can specify a custom background data directory with the ``-d / --datadir`` flag. 
+
+This can be used with the `remote` option to rsync to an alternative location or without the without the remote flag, <strong>civet</strong>  can just accept the data in that directory as input background data. 
+
+This can also be run on CLIMB without the --CLIMB flag to specify an older version of the dataset. 
 
 ```
 civet -i input.csv -d path/to/data_directory 
 ```
+### --background-metadata
 
-By default, civet will look for a csv containing background data in the data directory. However, to provide custom background data, use the ``--background-metadata`` flag. 
+By default, civet will look for a csv containing background data in the data directory. However, to provide custom background data, use 
+1) the ``--background-metadata`` flag
+or
+2) add `background_metadata: path/to/metadata.csv` to the config file
 
-The following fields must be **always** present in this background metadata, or civet will not run properly:
+
+### Background metadata requirements
+
+
+The following fields must be **always** present in this background metadata, or civet will not run:
 
 - **sequence_name** containing names of every sequence
 - **country** containing the country of sampling
@@ -59,6 +84,4 @@ Some data can be provided in either the query csv or the background metadata:
 - If the default options for ``--table-fields`` argument are used, **uk_lineage, lineage, phylotype** must be included in the background metadata or the query csv.
 
 
-
-
-
+### [Next: Usage](./usage.md)

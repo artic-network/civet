@@ -37,12 +37,12 @@ def main(sysargs = sys.argv[1:]):
     io_group = parser.add_argument_group('input output options')
     io_group.add_argument('-i',"--input", action="store",help="Input config file in yaml format, csv file (with minimally an input_column header, Default=`name`) or comma-separated id string with one or more query ids. Example: `EDB3588,EDB3589`.", dest="input")
     io_group.add_argument('-fm','--from-metadata',nargs='*', dest="from_metadata",help="Generate a query from the metadata file supplied. Define a search that will be used to pull out sequences of interest from the large phylogeny. E.g. -fm adm2=Edinburgh sample_date=2020-03-01:2020-04-01")
-    io_group.add_argument('-o','--outdir', action="store",help="Output directory. Default: current working directory")
+    io_group.add_argument('-o','--output-prefix',action="store",help="Prefix of output directory & report name: Default: civet",dest="output_prefix")
+    io_group.add_argument('--outdir', action="store",help="Output directory. Default: current working directory")
     io_group.add_argument('-f','--fasta', action="store",help="Optional fasta query.", dest="fasta")
     io_group.add_argument('--max-ambiguity', action="store", type=float,help="Maximum proportion of Ns allowed to attempt analysis. Default: 0.5",dest="max_ambiguity")
     io_group.add_argument('--min-length', action="store", type=int,help="Minimum query length allowed to attempt analysis. Default: 10000",dest="min_length")
-    io_group.add_argument('--output-prefix',action="store",help="Prefix of output directory & report name: Default: civet",dest="output_prefix")
-
+    
     data_group = parser.add_argument_group('data source options')
     data_group.add_argument('-d','--datadir', action="store",help="Local directory that contains the data files. Default: civet-cat")
     data_group.add_argument("-m","--background-metadata",action="store",dest="background_metadata",help="Custom metadata file that corresponds to the large global tree/ alignment. Should have a column `sequence_name`.")
@@ -67,7 +67,6 @@ def main(sysargs = sys.argv[1:]):
     report_group.add_argument('--no-snipit', action="store_true",help="Don't run snipit graph", dest="no_snipit")
     report_group.add_argument('--include-bars', action="store_true",help="Render barcharts in the output report", dest="include_bars")
     report_group.add_argument('--omit-appendix', action="store_true", help="Omit the appendix section. Default=False", dest="omit_appendix")
-    report_group.add_argument('--private', action="store_true", help="remove adm2 references from background sequences. Default=True")
 
     tree_group = parser.add_argument_group('tree context options')
     tree_group.add_argument('--distance', action="store",help="Extraction from large tree radius. Default: 2", dest="distance",type=int)
@@ -88,6 +87,7 @@ def main(sysargs = sys.argv[1:]):
     map_group.add_argument("--colour-map-by", required=False, dest="colour_map_by", help="Column to colour mapped sequences by")
     
     misc_group = parser.add_argument_group('misc options')
+    misc_group.add_argument("--safety-level", action="store", type=int, dest="safety_level",help="Level of anonymisation for users. Options: 0 (no anonymity), 1 (no COGIDs on background data), 2 (no adm2 on data). Default: 1")
     misc_group.add_argument('-b','--launch-browser', action="store_true",help="Optionally launch md viewer in the browser using grip",dest="launch_browser")
     misc_group.add_argument('-c','--generate-config',dest="generate_config",action="store_true",help="Rather than running a civet report, just generate a config file based on the command line arguments provided")
     misc_group.add_argument('--tempdir',action="store",help="Specify where you want the temp stuff to go. Default: $TMPDIR")
@@ -180,8 +180,10 @@ def main(sysargs = sys.argv[1:]):
                 sys.exit(-1)
 
         metadata = config["background_metadata"]
+        config["no_snipit"]=True
         query = qcfunk.generate_query_from_metadata(args.from_metadata,metadata,config)
-
+    else:
+        config["from_metadata"] = False
     """
     The query file could have been from one of
     - input.csv
@@ -311,7 +313,26 @@ def main(sysargs = sys.argv[1:]):
     config["launch_browser"] = launch_browser
 
     threads = qcfunk.check_arg_config_default("threads",args.threads,config,default_dict)
-    config["threads"]= int(threads)
+    try:
+        threads = int(threads)
+        config["threads"]= int(threads)
+    except:
+        sys.stderr.write(qcfunk.cyan('Error: Please specifiy an integer for variable `threads`.\n'))
+        sys.exit(-1)
+
+    safety_level = qcfunk.check_arg_config_default("safety_level",args.safety_level,config,default_dict)
+    
+    try:
+        safety_level = int(safety_level)
+    except:
+        sys.stderr.write(qcfunk.cyan('Error: Please specifiy either 0, 1 or 2 for variable `safety_level`.\n'))
+        sys.exit(-1)
+
+    if safety_level in [0,1,2]:
+        config["safety_level"]= int(safety_level)
+    else:
+        sys.stderr.write(qcfunk.cyan('Error: Please specifiy either 0, 1 or 2 for variable `safety_level`.\n'))
+        sys.exit(-1)
 
     if args.generate_config:
         qcfunk.make_config_file("civet_config.yaml",config)

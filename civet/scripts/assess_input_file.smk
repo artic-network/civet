@@ -74,7 +74,7 @@ rule combine_metadata:
         closest_cog = rules.get_closest_cog.output.closest_cog,
         in_cog = rules.check_cog_db.output.cog
     output:
-        combined_csv = os.path.join(config["outdir"],"combined_metadata.csv")
+        combined_csv = os.path.join(config["tempdir"],"combined_metadata.csv")
     run:
         c = 0
         with open(input.in_cog, newline="") as f:
@@ -213,30 +213,33 @@ rule find_snps:
                     file_stem = ".".join(fn.split(".")[:-1])
                     local_trees.append(file_stem)
         local_str = ",".join(local_trees) #to pass to snakemake pipeline
-
-        shell("snakemake --nolock --snakefile {input.snakefile:q} "
-                            "{config[force]} "
-                            "{config[log_string]} "
-                            "--directory {config[tempdir]:q} "
-                            "--config "
-                            f"catchment_str={local_str} "
-                            "outdir={config[outdir]:q} "
-                            "tempdir={config[tempdir]:q} "
-                            "outgroup_fasta={input.outgroup_fasta:q} "
-                            "aligned_query_seqs={input.query_seqs:q} "
-                            "background_seqs={input.background_seqs:q} "
-                            "query={input.query:q} "
-                            "combined_metadata={input.combined_metadata:q} "
-                            "display_name={config[display_name]:q} "
-                            "input_column={config[input_column]:q} "
-                            "data_column={config[data_column]:q} "
-                            "--cores {workflow.cores} ")
+        
+        if config["from_metadata"] or config["no_snipit"]:
+            shell("touch {output.genome_graphs} ")
+        else:
+            shell("snakemake --nolock --snakefile {input.snakefile:q} "
+                                "{config[force]} "
+                                "{config[log_string]} "
+                                "--directory {config[tempdir]:q} "
+                                "--config "
+                                f"catchment_str={local_str} "
+                                "outdir={config[outdir]:q} "
+                                "tempdir={config[tempdir]:q} "
+                                "outgroup_fasta={input.outgroup_fasta:q} "
+                                "aligned_query_seqs={input.query_seqs:q} "
+                                "background_seqs={input.background_seqs:q} "
+                                "query={input.query:q} "
+                                "combined_metadata={input.combined_metadata:q} "
+                                "display_name={config[display_name]:q} "
+                                "input_column={config[input_column]:q} "
+                                "data_column={config[data_column]:q} "
+                                "--cores {workflow.cores} ")
 
 
 rule regional_mapping:
     input:
         query = config['query'],
-        combined_metadata = os.path.join(config["outdir"],"combined_metadata.csv"),
+        combined_metadata = os.path.join(config["tempdir"],"combined_metadata.csv"),
         background_metadata = config["background_metadata"]
     params:
         figdir = os.path.join(config["outdir"],"report",'figures'),
@@ -305,7 +308,7 @@ rule make_report:
     input:
         lineage_trees = rules.process_catchments.output.tree_summary,
         query = config["query"],
-        combined_metadata = os.path.join(config["outdir"],"combined_metadata.csv"),
+        combined_metadata = os.path.join(config["tempdir"],"combined_metadata.csv"),
         background_metadata = config["background_metadata"],
         snp_figure_prompt = rules.find_snps.output.genome_graphs,
         genome_graphs = rules.find_snps.output.genome_graphs, 

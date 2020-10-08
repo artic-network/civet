@@ -405,24 +405,27 @@ def local_lineages_section(lineage_maps, lineage_tables):
     #print(f'The below figure visualises the relative proportion of assigned UK-Lineages for samples collected and sequenced within neighbouring healthboard regions for the defined time-frame.')
     #print ("![]("+linmapList[1]+")")
     #print('\n')
-    print(f'Tabulated lineage data for the **central** health-board region:')
+    print(f'Tabulated lineage data for the **central** health-board region:\n')
+
     with open(centralLoc[0], 'r') as file:
         count = 0
         for l in file:
-            if count == 0:
+            if count != 0:
                 l = l.rstrip("\n")
             else:
                 l=l
             print(l)
-    print(f'Tabulated lineage data for the **neighbouring** health-board regions:')
+            count += 1
+    print(f'Tabulated lineage data for the **neighbouring** health-board regions:\n')
 
     for each in tableList:
         with open(each, "r") as file: 
             count = 0               
             for l in file:
-                if count == 0:
+                if count != 0:
                     l = l.rstrip("\n")
                 else:
                     l=l
                 
                 print(l)
+                count += 1
