@@ -113,7 +113,7 @@ NB all date formats must be in YYYY-MM-DD format.
 
 ![](doc_figures/date_figure.png)
 
-### --node-summaruy and --include-bars
+### --node-summary and --include-bars
 
 Provide a header in the background metadata table to summarise collapsed nodes by in the phylogeny. Default is country.
 

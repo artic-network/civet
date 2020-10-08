@@ -27,3 +27,5 @@ A fully customisable report is generated, summarising information about the sequ
 
 
 <strong>civet</strong> was created by Áine O'Toole & Verity Hill, Rambaut Group, Edinburgh University
+
+<img src="./doc_figures/workflow_diagram.png">
