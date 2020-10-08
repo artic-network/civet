@@ -111,7 +111,7 @@ def main(sysargs = sys.argv[1:]):
             sys.exit(0)
     
     if args.art:
-        cfunk.be_arty(__version__)
+        cfunk.be_arty()
         sys.exit(0) 
     
     """
