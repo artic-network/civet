@@ -1,5 +1,8 @@
 # civet
 
+Stable release of civet 1.0
+
+
 **C**luster **I**nvestigation & **V**irus **E**pidemiology **T**ool
 
 <img src="./docs/civet_logo.png" width="450">
