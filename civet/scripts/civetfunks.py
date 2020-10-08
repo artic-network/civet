@@ -299,11 +299,11 @@ def local_lineages_qc(config,default_dict):
 
     if config["local_lineages"]:
 
-        if "adm2" not in config["background_metadata_header"] or "adm2" not in config["query_metadata_header"]:
-            sys.stderr.write(qcfunk.cyan('Error: no geographic information found for local lineage analysis. Please provide a column in the background metadata (at least) with the header "adm2"'))
+        if "adm2" not in config["background_metadata_header"]:
+            sys.stderr.write(qcfunk.cyan('Error: no geographic information found for local lineage analysis. Please provide a column in the background metadata with the header "adm2"\n'))
             sys.exit(-1)
         elif "uk_lineage" not in config["background_metadata_header"]:
-            sys.stderr.write(qcfunk.cyan('Error: no uk lineage information found for local lineage analysis. Please provide a column in the background metadata with the header "uk_lineage"'))
+            sys.stderr.write(qcfunk.cyan('Error: no uk lineage information found for local lineage analysis. Please provide a column in the background metadata with the header "uk_lineage"\n'))
             sys.exit(-1)
 
         if config["date_restriction"]:
