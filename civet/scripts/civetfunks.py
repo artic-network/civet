@@ -125,7 +125,7 @@ def print_data_error(data_dir):
     - cog_global_metadata.csv\n\
     - cog_global_alignment.fasta\n"+qcfunk.cyan(f"\
 To run civet please either\n1) ssh into CLIMB and run with --CLIMB flag\n\
-2) Run using `--remote-sync` flag and your CLIMB username specified e.g. `-uun climb-covid19-smithj`\n\
+2) Run using `--remote` flag and your CLIMB username specified e.g. `-uun climb-covid19-smithj`\n\
 3) Specify a local directory with the appropriate files, optionally supply a custom metadata file\n\n"""))
 
 def rsync_data_from_climb(uun, data_dir):

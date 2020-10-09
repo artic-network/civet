@@ -133,10 +133,10 @@ data source options:
                         `sequence_name`.
   --CLIMB               Indicates you're running CIVET from within CLIMB, uses
                         default paths in CLIMB to access data
-  -r, --remote-sync     Remotely access lineage trees from CLIMB
+  -r, --remote     Remotely access lineage trees from CLIMB
   -uun UUN, --your-user-name UUN
                         Your CLIMB COG-UK username. Required if running with
-                        --remote-sync flag
+                        --remote flag
   --input-column INPUT_COLUMN
                         Column in input csv file to match with database.
                         Default: name

@@ -4,5 +4,6 @@ output_prefix: cluster01
 
 cluster: True
 query: cluster_test.csv
+remote: True
 
 
