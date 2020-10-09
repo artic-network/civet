@@ -14,7 +14,7 @@ Instructions for installing civet locally
 
 ### Install civet
 
-1. Clone this repository and ``cd civet``
+1. ``git clone https://github.com/COG-UK/civet.git`` and ``cd civet``
 2. ``conda env create -f environment.yml``
 3. ``conda activate civet``
 4. ``python setup.py install``
