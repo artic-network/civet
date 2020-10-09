@@ -268,6 +268,27 @@ def get_cluster_config(cluster_arg,config,default_dict):
     cluster = qcfunk.check_arg_config_default("cluster",args.cluster, config, default_dict)
     config["cluster"] = cluster
 
+def check_cluster_dependencies(config):
+    if not "query" in config:
+        sys.stderr.write(qcfunk.cyan('Error: input.csv required to run `cluster` civet\n'))
+        sys.exit(-1)
+
+def check_for_new(config, today):
+    new_count = 0
+    prefix = config["output_prefix"]
+    cluster_file =  f"{prefix}_{today}.csv"
+    cluster_csv = os.path.join(config["outdir"],cluster_file)
+    with open(cluster_csv, "r") as f:
+        reader = csv.DictReader(f)
+        if not "new" in reader.fieldnames:
+            sys.stderr.write(qcfunk.cyan('Error: `cluster` civet has not run, require column `new` in csv\n'))
+            sys.exit(-1)
+        for row in reader:
+            if row["new"] == "True":
+                new_count +=1
+    return new_count, cluster_csv
+
+
 
 def prepping_civet_arguments(name_stem_input, tree_fields_input, graphic_dict_input, label_fields_input, date_fields_input, table_fields_input):
 

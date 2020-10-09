@@ -11,6 +11,7 @@ import csv
 import os
 import yaml
 from datetime import datetime
+from datetime import date
 from Bio import SeqIO
 import pkg_resources
 from . import _program
@@ -23,6 +24,7 @@ import civetfunks as cfunk
 
 thisdir = os.path.abspath(os.path.dirname(__file__))
 cwd = os.getcwd()
+today = date.today()
 
 def main(sysargs = sys.argv[1:]):
 
@@ -88,7 +90,7 @@ def main(sysargs = sys.argv[1:]):
     
     misc_group = parser.add_argument_group('misc options')
     misc_group.add_argument("--safety-level", action="store", type=int, dest="safety_level",help="Level of anonymisation for users. Options: 0 (no anonymity), 1 (no COGIDs on background data), 2 (no adm2 on data). Default: 1")
-    misc_group.add_argument("--cluster",action="store_true",help="Run cluster civet pipeline. Requires -i/--input csv/ IDs",dest="cluster")
+    misc_group.add_argument("--cluster",action="store_true",help="Run cluster civet pipeline. Requires -i/--input csv",dest="cluster")
     misc_group.add_argument('-b','--launch-browser', action="store_true",help="Optionally launch md viewer in the browser using grip",dest="launch_browser")
     misc_group.add_argument('-c','--generate-config',dest="generate_config",action="store_true",help="Rather than running a civet report, just generate a config file based on the command line arguments provided")
     misc_group.add_argument('--tempdir',action="store",help="Specify where you want the temp stuff to go. Default: $TMPDIR")
@@ -268,17 +270,8 @@ def main(sysargs = sys.argv[1:]):
     # extraction radius configuration
     qcfunk.collapse_config(args.collapse_threshold,config,default_dict) 
 
-<<<<<<< HEAD
-<<<<<<< HEAD
+
     qcfunk.parse_protect(args.protect,config["background_metadata"],config)
-=======
-    # cluster civet flag 
-    cfunk.get_cluster_config(args.cluster, config, default_dict)
->>>>>>> cluster civet pipeline with placeholders for jclusterfunks
-=======
-    # cluster civet flag 
-    cfunk.get_cluster_config(args.cluster, config, default_dict)
->>>>>>> 1a3efeeb382021b31cbb67ea751cd346863f184d
 
     """
     Parsing the report_group arguments, 
@@ -310,18 +303,9 @@ def main(sysargs = sys.argv[1:]):
     Miscellaneous options parsing
 
     """
-<<<<<<< HEAD
-<<<<<<< HEAD
-=======
-    
+
     launch_browser = qcfunk.check_arg_config_default("launch_browser",args.launch_browser,config,default_dict)
     config["launch_browser"]= launch_browser
->>>>>>> cluster civet pipeline with placeholders for jclusterfunks
-=======
-    
-    launch_browser = qcfunk.check_arg_config_default("launch_browser",args.launch_browser,config,default_dict)
-    config["launch_browser"]= launch_browser
->>>>>>> 1a3efeeb382021b31cbb67ea751cd346863f184d
 
     # don't run in quiet mode if verbose specified
     if args.verbose:
@@ -360,6 +344,47 @@ def main(sysargs = sys.argv[1:]):
     if args.generate_config:
         qcfunk.make_config_file("civet_config.yaml",config)
     
+
+    """
+    cluster civet checks
+    - arg, config, default
+    - is there a query?
+    - check if new things in the local tree
+    - if new sequences, run main civet with updated query
+    - if no new sequences, exit
+    
+    """
+    # cluster civet 
+    cfunk.get_cluster_config(args.cluster, config, default_dict)
+
+    if config["cluster"]:
+
+        config["today"] = today
+        cfunk.check_cluster_dependencies(config)
+
+        cluster_snakefile = qcfunk.get_cluster_snakefile(thisdir)
+
+        if args.verbose:
+            print("\n**** CONFIG ****")
+            for k in sorted(config):
+                print(qcfunk.green(k), config[k])
+            status = snakemake.snakemake(cluster_snakefile, printshellcmds=True, forceall=True, force_incomplete=True,
+                                        workdir=tempdir,config=config, cores=threads,lock=False
+                                        )
+        else:
+            logger = custom_logger.Logger()
+            status = snakemake.snakemake(cluster_snakefile, printshellcmds=False, forceall=True,force_incomplete=True,workdir=tempdir,
+                                        config=config, cores=threads,lock=False,quiet=True,log_handler=logger.log_handler
+                                        )
+
+        new_seqs, cluster_csv = cfunk.check_for_new(config, today)
+
+        if not new_seqs:
+            print(qcfunk.green(f"No new sequences in cluster {prefix} on {today}"))
+            sys.exit(0)
+        else:
+            config["query"] = cluster_csv
+        
     # find the master Snakefile
     snakefile = qcfunk.get_snakefile(thisdir)
 
