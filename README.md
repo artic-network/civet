@@ -20,7 +20,7 @@
 
 <strong>civet</strong> was created by Áine O'Toole & Verity Hill, Rambaut Group, Edinburgh University
 
-<strong> Find out more information about civet at https://cog-uk.github.io/civet/</strong>
+<strong> Find out more information about civet at https://artic-network.github.io/civet/</strong>
 
 <img src="./docs/doc_figures/workflow_diagram.png">
 
