@@ -4,15 +4,6 @@
 
 <img src="./docs/doc_figures/civet_logo.png" width="350">
 
-<strong>civet</strong> is a tool developed with 'real-time' genomics in mind. 
-
-Using a background phylogeny, such as the large phylogeny available through the COG-UK infrastructure on CLIMB, <strong>civet</strong> will generate a report for a set of sequences of interest i.e. an outbreak investigation. 
-
-If the sequences are already on CLIMB and part of the large tree, <strong>civet</strong> will pull out the local context of those sequences, merging the smaller local trees as appropriate. If sequences haven't yet been incorporated into the large phylogeny, for instance if they have just been sequenced, <strong>civet</strong> will find the closest sequence in the large tree, pull the local tree of that sequence out and add your sequence in. The local trees then get collapsed to display in detail only the sequences of interest so as not to inform investigations beyond what was suggested by epidemiological data. 
-
-A fully customisable report is generated, summarising information about the sequences of interest. The tips of these trees can be coloured by any categorical trait present in the input csv, and additional fields added to the tip labels. Optional figures may be added to describe the local background of UK lineages and to map the query sequences using coordinates, again colourable by a custom trait. 
-
-
 ### civet documentation
   * [Install and update civet](./docs/installation.md)
   * [Input options](./docs/input_options.md)
@@ -27,11 +18,19 @@ A fully customisable report is generated, summarising information about the sequ
   * [Software versions](./docs/acknowledgements.md)
 
 
-
 <strong>civet</strong> was created by Áine O'Toole & Verity Hill, Rambaut Group, Edinburgh University
 
 <strong> Find out more information about civet at https://cog-uk.github.io/civet/</strong>
 
+<img src="./docs/doc_figures/workflow_diagram.png">
+
+<strong>civet</strong> is a tool developed with 'real-time' genomics in mind. 
+
+Using a background phylogeny, such as the large phylogeny available through the COG-UK infrastructure on CLIMB, <strong>civet</strong> will generate a report for a set of sequences of interest i.e. an outbreak investigation. 
+
+If the sequences are already on CLIMB and part of the large tree, <strong>civet</strong> will pull out the local context of those sequences, merging the smaller local trees as appropriate. If sequences haven't yet been incorporated into the large phylogeny, for instance if they have just been sequenced, <strong>civet</strong> will find the closest sequence in the large tree, pull the local tree of that sequence out and add your sequence in. The local trees then get collapsed to display in detail only the sequences of interest so as not to inform investigations beyond what was suggested by epidemiological data. 
+
+A fully customisable report is generated, summarising information about the sequences of interest. The tips of these trees can be coloured by any categorical trait present in the input csv, and additional fields added to the tip labels. Optional figures may be added to describe the local background of UK lineages and to map the query sequences using coordinates, again colourable by a custom trait. 
 
 #### Full usage:
 ```
