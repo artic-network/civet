@@ -458,6 +458,8 @@ def report_group_to_config(args,config,default_dict):
     label_fields = qcfunk.check_arg_config_default("label_fields",args.label_fields, config, default_dict)
     if not label_fields:
         config["label_fields"] = False
+    else:
+        config["label_fields"] = label_fields
 
     ##date_fields
     date_fields = qcfunk.check_arg_config_default("date_fields", args.date_fields, config, default_dict)
