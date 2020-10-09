@@ -120,9 +120,9 @@ def get_package_data(thisdir,config):
 
 def print_data_error(data_dir):
     sys.stderr.write(qcfunk.cyan(f"Error: data directory should contain the following files or additionally supply a background metadata file:\n") + f"\
-    - cog_global_tree.nexus\n\
-    - cog_global_metadata.csv\n\
-    - cog_global_alignment.fasta\n"+qcfunk.cyan(f"\
+    - cog_global_2020-XX-YY_tree.nexus\n\
+    - cog_global_2020-XX-YY_metadata.csv\n\
+    - cog_global_2020-XX-YY_alignment.fasta\n"+qcfunk.cyan(f"\
 To run civet please either\n1) ssh into CLIMB and run with --CLIMB flag\n\
 2) Run using `--remote-sync` flag and your CLIMB username specified e.g. `-uun climb-covid19-smithj`\n\
 3) Specify a local directory with the appropriate files, optionally supply a custom metadata file\n\n"""))
