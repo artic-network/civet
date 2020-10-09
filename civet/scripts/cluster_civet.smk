@@ -76,9 +76,11 @@ rule get_new_query:
             with open(input.background_metadata, newline="") as f:
                 reader = csv.DictReader(f)
                 header2 = reader.fieldnames
+                
                 for row in reader:
                     if row["sequence_name"] in new_sequences:
-
-                    new_row = row
-                    new_row["new"] = "True"
-                    writer.writerow(new_row)
+                        
+                        new_row = row
+                        new_row["new"] = "True"
+                        writer.writerow(new_row)
+            
