@@ -57,6 +57,7 @@ def get_defaults():
                     "colour_by":"adm1=viridis",
                     "label_fields":False,
                     "date_fields":False,
+                    "remote":False,
                     "no_snipit":False,
                     "include_snp_table":False,
                     "include_bars":False,
@@ -121,15 +122,15 @@ def get_package_data(thisdir,config):
 
 def print_data_error(data_dir):
     sys.stderr.write(qcfunk.cyan(f"Error: data directory should contain the following files or additionally supply a background metadata file:\n") + f"\
-    - cog_global_tree.nexus\n\
-    - cog_global_metadata.csv\n\
-    - cog_global_alignment.fasta\n"+qcfunk.cyan(f"\
+    - cog_global_2020_XX_YY_tree.nexus\n\
+    - cog_global_2020_XX_YY_metadata.csv\n\
+    - cog_global_2020_XX_YY_alignment.fasta\n"+qcfunk.cyan(f"\
 To run civet please either\n1) ssh into CLIMB and run with --CLIMB flag\n\
 2) Run using `--remote` flag and your CLIMB username specified e.g. `-uun climb-covid19-smithj`\n\
 3) Specify a local directory with the appropriate files, optionally supply a custom metadata file\n\n"""))
 
 def rsync_data_from_climb(uun, data_dir):
-    rsync_command = f"rsync -avzh --exclude 'cog/*' {uun}@bham.covid19.climb.ac.uk:/cephfs/covid/bham/results/phylogenetics/latest/civet/ '{data_dir}'"
+    rsync_command = f"rsync -avzh --exclude 'cog' --delete-after {uun}@bham.covid19.climb.ac.uk:/cephfs/covid/bham/results/phylogenetics/latest/civet/ '{data_dir}'"
     print(qcfunk.green(f"Syncing civet data to {data_dir}"))
     status = os.system(rsync_command)
     if status != 0:
@@ -172,7 +173,7 @@ def get_remote_data(uun,background_metadata,data_dir,config):
         uun = config["uun"]
         rsync_data_from_climb(uun, data_dir)
     else:
-        rsync_command = f"rsync -avzh --exclude 'cog' bham.covid19.climb.ac.uk:/cephfs/covid/bham/results/phylogenetics/latest/civet/ '{data_dir}'"
+        rsync_command = f"rsync -avzh --exclude 'cog' --delete-after  bham.covid19.climb.ac.uk:/cephfs/covid/bham/results/phylogenetics/latest/civet/ '{data_dir}'"
         print(f"Syncing civet data to {data_dir}")
         status = os.system(rsync_command)
         if status != 0:
@@ -200,9 +201,10 @@ def get_remote_data(uun,background_metadata,data_dir,config):
         print("    -",background_metadata)
         print("    -",background_tree,"\n")
 
-def get_datadir(args_climb,args_uun,args_datadir,args_metadata,remote,cwd,config,default_dict):
+def get_datadir(args_climb,args_uun,args_datadir,args_metadata,cwd,config,default_dict):
     data_dir = ""
     background_metadata = ""
+    remote= config["remote"]
 
     if args_metadata:
         background_metadata = os.path.join(cwd, args_metadata)
@@ -265,7 +267,7 @@ def get_datadir(args_climb,args_uun,args_datadir,args_metadata,remote,cwd,config
     config["datadir"]=data_dir
 
 def get_cluster_config(cluster_arg,config,default_dict):
-    cluster = qcfunk.check_arg_config_default("cluster",args.cluster, config, default_dict)
+    cluster = qcfunk.check_arg_config_default("cluster",cluster_arg, config, default_dict)
     config["cluster"] = cluster
 
 def check_cluster_dependencies(config):
@@ -273,11 +275,10 @@ def check_cluster_dependencies(config):
         sys.stderr.write(qcfunk.cyan('Error: input.csv required to run `cluster` civet\n'))
         sys.exit(-1)
 
-def check_for_new(config, today):
+def check_for_new(config):
     new_count = 0
     prefix = config["output_prefix"]
-    cluster_file =  f"{prefix}_{today}.csv"
-    cluster_csv = os.path.join(config["outdir"],cluster_file)
+    cluster_csv = os.path.join(config["outdir"],f"{prefix}.csv")
     with open(cluster_csv, "r") as f:
         reader = csv.DictReader(f)
         if not "new" in reader.fieldnames:

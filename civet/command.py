@@ -154,8 +154,11 @@ def main(sysargs = sys.argv[1:]):
     # specifying temp directory, outdir if no_temp (tempdir becomes working dir)
     tempdir = qcfunk.get_temp_dir(args.tempdir, args.no_temp,cwd,config)
 
+    remote = qcfunk.check_arg_config_default("remote",args.remote, config, default_dict)
+    config["remote"] = remote
+
     # find the data dir
-    cfunk.get_datadir(args.climb,args.uun,args.datadir,args.background_metadata,args.remote,cwd,config,default_dict)
+    cfunk.get_datadir(args.climb,args.uun,args.datadir,args.background_metadata,cwd,config,default_dict)
 
     # add data and input columns to config
     qcfunk.data_columns_to_config(args,config,default_dict)
@@ -377,10 +380,12 @@ def main(sysargs = sys.argv[1:]):
                                         config=config, cores=threads,lock=False,quiet=True,log_handler=logger.log_handler
                                         )
 
-        new_seqs, cluster_csv = cfunk.check_for_new(config, today)
+        new_seqs, cluster_csv = cfunk.check_for_new(config)
+
+        print(qcfunk.green(f"\nNew sequences found in cluster {today}: ") + f"{new_seqs}")
 
         if not new_seqs:
-            print(qcfunk.green(f"No new sequences in cluster {prefix} on {today}"))
+            print(qcfunk.cyan(f"No new sequences in cluster {today}"))
             sys.exit(0)
         else:
             config["query"] = cluster_csv

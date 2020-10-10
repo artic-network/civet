@@ -4,13 +4,10 @@ import csv
 import collections
 
 prefix = config["output_prefix"]
-today = config["today"]
-
-cluster_file =  f"{prefix}_{today}.csv"
 
 rule all:
     input:
-        os.path.join(config["outdir"],cluster_file)
+        os.path.join(config["outdir"],f"{prefix}.csv")
 
 rule find_common_ancestor:
     input:
@@ -19,33 +16,28 @@ rule find_common_ancestor:
     params:
         outdir = os.path.join(config["tempdir"], "cluster_civet")
     output:
-        tree = os.path.join(config["tempdir"], "cluster_civet",f"{prefix}_common_ancestor.tree")
+        tree = os.path.join(config["tempdir"], "cluster_civet",f"{prefix}_subtree_1.newick"),
+        taxa = os.path.join(config["tempdir"], "cluster_civet",f"{prefix}_subtree_1.csv"),
     shell:
         """
-        ./release/jclusterfunk_v0.0.4/jclusterfunk context \
+        /Users/s1680070/repositories/jclusterfunk/release/jclusterfunk_v0.0.4/jclusterfunk context \
         -i "{input.tree}" \
         -o "{params.outdir}" \
         --mrca \
         -f newick \
-        -p tree_ \
+        -p {config[output_prefix]}_ \
         -m "{input.query}" \
+        --output-taxa \
         --id-column sequence_name
         """
 
-rule extract_taxa:
-    input:
-        tree = rules.find_common_ancestor.output.tree
-    output:
-        tree_taxa = os.path.join(config["tempdir"], "cluster_civet",f"{prefix}_common_ancestor.csv")
-    shell:
-        "clusterfunk get_taxa -i {input.collapsed_tree:q} --in-format newick -o {output.tree_taxa:q} --out-format newick"
-
 rule get_new_query:
     input:
-        tree_taxa = rules.extract_tips.output.tree_taxa,
-        query = config["query"]
+        tree_taxa = rules.find_common_ancestor.output.taxa,
+        query = config["query"],
+        background_metadata= config["background_metadata"]
     output:
-        new_metadata = os.path.join(config["outdir"],cluster_file)
+        new_metadata = os.path.join(config["outdir"],f"{prefix}.csv")
     run:
         old_cluster = []
         with open(output.new_metadata, "w") as fw:
@@ -75,12 +67,19 @@ rule get_new_query:
                 
             with open(input.background_metadata, newline="") as f:
                 reader = csv.DictReader(f)
-                header2 = reader.fieldnames
+                background_header = reader.fieldnames
                 
                 for row in reader:
+                    if row["country"] == 
                     if row["sequence_name"] in new_sequences:
                         
-                        new_row = row
+                        new_row = {}
+                        for col in header_names:
+                            if col in background_header:
+                                new_row[col] = row[col]
+                            else:
+                                new_row[col] = ""
+
                         new_row["new"] = "True"
                         writer.writerow(new_row)
             
