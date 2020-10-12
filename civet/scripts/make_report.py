@@ -42,6 +42,14 @@ def make_report():
     config = qcfunk.parse_yaml_file(args.config,config)
     free_text_dict = make_free_text_dict(config)
 
+    path = os.path.join(config["outdir"], "report", "figures","svg_figures")
+    try:
+        os.mkdir(path)
+    except FileExistsError:
+        pass
+    
+    config["svg_figdir"] = path
+
     with open(config["outfile"], 'w') as pmd_file:
         change_line_dict = {}
 
@@ -52,11 +60,6 @@ def make_report():
                 new_value = f'{key} = "{value}"\n'
             
             change_line_dict[key] = new_value
-        
-        # if config["include_bars"]:
-        #     change_line_dict["include_bars"] = f'add_bars = "{config["add_bars"]}"\n'
-        # else:
-        #     change_line_dict["include_bars"] = 'add_bars = ""\n'
 
         with open(config["report_template"]) as f:
             for l in f:

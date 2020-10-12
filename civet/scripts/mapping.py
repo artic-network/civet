@@ -144,7 +144,7 @@ def make_centroids(result,adm2s, straight_map):
 
     return centroid_geo, centroid_counts
 
-def make_map(centroid_geo, all_uk):
+def make_map(centroid_geo, all_uk, figdir):
 
     fig, ax = plt.subplots(1, 1)
     fig.set_size_inches(20, 15)
@@ -159,8 +159,11 @@ def make_map(centroid_geo, all_uk):
 
     ax.axis("off")
 
+    plt.savefig(figdir + "/map_adm2.svg", format="svg")
 
-def map_adm2(tax_dict, clean_locs_file, mapping_json_files): #So this takes adm2s and plots them onto the whole UK
+
+
+def map_adm2(tax_dict, clean_locs_file, mapping_json_files, figdir): #So this takes adm2s and plots them onto the whole UK
 
     adm2s, metadata_multi_loc, straight_map = prep_data(tax_dict, clean_locs_file)
 
@@ -174,7 +177,7 @@ def map_adm2(tax_dict, clean_locs_file, mapping_json_files): #So this takes adm2
     else:
         centroid_geo, adm2_counter = output
 
-    make_map(centroid_geo, all_uk)
+    make_map(centroid_geo, all_uk, figdir)
 
     adm2_percentages = {}
 
@@ -257,7 +260,7 @@ def generate_coords_from_outer_postcode(pc_file, input_csv, postcode_col, colour
     return name_to_coords, name_to_trait
 
 
-def plot_coordinates(mapping_json_files, urban_centres, name_to_coords, name_to_trait, input_crs, colour_map_trait):
+def plot_coordinates(mapping_json_files, urban_centres, name_to_coords, name_to_trait, input_crs, colour_map_trait, figdir):
 
     ##MAKE DATAFRAME##
 
@@ -349,10 +352,12 @@ def plot_coordinates(mapping_json_files, urban_centres, name_to_coords, name_to_
 
     ax.axis("off") 
 
+    plt.savefig(figdir + "/map_coordinate_or_outer_postcode.svg", format='svg')
+
     return adm2_counter, adm2_percentages
         
 
-def map_sequences_using_coordinates(input_csv, mapping_json_files, urban_centres, pc_file,colour_map_trait, map_inputs, input_crs):
+def map_sequences_using_coordinates(input_csv, mapping_json_files, urban_centres, pc_file,colour_map_trait, map_inputs, input_crs, figdir):
 
     cols = map_inputs.split(",")
     if len(cols) == 2:
@@ -363,7 +368,7 @@ def map_sequences_using_coordinates(input_csv, mapping_json_files, urban_centres
         postcode_col = cols[0]
         name_to_coords, name_to_trait = generate_coords_from_outer_postcode(pc_file, input_csv, postcode_col, colour_map_trait)
     
-    mapping_output = plot_coordinates(mapping_json_files, urban_centres, name_to_coords, name_to_trait, input_crs, colour_map_trait)
+    mapping_output = plot_coordinates(mapping_json_files, urban_centres, name_to_coords, name_to_trait, input_crs, colour_map_trait, figdir)
 
     return mapping_output
 
