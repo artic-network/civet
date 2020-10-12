@@ -391,9 +391,14 @@ def local_lineages_section(lineage_maps, lineage_tables):
     print("These figures show the background diversity of lineages in the local area to aid with identifying uncommon lineages.")
     
     big_list = convert_str_to_list(lineage_tables,False)
-    centralLoc = [t for t in big_list if "_central_" in t]
+    centralLoc = [t for t in big_list if "_central_" in t][0]
     tableList = [t for t in big_list if "_central_" not in t]
-    centralName = centralLoc[0].split('/')[-1].split("_")[0]
+    centralName = centralLoc.split('/')[-1].split("_")[0]
+
+    with open(centralLoc) as f:
+        for l in f:
+            centralName = l.strip("### ").strip("\n")
+            break
     
     linmapList = convert_str_to_list(lineage_maps, True)        
 
