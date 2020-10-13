@@ -71,6 +71,7 @@ def get_defaults():
                     "trim_end":29674,
                     "protect": False,
                     "output_prefix":"civet",
+                    "update":False,
                     "safety_level":1
                     }
     return default_dict
@@ -270,14 +271,56 @@ def get_cluster_config(cluster_arg,config,default_dict):
     cluster = qcfunk.check_arg_config_default("cluster",cluster_arg, config, default_dict)
     config["cluster"] = cluster
 
+def check_update(update_arg,config,default_dict):
+    update = qcfunk.check_arg_config_default("update",update_arg, config, default_dict)
+    config["update"] = update
+
 def check_cluster_dependencies(config):
     if not "query" in config:
         sys.stderr.write(qcfunk.cyan('Error: input.csv required to run `cluster` civet\n'))
         sys.exit(-1)
 
-def check_for_new(config):
+def check_update_dependencies(config):
+    if not "from_metadata" in config:
+        sys.stderr.write(qcfunk.cyan('Error: `--from-metadata` search term required to run in `update` mode\n'))
+        sys.exit(-1)
+
+def check_for_update(config):
+
+    check_update_dependencies(config)
+
+    new_query = qcfunk.generate_query_from_metadata(config["from_metadata"],config["background_metadata"],config)
+
+    old_query = []
+
+    with open(config["query"],"r") as f:
+        reader = csv.DictReader(f)
+        for row in reader:
+            old_query.append(row[config["input_column"]])
+    
+    update_files = False
+    new_seqs = []
+    with open(new_query,"r") as f:
+        reader = csv.DictReader(f)
+        for row in reader:
+            if row[config["input_column"]] not in old_query:
+                update_files = True
+                new_seqs.appendrow[config["input_column"]]
+    
+    if new_seqs:
+        from_metadata = config["from_metadata"]
+        print(qcfunk.green(f"New sequences identified with {from_metadata} search"))
+        seq_string = "\n- ".join(new_seqs)
+        print(seq_string)
+
+    config["query"] = new_query
+    return update_files
+
+
+def check_for_new_in_cluster(config):
     new_count = 0
     prefix = config["output_prefix"]
+    background_metadata = config["background_metadata"]
     cluster_csv = os.path.join(config["outdir"],f"{prefix}.csv")
     with open(cluster_csv, "r") as f:
         reader = csv.DictReader(f)

@@ -5,5 +5,6 @@ output_prefix: cluster01
 cluster: True
 query: cluster_test.csv
 remote: True
-
+input_column: sequence_name
+data_column: sequence_name
 

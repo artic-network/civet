@@ -91,6 +91,7 @@ def main(sysargs = sys.argv[1:]):
     misc_group = parser.add_argument_group('misc options')
     misc_group.add_argument("--safety-level", action="store", type=int, dest="safety_level",help="Level of anonymisation for users. Options: 0 (no anonymity), 1 (no COGIDs on background data), 2 (no adm2 on data). Default: 1")
     misc_group.add_argument("--cluster",action="store_true",help="Run cluster civet pipeline. Requires -i/--input csv",dest="cluster")
+    misc_group.add_argument("--update",action="store_true",help="Check for changes from previous run of civet. Requires -i/--input config.yaml file",dest="update")
     misc_group.add_argument('-b','--launch-browser', action="store_true",help="Optionally launch md viewer in the browser using grip",dest="launch_browser")
     misc_group.add_argument('-c','--generate-config',dest="generate_config",action="store_true",help="Rather than running a civet report, just generate a config file based on the command line arguments provided")
     misc_group.add_argument('--tempdir',action="store",help="Specify where you want the temp stuff to go. Default: $TMPDIR")
@@ -187,8 +188,20 @@ def main(sysargs = sys.argv[1:]):
 
         metadata = config["background_metadata"]
         config["no_snipit"]=True
-        query = qcfunk.generate_query_from_metadata(args.from_metadata,metadata,config)
+
+        if config["update"]:
+            run_update = check_for_update(config)
+            if not run_update:
+                print(qcfunk.cyan('Note: no new sequences match search.\nExiting.'))
+                sys.exit(0)
+            else:
+                query = config["query"] # gets added updated in the check_for_update function
+        else:
+            query = qcfunk.generate_query_from_metadata(args.from_metadata,metadata,config)
     else:
+        if config["update"]:
+            cfunk.check_update_dependencies(config)
+            
         config["from_metadata"] = False
     """
     The query file could have been from one of
@@ -380,7 +393,7 @@ def main(sysargs = sys.argv[1:]):
                                         config=config, cores=threads,lock=False,quiet=True,log_handler=logger.log_handler
                                         )
 
-        new_seqs, cluster_csv = cfunk.check_for_new(config)
+        new_seqs, cluster_csv = cfunk.check_for_new_in_cluster(config)
 
         print(qcfunk.green(f"\nNew sequences found in cluster {today}: ") + f"{new_seqs}")
 
