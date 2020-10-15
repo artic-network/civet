@@ -160,20 +160,17 @@ def main(sysargs = sys.argv[1:]):
     # specifying temp directory, outdir if no_temp (tempdir becomes working dir)
     tempdir = qcfunk.get_temp_dir(args.tempdir, args.no_temp,cwd,config)
 
-    remote = qcfunk.check_arg_config_default("remote",args.remote, config, default_dict)
-    config["remote"] = remote
+    qcfunk.add_arg_to_config("remote",args.remote, config)
 
     # find the data dir
-    cfunk.get_datadir(args.climb,args.uun,args.datadir,args.background_metadata,cwd,config,default_dict)
+    cfunk.get_datadir(args.climb,args.uun,args.datadir,args.background_metadata,cwd,config)
 
     # add data and input columns to config
-    qcfunk.data_columns_to_config(args,config,default_dict)
+    qcfunk.data_columns_to_config(args,config)
 
     # check if metadata has the right columns, background_metadata_header added to config
-    qcfunk.check_metadata_for_search_columns(config,default_dict)
+    qcfunk.check_metadata_for_search_columns(config)
 
-    no_temp = qcfunk.check_arg_config_default("no_temp",args.no_temp, config, default_dict)
-    config["no_temp"] = no_temp
 
     """
     from metadata parsing 
@@ -181,15 +178,10 @@ def main(sysargs = sys.argv[1:]):
     relies on the data dir being found 
     """
     # generate query from metadata
-    if args.from_metadata or "from_metadata" in config:
-        if "query" in config:
-            if config["query"]:
-                sys.stderr.write(qcfunk.cyan('Error: please specifiy either -fm/--from-metadata or an input csv/ID string.\n'))
-                sys.exit(-1)
-        elif "fasta" in config:
-            if config["fasta"]:
-                sys.stderr.write(qcfunk.cyan('Error: fasta file option cannot be used in conjunction with -fm/--from-metadata.\nPlease specifiy an input csv with your fasta file.\n'))
-                sys.exit(-1)
+    qcfunk.add_arg_to_config("from_metadata",args.from_metadata, config)
+    if config["from_metadata"]:
+        
+        qcfunk.from_metadata_checks(config)
 
         metadata = config["background_metadata"]
         config["no_snipit"]=True
@@ -197,7 +189,7 @@ def main(sysargs = sys.argv[1:]):
         if config["update"]:
             run_update = check_for_update(config)
             if not run_update:
-                print(qcfunk.cyan('Note: no new sequences match search.\nExiting.'))
+                print(qcfunk.cyan('Note: no new sequences to report.\nExiting.'))
                 sys.exit(0)
             else:
                 query = config["query"] # gets added updated in the check_for_update function

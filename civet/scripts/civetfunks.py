@@ -30,7 +30,7 @@ def get_defaults():
                     "conclusions": "",
                     "max_ambiguity":0.5,
                     "min_length":10000,
-                    "no_temp":True,
+                    "no_temp":False,
                     "datadir":"civet-cat",
                     "input_column":"name",
                     "data_column":"central_sample_id",
@@ -159,11 +159,7 @@ def get_background_files(data_dir,background_metadata):
 
 def get_remote_data(uun,background_metadata,data_dir,config):
     config["remote"]= True
-    head,tail = os.path.split(data_dir)
-    # if tail == "civet-cat":
-    #     path_for_syncing = head
-    # else:
-    #     path_for_syncing = data_dir
+
     if uun:
         config["username"] = uun
         rsync_data_from_climb(uun, data_dir)
@@ -202,13 +198,14 @@ def get_remote_data(uun,background_metadata,data_dir,config):
         print("    -",background_metadata)
         print("    -",background_tree,"\n")
 
-def get_datadir(args_climb,args_uun,args_datadir,args_metadata,cwd,config,default_dict):
+def get_datadir(args_climb,args_uun,args_datadir,args_metadata,cwd,config):
     data_dir = ""
     background_metadata = ""
     remote= config["remote"]
 
     if args_metadata:
-        background_metadata = os.path.join(cwd, args_metadata)
+        expanded_path = os.path.expanduser(args_metadata)
+        background_metadata = os.path.join(cwd, expanded_path)
         if not os.path.exists(background_metadata):
             sys.stderr.write(qcfunk.cyan(f"Error: can't find metadata file at {background_metadata}.\n"))
             sys.exit(-1)
@@ -235,9 +232,7 @@ def get_datadir(args_climb,args_uun,args_datadir,args_metadata,cwd,config,defaul
     elif "datadir" in config:
         expanded_path = os.path.expanduser(config["datadir"])
         data_dir = os.path.join(config["path_to_query"], expanded_path)
-    else:
-        data_dir = os.path.join(cwd, default_dict["datadir"])
-
+    
     if not remote:
         if not os.path.exists(data_dir):
             print_data_error(data_dir)
@@ -301,7 +296,7 @@ def check_for_update(config):
         reader = csv.DictReader(f)
         for row in reader:
             old_query.append(row[config["input_column"]])
-    
+
     update_files = False
     new_seqs = []
     with open(new_query,"r") as f:
@@ -309,8 +304,8 @@ def check_for_update(config):
         for row in reader:
             if row[config["input_column"]] not in old_query:
                 update_files = True
-                new_seqs.appendrow[config["input_column"]]
-    
+                new_seqs.append(row[config["input_column"]])
+
     if new_seqs:
         from_metadata = config["from_metadata"]
         print(qcfunk.green(f"New sequences identified with {from_metadata} search"))
@@ -335,7 +330,6 @@ def check_for_new_in_cluster(config):
             if row["new"] == "True":
                 new_count +=1
     return new_count, cluster_csv
-
 
 
 def prepping_civet_arguments(name_stem_input, tree_fields_input, graphic_dict_input, label_fields_input, date_fields_input, table_fields_input):
