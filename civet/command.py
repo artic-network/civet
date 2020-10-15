@@ -121,10 +121,9 @@ def main(sysargs = sys.argv[1:]):
     """
     Initialising dicts
     """
-    # create the config dict to pass through to the snakemake file
-    config = {}
-    # get the default values from civetfunks
-    default_dict = cfunk.get_defaults()
+
+    # get the default values from civetfunk
+    config = cfunk.get_defaults(config)
 
     """
     Input file (-i/--input) 
@@ -138,8 +137,14 @@ def main(sysargs = sys.argv[1:]):
 
     # if a yaml file is detected, add everything in it to the config dict
     if configfile:
-        config = qcfunk.parse_yaml_file(configfile, config)
+        qcfunk.parse_yaml_file(configfile, config)
     
+
+    # update and cluster options
+    
+    qcfunk.add_arg_to_config("update",args.update, config)
+    qcfunk.add_arg_to_config("cluster",args.cluster, config)
+
     """
     Get outdir, tempdir and data dir. 
     Check if data has the right columns needed.
@@ -307,13 +312,7 @@ def main(sysargs = sys.argv[1:]):
 
     qcfunk.collapse_summary_path_to_config(config)
 
-    """
-    Finally add in all the default options that 
-    were not specified already
-    """
-    for key in default_dict:
-        if key not in config:
-            config[key] = default_dict[key]
+   
 
     """
     Miscellaneous options parsing

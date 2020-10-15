@@ -267,23 +267,27 @@ def get_datadir(args_climb,args_uun,args_datadir,args_metadata,cwd,config,defaul
 
     config["datadir"]=data_dir
 
-def get_cluster_config(cluster_arg,config,default_dict):
-    cluster = qcfunk.check_arg_config_default("cluster",cluster_arg, config, default_dict)
-    config["cluster"] = cluster
+def check_update_dependencies(config):
+    if not "from_metadata" in config:
+        sys.stderr.write(qcfunk.cyan('Error: `--from-metadata` search term required to run in `update` mode\n'))
+        sys.exit(-1)
 
-def check_update(update_arg,config,default_dict):
-    update = qcfunk.check_arg_config_default("update",update_arg, config, default_dict)
-    config["update"] = update
+def configure_update(update_arg,config):
+    if config["update"]:
+        check_update_dependencies(config)
 
 def check_cluster_dependencies(config):
     if not "query" in config:
         sys.stderr.write(qcfunk.cyan('Error: input.csv required to run `cluster` civet\n'))
         sys.exit(-1)
-
-def check_update_dependencies(config):
-    if not "from_metadata" in config:
-        sys.stderr.write(qcfunk.cyan('Error: `--from-metadata` search term required to run in `update` mode\n'))
+    if config["update"]:
+        sys.stderr.write(qcfunk.cyan('Error: specify one of either `cluster` or `update`\n'))
         sys.exit(-1)
+
+def configure_cluster(cluster_arg,config):
+    if config["cluster"]:
+        check_cluster_dependencies(config)
+
 
 def check_for_update(config):
 
