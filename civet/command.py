@@ -141,7 +141,7 @@ def main(sysargs = sys.argv[1:]):
     
 
     # update and cluster options
-    
+
     qcfunk.add_arg_to_config("update",args.update, config)
     qcfunk.add_arg_to_config("cluster",args.cluster, config)
 
@@ -155,7 +155,7 @@ def main(sysargs = sys.argv[1:]):
     - datadir
     """
     # default output dir
-    qcfunk.get_outdir(args.outdir,args.output_prefix,cwd,config,default_dict)
+    qcfunk.get_outdir(args.outdir,args.output_prefix,cwd,config)
 
     # specifying temp directory, outdir if no_temp (tempdir becomes working dir)
     tempdir = qcfunk.get_temp_dir(args.tempdir, args.no_temp,cwd,config)
