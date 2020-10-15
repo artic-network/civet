@@ -84,7 +84,7 @@ else:
 
 ```python, name="QC fails", echo=False, results="raw"
 if qc_fail != "": 
-    fail_dict = dp.investigate_QC_fails(qc_fail)
+    fail_dict = dp.investigate_QC_fails(qc_fail, input_column)
     if len(fail_dict) > 0:
         print("The following sequences have failed QC:\n")
         for seq, reason in fail_dict.items():
