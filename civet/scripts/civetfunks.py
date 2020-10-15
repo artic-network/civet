@@ -531,8 +531,8 @@ def make_full_civet_table(query_dict, full_taxon_dict, tree_fields, label_fields
             else:
                 df_dict["Found in COG"].append("False")
 
-            df_dict["UK lineage"].append(taxon.uk_lin)
-            df_dict["Global lineage"].append(taxon.global_lin)
+            df_dict["UK lineage"].append(taxon.uk_lineage)
+            df_dict["Global lineage"].append(taxon.global_lineage)
             df_dict["Phylotype"].append(taxon.phylotype)
 
             if taxon.tree != "NA":
