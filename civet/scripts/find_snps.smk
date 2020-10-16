@@ -30,29 +30,23 @@ rule get_sequence_names:
         input_column = config["input_column"]
         data_column = config["data_column"]
 
-
         # in input file find input_column and display name
-        queries = {}
+        name_maps = {}
         with open(input.query,"r") as f:
             reader = csv.DictReader(f)
             for row in reader:
-                queries[row[input_column]] = row[display_name]
+                # default name = name
+                name_maps[row[input_column]] = row[display_name]
 
         # in combined metadata, match the input column to the data column
         # add sequence name -> display name mapping
-        name_maps = {}
+        
         with open(input.combined_metadata, "r") as f:
             reader = csv.DictReader(f)
             for row in reader:
-                if row[data_column] in queries:
-                    name_maps[row["sequence_name"]] = queries[row[data_column]]
-        
-        # if an input column not found in combined metadata,
-        # add the input_column -> display name mapping
-        # these would be the ones not in the tree
-        for query in queries:
-            if query not in name_maps.values():
-                name_maps[query] = queries[query]
+                if row[data_column] in name_maps:
+                    # default seq_name = central_sample_id->display_name i.e. name
+                    name_maps[row["sequence_name"]] = name_maps[row[data_column]]
 
         # get all the taxa from a given local tree
         taxa = []
@@ -64,8 +58,8 @@ rule get_sequence_names:
         with open(output.seq_names, "w") as fw:
             fw.write("name,label\n")
             fw.write("Reference,Reference\n")
-            for name in name_maps:
-                if name in taxa:
+            for name in taxa:
+                if name in name_maps:
 
                     fw.write(f"{name},{name_maps[name]}\n")
 

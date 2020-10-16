@@ -645,13 +645,15 @@ else:
       ## Generate tabular data for each region ##
       for row, frame in central.iterrows():
           HB_name, MDTable = tableget(frame, cog_final)
-          with open(os.path.join(outDIR, f'{HB_name}_central_lineageTable.md'), 'w') as f:
+          HB_code = frame["HBCode"]
+          with open(os.path.join(outDIR, f'{HB_code}_central_lineageTable.md'), 'w') as f:
               f.write(f'### {HB_name}\n')
               f.write(f'{MDTable}\n\n')
       for row, frame in neighboring.iterrows():
           HB_name, MDTable = tableget(frame, cog_final)
-          HB_name = HB_name.replace(" ","_")
-          with open(os.path.join(outDIR, f'{HB_name}_neighboring_lineageTable.md'), 'w') as f:
+          # HB_name = HB_name.replace(" ","_")
+          HB_code = frame["HBCode"]
+          with open(os.path.join(outDIR, f'{HB_code}_neighboring_lineageTable.md'), 'w') as f:
               f.write(f'### {HB_name}\n')
               f.write(f'{MDTable}\n\n')
 

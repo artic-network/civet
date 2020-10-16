@@ -84,7 +84,7 @@ else:
 
 ```python, name="QC fails", echo=False, results="raw"
 if qc_fail != "": 
-    fail_dict = dp.investigate_QC_fails(qc_fail)
+    fail_dict = dp.investigate_QC_fails(qc_fail, input_column)
     if len(fail_dict) > 0:
         print("The following sequences have failed QC:\n")
         for seq, reason in fail_dict.items():
@@ -143,7 +143,7 @@ elif not_in_cog_number == 0 and cog_number != 0:
 ```
 
 ```python, name="make_trees", echo=False, include=False, figure=False
-too_tall_trees, overall_tree_number, colour_dict_dict, overall_df_dict, tree_order, too_large_tree_dict, tallest_height,tree_to_num_tips = tree_viz.make_all_of_the_trees(treedir, tree_name_stem, full_tax_dict, query_dict, tree_fields, label_fields, colour_by, tree_to_all_tip, tree_to_tip, inserted_node_dict, safety_level=safety_level)
+too_tall_trees, overall_tree_number, colour_dict_dict, overall_df_dict, tree_order, too_large_tree_dict, tallest_height,tree_to_num_tips = tree_viz.make_all_of_the_trees(treedir, tree_name_stem, full_tax_dict, query_dict, tree_fields, label_fields, colour_by, tree_to_all_tip, tree_to_tip, inserted_node_dict, svg_figdir, safety_level=safety_level)
 
 ```
 ```python, name="make_legend", echo=False, include=False, results='tex'
@@ -162,7 +162,7 @@ if dates_present:
         lookup = f"{tree_name_stem}_{tree}"
         tips = tree_to_tip[lookup]
         if len(tips) > 1:
-            time_func.plot_time_series(tips, query_dict, max_overall_date, min_overall_date, date_fields, label_fields, safety_level = safety_level)
+            time_func.plot_time_series(tips, query_dict, max_overall_date, min_overall_date, date_fields, label_fields, lookup, svg_figdir, safety_level = safety_level)
             tree_to_time_series[lookup] = count
 ```
 
@@ -176,20 +176,24 @@ for i in range(1,overall_tree_number+1):
     else:
         print(f"{len(tree_to_tip[lookup])} sequences of interest")
     print("   ")
+    
+    if lookup not in too_tall_trees:
+        print(f"![]({figdir}/{name_stem}_make_trees_{i}.png)")
 
-    print(f"![]({figdir}/{name_stem}_make_trees_{i}.png)")
+        print(f'<img src="{figdir}/{name_stem}_make_legend_1.png" alt="drawing" style="width:100%;"/>')
+        print("\n")
 
-    print(f'<img src="{figdir}/{name_stem}_make_legend_1.png" alt="drawing" style="width:100%;"/>')
-    print("\n")
+        if dates_present and lookup in tree_to_time_series.keys():
+            print("![](" + figdir + "/" + name_stem + "_time_plot_" + str(tree_to_time_series[lookup]) + ".png)")
 
-    if dates_present and lookup in tree_to_time_series.keys():
-        print("![](" + figdir + "/" + name_stem + "_time_plot_" + str(tree_to_time_series[lookup]) + ".png)")
+        if not no_snipit:
+            print(f"![]({figdir}/genome_graph_{lookup}.png)")
 
-    if not no_snipit:
-        print(f"![]({figdir}/genome_graph_{lookup}.png)")
+    else:
+        print(tree_name + " was too large to be rendered. Please see summary table below. If visualisation is required, please use intermediate tree files and use software such as Figtree.")
 
 if too_tall_trees != []:
-    print("Some trees were too large to be rendered. Summaries are shown below. If visualisation is required, please use intermediate tree files and use software such as Figtree.")
+    print("### Large tree summaries\n")
     print("NB: data in subtrees within this tree is not included in the summary here.")
     df_large_trees = pd.DataFrame(too_large_tree_dict)
     df_large_trees.set_index("Tree name", inplace=True)
@@ -217,13 +221,13 @@ if include_bars:
 if map_sequences:
     stop_map = False
     if map_info == "adm2":
-        output = mapping.map_adm2(query_dict, clean_locs, mapping_json_files)
+        output = mapping.map_adm2(query_dict, clean_locs, mapping_json_files, svg_figdir)
         if output:
             adm2_in_map, adm2_percentages = output
         else:
             stop_map = True
     else:
-        output = mapping.map_sequences_using_coordinates(query, mapping_json_files, urban_centres, pc_file, colour_map_by, map_info, input_crs)
+        output = mapping.map_sequences_using_coordinates(query, mapping_json_files, urban_centres, pc_file, colour_map_by, map_info, input_crs, svg_figdir)
         if output:
             adm2_in_map, adm2_percentages = output
         else:
