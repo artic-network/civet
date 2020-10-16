@@ -123,7 +123,7 @@ def main(sysargs = sys.argv[1:]):
     """
 
     # get the default values from civetfunk
-    config = cfunk.get_defaults(config)
+    config = cfunk.get_defaults()
 
     """
     Input file (-i/--input) 
@@ -199,8 +199,6 @@ def main(sysargs = sys.argv[1:]):
         if config["update"]:
             cfunk.check_update_dependencies(config)
             
-        config["from_metadata"] = False
-
     """
     The query file could have been from one of
     - input.csv
@@ -243,7 +241,7 @@ def main(sysargs = sys.argv[1:]):
     """
     Report options and args added to config, seq header file retrieved
     """
-    # check args, config, defaultdict for report group options
+    # check args for report group options
     cfunk.report_group_to_config(args,config)
 
     # get seq centre header file from pkg data
@@ -255,10 +253,10 @@ def main(sysargs = sys.argv[1:]):
     qc of the input
     """
     
-    # check args, config, defaultdict for mapping group options
+    # check args for mapping group options
     cfunk.map_group_to_config(args,config)
 
-    # check args, config, defaultdict for data group options
+    # check args for data group options
     qcfunk.data_columns_to_config(args,config)
 
     # parse the input csv, check col headers and get fields if fields specified
@@ -295,13 +293,13 @@ def main(sysargs = sys.argv[1:]):
     # make title
     rfunk.make_title(config)
     # deal with free text
-    rfunk.free_text_args(config, default_dict)
+    rfunk.free_text_args(config)
 
     #get table headers
     qcfunk.check_table_fields(args.table_fields, args.include_snp_table, config)
         
     # summarising collapsed nodes config
-    qcfunk.check_summary_field("node_summary",config, default_dict)
+    qcfunk.check_summary_field("node_summary",config)
 
     qcfunk.collapse_summary_path_to_config(config)
 
@@ -312,8 +310,7 @@ def main(sysargs = sys.argv[1:]):
 
     """
 
-    launch_browser = qcfunk.check_arg_config_default("launch_browser",args.launch_browser,config,default_dict)
-    config["launch_browser"]= launch_browser
+    qcfunk.add_arg_to_config("launch_browser",args.launch_browser,config)
 
     # don't run in quiet mode if verbose specified
     if args.verbose:
@@ -324,27 +321,25 @@ def main(sysargs = sys.argv[1:]):
         lh_path = os.path.realpath(lh.__file__)
         config["log_string"] = f"--quiet --log-handler-script {lh_path} "
 
-    launch_browser = qcfunk.check_arg_config_default("launch_browser",args.launch_browser,config,default_dict)
-    config["launch_browser"] = launch_browser
-
-    threads = qcfunk.check_arg_config_default("threads",args.threads,config,default_dict)
+    qcfunk.add_arg_to_config("threads",args.threads,config)
+    
     try:
-        threads = int(threads)
-        config["threads"]= int(threads)
+        config["threads"]= int(config["threads"])
     except:
         sys.stderr.write(qcfunk.cyan('Error: Please specifiy an integer for variable `threads`.\n'))
         sys.exit(-1)
+    threads = config["threads"]
 
-    safety_level = qcfunk.check_arg_config_default("safety_level",args.safety_level,config,default_dict)
+    qcfunk.add_arg_to_config("safety_level",args.safety_level,config)
     
     try:
-        safety_level = int(safety_level)
+        safety_level = int(config["safety_level"])
     except:
         sys.stderr.write(qcfunk.cyan('Error: Please specifiy either 0, 1 or 2 for variable `safety_level`.\n'))
         sys.exit(-1)
 
     if safety_level in [0,1,2]:
-        config["safety_level"]= int(safety_level)
+        config["safety_level"]= int(config["safety_level"])
     else:
         sys.stderr.write(qcfunk.cyan('Error: Please specifiy either 0, 1 or 2 for variable `safety_level`.\n'))
         sys.exit(-1)
@@ -363,7 +358,6 @@ def main(sysargs = sys.argv[1:]):
     
     """
     # cluster civet 
-    cfunk.get_cluster_config(args.cluster, config, default_dict)
 
     if config["cluster"]:
 
@@ -390,7 +384,7 @@ def main(sysargs = sys.argv[1:]):
         print(qcfunk.green(f"\nNew sequences found in cluster {today}: ") + f"{new_seqs}")
 
         if not new_seqs:
-            print(qcfunk.cyan(f"No new sequences in cluster {today}"))
+            print(qcfunk.cyan(f"No new sequences in cluster today, {today}"))
             sys.exit(0)
         else:
             config["query"] = cluster_csv

@@ -48,6 +48,7 @@ def get_defaults():
                     "map_info":False,
                     "input_crs":False,
                     "colour_map_by":False,
+                    "from_metadata":False,
                     "date_restriction":False,
                     "date_range_start":False,
                     "date_range_end":False,

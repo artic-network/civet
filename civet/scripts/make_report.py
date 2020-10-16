@@ -37,9 +37,8 @@ def make_free_text_dict(config):
 def make_report():
     
     args = parse_args()
-    
     config = {}
-    config = qcfunk.parse_yaml_file(args.config,config)
+    qcfunk.parse_yaml_file(args.config,config)
     free_text_dict = make_free_text_dict(config)
 
     with open(config["outfile"], 'w') as pmd_file:
