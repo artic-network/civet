@@ -461,7 +461,7 @@ def get_sequencing_centre_header(config):
         print(qcfunk.green(f"Using header file from:") + f" {package_png}\n")
         config["sequencing_centre_source"] = sequencing_centre_source
         config["sequencing_centre_dest"] = os.path.join(config["outdir"],"report","figures",f"{sequencing_centre}.png")
-        config["sequencing_centre_file"] = os.path.join(".","report","figures",f"{sequencing_centre}.png")
+        config["sequencing_centre_file"] = os.path.join(".","figures",f"{sequencing_centre}.png")
         config["sequencing_centre"] = sequencing_centre
     else:
         sc_string = "\n".join(sc_list)
