@@ -12,6 +12,7 @@ A fully customisable report is generated, summarising information about the sequ
 
 
 ### civet documentation
+  * [Data anonymisation](./safety_level.md)
   * [Install and update civet](./installation.md)
   * [Input options](./input_options.md)
   * [Background data](./background_data.md)
@@ -19,7 +20,7 @@ A fully customisable report is generated, summarising information about the sequ
   * [Analysis pipeline](./analysis_pipeline.md)
   * [Output](./output.md)
   * [Report options and descriptions](./report_docs.md)
-  * [Mapping options and usage instructions](./map_options_docs.md)
+  * [Mapping options and usage instructions](./map_option_docs.md)
   * [Example report](./civet_report_example.md)
   * [Contributors & acknowledgements](./acknowledgements.md)
   * [Software versions](./acknowledgements.md)
