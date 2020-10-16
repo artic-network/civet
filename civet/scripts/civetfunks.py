@@ -283,7 +283,8 @@ def check_cluster_dependencies(config):
 def configure_cluster(config):
     if config["cluster"]:
         check_cluster_dependencies(config)
-    config["colour_by"]="new:viridis"
+    config["colour_by"]="new:Paired"
+    config["table_fields"]="central_sample_id,sequence_name,sample_date,uk_lineage,phylotype,tree,new"
 
 
 def check_for_update(config):
