@@ -55,7 +55,7 @@ def get_defaults():
                     "launch_browser":False,
                     "node_summary":"country",
                     "date_window":7,
-                    "colour_by":"adm1=viridis",
+                    "colour_by":"adm1=Dark2",
                     "label_fields":False,
                     "date_fields":False,
                     "remote":False,
@@ -280,9 +280,10 @@ def check_cluster_dependencies(config):
         sys.stderr.write(qcfunk.cyan('Error: specify one of either `cluster` or `update`\n'))
         sys.exit(-1)
 
-def configure_cluster(cluster_arg,config):
+def configure_cluster(config):
     if config["cluster"]:
         check_cluster_dependencies(config)
+    config["colour_by"]="new:viridis"
 
 
 def check_for_update(config):

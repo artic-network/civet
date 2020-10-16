@@ -362,7 +362,7 @@ def main(sysargs = sys.argv[1:]):
     if config["cluster"]:
 
         config["today"] = today
-        cfunk.check_cluster_dependencies(config)
+        cfunk.configure_cluster(config)
 
         cluster_snakefile = qcfunk.get_cluster_snakefile(thisdir)
 
@@ -378,6 +378,10 @@ def main(sysargs = sys.argv[1:]):
             status = snakemake.snakemake(cluster_snakefile, printshellcmds=False, forceall=True,force_incomplete=True,workdir=tempdir,
                                         config=config, cores=threads,lock=False,quiet=True,log_handler=logger.log_handler
                                         )
+
+        if not status:
+            print(qcfunk.cyan(f"Error: Cluster civet did not successfully run"))
+            sys.exit(-1)
 
         new_seqs, cluster_csv = cfunk.check_for_new_in_cluster(config)
 
