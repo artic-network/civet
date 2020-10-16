@@ -110,9 +110,10 @@ prep_data.analyse_inputs(inputs)
 
 print("\n")
 
-print(str(full_query_count) + " queries (" + str(cog_number) + " matched to COG-UK database).")
-print(str(not_in_cog_number) + " additional sequences provided.")
-print(str(not_found_in_climb) + " were not found in the phylogeny or in the larger background database and a sequence was not provided.")
+print(str(full_query_count) + " queries (" + str(cog_number) + " matched to COG-UK database)")
+print(str(not_in_cog_number) + " sequences input")
+if not_found_in_climb:
+    print(str(not_found_in_climb) + " not found in background data")
 
 if dates_present:
     print("Time fields provided: " + ",".join(date_fields))
