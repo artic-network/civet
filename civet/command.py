@@ -200,6 +200,7 @@ def main(sysargs = sys.argv[1:]):
             cfunk.check_update_dependencies(config)
             
         config["from_metadata"] = False
+
     """
     The query file could have been from one of
     - input.csv
@@ -212,7 +213,7 @@ def main(sysargs = sys.argv[1:]):
     qcfunk.check_query_file(query, cwd, config)
 
     # check if metadata has the right columns, background_metadata_header added to config
-    qcfunk.check_query_for_input_column(config,default_dict)
+    qcfunk.check_query_for_input_column(config)
 
     """
     Input fasta file 
@@ -222,14 +223,14 @@ def main(sysargs = sys.argv[1:]):
     qcfunk.get_query_fasta(args.fasta,cwd, config)
     
     # run qc on the input sequence file
-    num_seqs = qcfunk.input_file_qc(args.min_length,args.max_ambiguity,config,default_dict)
+    num_seqs = qcfunk.input_file_qc(args.min_length,args.max_ambiguity,config)
     
     """
     Quick check in background data
     """
     if num_seqs == 0:
         # check if any queries in background or if fasta supplied
-        qcfunk.check_background_for_queries(config,default_dict)
+        qcfunk.check_background_for_queries(config)
 
     """
     Accessing the civet package data and 
@@ -243,7 +244,7 @@ def main(sysargs = sys.argv[1:]):
     Report options and args added to config, seq header file retrieved
     """
     # check args, config, defaultdict for report group options
-    cfunk.report_group_to_config(args,config,default_dict)
+    cfunk.report_group_to_config(args,config)
 
     # get seq centre header file from pkg data
     cfunk.get_sequencing_centre_header(config)
@@ -255,19 +256,19 @@ def main(sysargs = sys.argv[1:]):
     """
     
     # check args, config, defaultdict for mapping group options
-    cfunk.map_group_to_config(args,config,default_dict)
+    cfunk.map_group_to_config(args,config)
 
     # check args, config, defaultdict for data group options
-    qcfunk.data_columns_to_config(args,config,default_dict)
+    qcfunk.data_columns_to_config(args,config)
 
     # parse the input csv, check col headers and get fields if fields specified
-    qcfunk.check_label_and_tree_and_date_fields(config, default_dict)
+    qcfunk.check_label_and_tree_and_date_fields(config)
         
     # map sequences configuration
     cfunk.map_sequences_config(config)
     
     # local lineages qc
-    cfunk.local_lineages_qc(config,default_dict)
+    cfunk.local_lineages_qc(config)
 
     """
     Parsing the tree_group arguments, 
@@ -275,13 +276,13 @@ def main(sysargs = sys.argv[1:]):
     """
 
     # global now the only search option
-    cfunk.define_seq_db(config,default_dict)
+    cfunk.define_seq_db(config)
 
     # extraction radius configuration
-    qcfunk.distance_config(args.distance,args.up_distance,args.down_distance,config,default_dict) 
+    qcfunk.distance_config(args.distance,args.up_distance,args.down_distance,config) 
 
     # extraction radius configuration
-    qcfunk.collapse_config(args.collapse_threshold,config,default_dict) 
+    qcfunk.collapse_config(args.collapse_threshold,config) 
 
 
     qcfunk.parse_protect(args.protect,config["background_metadata"],config)
@@ -292,12 +293,12 @@ def main(sysargs = sys.argv[1:]):
     """
 
     # make title
-    rfunk.make_title(config, default_dict)
+    rfunk.make_title(config)
     # deal with free text
     rfunk.free_text_args(config, default_dict)
 
     #get table headers
-    qcfunk.check_table_fields(args.table_fields, args.include_snp_table, config,default_dict)
+    qcfunk.check_table_fields(args.table_fields, args.include_snp_table, config)
         
     # summarising collapsed nodes config
     qcfunk.check_summary_field("node_summary",config, default_dict)

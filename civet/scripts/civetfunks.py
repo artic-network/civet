@@ -22,7 +22,7 @@ today = date.today()
 
 def get_defaults():
     default_dict = {
-                    "title": "# Cluster investigation",
+                    "title": "## Cluster investigation",
                     "outbreak_id": "",
                     "report_date": today,# date investigation was opened
                     "authors": "", # List of authors, affiliations and contact details
@@ -76,7 +76,7 @@ def get_defaults():
                     }
     return default_dict
 
-def define_seq_db(config,default_dict):
+def define_seq_db(config):
     config["seq_db"] = config["background_seqs"]
     
 
@@ -361,7 +361,7 @@ def prepping_civet_arguments(name_stem_input, tree_fields_input, graphic_dict_in
   
     return name_stem, tree_fields, graphic_dict, label_fields, date_fields, table_fields
 
-def local_lineages_qc(config,default_dict):
+def local_lineages_qc(config):
 
     query_file = config["query"]
 
@@ -465,102 +465,73 @@ def get_sequencing_centre_header(config):
         sys.stderr.write(qcfunk.cyan(f'Error: sequencing centre must be one of the following:\n{sc_string}\n'))
         sys.exit(-1)
 
-def map_group_to_config(args,config,default_dict):
+def map_group_to_config(args,config):
 
     ## local_lineages
-    local_lineages = qcfunk.check_arg_config_default("local_lineages",args.local_lineages, config, default_dict)
-    config["local_lineages"] = local_lineages
+    qcfunk.add_arg_to_config("local_lineages",args.local_lineages, config)
 
     ## date_restriction
-    date_restriction = qcfunk.check_arg_config_default("date_restriction",args.date_restriction, config, default_dict)
-    config["date_restriction"] = date_restriction
-
+    qcfunk.add_arg_to_config("date_restriction",args.date_restriction, config)
     ## date_range_start
-    date_range_start = qcfunk.check_arg_config_default("date_range_start",args.date_range_start, config, default_dict)
-    config["date_range_start"] = date_range_start
+    qcfunk.add_arg_to_config("date_range_start",args.date_range_start, config)
 
     ## date_range_end
-    date_range_end = qcfunk.check_arg_config_default("date_range_end",args.date_range_end, config, default_dict)
-    config["date_range_end"] = date_range_end
+    qcfunk.add_arg_to_config("date_range_end",args.date_range_end, config)
 
     ## date_window
-    date_window = qcfunk.check_arg_config_default("date_window",args.date_window, config, default_dict)
-    config["date_window"] = date_window
+    qcfunk.add_arg_to_config("date_window",args.date_window, config)
 
     ## map_sequences
-    map_sequences = qcfunk.check_arg_config_default("map_sequences",args.map_sequences, config, default_dict)
-    config["map_sequences"] = map_sequences
+    qcfunk.add_arg_to_config("map_sequences",args.map_sequences, config)
 
     ## map_info
-    map_info = qcfunk.check_arg_config_default("map_info",args.map_info, config, default_dict)
-    config["map_info"] = map_info
-
+    qcfunk.add_arg_to_config("map_info",args.map_info, config)
     ## input_crs
-    input_crs = qcfunk.check_arg_config_default("input_crs",args.input_crs, config, default_dict)
-    config["input_crs"] = input_crs
+    qcfunk.add_arg_to_config("input_crs",args.input_crs, config)
 
     ## colour_map_by
-    colour_map_by = qcfunk.check_arg_config_default("colour_map_by",args.colour_map_by, config, default_dict)
-    config["colour_map_by"] = colour_map_by
+    qcfunk.add_arg_to_config("colour_map_by",args.colour_map_by, config)
 
 
-
-def report_group_to_config(args,config,default_dict):
+def report_group_to_config(args,config):
     ## sequencing_centre
-    sequencing_centre = qcfunk.check_arg_config_default("sequencing_centre",args.sequencing_centre, config, default_dict)
-    config["sequencing_centre"] = sequencing_centre
+    qcfunk.add_arg_to_config("sequencing_centre",args.sequencing_centre, config)
 
     ## display_name
-    display_name = qcfunk.check_arg_config_default("display_name", args.display_name, config, default_dict)
-    config["display_name"] = display_name
+    qcfunk.add_arg_to_config("display_name", args.display_name, config)
     
     ## colour_by
-    colour_by = qcfunk.check_arg_config_default("colour_by",args.colour_by, config, default_dict)
-    config["colour_by"] = colour_by
+    qcfunk.add_arg_to_config("colour_by",args.colour_by, config)
 
     ## tree_fields
-    tree_fields = qcfunk.check_arg_config_default("tree_fields",args.tree_fields, config, default_dict)
-    config["tree_fields"] = tree_fields
+    qcfunk.add_arg_to_config("tree_fields",args.tree_fields, config)
 
     ## label_fields
-    label_fields = qcfunk.check_arg_config_default("label_fields",args.label_fields, config, default_dict)
-    if not label_fields:
-        config["label_fields"] = False
+    qcfunk.add_arg_to_config("label_fields",args.label_fields, config)
 
     ##date_fields
-    date_fields = qcfunk.check_arg_config_default("date_fields", args.date_fields, config, default_dict)
-    config["date_fields"] = date_fields
+    qcfunk.add_arg_to_config("date_fields", args.date_fields, config)
 
     ##sample date column
-    sample_date_column = qcfunk.check_arg_config_default("sample_date_column", args.sample_date_column,config,default_dict)
-    config["sample_date_column"] = sample_date_column
-
-    database_sample_date_column = qcfunk.check_arg_config_default("database_sample_date_column", args.database_sample_date_column, config, default_dict)
-    config["database_sample_date_column"] = database_sample_date_column
+    qcfunk.add_arg_to_config("sample_date_column", args.sample_date_column,config)
+    qcfunk.add_arg_to_config("database_sample_date_column", args.database_sample_date_column, config)
 
     ## node-summary
-    node_summary = qcfunk.check_arg_config_default("node_summary",args.node_summary, config, default_dict)
-    config["node_summary"] = node_summary
+    qcfunk.add_arg_to_config("node_summary",args.node_summary, config)
 
     ## table_fields
-    table_fields = qcfunk.check_arg_config_default("table_fields",args.table_fields, config, default_dict)
-    config["table_fields"] = table_fields
-
+    qcfunk.add_arg_to_config("table_fields",args.table_fields, config)
     ## include_snp_table
-    include_snp_table = qcfunk.check_arg_config_default("include_snp_table",args.include_snp_table, config, default_dict)
-    config["include_snp_table"] = include_snp_table
+    qcfunk.add_arg_to_config("include_snp_table",args.include_snp_table, config)
 
     ## include_bars
-    include_bars = qcfunk.check_arg_config_default("include_bars",args.include_bars, config, default_dict)
-    config["include_bars"] = include_bars
+    qcfunk.add_arg_to_config("include_bars",args.include_bars, config)
 
     ## omit-appendix
-    omit_appendix = qcfunk.check_arg_config_default("omit_appendix",args.omit_appendix, config, default_dict)
-    config["omit_appendix"] = omit_appendix
+    qcfunk.add_arg_to_config("omit_appendix",args.omit_appendix, config)
 
     ## no-snipit
-    no_snipit = qcfunk.check_arg_config_default("no_snipit",args.no_snipit, config, default_dict)
-    config["no_snipit"] = no_snipit
+    qcfunk.add_arg_to_config("no_snipit",args.no_snipit, config)
     
 
 def make_full_civet_table(query_dict, full_taxon_dict, tree_fields, label_fields, input_column, outdir, table_fields):
