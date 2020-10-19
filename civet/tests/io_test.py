@@ -150,6 +150,19 @@ def test_map_sequences_config():
     cfunk.map_sequences_config(config)
     assert config["input_crs"] == "EPSG:4326"
 
+def test_check_date_format():
+    date_string1 = "2020-10-01"
+    check_date = qcfunk.check_date_format(date_string1)
+    print(check_date)
+    assert str(check_date) == "2020-10-01"
+
+    date_string2 = "10-01-2020"
+    try:
+        check_date = qcfunk.check_date_format(date_string2)
+    except:
+        check_date = -1
+    assert check_date == -1
+
 def main():
     test_outdir_default()
 
@@ -174,6 +187,8 @@ def main():
     test_check_query_for_input_column()
 
     test_map_sequences_config()
+
+    test_check_date_format()
 
 if __name__ == '__main__':
     main()
