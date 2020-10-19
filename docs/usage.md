@@ -197,21 +197,34 @@ civet -i config.yaml
             Column to colour mapped sequences by
 ```
 
+<strong>run options</strong>
+```
+  --cluster             Run cluster civet pipeline. Requires -i/--input csv
+  --update              Check for changes from previous run of civet. Requires
+                        -fm/--from-metadata option in a config.yaml file from
+                        previous run
+  -c, --generate-config
+                        Rather than running a civet report, just generate a
+                        config file based on the command line arguments
+                        provided
+  -b, --launch-browser  Optionally launch md viewer in the browser using grip
+```
+
 <strong>misc options:</strong>
 ```
--b, --launch-browser  Optionally launch md viewer in the browser using grip
--c, --generate-config
-            Rather than running a civet report, just generate a
-            config file based on the command line arguments
-            provided
---tempdir TEMPDIR     Specify where you want the temp stuff to go. Default:
-            $TMPDIR
---no-temp             Output all intermediate files, for dev purposes.
---verbose             Print lots of stuff to screen
--t THREADS, --threads THREADS
-            Number of threads
--v, --version         show program's version number and exit
--h, --help
+  --safety-level SAFETY_LEVEL
+                        Level of anonymisation for users. Options: 0 (no
+                        anonymity), 1 (no COGIDs on background data), 2 (no
+                        adm2 on data). Default: 1
+  --tempdir TEMPDIR     Specify where you want the temp stuff to go. Default:
+                        $TMPDIR
+  --no-temp             Output all intermediate files, for dev purposes.
+  --verbose             Print lots of stuff to screen
+  --art                 Print art
+  -t THREADS, --threads THREADS
+                        Number of threads
+  -v, --version         show program's version number and exit
+  -h, --help
 
 ```
 
