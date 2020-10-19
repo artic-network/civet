@@ -55,7 +55,7 @@ def get_defaults():
                     "launch_browser":False,
                     "node_summary":"country",
                     "date_window":7,
-                    "colour_by":"adm1=Dark2",
+                    "colour_by":"adm1=Paired",
                     "label_fields":False,
                     "date_fields":False,
                     "remote":False,
