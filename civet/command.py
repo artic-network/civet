@@ -142,7 +142,7 @@ def main(sysargs = sys.argv[1:]):
 
     # update and cluster options
 
-    qcfunk.add_arg_to_config("update",args.update, config)
+    cfunk.configure_update(args.update,config)
     qcfunk.add_arg_to_config("cluster",args.cluster, config)
 
     """
@@ -187,14 +187,16 @@ def main(sysargs = sys.argv[1:]):
         config["no_snipit"]=True
 
         if config["update"]:
-            run_update = check_for_update(config)
+            query_file = os.path.join(config["outdir"], "update_query.csv")
+            run_update = cfunk.check_for_update(query_file,config)
             if not run_update:
                 print(qcfunk.cyan('Note: no new sequences to report.\nExiting.'))
                 sys.exit(0)
             else:
                 query = config["query"] # gets added updated in the check_for_update function
         else:
-            query = qcfunk.generate_query_from_metadata(args.from_metadata,metadata,config)
+            query_file = os.path.join(config["outdir"], "from_metadata_query.csv")
+            query = qcfunk.generate_query_from_metadata(query_file,args.from_metadata,metadata,config)
     else:
         if config["update"]:
             cfunk.check_update_dependencies(config)

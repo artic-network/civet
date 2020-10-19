@@ -31,7 +31,7 @@ def get_defaults():
                     "max_ambiguity":0.5,
                     "min_length":10000,
                     "no_temp":False,
-                    "datadir":"civet-cat",
+                    "datadir":"",
                     "input_column":"name",
                     "data_column":"central_sample_id",
                     "database_sample_date_column":"sample_date",
@@ -212,11 +212,12 @@ def get_datadir(args_climb,args_uun,args_datadir,args_metadata,cwd,config):
             sys.exit(-1)
 
     elif "background_metadata" in config:
-        expanded_path = os.path.expanduser(config["background_metadata"])
-        background_metadata = os.path.join(config["path_to_query"], expanded_path)
-        if not os.path.exists(background_metadata):
-            sys.stderr.write(qcfunk.cyan(f"Error: can't find metadata file at {background_metadata}.\n"))
-            sys.exit(-1)
+        if config["background_metadata"]:
+            expanded_path = os.path.expanduser(config["background_metadata"])
+            background_metadata = os.path.join(config["path_to_query"], expanded_path)
+            if not os.path.exists(background_metadata):
+                sys.stderr.write(qcfunk.cyan(f"Error: can't find metadata file at {background_metadata}.\n"))
+                sys.exit(-1)
             
     if args_climb:
         data_dir = "/cephfs/covid/bham/results/phylogenetics/latest/civet/cog"
@@ -231,9 +232,13 @@ def get_datadir(args_climb,args_uun,args_datadir,args_metadata,cwd,config):
         data_dir = os.path.join(cwd, args_datadir)
 
     elif "datadir" in config:
-        expanded_path = os.path.expanduser(config["datadir"])
-        data_dir = os.path.join(config["path_to_query"], expanded_path)
-    
+        if config["datadir"]:
+            expanded_path = os.path.expanduser(config["datadir"])
+            data_dir = os.path.join(config["path_to_query"], expanded_path)
+        else:
+            data_dir = os.path.join(cwd, "civet-cat")
+
+
     if not remote:
         if not os.path.exists(data_dir):
             print_data_error(data_dir)
@@ -264,13 +269,24 @@ def get_datadir(args_climb,args_uun,args_datadir,args_metadata,cwd,config):
     config["datadir"]=data_dir
 
 def check_update_dependencies(config):
-    if not "from_metadata" in config:
+    if "from_metadata" in config:
+        if not config["from_metadata"]:
+            sys.stderr.write(qcfunk.cyan('Error: `--from-metadata` search term required to run in `update` mode\n'))
+            sys.exit(-1)
+    else:
         sys.stderr.write(qcfunk.cyan('Error: `--from-metadata` search term required to run in `update` mode\n'))
         sys.exit(-1)
 
 def configure_update(update_arg,config):
+    qcfunk.add_arg_to_config("update",update_arg, config)
     if config["update"]:
         check_update_dependencies(config)
+        for i in ["treedir","tempdir","summary_dir","sequencing_centre_dest","seq_db","rel_outdir","path_to_query","outfile","outdir","background_metadata","background_seqs","background_tree","collapse_summary","filtered_background_metadata"]:
+            config[i]=""
+        config["colour_by"]="new:Paired"
+        config["tree_fields"]="new"
+        config["table_fields"]="central_sample_id,sequence_name,sample_date,uk_lineage,phylotype,tree,new"
+
 
 def check_cluster_dependencies(config):
     if not "query" in config:
@@ -285,13 +301,14 @@ def configure_cluster(config):
         check_cluster_dependencies(config)
     config["colour_by"]="new:Paired"
     config["table_fields"]="central_sample_id,sequence_name,sample_date,uk_lineage,phylotype,tree,new"
+    config["down_distance"]=100
 
 
-def check_for_update(config):
+def check_for_update(update_query,config):
 
     check_update_dependencies(config)
-
-    new_query = qcfunk.generate_query_from_metadata(config["from_metadata"],config["background_metadata"],config)
+    temp_query = os.path.join(config["outdir"], "pre_update_query.csv")
+    new_query = qcfunk.generate_query_from_metadata(temp_query,config["from_metadata"],config["background_metadata"],config)
 
     old_query = []
 
@@ -302,22 +319,34 @@ def check_for_update(config):
 
     update_files = False
     new_seqs = []
-    with open(new_query,"r") as f:
-        reader = csv.DictReader(f)
-        for row in reader:
-            if row[config["input_column"]] not in old_query:
-                update_files = True
-                new_seqs.append(row[config["input_column"]])
 
+    with open(update_query,"w") as fw:
+        with open(temp_query,"r") as f:
+            reader = csv.DictReader(f)
+            header = reader.fieldnames
+
+            if "new" not in header:
+                header.append("new")
+
+            writer = csv.DictWriter(fw, fieldnames=header,lineterminator='\n')
+            writer.writeheader()
+
+            for row in reader:
+                new_row = row
+                if row[config["input_column"]] not in old_query:
+                    update_files = True
+                    new_row["new"]="True"
+                    writer.writerow(new_row)
+                else:
+                    new_row["new"]="False"
+                    writer.writerow(new_row)
+    
     if new_seqs:
         from_metadata = config["from_metadata"]
         print(qcfunk.green(f"New sequences identified with {from_metadata} search"))
-        seq_string = "\n- ".join(new_seqs)
-        print(seq_string)
-
-    config["query"] = new_query
+ 
+    config["query"] = update_query
     return update_files
-
 
 def check_for_new_in_cluster(config):
     new_count = 0
