@@ -91,6 +91,7 @@ def main(sysargs = sys.argv[1:]):
     run_group = parser.add_argument_group('run options')
     run_group.add_argument("--cluster",action="store_true",help="Run cluster civet pipeline. Requires -i/--input csv",dest="cluster")
     run_group.add_argument("--update",action="store_true",help="Check for changes from previous run of civet. Requires -fm/--from-metadata option in a config.yaml file from previous run",dest="update")
+    run_group.add_argument("--udpate",action="store_true",help="Check for changes from previous run of civet. Requires -fm/--from-metadata option in a config.yaml file from previous run",dest="udpate")
     run_group.add_argument('-c','--generate-config',dest="generate_config",action="store_true",help="Rather than running a civet report, just generate a config file based on the command line arguments provided")
     run_group.add_argument('-b','--launch-browser', action="store_true",help="Optionally launch md viewer in the browser using grip",dest="launch_browser")
 
@@ -144,7 +145,7 @@ def main(sysargs = sys.argv[1:]):
 
     # update and cluster options
 
-    cfunk.configure_update(args.update,config)
+    cfunk.configure_update(args.update,args.udpate,config)
     qcfunk.add_arg_to_config("cluster",args.cluster, config)
 
     """

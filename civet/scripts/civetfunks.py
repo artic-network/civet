@@ -277,7 +277,9 @@ def check_update_dependencies(config):
         sys.stderr.write(qcfunk.cyan('Error: `--from-metadata` search term required to run in `update` mode\n'))
         sys.exit(-1)
 
-def configure_update(update_arg,config):
+def configure_update(update_arg,udpate_arg,config):
+    if udpate_arg:
+        config["update"] = True
     qcfunk.add_arg_to_config("update",update_arg, config)
     if config["update"]:
         check_update_dependencies(config)
