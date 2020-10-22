@@ -81,6 +81,25 @@ def define_seq_db(config):
     config["seq_db"] = config["background_seqs"]
     
 
+def check_adm2_values(config):
+    adm2 = []
+    with open(config["clean_locs"],"r") as f:
+        reader = csv.DictReader(f)
+        for row in reader:
+            adm2.append(row["location_in_metadata"])
+
+    with open(config["query"],"r") as f:
+        reader = csv.DictReader(f)
+        header = reader.fieldnames
+        if "adm2" in header:
+            for row in reader:
+                if row["adm2"].upper() not in adm2:
+                    adm2_value = row["adm2"]
+                    loc_file = config["clean_locs"]
+                    sys.stderr.write(qcfunk.cyan(f'Error: {adm2_value} not a valid adm2 region.\n Find a list of valid adm2 values at:\n{loc_file}\n'))
+                    sys.exit(-1)
+
+
 def get_package_data(thisdir,config):
     reference_fasta = pkg_resources.resource_filename('civet', 'data/reference.fasta')
     outgroup_fasta = pkg_resources.resource_filename('civet', 'data/outgroup.fasta')
@@ -287,7 +306,7 @@ def configure_update(update_arg,udpate_arg,config):
             config[i]=""
         config["colour_by"]="new:Paired"
         config["tree_fields"]="new"
-        config["table_fields"]="central_sample_id,sequence_name,sample_date,uk_lineage,phylotype,tree,new"
+        config["table_fields"]=config["table_fields"].append("new")
 
 
 def check_cluster_dependencies(config):
@@ -302,7 +321,7 @@ def configure_cluster(config):
     if config["cluster"]:
         check_cluster_dependencies(config)
     config["colour_by"]="new:Paired"
-    config["table_fields"]="central_sample_id,sequence_name,sample_date,uk_lineage,phylotype,tree,new"
+    config["table_fields"]=config["table_fields"].append("new")
     config["down_distance"]=100
 
 
@@ -580,31 +599,31 @@ def make_full_civet_table(query_dict, full_taxon_dict, tree_fields, label_fields
             df_dict["Name used in report"].append(taxon.display_name.replace("|","\|"))
 
             if taxon.in_db: 
-                df_dict["Sequence name in Tree"].append(taxon.name)   
+                df_dict["sequence_name"].append(taxon.name)   
             else:
-                df_dict["Sequence name in Tree"].append("")     
+                df_dict["sequence_name"].append("")     
 
-            df_dict["Sample date"].append(taxon.sample_date)
+            df_dict["sample_date"].append(taxon.sample_date)
 
             if not taxon.in_db and not taxon.protected: 
-                df_dict["Closest sequence in Tree"].append(taxon.closest)
-                df_dict["Distance to closest sequence"].append(taxon.closest_distance)
+                df_dict["closest_sequence"].append(taxon.closest)
+                df_dict["distance_to_closest"].append(taxon.closest_distance)
                 df_dict["SNPs"].append(taxon.snps)
             else:
-                df_dict["Closest sequence in Tree"].append("")
-                df_dict["Distance to closest sequence"].append("")
+                df_dict["closest_sequence"].append("")
+                df_dict["distance_to_closest"].append("")
                 df_dict["SNPs"].append("")
 
             if taxon.in_db:
-                df_dict["Found in COG"].append("True")
+                df_dict["in_cog"].append("True")
             elif taxon.protected:
-                df_dict["Found in COG"].append("Background sequence")
+                df_dict["in_cog"].append("Background sequence")
             else:
-                df_dict["Found in COG"].append("False")
+                df_dict["in_cog"].append("False")
 
-            df_dict["UK lineage"].append(taxon.uk_lineage)
-            df_dict["Global lineage"].append(taxon.global_lineage)
-            df_dict["Phylotype"].append(taxon.phylotype)
+            df_dict["UK_lineage"].append(taxon.uk_lineage)
+            df_dict["lineage"].append(taxon.global_lineage)
+            df_dict["phylotype"].append(taxon.phylotype)
 
             if taxon.tree != "NA":
                 tree_number = taxon.tree.split("_")[-1]
