@@ -273,8 +273,8 @@ def main(sysargs = sys.argv[1:]):
     # local lineages qc
     cfunk.local_lineages_qc(config)
 
-    # check adm2 values
-    cfunk.check_adm2_values(config)
+    # # check adm2 values
+    # cfunk.check_adm2_values(config)
 
     """
     Parsing the tree_group arguments, 
