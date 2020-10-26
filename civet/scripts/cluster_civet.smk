@@ -53,7 +53,7 @@ rule find_common_ancestor:
         taxa = os.path.join(config["tempdir"], "cluster_civet",f"{prefix}_subtree_1.csv")
     shell:
         """
-        /Users/s1680070/repositories/jclusterfunk/release/jclusterfunk_v0.0.4/jclusterfunk context \
+        jclusterfunk context \
         -i "{input.tree}" \
         -o "{params.outdir}" \
         --mrca \

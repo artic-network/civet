@@ -41,6 +41,10 @@ setup(name='civet',
             "scipy>=1.4.1",
             "numpy>=1.13.3",
             "geopandas>=0.7.0",
+            "descartes>=1.1.0",
+            "adjustText>=0.7.3",
+            "grip>=4.5.2",
+            "tabulate>=0.8.7",
             "snipit>=1.0.3"
         ],
       cmdclass={
