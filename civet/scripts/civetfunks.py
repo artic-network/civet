@@ -81,23 +81,23 @@ def define_seq_db(config):
     config["seq_db"] = config["background_seqs"]
     
 
-def check_adm2_values(config):
-    adm2 = []
-    with open(config["clean_locs"],"r") as f:
-        reader = csv.DictReader(f)
-        for row in reader:
-            adm2.append(row["location_in_metadata"])
+# def check_adm2_values(config):
+#     adm2 = {}
+#     with open(config["clean_locs"],"r") as f:
+#         reader = csv.DictReader(f)
+#         for row in reader:
+#             adm2.append(row["location_in_metadata"])
 
-    with open(config["query"],"r") as f:
-        reader = csv.DictReader(f)
-        header = reader.fieldnames
-        if "adm2" in header:
-            for row in reader:
-                if row["adm2"].upper() not in adm2:
-                    adm2_value = row["adm2"]
-                    loc_file = config["clean_locs"]
-                    sys.stderr.write(qcfunk.cyan(f'Error: {adm2_value} not a valid adm2 region.\n Find a list of valid adm2 values at:\n{loc_file}\n'))
-                    sys.exit(-1)
+#     with open(config["query"],"r") as f:
+#         reader = csv.DictReader(f)
+#         header = reader.fieldnames
+#         if "adm2" in header:
+#             for row in reader:
+#                 if row["adm2"].upper() not in adm2:
+#                     adm2_value = row["adm2"]
+#                     loc_file = config["clean_locs"]
+#                     sys.stderr.write(qcfunk.cyan(f'Error: {adm2_value} not a valid adm2 region.\n Find a list of valid adm2 values at:\n{loc_file}\n'))
+#                     sys.exit(-1)
 
 
 def get_package_data(thisdir,config):
