@@ -11,6 +11,7 @@ import csv
 import os
 import yaml
 from datetime import datetime
+from datetime import date
 from Bio import SeqIO
 import pkg_resources
 from . import _program
@@ -23,6 +24,7 @@ import civetfunks as cfunk
 
 thisdir = os.path.abspath(os.path.dirname(__file__))
 cwd = os.getcwd()
+today = date.today()
 
 def main(sysargs = sys.argv[1:]):
 
@@ -47,8 +49,8 @@ def main(sysargs = sys.argv[1:]):
     data_group.add_argument('-d','--datadir', action="store",help="Local directory that contains the data files. Default: civet-cat")
     data_group.add_argument("-m","--background-metadata",action="store",dest="background_metadata",help="Custom metadata file that corresponds to the large global tree/ alignment. Should have a column `sequence_name`.")
     data_group.add_argument('--CLIMB', action="store_true",dest="climb",help="Indicates you're running CIVET from within CLIMB, uses default paths in CLIMB to access data")
-    data_group.add_argument("-r",'--remote-sync', action="store_true",dest="remote",help="Remotely access lineage trees from CLIMB")
-    data_group.add_argument("-uun","--your-user-name", action="store", help="Your CLIMB COG-UK username. Required if running with --remote-sync flag", dest="uun")
+    data_group.add_argument("-r",'--remote', action="store_true",dest="remote",help="Remotely access lineage trees from CLIMB")
+    data_group.add_argument("-uun","--your-user-name", action="store", help="Your CLIMB COG-UK username. Required if running with --remote flag", dest="uun")
     data_group.add_argument('--input-column', action="store",help="Column in input csv file to match with database. Default: name", dest="input_column")
     data_group.add_argument('--data-column', action="store",help="Option to search COG database for a different id type. Default: COG-UK ID", dest="data_column")
 
@@ -86,10 +88,15 @@ def main(sysargs = sys.argv[1:]):
     map_group.add_argument("--input-crs", required=False, dest="input_crs", help="Coordinate reference system for sequence coordinates")
     map_group.add_argument("--colour-map-by", required=False, dest="colour_map_by", help="Column to colour mapped sequences by")
     
+    run_group = parser.add_argument_group('run options')
+    run_group.add_argument("--cluster",action="store_true",help="Run cluster civet pipeline. Requires -i/--input csv",dest="cluster")
+    run_group.add_argument("--update",action="store_true",help="Check for changes from previous run of civet. Requires -fm/--from-metadata option in a config.yaml file from previous run",dest="update")
+    run_group.add_argument("--udpate",action="store_true",help="Check for changes from previous run of civet. Requires -fm/--from-metadata option in a config.yaml file from previous run",dest="udpate")
+    run_group.add_argument('-c','--generate-config',dest="generate_config",action="store_true",help="Rather than running a civet report, just generate a config file based on the command line arguments provided")
+    run_group.add_argument('-b','--launch-browser', action="store_true",help="Optionally launch md viewer in the browser using grip",dest="launch_browser")
+
     misc_group = parser.add_argument_group('misc options')
     misc_group.add_argument("--safety-level", action="store", type=int, dest="safety_level",help="Level of anonymisation for users. Options: 0 (no anonymity), 1 (no COGIDs on background data), 2 (no adm2 on data). Default: 1")
-    misc_group.add_argument('-b','--launch-browser', action="store_true",help="Optionally launch md viewer in the browser using grip",dest="launch_browser")
-    misc_group.add_argument('-c','--generate-config',dest="generate_config",action="store_true",help="Rather than running a civet report, just generate a config file based on the command line arguments provided")
     misc_group.add_argument('--tempdir',action="store",help="Specify where you want the temp stuff to go. Default: $TMPDIR")
     misc_group.add_argument("--no-temp",action="store_true",help="Output all intermediate files, for dev purposes.",dest="no_temp")
     misc_group.add_argument("--verbose",action="store_true",help="Print lots of stuff to screen")
@@ -117,10 +124,9 @@ def main(sysargs = sys.argv[1:]):
     """
     Initialising dicts
     """
-    # create the config dict to pass through to the snakemake file
-    config = {}
-    # get the default values from civetfunks
-    default_dict = cfunk.get_defaults()
+
+    # get the default values from civetfunk
+    config = cfunk.get_defaults()
 
     """
     Input file (-i/--input) 
@@ -134,8 +140,14 @@ def main(sysargs = sys.argv[1:]):
 
     # if a yaml file is detected, add everything in it to the config dict
     if configfile:
-        config = qcfunk.parse_yaml_file(configfile, config)
+        qcfunk.parse_yaml_file(configfile, config)
     
+
+    # update and cluster options
+
+    cfunk.configure_update(args.update,args.udpate,config)
+    qcfunk.add_arg_to_config("cluster",args.cluster, config)
+
     """
     Get outdir, tempdir and data dir. 
     Check if data has the right columns needed.
@@ -146,22 +158,22 @@ def main(sysargs = sys.argv[1:]):
     - datadir
     """
     # default output dir
-    qcfunk.get_outdir(args.outdir,args.output_prefix,cwd,config,default_dict)
+    qcfunk.get_outdir(args.outdir,args.output_prefix,cwd,config)
 
     # specifying temp directory, outdir if no_temp (tempdir becomes working dir)
     tempdir = qcfunk.get_temp_dir(args.tempdir, args.no_temp,cwd,config)
 
+    qcfunk.add_arg_to_config("remote",args.remote, config)
+
     # find the data dir
-    cfunk.get_datadir(args.climb,args.uun,args.datadir,args.background_metadata,args.remote,cwd,config,default_dict)
+    cfunk.get_datadir(args.climb,args.uun,args.datadir,args.background_metadata,cwd,config)
 
     # add data and input columns to config
-    qcfunk.data_columns_to_config(args,config,default_dict)
+    qcfunk.data_columns_to_config(args,config)
 
     # check if metadata has the right columns, background_metadata_header added to config
-    qcfunk.check_metadata_for_search_columns(config,default_dict)
+    qcfunk.check_metadata_for_search_columns(config)
 
-    no_temp = qcfunk.check_arg_config_default("no_temp",args.no_temp, config, default_dict)
-    config["no_temp"] = no_temp
 
     """
     from metadata parsing 
@@ -169,21 +181,29 @@ def main(sysargs = sys.argv[1:]):
     relies on the data dir being found 
     """
     # generate query from metadata
-    if args.from_metadata or "from_metadata" in config:
-        if "query" in config:
-            if config["query"]:
-                sys.stderr.write(qcfunk.cyan('Error: please specifiy either -fm/--from-metadata or an input csv/ID string.\n'))
-                sys.exit(-1)
-        elif "fasta" in config:
-            if config["fasta"]:
-                sys.stderr.write(qcfunk.cyan('Error: fasta file option cannot be used in conjunction with -fm/--from-metadata.\nPlease specifiy an input csv with your fasta file.\n'))
-                sys.exit(-1)
+    qcfunk.add_arg_to_config("from_metadata",args.from_metadata, config)
+    if config["from_metadata"]:
+        
+        qcfunk.from_metadata_checks(config)
 
         metadata = config["background_metadata"]
         config["no_snipit"]=True
-        query = qcfunk.generate_query_from_metadata(args.from_metadata,metadata,config)
+
+        if config["update"]:
+            query_file = os.path.join(config["outdir"], "update_query.csv")
+            run_update = cfunk.check_for_update(query_file,config)
+            if not run_update:
+                print(qcfunk.cyan('Note: no new sequences to report.\nExiting.'))
+                sys.exit(0)
+            else:
+                query = config["query"] # gets added updated in the check_for_update function
+        else:
+            query_file = os.path.join(config["outdir"], "from_metadata_query.csv")
+            query = qcfunk.generate_query_from_metadata(query_file,args.from_metadata,metadata,config)
     else:
-        config["from_metadata"] = False
+        if config["update"]:
+            cfunk.check_update_dependencies(config)
+            
     """
     The query file could have been from one of
     - input.csv
@@ -196,7 +216,7 @@ def main(sysargs = sys.argv[1:]):
     qcfunk.check_query_file(query, cwd, config)
 
     # check if metadata has the right columns, background_metadata_header added to config
-    qcfunk.check_query_for_input_column(config,default_dict)
+    qcfunk.check_query_for_input_column(config)
 
     """
     Input fasta file 
@@ -206,14 +226,14 @@ def main(sysargs = sys.argv[1:]):
     qcfunk.get_query_fasta(args.fasta,cwd, config)
     
     # run qc on the input sequence file
-    num_seqs = qcfunk.input_file_qc(args.min_length,args.max_ambiguity,config,default_dict)
+    num_seqs = qcfunk.input_file_qc(args.min_length,args.max_ambiguity,config)
     
     """
     Quick check in background data
     """
     if num_seqs == 0:
         # check if any queries in background or if fasta supplied
-        qcfunk.check_background_for_queries(config,default_dict)
+        qcfunk.check_background_for_queries(config)
 
     """
     Accessing the civet package data and 
@@ -226,8 +246,8 @@ def main(sysargs = sys.argv[1:]):
     """
     Report options and args added to config, seq header file retrieved
     """
-    # check args, config, defaultdict for report group options
-    cfunk.report_group_to_config(args,config,default_dict)
+    # check args for report group options
+    cfunk.report_group_to_config(args,config)
 
     # get seq centre header file from pkg data
     cfunk.get_sequencing_centre_header(config)
@@ -238,20 +258,23 @@ def main(sysargs = sys.argv[1:]):
     qc of the input
     """
     
-    # check args, config, defaultdict for mapping group options
-    cfunk.map_group_to_config(args,config,default_dict)
+    # check args for mapping group options
+    cfunk.map_group_to_config(args,config)
 
-    # check args, config, defaultdict for data group options
-    qcfunk.data_columns_to_config(args,config,default_dict)
+    # check args for data group options
+    qcfunk.data_columns_to_config(args,config)
 
     # parse the input csv, check col headers and get fields if fields specified
-    qcfunk.check_label_and_tree_and_date_fields(config, default_dict)
+    qcfunk.check_label_and_tree_and_date_fields(config)
         
     # map sequences configuration
     cfunk.map_sequences_config(config)
     
     # local lineages qc
-    cfunk.local_lineages_qc(config,default_dict)
+    cfunk.local_lineages_qc(config)
+
+    # # check adm2 values
+    # cfunk.check_adm2_values(config)
 
     """
     Parsing the tree_group arguments, 
@@ -259,13 +282,14 @@ def main(sysargs = sys.argv[1:]):
     """
 
     # global now the only search option
-    cfunk.define_seq_db(config,default_dict)
+    cfunk.define_seq_db(config)
 
     # extraction radius configuration
-    qcfunk.distance_config(args.distance,args.up_distance,args.down_distance,config,default_dict) 
+    qcfunk.distance_config(args.distance,args.up_distance,args.down_distance,config) 
 
     # extraction radius configuration
-    qcfunk.collapse_config(args.collapse_threshold,config,default_dict) 
+    qcfunk.collapse_config(args.collapse_threshold,config) 
+
 
     qcfunk.parse_protect(args.protect,config["background_metadata"],config)
 
@@ -275,30 +299,26 @@ def main(sysargs = sys.argv[1:]):
     """
 
     # make title
-    rfunk.make_title(config, default_dict)
+    rfunk.make_title(config)
     # deal with free text
-    rfunk.free_text_args(config, default_dict)
+    rfunk.free_text_args(config)
 
     #get table headers
-    qcfunk.check_table_fields(args.table_fields, args.include_snp_table, config,default_dict)
+    qcfunk.check_table_fields(args.table_fields, args.include_snp_table, config)
         
     # summarising collapsed nodes config
-    qcfunk.check_summary_field("node_summary",config, default_dict)
+    qcfunk.check_summary_field("node_summary",config)
 
     qcfunk.collapse_summary_path_to_config(config)
 
-    """
-    Finally add in all the default options that 
-    were not specified already
-    """
-    for key in default_dict:
-        if key not in config:
-            config[key] = default_dict[key]
+   
 
     """
     Miscellaneous options parsing
 
     """
+
+    qcfunk.add_arg_to_config("launch_browser",args.launch_browser,config)
 
     # don't run in quiet mode if verbose specified
     if args.verbose:
@@ -309,27 +329,25 @@ def main(sysargs = sys.argv[1:]):
         lh_path = os.path.realpath(lh.__file__)
         config["log_string"] = f"--quiet --log-handler-script {lh_path} "
 
-    launch_browser = qcfunk.check_arg_config_default("launch_browser",args.launch_browser,config,default_dict)
-    config["launch_browser"] = launch_browser
-
-    threads = qcfunk.check_arg_config_default("threads",args.threads,config,default_dict)
+    qcfunk.add_arg_to_config("threads",args.threads,config)
+    
     try:
-        threads = int(threads)
-        config["threads"]= int(threads)
+        config["threads"]= int(config["threads"])
     except:
         sys.stderr.write(qcfunk.cyan('Error: Please specifiy an integer for variable `threads`.\n'))
         sys.exit(-1)
+    threads = config["threads"]
 
-    safety_level = qcfunk.check_arg_config_default("safety_level",args.safety_level,config,default_dict)
+    qcfunk.add_arg_to_config("safety_level",args.safety_level,config)
     
     try:
-        safety_level = int(safety_level)
+        safety_level = int(config["safety_level"])
     except:
         sys.stderr.write(qcfunk.cyan('Error: Please specifiy either 0, 1 or 2 for variable `safety_level`.\n'))
         sys.exit(-1)
 
     if safety_level in [0,1,2]:
-        config["safety_level"]= int(safety_level)
+        config["safety_level"]= int(config["safety_level"])
     else:
         sys.stderr.write(qcfunk.cyan('Error: Please specifiy either 0, 1 or 2 for variable `safety_level`.\n'))
         sys.exit(-1)
@@ -337,6 +355,52 @@ def main(sysargs = sys.argv[1:]):
     if args.generate_config:
         qcfunk.make_config_file("civet_config.yaml",config)
     
+
+    """
+    cluster civet checks
+    - arg, config, default
+    - is there a query?
+    - check if new things in the local tree
+    - if new sequences, run main civet with updated query
+    - if no new sequences, exit
+    
+    """
+    # cluster civet 
+
+    if config["cluster"]:
+
+        config["today"] = today
+        cfunk.configure_cluster(config)
+
+        cluster_snakefile = qcfunk.get_cluster_snakefile(thisdir)
+
+        if args.verbose:
+            print("\n**** CONFIG ****")
+            for k in sorted(config):
+                print(qcfunk.green(k), config[k])
+            status = snakemake.snakemake(cluster_snakefile, printshellcmds=True, forceall=True, force_incomplete=True,
+                                        workdir=tempdir,config=config, cores=threads,lock=False
+                                        )
+        else:
+            logger = custom_logger.Logger()
+            status = snakemake.snakemake(cluster_snakefile, printshellcmds=False, forceall=True,force_incomplete=True,workdir=tempdir,
+                                        config=config, cores=threads,lock=False,quiet=True,log_handler=logger.log_handler
+                                        )
+
+        if not status:
+            print(qcfunk.cyan(f"Error: Cluster civet did not successfully run"))
+            sys.exit(-1)
+
+        new_seqs, cluster_csv = cfunk.check_for_new_in_cluster(config)
+
+        print(qcfunk.green(f"\nNew sequences found in cluster {today}: ") + f"{new_seqs}")
+
+        if not new_seqs:
+            print(qcfunk.cyan(f"No new sequences in cluster today, {today}"))
+            sys.exit(0)
+        else:
+            config["query"] = cluster_csv
+        
     # find the master Snakefile
     snakefile = qcfunk.get_snakefile(thisdir)
 

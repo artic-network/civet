@@ -22,7 +22,7 @@ today = date.today()
 
 def get_defaults():
     default_dict = {
-                    "title": "# Cluster investigation",
+                    "title": "## Cluster investigation",
                     "outbreak_id": "",
                     "report_date": today,# date investigation was opened
                     "authors": "", # List of authors, affiliations and contact details
@@ -30,8 +30,8 @@ def get_defaults():
                     "conclusions": "",
                     "max_ambiguity":0.5,
                     "min_length":10000,
-                    "no_temp":True,
-                    "datadir":"civet-cat",
+                    "no_temp":False,
+                    "datadir":"",
                     "input_column":"name",
                     "data_column":"central_sample_id",
                     "database_sample_date_column":"sample_date",
@@ -48,15 +48,17 @@ def get_defaults():
                     "map_info":False,
                     "input_crs":False,
                     "colour_map_by":False,
+                    "from_metadata":False,
                     "date_restriction":False,
                     "date_range_start":False,
                     "date_range_end":False,
                     "launch_browser":False,
                     "node_summary":"country",
                     "date_window":7,
-                    "colour_by":"adm1=viridis",
+                    "colour_by":"adm1=Paired",
                     "label_fields":False,
                     "date_fields":False,
+                    "remote":False,
                     "no_snipit":False,
                     "include_snp_table":False,
                     "include_bars":False,
@@ -65,17 +67,38 @@ def get_defaults():
                     "table_fields":["sample_date", "uk_lineage", "lineage", "phylotype"],
                     "threads":1,
                     "force":True,
+                    "cluster":False,
                     "trim_start":265,   # where to pad to using datafunk
                     "trim_end":29674,
                     "protect": False,
                     "output_prefix":"civet",
+                    "update":False,
                     "safety_level":1
                     }
     return default_dict
 
-def define_seq_db(config,default_dict):
+def define_seq_db(config):
     config["seq_db"] = config["background_seqs"]
     
+
+# def check_adm2_values(config):
+#     adm2 = {}
+#     with open(config["clean_locs"],"r") as f:
+#         reader = csv.DictReader(f)
+#         for row in reader:
+#             adm2.append(row["location_in_metadata"])
+
+#     with open(config["query"],"r") as f:
+#         reader = csv.DictReader(f)
+#         header = reader.fieldnames
+#         if "adm2" in header:
+#             for row in reader:
+#                 if row["adm2"].upper() not in adm2:
+#                     adm2_value = row["adm2"]
+#                     loc_file = config["clean_locs"]
+#                     sys.stderr.write(qcfunk.cyan(f'Error: {adm2_value} not a valid adm2 region.\n Find a list of valid adm2 values at:\n{loc_file}\n'))
+#                     sys.exit(-1)
+
 
 def get_package_data(thisdir,config):
     reference_fasta = pkg_resources.resource_filename('civet', 'data/reference.fasta')
@@ -120,15 +143,15 @@ def get_package_data(thisdir,config):
 
 def print_data_error(data_dir):
     sys.stderr.write(qcfunk.cyan(f"Error: data directory should contain the following files or additionally supply a background metadata file:\n") + f"\
-    - cog_global_tree.nexus\n\
-    - cog_global_metadata.csv\n\
-    - cog_global_alignment.fasta\n"+qcfunk.cyan(f"\
+    - cog_global_2020-XX-YY_tree.nexus\n\
+    - cog_global_2020-XX-YY_metadata.csv\n\
+    - cog_global_2020-XX-YY_alignment.fasta\n"+qcfunk.cyan(f"\
 To run civet please either\n1) ssh into CLIMB and run with --CLIMB flag\n\
-2) Run using `--remote-sync` flag and your CLIMB username specified e.g. `-uun climb-covid19-smithj`\n\
+2) Run using `--remote` flag and your CLIMB username specified e.g. `-uun climb-covid19-smithj`\n\
 3) Specify a local directory with the appropriate files, optionally supply a custom metadata file\n\n"""))
 
 def rsync_data_from_climb(uun, data_dir):
-    rsync_command = f"rsync -avzh --exclude 'cog/*' {uun}@bham.covid19.climb.ac.uk:/cephfs/covid/bham/results/phylogenetics/latest/civet/ '{data_dir}'"
+    rsync_command = f"rsync -avzh --exclude 'cog' --delete-after {uun}@bham.covid19.climb.ac.uk:/cephfs/covid/bham/results/phylogenetics/latest/civet/ '{data_dir}'"
     print(qcfunk.green(f"Syncing civet data to {data_dir}"))
     status = os.system(rsync_command)
     if status != 0:
@@ -156,11 +179,7 @@ def get_background_files(data_dir,background_metadata):
 
 def get_remote_data(uun,background_metadata,data_dir,config):
     config["remote"]= True
-    head,tail = os.path.split(data_dir)
-    # if tail == "civet-cat":
-    #     path_for_syncing = head
-    # else:
-    #     path_for_syncing = data_dir
+
     if uun:
         config["username"] = uun
         rsync_data_from_climb(uun, data_dir)
@@ -171,7 +190,7 @@ def get_remote_data(uun,background_metadata,data_dir,config):
         uun = config["uun"]
         rsync_data_from_climb(uun, data_dir)
     else:
-        rsync_command = f"rsync -avzh --exclude 'cog' bham.covid19.climb.ac.uk:/cephfs/covid/bham/results/phylogenetics/latest/civet/ '{data_dir}'"
+        rsync_command = f"rsync -avzh --exclude 'cog' --delete-after  bham.covid19.climb.ac.uk:/cephfs/covid/bham/results/phylogenetics/latest/civet/ '{data_dir}'"
         print(f"Syncing civet data to {data_dir}")
         status = os.system(rsync_command)
         if status != 0:
@@ -199,22 +218,25 @@ def get_remote_data(uun,background_metadata,data_dir,config):
         print("    -",background_metadata)
         print("    -",background_tree,"\n")
 
-def get_datadir(args_climb,args_uun,args_datadir,args_metadata,remote,cwd,config,default_dict):
+def get_datadir(args_climb,args_uun,args_datadir,args_metadata,cwd,config):
     data_dir = ""
     background_metadata = ""
+    remote= config["remote"]
 
     if args_metadata:
-        background_metadata = os.path.join(cwd, args_metadata)
+        expanded_path = os.path.expanduser(args_metadata)
+        background_metadata = os.path.join(cwd, expanded_path)
         if not os.path.exists(background_metadata):
             sys.stderr.write(qcfunk.cyan(f"Error: can't find metadata file at {background_metadata}.\n"))
             sys.exit(-1)
 
     elif "background_metadata" in config:
-        expanded_path = os.path.expanduser(config["background_metadata"])
-        background_metadata = os.path.join(config["path_to_query"], expanded_path)
-        if not os.path.exists(background_metadata):
-            sys.stderr.write(qcfunk.cyan(f"Error: can't find metadata file at {background_metadata}.\n"))
-            sys.exit(-1)
+        if config["background_metadata"]:
+            expanded_path = os.path.expanduser(config["background_metadata"])
+            background_metadata = os.path.join(config["path_to_query"], expanded_path)
+            if not os.path.exists(background_metadata):
+                sys.stderr.write(qcfunk.cyan(f"Error: can't find metadata file at {background_metadata}.\n"))
+                sys.exit(-1)
             
     if args_climb:
         data_dir = "/cephfs/covid/bham/results/phylogenetics/latest/civet/cog"
@@ -229,10 +251,12 @@ def get_datadir(args_climb,args_uun,args_datadir,args_metadata,remote,cwd,config
         data_dir = os.path.join(cwd, args_datadir)
 
     elif "datadir" in config:
-        expanded_path = os.path.expanduser(config["datadir"])
-        data_dir = os.path.join(config["path_to_query"], expanded_path)
-    else:
-        data_dir = os.path.join(cwd, default_dict["datadir"])
+        if config["datadir"]:
+            expanded_path = os.path.expanduser(config["datadir"])
+            data_dir = os.path.join(config["path_to_query"], expanded_path)
+        else:
+            data_dir = os.path.join(cwd, "civet-cat")
+
 
     if not remote:
         if not os.path.exists(data_dir):
@@ -262,6 +286,103 @@ def get_datadir(args_climb,args_uun,args_datadir,args_metadata,remote,cwd,config
         get_remote_data(args_uun, background_metadata, data_dir, config)
 
     config["datadir"]=data_dir
+
+def check_update_dependencies(config):
+    if "from_metadata" in config:
+        if not config["from_metadata"]:
+            sys.stderr.write(qcfunk.cyan('Error: `--from-metadata` search term required to run in `update` mode\n'))
+            sys.exit(-1)
+    else:
+        sys.stderr.write(qcfunk.cyan('Error: `--from-metadata` search term required to run in `update` mode\n'))
+        sys.exit(-1)
+
+def configure_update(update_arg,udpate_arg,config):
+    if udpate_arg:
+        config["update"] = True
+    qcfunk.add_arg_to_config("update",update_arg, config)
+    if config["update"]:
+        check_update_dependencies(config)
+        for i in ["treedir","tempdir","summary_dir","sequencing_centre_dest","seq_db","rel_outdir","path_to_query","outfile","outdir","background_metadata","background_seqs","background_tree","collapse_summary","filtered_background_metadata"]:
+            config[i]=""
+        config["colour_by"]="new:Paired"
+        config["tree_fields"]="new"
+        config["table_fields"]=config["table_fields"].append("new")
+
+
+def check_cluster_dependencies(config):
+    if not "query" in config:
+        sys.stderr.write(qcfunk.cyan('Error: input.csv required to run `cluster` civet\n'))
+        sys.exit(-1)
+    if config["update"]:
+        sys.stderr.write(qcfunk.cyan('Error: specify one of either `cluster` or `update`\n'))
+        sys.exit(-1)
+
+def configure_cluster(config):
+    if config["cluster"]:
+        check_cluster_dependencies(config)
+    config["colour_by"]="new:Paired"
+    config["table_fields"]=config["table_fields"].append("new")
+    config["down_distance"]=100
+
+
+def check_for_update(update_query,config):
+
+    check_update_dependencies(config)
+    temp_query = os.path.join(config["outdir"], "pre_update_query.csv")
+    new_query = qcfunk.generate_query_from_metadata(temp_query,config["from_metadata"],config["background_metadata"],config)
+
+    old_query = []
+
+    with open(config["query"],"r") as f:
+        reader = csv.DictReader(f)
+        for row in reader:
+            old_query.append(row[config["input_column"]])
+
+    update_files = False
+    new_seqs = []
+
+    with open(update_query,"w") as fw:
+        with open(temp_query,"r") as f:
+            reader = csv.DictReader(f)
+            header = reader.fieldnames
+
+            if "new" not in header:
+                header.append("new")
+
+            writer = csv.DictWriter(fw, fieldnames=header,lineterminator='\n')
+            writer.writeheader()
+
+            for row in reader:
+                new_row = row
+                if row[config["input_column"]] not in old_query:
+                    update_files = True
+                    new_row["new"]="True"
+                    writer.writerow(new_row)
+                else:
+                    new_row["new"]="False"
+                    writer.writerow(new_row)
+    
+    if new_seqs:
+        from_metadata = config["from_metadata"]
+        print(qcfunk.green(f"New sequences identified with {from_metadata} search"))
+ 
+    config["query"] = update_query
+    return update_files
+
+def check_for_new_in_cluster(config):
+    new_count = 0
+    prefix = config["output_prefix"]
+    background_metadata = config["background_metadata"]
+    cluster_csv = os.path.join(config["outdir"],f"{prefix}.csv")
+    with open(cluster_csv, "r") as f:
+        reader = csv.DictReader(f)
+        if not "new" in reader.fieldnames:
+            sys.stderr.write(qcfunk.cyan('Error: `cluster` civet has not run, require column `new` in csv\n'))
+            sys.exit(-1)
+        for row in reader:
+            if row["new"] == "True":
+                new_count +=1
+    return new_count, cluster_csv
 
 
 def prepping_civet_arguments(name_stem_input, tree_fields_input, graphic_dict_input, label_fields_input, date_fields_input, table_fields_input):
@@ -293,7 +414,7 @@ def prepping_civet_arguments(name_stem_input, tree_fields_input, graphic_dict_in
   
     return name_stem, tree_fields, graphic_dict, label_fields, date_fields, table_fields
 
-def local_lineages_qc(config,default_dict):
+def local_lineages_qc(config):
 
     query_file = config["query"]
 
@@ -390,109 +511,80 @@ def get_sequencing_centre_header(config):
         print(qcfunk.green(f"Using header file from:") + f" {package_png}\n")
         config["sequencing_centre_source"] = sequencing_centre_source
         config["sequencing_centre_dest"] = os.path.join(config["outdir"],"report","figures",f"{sequencing_centre}.png")
-        config["sequencing_centre_file"] = os.path.join(".","report","figures",f"{sequencing_centre}.png")
+        config["sequencing_centre_file"] = os.path.join(".","figures",f"{sequencing_centre}.png")
         config["sequencing_centre"] = sequencing_centre
     else:
         sc_string = "\n".join(sc_list)
         sys.stderr.write(qcfunk.cyan(f'Error: sequencing centre must be one of the following:\n{sc_string}\n'))
         sys.exit(-1)
 
-def map_group_to_config(args,config,default_dict):
+def map_group_to_config(args,config):
 
     ## local_lineages
-    local_lineages = qcfunk.check_arg_config_default("local_lineages",args.local_lineages, config, default_dict)
-    config["local_lineages"] = local_lineages
+    qcfunk.add_arg_to_config("local_lineages",args.local_lineages, config)
 
     ## date_restriction
-    date_restriction = qcfunk.check_arg_config_default("date_restriction",args.date_restriction, config, default_dict)
-    config["date_restriction"] = date_restriction
-
+    qcfunk.add_arg_to_config("date_restriction",args.date_restriction, config)
     ## date_range_start
-    date_range_start = qcfunk.check_arg_config_default("date_range_start",args.date_range_start, config, default_dict)
-    config["date_range_start"] = date_range_start
+    qcfunk.add_arg_to_config("date_range_start",args.date_range_start, config)
 
     ## date_range_end
-    date_range_end = qcfunk.check_arg_config_default("date_range_end",args.date_range_end, config, default_dict)
-    config["date_range_end"] = date_range_end
+    qcfunk.add_arg_to_config("date_range_end",args.date_range_end, config)
 
     ## date_window
-    date_window = qcfunk.check_arg_config_default("date_window",args.date_window, config, default_dict)
-    config["date_window"] = date_window
+    qcfunk.add_arg_to_config("date_window",args.date_window, config)
 
     ## map_sequences
-    map_sequences = qcfunk.check_arg_config_default("map_sequences",args.map_sequences, config, default_dict)
-    config["map_sequences"] = map_sequences
+    qcfunk.add_arg_to_config("map_sequences",args.map_sequences, config)
 
     ## map_info
-    map_info = qcfunk.check_arg_config_default("map_info",args.map_info, config, default_dict)
-    config["map_info"] = map_info
-
+    qcfunk.add_arg_to_config("map_info",args.map_info, config)
     ## input_crs
-    input_crs = qcfunk.check_arg_config_default("input_crs",args.input_crs, config, default_dict)
-    config["input_crs"] = input_crs
+    qcfunk.add_arg_to_config("input_crs",args.input_crs, config)
 
     ## colour_map_by
-    colour_map_by = qcfunk.check_arg_config_default("colour_map_by",args.colour_map_by, config, default_dict)
-    config["colour_map_by"] = colour_map_by
+    qcfunk.add_arg_to_config("colour_map_by",args.colour_map_by, config)
 
 
-
-def report_group_to_config(args,config,default_dict):
+def report_group_to_config(args,config):
     ## sequencing_centre
-    sequencing_centre = qcfunk.check_arg_config_default("sequencing_centre",args.sequencing_centre, config, default_dict)
-    config["sequencing_centre"] = sequencing_centre
+    qcfunk.add_arg_to_config("sequencing_centre",args.sequencing_centre, config)
 
     ## display_name
-    display_name = qcfunk.check_arg_config_default("display_name", args.display_name, config, default_dict)
-    config["display_name"] = display_name
+    qcfunk.add_arg_to_config("display_name", args.display_name, config)
     
     ## colour_by
-    colour_by = qcfunk.check_arg_config_default("colour_by",args.colour_by, config, default_dict)
-    config["colour_by"] = colour_by
+    qcfunk.add_arg_to_config("colour_by",args.colour_by, config)
 
     ## tree_fields
-    tree_fields = qcfunk.check_arg_config_default("tree_fields",args.tree_fields, config, default_dict)
-    config["tree_fields"] = tree_fields
+    qcfunk.add_arg_to_config("tree_fields",args.tree_fields, config)
 
     ## label_fields
-    label_fields = qcfunk.check_arg_config_default("label_fields",args.label_fields, config, default_dict)
-    if not label_fields:
-        config["label_fields"] = False
+    qcfunk.add_arg_to_config("label_fields",args.label_fields, config)
 
     ##date_fields
-    date_fields = qcfunk.check_arg_config_default("date_fields", args.date_fields, config, default_dict)
-    config["date_fields"] = date_fields
+    qcfunk.add_arg_to_config("date_fields", args.date_fields, config)
 
     ##sample date column
-    sample_date_column = qcfunk.check_arg_config_default("sample_date_column", args.sample_date_column,config,default_dict)
-    config["sample_date_column"] = sample_date_column
-
-    database_sample_date_column = qcfunk.check_arg_config_default("database_sample_date_column", args.database_sample_date_column, config, default_dict)
-    config["database_sample_date_column"] = database_sample_date_column
+    qcfunk.add_arg_to_config("sample_date_column", args.sample_date_column,config)
+    qcfunk.add_arg_to_config("database_sample_date_column", args.database_sample_date_column, config)
 
     ## node-summary
-    node_summary = qcfunk.check_arg_config_default("node_summary",args.node_summary, config, default_dict)
-    config["node_summary"] = node_summary
+    qcfunk.add_arg_to_config("node_summary",args.node_summary, config)
 
     ## table_fields
-    table_fields = qcfunk.check_arg_config_default("table_fields",args.table_fields, config, default_dict)
-    config["table_fields"] = table_fields
-
+    qcfunk.add_arg_to_config("table_fields",args.table_fields, config)
     ## include_snp_table
-    include_snp_table = qcfunk.check_arg_config_default("include_snp_table",args.include_snp_table, config, default_dict)
-    config["include_snp_table"] = include_snp_table
+    qcfunk.add_arg_to_config("include_snp_table",args.include_snp_table, config)
 
     ## include_bars
-    include_bars = qcfunk.check_arg_config_default("include_bars",args.include_bars, config, default_dict)
-    config["include_bars"] = include_bars
+    qcfunk.add_arg_to_config("include_bars",args.include_bars, config)
 
     ## omit-appendix
-    omit_appendix = qcfunk.check_arg_config_default("omit_appendix",args.omit_appendix, config, default_dict)
-    config["omit_appendix"] = omit_appendix
+    qcfunk.add_arg_to_config("omit_appendix",args.omit_appendix, config)
 
     ## no-snipit
-    no_snipit = qcfunk.check_arg_config_default("no_snipit",args.no_snipit, config, default_dict)
-    config["no_snipit"] = no_snipit
+    qcfunk.add_arg_to_config("no_snipit",args.no_snipit, config)
     
 
 def make_full_civet_table(query_dict, full_taxon_dict, tree_fields, label_fields, input_column, outdir, table_fields):
@@ -507,31 +599,31 @@ def make_full_civet_table(query_dict, full_taxon_dict, tree_fields, label_fields
             df_dict["Name used in report"].append(taxon.display_name.replace("|","\|"))
 
             if taxon.in_db: 
-                df_dict["Sequence name in Tree"].append(taxon.name)   
+                df_dict["sequence_name"].append(taxon.name)   
             else:
-                df_dict["Sequence name in Tree"].append("")     
+                df_dict["sequence_name"].append("")     
 
-            df_dict["Sample date"].append(taxon.sample_date)
+            df_dict["sample_date"].append(taxon.sample_date)
 
             if not taxon.in_db and not taxon.protected: 
-                df_dict["Closest sequence in Tree"].append(taxon.closest)
-                df_dict["Distance to closest sequence"].append(taxon.closest_distance)
+                df_dict["closest_sequence"].append(taxon.closest)
+                df_dict["distance_to_closest"].append(taxon.closest_distance)
                 df_dict["SNPs"].append(taxon.snps)
             else:
-                df_dict["Closest sequence in Tree"].append("")
-                df_dict["Distance to closest sequence"].append("")
+                df_dict["closest_sequence"].append("")
+                df_dict["distance_to_closest"].append("")
                 df_dict["SNPs"].append("")
 
             if taxon.in_db:
-                df_dict["Found in COG"].append("True")
+                df_dict["in_cog"].append("True")
             elif taxon.protected:
-                df_dict["Found in COG"].append("Background sequence")
+                df_dict["in_cog"].append("Background sequence")
             else:
-                df_dict["Found in COG"].append("False")
+                df_dict["in_cog"].append("False")
 
-            df_dict["UK lineage"].append(taxon.uk_lin)
-            df_dict["Global lineage"].append(taxon.global_lin)
-            df_dict["Phylotype"].append(taxon.phylotype)
+            df_dict["UK_lineage"].append(taxon.uk_lineage)
+            df_dict["lineage"].append(taxon.global_lineage)
+            df_dict["phylotype"].append(taxon.phylotype)
 
             if taxon.tree != "NA":
                 tree_number = taxon.tree.split("_")[-1]

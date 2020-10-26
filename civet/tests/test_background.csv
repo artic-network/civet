@@ -1,0 +1,14 @@
+central_sample_id,biosample_source_id,sequence_name,secondary_identifier,sample_date,epi_week,country,adm1,is_surveillance,is_community,is_hcw,is_travel_history,travel_history,lineage,lineage_support,uk_lineage,acc_lineage,del_lineage,phylotype,adm2
+EDB8092,,Scotland/EDB8092/2020,,2020-10-02,40.0,UK,UK-SCT,N,,,,,B.1,1.0,UK533,acc_trans_173,del_trans_1950,UK533_1.34.1.2.1.1.2.1.1.2.21,Edinburgh
+EDB8238,,Scotland/EDB8238/2020,,2020-10-03,40.0,UK,UK-SCT,Y,,,,,B.1,1.0,UK533,acc_trans_173,del_trans_1950,UK533_1.34.1.2.1.1.2.1.49,Edinburgh
+EDB8241,,Scotland/EDB8241/2020,,2020-10-01,40.0,UK,UK-SCT,Y,,,,,B.1,1.0,UK533,acc_trans_173,del_trans_1950,UK533_1.34.1.2.1.1.2.1.1,Edinburgh
+EDB8243,,Scotland/EDB8243/2020,,2020-10-02,40.0,UK,UK-SCT,Y,,,,,B.1,1.0,UK533,acc_trans_173,del_trans_1950,UK533_1.34.1.2.1.1.2.1,Edinburgh
+EDB8236,,Scotland/EDB8236/2020,,2020-09-28,40.0,UK,UK-SCT,Y,,,,,B.1,1.0,UK533,acc_trans_173,del_trans_1950,UK533_1.34.1.2.1.1.27.4.1,Edinburgh
+EDB8249,,Scotland/EDB8249/2020,,2020-10-04,41.0,UK,UK-SCT,Y,,,,,B.1,1.0,UK533,acc_trans_173,del_trans_1950,UK533_1.34.1.2.1.1.2.1.28.2.6.1,Edinburgh
+EDB8246,,Scotland/EDB8246/2020,,2020-10-01,40.0,UK,UK-SCT,Y,,,,,B.1,1.0,UK533,acc_trans_173,del_trans_1950,UK533_1.34.1.2.1.1.2.1,Edinburgh
+EDB8242,,Scotland/EDB8242/2020,,2020-10-01,40.0,UK,UK-SCT,Y,,,,,B.1,1.0,UK533,acc_trans_173,del_trans_1950,UK533_1.34.1.2.1.1.2.1,Edinburgh
+EDB8244,,Scotland/EDB8244/2020,,2020-10-02,40.0,UK,UK-SCT,Y,,,,,B.1,1.0,UK533,acc_trans_173,del_trans_1950,UK533_1.34.1.2.1.1.27.4.1,Edinburgh
+EDB8245,,Scotland/EDB8245/2020,,2020-10-01,40.0,UK,UK-SCT,Y,,,,,B.1,1.0,UK533,acc_trans_173,del_trans_1950,UK533_1.34.1.2.1.1.26.2.1.16.3,Edinburgh
+EDB8248,,Scotland/EDB8248/2020,,2020-10-04,41.0,UK,UK-SCT,Y,,,,,B.1,1.0,UK533,acc_trans_173,del_trans_1950,UK533_1.34.1.2.1.1.2.1.1.2.22,Edinburgh
+EDB8276,,Scotland/EDB8276/2020,,2020-10-11,42.0,UK,UK-SCT,Y,,,,,B.1,1.0,UK533,acc_trans_173,del_trans_1950,UK533_1.34.1.2.1.1.2.1.4.15.1.2,Edinburgh
+EDB8081,,Scotland/EDB8081/2020,,2020-10-02,40.0,UK,UK-SCT,N,,,,,B.1,1.0,UK533,acc_trans_173,del_trans_1950,UK533_1.34.1.2.1.1.2.1.1.2.21.1,Edinburgh
