@@ -341,7 +341,8 @@ def main(sysargs = sys.argv[1:]):
 
     if args.safety_level != None:
         config["safety_level"]= args.safety_level
-    elif not config["CLIMB"]:
+    
+    if not config["CLIMB"]:
         config["safety_level"] = 2
     
     try:
