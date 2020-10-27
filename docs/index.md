@@ -22,6 +22,7 @@ A fully customisable report is generated, summarising information about the sequ
   * [Report options and descriptions](./report_docs.md)
   * [Mapping options and usage instructions](./map_option_docs.md)
   * [Example report](./civet_report_example.md)
+  * [Interpretation guide](./interpretation.md)
   * [Contributors & acknowledgements](./acknowledgements.md)
   * [Software versions](./acknowledgements.md)
 

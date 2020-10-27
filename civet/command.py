@@ -142,6 +142,12 @@ def main(sysargs = sys.argv[1:]):
     if configfile:
         qcfunk.parse_yaml_file(configfile, config)
     
+    """
+    Report options and args added to config, seq header file retrieved
+    """
+    # check args for report group options
+    cfunk.report_group_to_config(args,config)
+
 
     # update and cluster options
 
@@ -242,12 +248,6 @@ def main(sysargs = sys.argv[1:]):
     """
     # accessing package data and adding to config dict
     cfunk.get_package_data(thisdir,config)
-
-    """
-    Report options and args added to config, seq header file retrieved
-    """
-    # check args for report group options
-    cfunk.report_group_to_config(args,config)
 
     # get seq centre header file from pkg data
     cfunk.get_sequencing_centre_header(config)
