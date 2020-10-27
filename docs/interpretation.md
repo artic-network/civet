@@ -28,7 +28,7 @@ For each query sequence, CIVET either finds them in the COG database, or matches
  - This type of analysis is not able to infer direct transmission between two samples. Even identical sequences may be unrelated as SARS-COV2 is relatively slow evolving for an RNA virus. Previous analysis has shown that samples taken over 100 days apart can be identical (see Figure 1). 
  - If there is convincing genetic evidence that the viruses are very different, we can rule out transmission however. 
 
-![](./doc_figures/polytomies.png)
+![](doc_figures/polytomies.png)
 <strong>Figure 1: Polytomies in SARS-CoV-2 phylogeny. </strong> Shows the distribution of difference in sampling time between two sequences that are still identical.
 
 ### Glossary of terms
