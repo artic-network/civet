@@ -29,6 +29,7 @@ For each query sequence, CIVET either finds them in the COG database, or matches
  - If there is convincing genetic evidence that the viruses are very different, we can rule out transmission however. 
 
 ![](doc_figures/polytomies.png)
+
 <strong>Figure 1: Polytomies in SARS-CoV-2 phylogeny. </strong> Shows the distribution of difference in sampling time between two sequences that are still identical.
 
 ### Glossary of terms
