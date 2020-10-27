@@ -338,7 +338,9 @@ def main(sysargs = sys.argv[1:]):
         sys.exit(-1)
     threads = config["threads"]
 
-    qcfunk.add_arg_to_config("safety_level",args.safety_level,config)
+    
+    if args.safety_level != None:
+        config["safety_level"]= args.safety_level
     
     try:
         safety_level = int(config["safety_level"])
