@@ -49,10 +49,10 @@ def main(sysargs = sys.argv[1:]):
     data_group.add_argument('-d','--datadir', action="store",help="Local directory that contains the data files. Default: civet-cat")
     data_group.add_argument("-m","--background-metadata",action="store",dest="background_metadata",help="Custom metadata file that corresponds to the large global tree/ alignment. Should have a column `sequence_name`.")
     data_group.add_argument('--input-column', action="store",help="Column in input csv file to match with database. Default: name", dest="input_column")
-    data_group.add_argument('--data-column', action="store",help="Option to search COG database for a different id type. Default: COG-UK ID", dest="data_column")
+    data_group.add_argument('--data-column', action="store",help="Option to search background database for a different id type. Default: sequence_name", dest="data_column")
+    data_group.add_argument("--outgroup",action="store",help="Optional outgroup sequence to root local subtrees. Default Wuhan/WH04/2020 an A-lineage sequence at the base of the global SARS-CoV-2 phylogeny.")
 
     report_group = parser.add_argument_group('report customisation')
-    report_group.add_argument('-sc',"--sequencing-centre", action="store",help="Customise report with logos from sequencing centre.", dest="sequencing_centre")
     report_group.add_argument("--display-name", action="store", help="Column in input csv file with display names for seqs. Default: same as input column", dest="display_name")
     report_group.add_argument("--sample-date-column", action="store", help="Column in input csv with sampling date in it. Default='sample_date'", dest="sample_date_column")
     report_group.add_argument("--database-sample-date-column", action="store", help="Colum in background metadata containing sampling date. Default='sample_date'", dest="database_sample_date_column")
@@ -204,9 +204,12 @@ def main(sysargs = sys.argv[1:]):
     selecting the mapping files, 
     the sequencing centre header
     """
+
+    dfunk.get_outgroup_sequence(args.outgroup, cwd, config)
     # accessing package data and adding to config dict
     cfunk.get_package_data(thisdir,config)
-
+    
+    
     """
     Report options and args added to config, seq header file retrieved
     """
