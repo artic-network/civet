@@ -21,7 +21,7 @@ from reportfunk.funks import report_functions as rfunk
 from reportfunk.funks import custom_logger as custom_logger
 from reportfunk.funks import log_handler_handle as lh
 import civetfunks as cfunk
-
+import datadirfunks as dfunk
 thisdir = os.path.abspath(os.path.dirname(__file__))
 cwd = os.getcwd()
 today = date.today()
@@ -53,6 +53,7 @@ def main(sysargs = sys.argv[1:]):
     data_group.add_argument("--outgroup",action="store",help="Optional outgroup sequence to root local subtrees. Default Wuhan/WH04/2020 an A-lineage sequence at the base of the global SARS-CoV-2 phylogeny.")
 
     report_group = parser.add_argument_group('report customisation')
+    report_group.add_argument("--sequencing-centre",action="store", help="Customise report with logos from sequencing centre.", dest="sequencing_centre")
     report_group.add_argument("--display-name", action="store", help="Column in input csv file with display names for seqs. Default: same as input column", dest="display_name")
     report_group.add_argument("--sample-date-column", action="store", help="Column in input csv with sampling date in it. Default='sample_date'", dest="sample_date_column")
     report_group.add_argument("--database-sample-date-column", action="store", help="Colum in background metadata containing sampling date. Default='sample_date'", dest="database_sample_date_column")
@@ -79,6 +80,7 @@ def main(sysargs = sys.argv[1:]):
     run_group.add_argument('-b','--launch-browser', action="store_true",help="Optionally launch md viewer in the browser using grip",dest="launch_browser")
 
     misc_group = parser.add_argument_group('misc options')
+    misc_group.add_argument("--safety-level",action="store",help = "Level of anonymisation for users. Options: 0 (no anonymity), 1 (no COGIDs on background data), 2 (no adm2 on data). Default: 1)", dest="safety_level")
     misc_group.add_argument('--tempdir',action="store",help="Specify where you want the temp stuff to go. Default: $TMPDIR")
     misc_group.add_argument("--no-temp",action="store_true",help="Output all intermediate files, for dev purposes.",dest="no_temp")
     misc_group.add_argument("--verbose",action="store_true",help="Print lots of stuff to screen")
@@ -139,10 +141,9 @@ def main(sysargs = sys.argv[1:]):
     # specifying temp directory, outdir if no_temp (tempdir becomes working dir)
     tempdir = qcfunk.get_temp_dir(args.tempdir, args.no_temp,cwd,config)
 
-    qcfunk.add_arg_to_config("remote",args.remote, config)
 
     # find the data dir
-    cfunk.get_datadir(args.datadir,args.background_metadata,cwd,config)
+    dfunk.get_datadir(args.datadir,args.background_metadata,cwd,config)
 
     # add data and input columns to config
     qcfunk.data_columns_to_config(args,config)
@@ -205,11 +206,12 @@ def main(sysargs = sys.argv[1:]):
     the sequencing centre header
     """
 
-    dfunk.get_outgroup_sequence(args.outgroup, cwd, config)
+    cfunk.get_outgroup_sequence(args.outgroup, cwd, config)
     # accessing package data and adding to config dict
     cfunk.get_package_data(thisdir,config)
     
-    
+    # get seq centre header file from pkg data
+    cfunk.get_sequencing_centre_header(config)
     """
     Report options and args added to config, seq header file retrieved
     """
