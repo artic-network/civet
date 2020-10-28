@@ -63,7 +63,7 @@ def get_defaults():
                     "include_snp_table":False,
                     "include_bars":False,
                     "cog_report":False,
-                    "omit_appendix":False,
+                    "omit_appendix":True,
                     "table_fields":["sample_date", "uk_lineage", "lineage", "phylotype"],
                     "threads":1,
                     "force":True,
@@ -306,7 +306,8 @@ def configure_update(update_arg,udpate_arg,config):
             config[i]=""
         config["colour_by"]="new:Paired"
         config["tree_fields"]="new"
-        config["table_fields"]=config["table_fields"].append("new")
+
+        config["table_fields"]=list(config["table_fields"]).append("new")
 
 
 def check_cluster_dependencies(config):
@@ -321,7 +322,7 @@ def configure_cluster(config):
     if config["cluster"]:
         check_cluster_dependencies(config)
     config["colour_by"]="new:Paired"
-    config["table_fields"]=config["table_fields"].append("new")
+    config["table_fields"]=list(config["table_fields"]).append("new")
     config["down_distance"]=100
 
 

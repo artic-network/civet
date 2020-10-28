@@ -142,6 +142,12 @@ def main(sysargs = sys.argv[1:]):
     if configfile:
         qcfunk.parse_yaml_file(configfile, config)
     
+    """
+    Report options and args added to config, seq header file retrieved
+    """
+    # check args for report group options
+    cfunk.report_group_to_config(args,config)
+
 
     # update and cluster options
 
@@ -243,12 +249,6 @@ def main(sysargs = sys.argv[1:]):
     # accessing package data and adding to config dict
     cfunk.get_package_data(thisdir,config)
 
-    """
-    Report options and args added to config, seq header file retrieved
-    """
-    # check args for report group options
-    cfunk.report_group_to_config(args,config)
-
     # get seq centre header file from pkg data
     cfunk.get_sequencing_centre_header(config)
 
@@ -338,7 +338,12 @@ def main(sysargs = sys.argv[1:]):
         sys.exit(-1)
     threads = config["threads"]
 
-    qcfunk.add_arg_to_config("safety_level",args.safety_level,config)
+
+    if args.safety_level != None:
+        config["safety_level"]= args.safety_level
+    
+    if config["remote"]:
+        config["safety_level"] = 2
     
     try:
         safety_level = int(config["safety_level"])
