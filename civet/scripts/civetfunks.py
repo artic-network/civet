@@ -100,7 +100,25 @@ def define_seq_db(config):
 #                     sys.exit(-1)
 
 
+def get_outgroup_sequence(outgroup_arg, cwd, config):
+    if outgroup_arg:
+        reference_fasta = os.path.join(cwd, outgroup_arg)
+        if not os.path.isfile(reference_fasta):
+            sys.stderr.write(cyan(f"""Error: cannot find specified outgroup file at {outgroup_arg}\n"""))
+            sys.exit(-1)
+        else:
+            config["reference_fasta"] = reference_fasta
+    elif "outgroup" in config:
+        reference_fasta = os.path.join(cwd, outgroup_arg)
+        if not os.path.isfile(reference_fasta):
+            sys.stderr.write(cyan(f"""Error: cannot find specified outgroup file at {outgroup_arg}\n"""))
+            sys.exit(-1)
+        else:
+            config["reference_fasta"] = reference_fasta
+
+
 def get_package_data(thisdir,config):
+    
     reference_fasta = pkg_resources.resource_filename('civet', 'data/reference.fasta')
     outgroup_fasta = pkg_resources.resource_filename('civet', 'data/outgroup.fasta')
     polytomy_figure = pkg_resources.resource_filename('civet', 'data/polytomies.png')
@@ -116,7 +134,8 @@ def get_package_data(thisdir,config):
     spatial_translations_1 = pkg_resources.resource_filename('civet', 'data/mapping_files/HB_Translation.pkl')
     spatial_translations_2 = pkg_resources.resource_filename('civet', 'data/mapping_files/adm2_regions_to_coords.csv')
     appendix_text = pkg_resources.resource_filename('civet', 'data/appendix.txt')
-    config["reference_fasta"] = reference_fasta
+    if not "reference_fasta" in config:
+        config["reference_fasta"] = reference_fasta
     config["outgroup_fasta"] = outgroup_fasta
     config["polytomy_figure"] = polytomy_figure
     config["report_args"] = report_args
