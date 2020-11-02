@@ -682,13 +682,15 @@ def generate_labels(tax,safety_level, custom_tip_fields):
     
     display_name = f"{name}|{date}"
     
-    if "adm2" in tax.attribute_dict.keys() and safety_level != "2": #if it's being run locally OR if safe status is on no adm2 for distribution
-        adm2 = tax.attribute_dict["adm2"]
+    if "location_label" in tax.attribute_dict.keys() and safety_level != "2": #if it's being run locally OR if safe status is on no adm2 for distribution
+        adm2 = tax.attribute_dict["location_label"]
         display_name = f"{name}|{adm2}|{date}"
 
     count = 0
     if len(custom_tip_fields) > 0: 
         for label_element in custom_tip_fields:
+            if label_element == "adm2":
+                label_element = tax.attribute_dict["location_label"]
             if count == 0:
                 display_name = name
             else:   
