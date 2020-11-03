@@ -1,8 +1,9 @@
 output_prefix: cluster03
 query: test.csv
 
-
-local_lineages: True
+map_sequences: True
+map_info: adm2
+local_lineages: False
 no_snipit: True
 label_fields: display
 colour_by: care_home

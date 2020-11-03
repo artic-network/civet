@@ -209,6 +209,7 @@ def main(sysargs = sys.argv[1:]):
     cfunk.get_outgroup_sequence(args.outgroup, cwd, config)
     # accessing package data and adding to config dict
     cfunk.get_package_data(thisdir,config)
+
     
     # get seq centre header file from pkg data
     cfunk.get_sequencing_centre_header(config)
@@ -229,6 +230,9 @@ def main(sysargs = sys.argv[1:]):
 
     # parse the input csv, check col headers and get fields if fields specified
     qcfunk.check_label_and_tree_and_date_fields(config)
+
+    #check adm2s
+    cfunk.check_adm2_values(config)
         
 
     # # check adm2 values
@@ -295,7 +299,12 @@ def main(sysargs = sys.argv[1:]):
         sys.exit(-1)
     threads = config["threads"]
 
-    qcfunk.add_arg_to_config("safety_level",args.safety_level,config)
+
+    if args.safety_level != None:
+        config["safety_level"]= args.safety_level
+    
+    if config["remote"]:
+        config["safety_level"] = 2
     
     try:
         safety_level = int(config["safety_level"])

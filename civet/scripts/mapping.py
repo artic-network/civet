@@ -9,8 +9,145 @@ import csv
 import adjustText as aT
 import os
 
+def generate_all_uk_dataframe(mapping_input):
 
-def prep_data(tax_dict, clean_locs_file):
+    uk_file = mapping_input[0]
+    channel_file = mapping_input[1]
+    ni_file = mapping_input[2]
+
+    UK = geopandas.read_file(uk_file)
+    NI = geopandas.read_file(ni_file)
+    channels = geopandas.read_file(channel_file)
+
+    ###GET NI COUNTIES
+
+    ni_name = []
+    for i in range(len(NI["CountyName"])):
+        ni_name.append("Northern Ireland C")
+
+    NI["NAME_2"] = NI["CountyName"]
+    NI["NAME_1"] = ni_name  
+
+    all_uk = UK.append(channels).append(NI)
+
+    return all_uk
+
+
+def find_ambiguities(adm2s):
+    
+    ambiguous = []
+    ambiguous_dict = defaultdict(set)
+    clusters = []
+
+    for adm2 in adm2s:
+        if "|" in adm2:
+            ambiguous.append(set(adm2.split("|")))
+
+    for group in ambiguous:
+        for group2 in ambiguous:
+            if group & group2:
+                group |= group2
+
+        clusters.append(group)
+
+    for cluster in clusters:
+        for place in cluster:
+            ambiguous_dict[place] = "|".join(sorted(cluster))
+
+
+    return ambiguous_dict
+
+
+def prep_mapping_data(mapping_input, tax_dict):
+
+    adm2s = []
+
+    for tax in tax_dict.values():
+        if tax.attribute_dict["adm2"] != "":
+            adm2s.append(tax.attribute_dict["adm2"]) #should already be upper and with underscores
+
+    if len(adm2s) == 0:
+        return False
+
+    ambiguous_dict = find_ambiguities(adm2s)
+
+    all_uk = generate_all_uk_dataframe(mapping_input)
+
+    ###CAPITALISE GEOJSON DATA
+
+    uppers = []
+    for i in all_uk["NAME_2"]:
+        uppers.append(i.upper().replace(" ","_"))
+        
+    all_uk["NAME_2"] = uppers
+
+    original = all_uk.copy()
+
+    ##DEAL WITH MERGED LOCATIONS EG WEST MIDLANDS
+
+    for_merging = []
+    
+    for location in all_uk["NAME_2"]:
+        if location in ambiguous_dict:
+            for_merging.append(ambiguous_dict[location])
+        else:
+            for_merging.append(location)
+
+    all_uk["Multi_loc"] = for_merging
+
+    merged_locs = all_uk.dissolve(by="Multi_loc")
+
+    mergeds = []
+    for multi_loc in merged_locs.index:
+        mergeds.append(multi_loc)
+
+    merged_locs["NAME_2"] = mergeds    
+
+    ###ADD MERGED AND NON-MERGED DATABASES TOGETHER
+
+    result = pd.merge(merged_locs, original, how="outer")
+
+    return all_uk, result, adm2s, ambiguous_dict
+
+def make_centroids_get_counts(result, adm2s, ambiguous_dict):
+    
+    not_mappable = ["WALES", "OTHER", "UNKNOWN", "UNKNOWN_SOURCE", "NOT_FOUND", "GIBRALTAR", "FALKLAND_ISLANDS", "CITY_CENTRE"]
+
+    centroid_df = defaultdict(list)
+    centroid_dict = {}
+
+    for name, geometry in zip(result["NAME_2"], result["geometry"]):
+        centroid_dict[name.upper()] = geometry.centroid
+
+    centroid_counts = Counter(adm2s)
+    to_remove = set()
+
+    for k,v in centroid_counts.items():
+        if k in ambiguous_dict:
+            testing = ambiguous_dict[k]
+            for location in centroid_counts.keys():
+                if "|" in location:
+                    if any([i for i in testing.split("|") if i in location.split("|")]): #in case it's in there in a different order to the value in the ambiguity dict
+                        centroid_counts[location] += v
+                        to_remove.add(k)
+                        break
+
+    for loc in to_remove:
+        del centroid_counts[loc]
+
+
+    for adm2, count in centroid_counts.items():
+        centroid_df["Adm2"].append(adm2)
+        centroid_df["geometry"].append(centroid_dict[adm2])
+        centroid_df["seq_count"].append(count)
+
+
+    centroid_geo = geopandas.GeoDataFrame(centroid_df)
+
+    return centroid_geo, centroid_counts
+
+
+def prep_data_old(tax_dict, clean_locs_file):
 
     adm2s = []
 
@@ -40,30 +177,7 @@ def prep_data(tax_dict, clean_locs_file):
     
     return adm2s, metadata_multi_loc, straight_map
 
-def generate_all_uk_dataframe(mapping_input):
-
-    uk_file = mapping_input[0]
-    channel_file = mapping_input[1]
-    ni_file = mapping_input[2]
-
-    UK = geopandas.read_file(uk_file)
-    NI = geopandas.read_file(ni_file)
-    channels = geopandas.read_file(channel_file)
-
-    ###GET NI COUNTIES
-
-    ni_name = []
-    for i in range(len(NI["CountyName"])):
-        ni_name.append("Northern Ireland C")
-
-    NI["NAME_2"] = NI["CountyName"]
-    NI["NAME_1"] = ni_name  
-
-    all_uk = UK.append(channels).append(NI)
-
-    return all_uk
-
-def prep_mapping_data(mapping_input, metadata_multi_loc):
+def prep_mapping_data_old(mapping_input, metadata_multi_loc):
 
     all_uk = generate_all_uk_dataframe(mapping_input)
     
@@ -71,7 +185,7 @@ def prep_mapping_data(mapping_input, metadata_multi_loc):
 
     uppers = []
     for i in all_uk["NAME_2"]:
-        uppers.append(i.upper())
+        uppers.append(i.upper())#.replace(" ","_")) put this in when we have the clean locations
         
     all_uk["NAME_2"] = uppers
 
@@ -106,7 +220,7 @@ def prep_mapping_data(mapping_input, metadata_multi_loc):
     return all_uk, result
 
 
-def make_centroids(result,adm2s, straight_map):
+def make_centroids_old(result,adm2s, straight_map):
 
     not_mappable = ["WALES", "OTHER", "UNKNOWN", "UNKNOWN SOURCE", "NOT FOUND", "GIBRALTAR", "FALKLAND ISLANDS", "CITY CENTRE"]
 
@@ -114,8 +228,6 @@ def make_centroids(result,adm2s, straight_map):
 
     for name, geometry in zip(result["NAME_2"], result["geometry"]):
         centroid_dict[name.upper()] = geometry.centroid
-
-    centroids = []
 
     centroid_counts = Counter(adm2s)
 
@@ -125,12 +237,14 @@ def make_centroids(result,adm2s, straight_map):
         try:
             if adm2 in straight_map.keys():
                 new = straight_map[adm2]
-                centroids = centroid_dict[new]
+                centroid = centroid_dict[new]
             else:
                 centroid = centroid_dict[adm2]
         except KeyError:
             if adm2 != "" and adm2 not in not_mappable:
                 print(adm2 + " is not associated with an correct adm2 region so cannot be plotted yet.")
+                if "|" in adm2:
+                    print("This may be because you are using cleaned adm2 regions as an input but an old version of the background data pre-cleaning in phylo-pipe. If this is unexpected behaviour please contact Verity Hill.")
                 
         try:
             centroid_df["Adm2"].append(adm2)
@@ -163,30 +277,44 @@ def make_map(centroid_geo, all_uk, figdir):
 
 
 
-def map_adm2(tax_dict, clean_locs_file, mapping_json_files, figdir): #So this takes adm2s and plots them onto the whole UK
+def map_adm2(tax_dict, clean_locs_file, mapping_json_files, figdir, old_data): #So this takes adm2s and plots them onto the whole UK
 
-    adm2s, metadata_multi_loc, straight_map = prep_data(tax_dict, clean_locs_file)
+    if old_data:
+        adm2s, metadata_multi_loc, straight_map = prep_data_old(tax_dict, clean_locs_file)
+        all_uk, result = prep_mapping_data_old(mapping_json_files, metadata_multi_loc)
+        output = make_centroids_old(result, adm2s, straight_map)
 
-    all_uk, result = prep_mapping_data(mapping_json_files, metadata_multi_loc)
-
-    output = make_centroids(result, adm2s, straight_map)
-    
-    if type(output) == bool:
-        print("None of the sequences provided have adequate adm2 data and so cannot be mapped")
-        return
+        if type(output) == bool:
+            print("None of the sequences provided have adequate adm2 data and so cannot be mapped")
+            return
+        else:
+            centroid_geo, adm2_counter = output
     else:
-        centroid_geo, adm2_counter = output
+        output = prep_mapping_data(mapping_json_files, tax_dict)
+
+        if type(output) == bool:
+            print("None of the sequences provided have adequate adm2 data and so cannot be mapped")
+            return
+        else:
+            all_uk, result, adm2s, ambiguous_dict = output
+
+        centroid_geo, adm2_counter = make_centroids_get_counts(result, adm2s, ambiguous_dict)
 
     make_map(centroid_geo, all_uk, figdir)
 
     adm2_percentages = {}
 
-    total = len(adm2s)
+    total = len(adm2_counter)
+
+    adm2_to_label = {}
+    for taxa in tax_dict.values():
+        if taxa.attribute_dict["adm2"].upper() != taxa.attribute_dict["location_label"].upper():
+            adm2_to_label[taxa.attribute_dict["adm2"]] =  taxa.attribute_dict["location_label"]
 
     for adm2, count in adm2_counter.items():
         adm2_percentages[adm2] = round(((count/total)*100),2)
 
-    return adm2_counter, adm2_percentages
+    return adm2_counter, adm2_percentages, adm2_to_label
 
 def get_coords_from_file(input_csv, input_crs, colour_map_trait, x_col, y_col):
 
@@ -417,7 +545,7 @@ def local_lineages_section(lineage_maps, lineage_tables):
     #print('\n')
     print(f'Tabulated lineage data for the **central** health-board region:\n')
 
-    with open(centralLoc[0], 'r') as file:
+    with open(centralLoc, 'r') as file:
         count = 0
         for l in file:
             if count != 0:
