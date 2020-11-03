@@ -21,6 +21,7 @@ A fully customisable report is generated, summarising information about the sequ
   * [Output](./output.md)
   * [Report options and descriptions](./report_docs.md)
   * [Mapping options and usage instructions](./map_option_docs.md)
+  * [Administrative level 2 regions](./geographic_data.md)
   * [Example report](./civet_report_example.md)
   * [Interpretation guide](./interpretation.md)
   * [Contributors & acknowledgements](./acknowledgements.md)

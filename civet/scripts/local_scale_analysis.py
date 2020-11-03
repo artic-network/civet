@@ -4,6 +4,7 @@ import warnings
 import pickle
 import geopandas as gp
 import pandas as pd
+from collections import Counter
 from libpysal.weights import Queen, attach_islands, DistanceBand, set_operations
 import json
 import csv
@@ -51,22 +52,22 @@ def adm2cleaning(data_cog, samplecsv=False):
     else:
         data_cog2 = data_cog.copy()
     
-    data_cog2['adm2'] = data_cog2['adm2'].str.replace('^MOTHERWELL$', 'NORTH LANARKSHIRE', regex=True).copy()
-    data_cog2['adm2'] = data_cog2['adm2'].str.replace('^GREATER_LONDON$', 'GREATER LONDON', regex=True)
-    data_cog2['adm2'] = data_cog2['adm2'].str.replace('^BORDERS$', 'SCOTTISH BORDERS', regex=True)
+    data_cog2['adm2'] = data_cog2['adm2'].str.replace('^MOTHERWELL$', 'NORTH_LANARKSHIRE', regex=True).copy()
+    data_cog2['adm2'] = data_cog2['adm2'].str.replace('^GREATER_LONDON$', 'GREATER_LONDON', regex=True)
+    data_cog2['adm2'] = data_cog2['adm2'].str.replace('^BORDERS$', 'SCOTTISH_BORDERS', regex=True)
     data_cog2['adm2'] = data_cog2['adm2'].str.replace('^PAISLEY$', 'RENFREWSHIRE', regex=True)
     data_cog2['adm2'] = data_cog2['adm2'].str.replace('^SUTTON-IN-ASHFIELD$', 'NOTTINGHAMSHIRE', regex=True)
-    data_cog2['adm2'] = data_cog2['adm2'].str.replace('^LONDON$', 'GREATER LONDON', regex=True)
-    data_cog2['adm2'] = data_cog2['adm2'].str.replace('^KILMARNOCK$', 'EAST AYRSHIRE', regex=True)
-    data_cog2['adm2'] = data_cog2['adm2'].str.replace('^PERTH$', 'PERTHSHIRE AND KINROSS', regex=True)
+    data_cog2['adm2'] = data_cog2['adm2'].str.replace('^LONDON$', 'GREATER_LONDON', regex=True)
+    data_cog2['adm2'] = data_cog2['adm2'].str.replace('^KILMARNOCK$', 'EAST_AYRSHIRE', regex=True)
+    data_cog2['adm2'] = data_cog2['adm2'].str.replace('^PERTH$', 'PERTHSHIRE_AND_KINROSS', regex=True)
     data_cog2['adm2'] = data_cog2['adm2'].str.replace('^ISLE OF ANGLESEY$', 'ANGLESEY', regex=True)
-    data_cog2['adm2'] = data_cog2['adm2'].str.replace('^SHETLAND$', 'SHETLAND ISLANDS', regex=True)
+    data_cog2['adm2'] = data_cog2['adm2'].str.replace('^SHETLAND$', 'SHETLAND_ISLANDS', regex=True)
     data_cog2['adm2'] = data_cog2['adm2'].str.replace('^GREATER LONDONDERRY$', 'LONDONDERRY', regex=True)
     data_cog2['adm2'] = data_cog2['adm2'].str.replace('^STAFFORD$', 'STAFFORDSHIRE', regex=True)
     data_cog2['adm2'] = data_cog2['adm2'].str.replace('^INVERNESS$', 'HIGHLAND', regex=True)
-    data_cog2['adm2'] = data_cog2['adm2'].str.replace('^KINGS NORTON$', 'WEST MIDLANDS', regex=True)
+    data_cog2['adm2'] = data_cog2['adm2'].str.replace('^KINGS NORTON$', 'WEST_MIDLANDS', regex=True)
     data_cog2['adm2'] = data_cog2['adm2'].str.replace('^GLASGOW CITY$', 'GLASGOW', regex=True)
-    data_cog2['adm2'] = data_cog2['adm2'].str.replace('^CITY OF LONDON$', 'GREATER LONDON', regex=True)
+    data_cog2['adm2'] = data_cog2['adm2'].str.replace('^CITY OF LONDON$', 'GREATER_LONDON', regex=True)
     data_cog2['adm2'] = data_cog2['adm2'].str.replace('^RHONDDA CYNON TAF$', 'RHONDDA, CYNON, TAFF', regex=True)
     return data_cog2
 
@@ -296,12 +297,44 @@ def mapProduce(HBSet, DF, region, centralCode=None):
         return multicanvasJSON
 
 
+def decide_HB(metadata_df, HB_translation):
+
+  possible_HBs = []
+  extra_translation = {}
+
+  for adm2 in metadata_df["adm2"]:
+    if not pd.isnull(adm2):
+      if "|" in adm2:
+        HB = decide_single_HB(adm2, HBTranslation)  
+        HB_translation[adm2] = HB
+      elif "RHONDDA" in adm2:  
+        HB_translation[adm2] = "Cwm Taf Morgannwg University Health Board"    
+
+  return HB_translation
+
+def decide_single_HB(adm2, HB_translation):
+
+  possible_HBs = []
+  possible_adm2s = adm2.split("|")
+  
+  for item in possible_adm2s:
+    if "RHONDDA" in item:
+      possible_HBs.append("Cwm Taf Morgannwg University Health Board")
+    else:
+      possible_HBs.append(HB_translation[item])
+  
+  HB_counts = Counter(possible_HBs)
+  HB = HB_counts.most_common(1)[0][0]
+
+  return HB
+
 def getSampleData_final(MetadataDF, HBTranslation, HBCode_translation):
     cog_meta = MetadataDF
     cog_meta['central_sample_id'] = cog_meta['sequence_name'].str.split('/', expand=True)[1]
-    cog_meta = cog_meta.loc[cog_meta['adm1'].isin(['UK-SCT', 'UK-ENG', 'UK-WAL'])]
-    cog_meta['HBName'] = cog_meta.loc[:, 'adm2'].map(HBTranslation)
-    cog_meta['HBCode'] = cog_meta.loc[:, 'HBName'].map(HBCode_translation)
+    cog_meta = cog_meta.loc[cog_meta['adm1'].isin(['UK-SCT', 'UK-ENG', 'UK-WLS', 'UK-NIR'])]
+    HB_translation = decide_HB(cog_meta, HBTranslation)
+    cog_meta['HBName'] = cog_meta['adm2'].map(HBTranslation)
+    cog_meta['HBCode'] = cog_meta['HBName'].map(HBCode_translation)
     cog_meta_clean = adm2cleaning(cog_meta)
     return cog_meta_clean
 
@@ -315,14 +348,17 @@ def central_surrounding_regions(HBCODE, neighborW, MAP):
 
 def adm2_to_centralHBCode(sampleframe, translation_dict, HbtoCode):
     HBs = []
-    sampleframe['adm2'] = sampleframe['adm2'].str.upper()
+    sampleframe['adm2'] = sampleframe['adm2'].str.upper().replace(" ","_")
     sampleframe = adm2cleaning(sampleframe, samplecsv=True)
-    # print(sampleframe)
     adm2 = sampleframe['adm2'].to_list()
-    # print(adm2)
     for each in adm2:
         if each in translation_dict:
-            HBs.append(translation_dict[each])
+          HB = translation_dict[each]
+        elif "|" in each:
+          HB = decide_single_HB(sampleframe, translation_dict)
+        elif "RHONDDA" in each:
+          HB = "Cwm Taf Morgannwg University Health Board"
+        HBs.append(HB)
     if len(HBs) > 0:
         centralHB = max(HBs, key=HBs.count)
         centralHBCode = HbtoCode[centralHB]
@@ -345,23 +381,18 @@ def supplement_sample_csv(sample_df,combined_metadata_df,input_name):
     testing_similarity = combined_metadata_df['query'][combined_metadata_df["query"] == combined_metadata_df["closest"]]
 
     if len(testing_similarity) > 0 and not combined_metadata_df["adm2"].isnull().all():
-      final_sample = pd.merge(sample_df, combined_metadata_df, left_on=input_name, right_on="query_id", how="outer")
-      return final_sample
+      sample_df["adm2"] = combined_metadata_df["adm2"]
     else:
       return False
 
-  elif len(potential_date_cols) == 0:
+  if len(potential_date_cols) == 0:
     testing_similarity = combined_metadata_df['query'][combined_metadata_df["query"] == combined_metadata_df["closest"]]
 
     if len(testing_similarity) > 0:
-      final_sample = pd.merge(sample_df, combined_metadata_df, left_on=input_name, right_on="query_id", how="outer")
-    else:
-      final_sample = sample_df
+      if "sample_date" in combined_metadata_df:
+        sample_df["sample_date"] = combined_metadata_df["sample_date"]
 
-  else:
-    final_sample = sample_df
-
-  return final_sample
+  return sample_df
 
 def defineDateRestriction(samplesDF, windowSize):
   
@@ -598,6 +629,12 @@ COGDATA = pd.read_csv(argsIN.cog_metadata)
 inputSamples = pd.read_csv(argsIN.user_sample_data)
 combined_metadata = pd.read_csv(argsIN.combined_metadata)
 mainland_boards=gp.read_file(mapfile)
+
+#Replace spaces with underscores in the HB translations
+new_translator = {}
+for k,v in HBTranslation.items():
+  new_translator[k.replace(" ","_")] = v
+HBTranslation = new_translator
 
 #if the inputs don't have adm2 or dates, but if some of them are in COG
 inputSamples = supplement_sample_csv(inputSamples, combined_metadata, argsIN.input_name)
