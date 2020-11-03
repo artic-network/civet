@@ -266,6 +266,9 @@ def main(sysargs = sys.argv[1:]):
 
     # parse the input csv, check col headers and get fields if fields specified
     qcfunk.check_label_and_tree_and_date_fields(config)
+
+    #check adm2s
+    cfunk.check_adm2_values(config)
         
     # map sequences configuration
     cfunk.map_sequences_config(config)

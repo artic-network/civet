@@ -81,23 +81,28 @@ def define_seq_db(config):
     config["seq_db"] = config["background_seqs"]
     
 
-# def check_adm2_values(config):
-#     adm2 = {}
-#     with open(config["clean_locs"],"r") as f:
-#         reader = csv.DictReader(f)
-#         for row in reader:
-#             adm2.append(row["location_in_metadata"])
+def check_adm2_values(config):
+    
+    get_acceptable_adm2(config)
+    accepted_adm2 = config["clean_locs"]
+    
+    with open(config["query"],"r") as f:
+        reader = csv.DictReader(f)
+        header = reader.fieldnames
+        if "adm2" in header:
+            for row in reader:
+                if row["adm2"].upper().replace(" ","_") not in accepted_adm2 and "|" not in row["adm2"]: 
+                    adm2_value = row["adm2"]
+                    sys.stderr.write(qcfunk.cyan(f'Error: {adm2_value} not a valid adm2 region.\n Find a list of valid adm2 values at:\nhttps://artic-network.github.io/civet/geographic_data.html\n'))
+                    sys.stderr.write(qcfunk.cyan(f'Please note: if you have a region that encompasses multiple adm2 regions eg West Midlands, list the correct adm2 regions separated by the "|" symbol to indicate ambiguity.\n'))
+                    sys.exit(-1)
+                elif "|" in row["adm2"]:
+                    adm2_value = row["adm2"].split("|")
+                    for i in adm2_value:
+                        if i not in accepted_adm2:
+                            sys.stderr.write(qcfunk.cyan(f'Error: {i} found in the ambiguity code {row["adm2"]} not a valid adm2 region.\n Find a list of valid adm2 values at:\nhttps://artic-network.github.io/civet/geographic_data.html\n'))
+                            sys.exit(-1)
 
-#     with open(config["query"],"r") as f:
-#         reader = csv.DictReader(f)
-#         header = reader.fieldnames
-#         if "adm2" in header:
-#             for row in reader:
-#                 if row["adm2"].upper() not in adm2:
-#                     adm2_value = row["adm2"]
-#                     loc_file = config["clean_locs"]
-#                     sys.stderr.write(qcfunk.cyan(f'Error: {adm2_value} not a valid adm2 region.\n Find a list of valid adm2 values at:\n{loc_file}\n'))
-#                     sys.exit(-1)
 
 
 def get_package_data(thisdir,config):
@@ -106,7 +111,7 @@ def get_package_data(thisdir,config):
     polytomy_figure = pkg_resources.resource_filename('civet', 'data/polytomies.png')
     report_args = pkg_resources.resource_filename('civet', 'data/report_arguments.txt')
     footer_fig = pkg_resources.resource_filename('civet', 'data/footer.png')
-    clean_locs = pkg_resources.resource_filename('civet', 'data/mapping_files/adm2_cleaning.csv')
+    clean_locs_file = pkg_resources.resource_filename('civet', 'data/mapping_files/adm2_cleaning.csv')
     map_input_1 = pkg_resources.resource_filename('civet', 'data/mapping_files/gadm36_GBR_2.json')
     map_input_2 = pkg_resources.resource_filename('civet', 'data/mapping_files/channel_islands.json')  
     map_input_3 = pkg_resources.resource_filename('civet', 'data/mapping_files/NI_counties.geojson')  
@@ -123,7 +128,7 @@ def get_package_data(thisdir,config):
     config["footer"] = footer_fig
     config["appendix"] = appendix_text
     
-    config["clean_locs"] = clean_locs
+    config["clean_locs_file"] = clean_locs_file
     config["uk_map"] = map_input_1
     config["channels_map"] = map_input_2
     config["ni_map"] = map_input_3
@@ -703,34 +708,28 @@ def generate_labels(tax,safety_level, custom_tip_fields):
 def get_acceptable_adm2(config):
 
     GADM_adm2 = [
-    ##England
-    'BARNSLEY', 'BATH AND NORTH EAST SOMERSET', 'BEDFORDSHIRE', 'BIRMINGHAM', 'BLACKBURN WITH DARWEN', 'BLACKPOOL', 'BOLTON', 'BOURNEMOUTH', 'BRACKNELL FOREST', 'BRADFORD', 'BRIGHTON AND HOVE', 'BRISTOL', 'BUCKINGHAMSHIRE', 'BURY', 
-    'CALDERDALE', 'CAMBRIDGESHIRE', 'CENTRAL BEDFORDSHIRE', 'CHESHIRE EAST', 'CHESHIRE WEST AND CHESTER', 'CORNWALL', 'COVENTRY', 'CUMBRIA', 
+    'BARNSLEY', 'BATH_AND_NORTH_EAST_SOMERSET', 'BEDFORDSHIRE', 'BIRMINGHAM', 'BLACKBURN_WITH_DARWEN', 'BLACKPOOL', 'BOLTON', 'BOURNEMOUTH', 'BRACKNELL_FOREST', 'BRADFORD', 'BRIGHTON_AND_HOVE', 'BRISTOL', 'BUCKINGHAMSHIRE', 'BURY',
+    'CALDERDALE', 'CAMBRIDGESHIRE', 'CENTRAL_BEDFORDSHIRE', 'CHESHIRE_EAST', 'CHESHIRE_WEST_AND_CHESTER', 'CORNWALL', 'COVENTRY', 'CUMBRIA', 
     'DARLINGTON', 'DERBY', 'DERBYSHIRE', 'DEVON', 'DONCASTER', 'DORSET', 'DUDLEY', 'DURHAM', 
-    'EAST RIDING OF YORKSHIRE', 'EAST SUSSEX', 'ESSEX', 
-    'GATESHEAD', 'GLOUCESTERSHIRE', 'GREATER LONDON', 
+    'EAST_RIDING_OF_YORKSHIRE', 'EAST_SUSSEX', 'ESSEX', 
+    'GATESHEAD', 'GLOUCESTERSHIRE', 'GREATER_LONDON', 
     'HALTON', 'HAMPSHIRE', 'HARTLEPOOL', 'HEREFORDSHIRE', 'HERTFORDSHIRE', 
-    'ISLE OF WIGHT', 'ISLES OF SCILLY', 
-    'KENT', 'KINGSTON UPON HULL', 'KIRKLEES', 'KNOWSLEY', 
+    'ISLE_OF_WIGHT', 'ISLES_OF_SCILLY', 
+    'KENT', 'KINGSTON_UPON_HULL', 'KIRKLEES', 'KNOWSLEY', 
     'LANCASHIRE', 'LEEDS', 'LEICESTER', 'LEICESTERSHIRE', 'LINCOLNSHIRE', 'LUTON', 
-    'MANCHESTER', 'MEDWAY', 'MIDDLESBROUGH', 'MILTON KEYNES', 
-    'NEWCASTLE UPON TYNE', 'NORFOLK', 'NORTH LINCOLNSHIRE', 'NORTH SOMERSET', 'NORTH TYNESIDE', 'NORTH YORKSHIRE', 'NORTHAMPTONSHIRE', 'NORTHUMBERLAND', 'NOTTINGHAM', 'NOTTINGHAMSHIRE', 
-    'OLDHAM', 'OXFORDSHIRE', 'PETERBOROUGH', 'PLYMOUTH', 'POOLE', 'PORTSMOUTH', 
-    'READING', 'REDCAR AND CLEVELAND', 'ROCHDALE', 'ROTHERHAM', 'RUTLAND', 
-    'SAINT HELENS', 'SALFORD', 'SANDWELL', 'SEFTON', 'SHEFFIELD', 'SHROPSHIRE', 'SLOUGH', 'SOLIHULL', 'SOMERSET', 'SOUTH GLOUCESTERSHIRE', 'SOUTH TYNESIDE', 'SOUTHAMPTON', 'SOUTHEND-ON-SEA', 'STAFFORDSHIRE', 'STOCKPORT', 'STOCKTON-ON-TEES', 'STOKE-ON-TRENT', 'SUFFOLK', 'SUNDERLAND', 'SURREY', 'SWINDON', 
-    'TAMESIDE', 'TELFORD AND WREKIN', 'THURROCK', 'TORBAY', 'TRAFFORD', 
-    'WAKEFIELD', 'WALSALL', 'WARRINGTON', 'WARWICKSHIRE', 'WEST BERKSHIRE', 'WEST SUSSEX', 'WIGAN', 'WILTSHIRE', 'WINDSOR AND MAIDENHEAD', 'WIRRAL', 'WOKINGHAM', 'WOLVERHAMPTON', 'WORCESTERSHIRE', 'YORK', 
-    #NI current counties
-    'ANTRIM AND NEWTOWNABBEY', 'ARMAGH, BANBRIDGE AND CRAIGAVON', 'BELFAST', 'CAUSEWAY COAST AND GLENS', 'DERRY AND STRABANE', 'FERMANAGH AND OMAGH', 'LISBURN AND CASTLEREAGH', 'MID AND EAST ANTRIM', 'MID ULSTER', 'NEWRY, MOURNE AND DOWN', 'NORTH DOWN AND ARDS', 
-    #NI historic counties
-    'TYRONE', 'ANTRIM', 'ARMAGH', 'FERMANAGH', 'LONDONDERRY', 'DOWN',
-    #Scotland
-    'ABERDEEN', 'ABERDEENSHIRE', 'ANGUS', 'ARGYLL AND BUTE', 'CLACKMANNANSHIRE', 'DUMFRIES AND GALLOWAY', 'DUNDEE', 'EAST AYRSHIRE', 'EAST DUNBARTONSHIRE', 'EAST LOTHIAN', 'EAST RENFREWSHIRE', 'EDINBURGH', 'EILEAN SIAR', 'FALKIRK', 'FIFE', 
-    'GLASGOW', 'HIGHLAND', 'INVERCLYDE', 'MIDLOTHIAN', 'MORAY', 'NORTH AYRSHIRE', 'NORTH LANARKSHIRE', 'ORKNEY ISLANDS', 'PERTHSHIRE AND KINROSS', 'RENFREWSHIRE', 'SCOTTISH BORDERS', 'SHETLAND ISLANDS', 'SOUTH AYRSHIRE', 'SOUTH LANARKSHIRE', 'STIRLING', 'WEST DUNBARTONSHIRE', 'WEST LOTHIAN', 
-    #Wales
-    'ANGLESEY', 'BLAENAU GWENT', 'BRIDGEND', 'CAERPHILLY', 'CARDIFF', 'CARMARTHENSHIRE', 'CEREDIGION', 'CONWY', 'DENBIGHSHIRE', 'FLINTSHIRE', 'GWYNEDD', 'MERTHYR TYDFIL', 'MONMOUTHSHIRE', 'NEATH PORT TALBOT', 'NEWPORT', 'PEMBROKESHIRE', 'POWYS', 'RHONDDA, CYNON, TAFF', 'SWANSEA', 'TORFAEN', 'VALE OF GLAMORGAN', 'WREXHAM'
-    ]
-
+    'MANCHESTER', 'MEDWAY', 'MIDDLESBROUGH', 'MILTON_KEYNES', 
+    'NEWCASTLE_UPON_TYNE', 'NORFOLK', 'NORTH_LINCOLNSHIRE', 'NORTH_SOMERSET', 'NORTH_TYNESIDE', 'NORTH_YORKSHIRE', 'NORTHAMPTONSHIRE', 'NORTHUMBERLAND', 'NOTTINGHAM', 'NOTTINGHAMSHIRE', 
+    'OLDHAM', 'OXFORDSHIRE', 
+    'PETERBOROUGH', 'PLYMOUTH', 'POOLE', 'PORTSMOUTH', 
+    'READING', 'REDCAR_AND_CLEVELAND', 'ROCHDALE', 'ROTHERHAM', 'RUTLAND', 
+    'SAINT_HELENS', 'SALFORD', 'SANDWELL', 'SEFTON', 'SHEFFIELD', 'SHROPSHIRE', 'SLOUGH', 'SOLIHULL', 'SOMERSET', 'SOUTH_GLOUCESTERSHIRE', 'SOUTH_TYNESIDE', 'SOUTHAMPTON', 'SOUTHEND-ON-SEA', 'STAFFORDSHIRE', 'STOCKPORT', 'STOCKTON-ON-TEES', 'STOKE-ON-TRENT', 'SUFFOLK', 'SUNDERLAND', 'SURREY', 'SWINDON', 
+    'TAMESIDE', 'TELFORD_AND_WREKIN', 'THURROCK', 'TORBAY', 'TRAFFORD', 'WAKEFIELD', 'WALSALL', 'WARRINGTON', 'WARWICKSHIRE', 'WEST_BERKSHIRE', 'WEST_SUSSEX', 'WIGAN', 'WILTSHIRE', 'WINDSOR_AND_MAIDENHEAD', 'WIRRAL', 'WOKINGHAM', 'WOLVERHAMPTON', 'WORCESTERSHIRE', 'YORK',
+    'ANTRIM_AND_NEWTOWNABBEY', 'ARMAGH_BANBRIDGE_AND_CRAIGAVON', 'BELFAST', 'CAUSEWAY_COAST_AND_GLENS', 'DERRY_AND_STRABANE', 'FERMANAGH_AND_OMAGH', 'LISBURN_AND_CASTLEREAGH', 'MID_AND_EAST_ANTRIM', 'MID_ULSTER', 'NEWRY_MOURNE_AND_DOWN', 'NORTH_DOWN_AND_ARDS', 'TYRONE', 'ANTRIM', 'ARMAGH', 'FERMANAGH', 'LONDONDERRY', 'DOWN',
+    'ABERDEEN', 'ABERDEENSHIRE', 'ANGUS', 'ARGYLL_AND_BUTE', 'CLACKMANNANSHIRE', 'DUMFRIES_AND_GALLOWAY', 'DUNDEE', 'EAST_AYRSHIRE', 'EAST_DUNBARTONSHIRE', 'EAST_LOTHIAN', 'EAST_RENFREWSHIRE', 'EDINBURGH', 'EILEAN_SIAR', 'FALKIRK', 'FIFE', 
+    'GLASGOW', 'HIGHLAND', 'INVERCLYDE', 'MIDLOTHIAN', 'MORAY', 'NORTH_AYRSHIRE', 'NORTH_LANARKSHIRE', 'ORKNEY_ISLANDS', 'PERTHSHIRE_AND_KINROSS', 'RENFREWSHIRE', 'SCOTTISH_BORDERS', 'SHETLAND_ISLANDS', 'SOUTH_AYRSHIRE', 'SOUTH_LANARKSHIRE', 'STIRLING', 'WEST_DUNBARTONSHIRE', 'WEST_LOTHIAN',
+    'ANGLESEY', 'BLAENAU_GWENT', 'BRIDGEND', 'CAERPHILLY', 'CARDIFF', 'CARMARTHENSHIRE', 'CEREDIGION', 'CONWY', 'DENBIGHSHIRE', 'FLINTSHIRE', 'GWYNEDD', 'MERTHYR_TYDFIL', 'MONMOUTHSHIRE', 'NEATH_PORT_TALBOT', 'NEWPORT', 'PEMBROKESHIRE', 'POWYS', 'RHONDDA_CYNON_TAFF', 'SWANSEA', 'TORFAEN', 'VALE_OF_GLAMORGAN', 'WREXHAM',
+    'GUERNSEY', "JERSEY"]
+    
     config["clean_locs"] = GADM_adm2
 
 
