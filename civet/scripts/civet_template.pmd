@@ -220,7 +220,6 @@ if include_bars:
 
 ```python, name="map_sequences", echo=False, results='raw', include=False
 if map_sequences:
-    print(old_data)
     stop_map = False
     if map_info == "adm2":
         output = mapping.map_adm2(query_dict, clean_locs, mapping_json_files, svg_figdir, old_data)
@@ -265,10 +264,10 @@ if map_sequences and not stop_map:
 ```python, name='Regional-scale', echo=False, results='raw'
 if local_lineages:
     print("## Regional-scale background UK lineage mapping")
-    try:
-        mapping.local_lineages_section(lineage_maps, lineage_tables)
-    except:
-        print("There was no adm2 data available to map with, as none was provided and none of the sequences were found in COG")
+    #try:
+    mapping.local_lineages_section(lineage_maps, lineage_tables)
+    #except:
+     #   print("There was no adm2 data available to map with, as none was provided and none of the sequences were found in COG")
 ```
 
 ```python, name="print conclusions", echo=False, results='raw'

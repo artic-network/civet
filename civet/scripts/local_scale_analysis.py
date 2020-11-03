@@ -4,6 +4,7 @@ import warnings
 import pickle
 import geopandas as gp
 import pandas as pd
+from collections import Counter
 from libpysal.weights import Queen, attach_islands, DistanceBand, set_operations
 import json
 import csv
@@ -296,12 +297,44 @@ def mapProduce(HBSet, DF, region, centralCode=None):
         return multicanvasJSON
 
 
+def decide_HB(metadata_df, HB_translation):
+
+  possible_HBs = []
+  extra_translation = {}
+
+  for adm2 in metadata_df["adm2"]:
+    if not pd.isnull(adm2):
+      if "|" in adm2:
+        HB = decide_single_HB(adm2, HBTranslation)  
+        HB_translation[adm2] = HB
+      elif "RHONDDA" in adm2:  
+        HB_translation[adm2] = "Cwm Taf Morgannwg University Health Board"    
+
+  return HB_translation
+
+def decide_single_HB(adm2, HB_translation):
+
+  possible_HBs = []
+  possible_adm2s = adm2.split("|")
+  
+  for item in possible_adm2s:
+    if "RHONDDA" in item:
+      possible_HBs.append("Cwm Taf Morgannwg University Health Board")
+    else:
+      possible_HBs.append(HB_translation[item])
+  
+  HB_counts = Counter(possible_HBs)
+  HB = HB_counts.most_common(1)[0][0]
+
+  return HB
+
 def getSampleData_final(MetadataDF, HBTranslation, HBCode_translation):
     cog_meta = MetadataDF
     cog_meta['central_sample_id'] = cog_meta['sequence_name'].str.split('/', expand=True)[1]
-    cog_meta = cog_meta.loc[cog_meta['adm1'].isin(['UK-SCT', 'UK-ENG', 'UK-WAL'])]
-    cog_meta['HBName'] = cog_meta.loc[:, 'adm2'].map(HBTranslation)
-    cog_meta['HBCode'] = cog_meta.loc[:, 'HBName'].map(HBCode_translation)
+    cog_meta = cog_meta.loc[cog_meta['adm1'].isin(['UK-SCT', 'UK-ENG', 'UK-WLS', 'UK-NIR'])]
+    HB_translation = decide_HB(cog_meta, HBTranslation)
+    cog_meta['HBName'] = cog_meta['adm2'].map(HBTranslation)
+    cog_meta['HBCode'] = cog_meta['HBName'].map(HBCode_translation)
     cog_meta_clean = adm2cleaning(cog_meta)
     return cog_meta_clean
 
@@ -315,15 +348,17 @@ def central_surrounding_regions(HBCODE, neighborW, MAP):
 
 def adm2_to_centralHBCode(sampleframe, translation_dict, HbtoCode):
     HBs = []
-    
-    sampleframe['adm2'] = sampleframe['adm2'].str.upper()
+    sampleframe['adm2'] = sampleframe['adm2'].str.upper().replace(" ","_")
     sampleframe = adm2cleaning(sampleframe, samplecsv=True)
-    # print(sampleframe)
     adm2 = sampleframe['adm2'].to_list()
-    # print(adm2)
     for each in adm2:
         if each in translation_dict:
-            HBs.append(translation_dict[each])
+          HB = translation_dict[each]
+        elif "|" in each:
+          HB = decide_single_HB(sampleframe, translation_dict)
+        elif "RHONDDA" in each:
+          HB = "Cwm Taf Morgannwg University Health Board"
+        HBs.append(HB)
     if len(HBs) > 0:
         centralHB = max(HBs, key=HBs.count)
         centralHBCode = HbtoCode[centralHB]
@@ -594,6 +629,12 @@ COGDATA = pd.read_csv(argsIN.cog_metadata)
 inputSamples = pd.read_csv(argsIN.user_sample_data)
 combined_metadata = pd.read_csv(argsIN.combined_metadata)
 mainland_boards=gp.read_file(mapfile)
+
+#Replace spaces with underscores in the HB translations
+new_translator = {}
+for k,v in HBTranslation.items():
+  new_translator[k.replace(" ","_")] = v
+HBTranslation = new_translator
 
 #if the inputs don't have adm2 or dates, but if some of them are in COG
 inputSamples = supplement_sample_csv(inputSamples, combined_metadata, argsIN.input_name)

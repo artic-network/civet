@@ -243,6 +243,8 @@ def make_centroids_old(result,adm2s, straight_map):
         except KeyError:
             if adm2 != "" and adm2 not in not_mappable:
                 print(adm2 + " is not associated with an correct adm2 region so cannot be plotted yet.")
+                if "|" in adm2:
+                    print("This may be because you are using cleaned adm2 regions as an input but an old version of the background data pre-cleaning in phylo-pipe. If this is unexpected behaviour please contact Verity Hill.")
                 
         try:
             centroid_df["Adm2"].append(adm2)
@@ -543,7 +545,7 @@ def local_lineages_section(lineage_maps, lineage_tables):
     #print('\n')
     print(f'Tabulated lineage data for the **central** health-board region:\n')
 
-    with open(centralLoc[0], 'r') as file:
+    with open(centralLoc, 'r') as file:
         count = 0
         for l in file:
             if count != 0:
