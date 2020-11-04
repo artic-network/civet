@@ -5,7 +5,7 @@
 
 How to visualise the geographical data in sequences using civet
 
-> Note: All of these options require some geographical information, either in the background data or the input query information.
+> Note: All of these options require some geographical information, either in the background data or the input query information.  See [here](./geographical_data.md) for a list of accepted adm2 regions.
 
 ### --local-lineages and associated options
 
