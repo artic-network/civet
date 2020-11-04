@@ -51,22 +51,22 @@ def adm2cleaning(data_cog, samplecsv=False):
     else:
         data_cog2 = data_cog.copy()
     
-    data_cog2['adm2'] = data_cog2['adm2'].str.replace('^MOTHERWELL$', 'NORTH LANARKSHIRE', regex=True).copy()
-    data_cog2['adm2'] = data_cog2['adm2'].str.replace('^GREATER_LONDON$', 'GREATER LONDON', regex=True)
-    data_cog2['adm2'] = data_cog2['adm2'].str.replace('^BORDERS$', 'SCOTTISH BORDERS', regex=True)
+    data_cog2['adm2'] = data_cog2['adm2'].str.replace('^MOTHERWELL$', 'NORTH_LANARKSHIRE', regex=True).copy()
+    data_cog2['adm2'] = data_cog2['adm2'].str.replace('^GREATER_LONDON$', 'GREATER_LONDON', regex=True)
+    data_cog2['adm2'] = data_cog2['adm2'].str.replace('^BORDERS$', 'SCOTTISH _ORDERS', regex=True)
     data_cog2['adm2'] = data_cog2['adm2'].str.replace('^PAISLEY$', 'RENFREWSHIRE', regex=True)
     data_cog2['adm2'] = data_cog2['adm2'].str.replace('^SUTTON-IN-ASHFIELD$', 'NOTTINGHAMSHIRE', regex=True)
-    data_cog2['adm2'] = data_cog2['adm2'].str.replace('^LONDON$', 'GREATER LONDON', regex=True)
-    data_cog2['adm2'] = data_cog2['adm2'].str.replace('^KILMARNOCK$', 'EAST AYRSHIRE', regex=True)
-    data_cog2['adm2'] = data_cog2['adm2'].str.replace('^PERTH$', 'PERTHSHIRE AND KINROSS', regex=True)
+    data_cog2['adm2'] = data_cog2['adm2'].str.replace('^LONDON$', 'GREATER_LONDON', regex=True)
+    data_cog2['adm2'] = data_cog2['adm2'].str.replace('^KILMARNOCK$', 'EAST_AYRSHIRE', regex=True)
+    data_cog2['adm2'] = data_cog2['adm2'].str.replace('^PERTH$', 'PERTHSHIRE_AND_KINROSS', regex=True)
     data_cog2['adm2'] = data_cog2['adm2'].str.replace('^ISLE OF ANGLESEY$', 'ANGLESEY', regex=True)
-    data_cog2['adm2'] = data_cog2['adm2'].str.replace('^SHETLAND$', 'SHETLAND ISLANDS', regex=True)
+    data_cog2['adm2'] = data_cog2['adm2'].str.replace('^SHETLAND$', 'SHETLAND_ISLANDS', regex=True)
     data_cog2['adm2'] = data_cog2['adm2'].str.replace('^GREATER LONDONDERRY$', 'LONDONDERRY', regex=True)
     data_cog2['adm2'] = data_cog2['adm2'].str.replace('^STAFFORD$', 'STAFFORDSHIRE', regex=True)
     data_cog2['adm2'] = data_cog2['adm2'].str.replace('^INVERNESS$', 'HIGHLAND', regex=True)
-    data_cog2['adm2'] = data_cog2['adm2'].str.replace('^KINGS NORTON$', 'WEST MIDLANDS', regex=True)
+    data_cog2['adm2'] = data_cog2['adm2'].str.replace('^KINGS NORTON$', 'WEST_MIDLANDS', regex=True)
     data_cog2['adm2'] = data_cog2['adm2'].str.replace('^GLASGOW CITY$', 'GLASGOW', regex=True)
-    data_cog2['adm2'] = data_cog2['adm2'].str.replace('^CITY OF LONDON$', 'GREATER LONDON', regex=True)
+    data_cog2['adm2'] = data_cog2['adm2'].str.replace('^CITY OF LONDON$', 'GREATER_LONDON', regex=True)
     data_cog2['adm2'] = data_cog2['adm2'].str.replace('^RHONDDA CYNON TAF$', 'RHONDDA, CYNON, TAFF', regex=True)
     return data_cog2
 
@@ -345,23 +345,19 @@ def supplement_sample_csv(sample_df,combined_metadata_df,input_name):
     testing_similarity = combined_metadata_df['query'][combined_metadata_df["query"] == combined_metadata_df["closest"]]
 
     if len(testing_similarity) > 0 and not combined_metadata_df["adm2"].isnull().all():
-      final_sample = pd.merge(sample_df, combined_metadata_df, left_on=input_name, right_on="query_id", how="outer")
-      return final_sample
+      sample_df["adm2"] = combined_metadata_df["adm2"]
     else:
       return False
 
-  elif len(potential_date_cols) == 0:
+  if len(potential_date_cols) == 0:
     testing_similarity = combined_metadata_df['query'][combined_metadata_df["query"] == combined_metadata_df["closest"]]
 
     if len(testing_similarity) > 0:
-      final_sample = pd.merge(sample_df, combined_metadata_df, left_on=input_name, right_on="query_id", how="outer")
-    else:
-      final_sample = sample_df
+      if "sample_date" in combined_metadata_df:
+        sample_df["sample_date"] = combined_metadata_df["sample_date"]
 
-  else:
-    final_sample = sample_df
 
-  return final_sample
+  return sample_df
 
 def defineDateRestriction(samplesDF, windowSize):
   
