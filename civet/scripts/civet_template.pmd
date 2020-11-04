@@ -239,7 +239,8 @@ if map_sequences:
         print("There are sequences from " + str(len(adm2_in_map)) + " admin2 regions")
 
         print("This is divided into:")
-        if adm2 in adm2_to_label:
+        for adm2,percentage in adm2_percentages.items():
+            if adm2 in adm2_to_label:
                 print(f'{percentage}% ({adm2_in_map[adm2]}) in {adm2}, otherwise known as {adm2_to_label[adm2]}')
             else:
                 print(f'{percentage}% ({adm2_in_map[adm2]}) in {adm2}')

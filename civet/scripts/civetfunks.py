@@ -86,7 +86,7 @@ def check_adm2_values(config):
     get_acceptable_adm2(config)
     accepted_adm2 = config["clean_locs"]
 
-    with open(config["query","r"]) as f:
+    with open(config["query"],"r") as f:
         reader = csv.DictReader(f)
         header = reader.fieldnames
         if "adm2" in header:
