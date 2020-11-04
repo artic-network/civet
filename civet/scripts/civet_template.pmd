@@ -69,7 +69,7 @@ print(f"![]({sequencing_centre_file})")
 
 ```python, name="parse metadata", echo=False, results='raw'
 database_column = "sequence_name"
-full_tax_dict, query_dict, tree_to_tip, tree_to_all_tip, inserted_node_dict, adm2_present_in_metadata, full_query_count, old_data = dp.parse_all_metadata(treedir, collapse_summary, filtered_background_metadata, background_metadata, query, input_column, database_column, database_sample_date_column, display_name, sample_date_column, label_fields, tree_fields, table_fields, node_summary, date_fields=date_fields, UK_adm2_adm1_dict=adm2_to_adm1)
+full_tax_dict, query_dict, tree_to_tip, tree_to_all_tip, inserted_node_dict, adm2_present_in_metadata, full_query_count = dp.parse_all_metadata(treedir, collapse_summary, filtered_background_metadata, background_metadata, query, input_column, database_column, database_sample_date_column, display_name, sample_date_column, label_fields, tree_fields, table_fields, node_summary, date_fields=date_fields, UK_adm2_adm1_dict=adm2_to_adm1)
 
 #anonymise sequences based on safe status
 full_tax_dict = cfunk.anonymise_sequences(full_tax_dict, query_dict, safety_level, from_metadata)
@@ -222,9 +222,9 @@ if include_bars:
 if map_sequences:
     stop_map = False
     if map_info == "adm2":
-        output = mapping.map_adm2(query_dict, clean_locs_file, mapping_json_files, svg_figdir, old_data)
+        output = mapping.map_adm2(query_dict, clean_locs, mapping_json_files, svg_figdir)
         if output:
-            adm2_in_map, adm2_percentages, adm2_to_label = output
+            adm2_in_map, adm2_percentages = output
         else:
             stop_map = True
     else:
@@ -241,11 +241,7 @@ if map_sequences:
 
         print("This is divided into:")
         for adm2, percentage in adm2_percentages.items():
-            if adm2 in adm2_to_label:
-                print(f'{percentage}% ({adm2_in_map[adm2]}) in {adm2}, otherwise known as {adm2_to_label[adm2]}')
-            else:
-                print(f'{percentage}% ({adm2_in_map[adm2]}) in {adm2}')
-
+            print(str(percentage) + "% (" + str(adm2_in_map[adm2]) + ") in " + adm2)
 
         if colour_map_by:
             print("This is shown in the map below, and is coloured by " + colour_map_by + " and urban centres are shown in the darker grey")
@@ -264,10 +260,10 @@ if map_sequences and not stop_map:
 ```python, name='Regional-scale', echo=False, results='raw'
 if local_lineages:
     print("## Regional-scale background UK lineage mapping")
-    #try:
-    mapping.local_lineages_section(lineage_maps, lineage_tables)
-    #except:
-     #   print("There was no adm2 data available to map with, as none was provided and none of the sequences were found in COG")
+    try:
+        mapping.local_lineages_section(lineage_maps, lineage_tables)
+    except:
+        print("There was no adm2 data available to map with, as none was provided and none of the sequences were found in COG")
 ```
 
 ```python, name="print conclusions", echo=False, results='raw'

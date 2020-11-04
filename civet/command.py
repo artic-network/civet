@@ -21,7 +21,7 @@ from reportfunk.funks import report_functions as rfunk
 from reportfunk.funks import custom_logger as custom_logger
 from reportfunk.funks import log_handler_handle as lh
 import civetfunks as cfunk
-import datadirfunks as dfunk
+
 thisdir = os.path.abspath(os.path.dirname(__file__))
 cwd = os.getcwd()
 today = date.today()
@@ -48,12 +48,14 @@ def main(sysargs = sys.argv[1:]):
     data_group = parser.add_argument_group('data source options')
     data_group.add_argument('-d','--datadir', action="store",help="Local directory that contains the data files. Default: civet-cat")
     data_group.add_argument("-m","--background-metadata",action="store",dest="background_metadata",help="Custom metadata file that corresponds to the large global tree/ alignment. Should have a column `sequence_name`.")
+    data_group.add_argument('--CLIMB', action="store_true",dest="climb",help="Indicates you're running CIVET from within CLIMB, uses default paths in CLIMB to access data")
+    data_group.add_argument("-r",'--remote', action="store_true",dest="remote",help="Remotely access lineage trees from CLIMB")
+    data_group.add_argument("-uun","--your-user-name", action="store", help="Your CLIMB COG-UK username. Required if running with --remote flag", dest="uun")
     data_group.add_argument('--input-column', action="store",help="Column in input csv file to match with database. Default: name", dest="input_column")
-    data_group.add_argument('--data-column', action="store",help="Option to search background database for a different id type. Default: sequence_name", dest="data_column")
-    data_group.add_argument("--outgroup",action="store",help="Optional outgroup sequence to root local subtrees. Default Wuhan/WH04/2020 an A-lineage sequence at the base of the global SARS-CoV-2 phylogeny.")
+    data_group.add_argument('--data-column', action="store",help="Option to search COG database for a different id type. Default: COG-UK ID", dest="data_column")
 
     report_group = parser.add_argument_group('report customisation')
-    report_group.add_argument("--sequencing-centre",action="store", help="Customise report with logos from sequencing centre.", dest="sequencing_centre")
+    report_group.add_argument('-sc',"--sequencing-centre", action="store",help="Customise report with logos from sequencing centre.", dest="sequencing_centre")
     report_group.add_argument("--display-name", action="store", help="Column in input csv file with display names for seqs. Default: same as input column", dest="display_name")
     report_group.add_argument("--sample-date-column", action="store", help="Column in input csv with sampling date in it. Default='sample_date'", dest="sample_date_column")
     report_group.add_argument("--database-sample-date-column", action="store", help="Colum in background metadata containing sampling date. Default='sample_date'", dest="database_sample_date_column")
@@ -75,12 +77,26 @@ def main(sysargs = sys.argv[1:]):
     tree_group.add_argument('--collapse-threshold', action='store',help="Minimum number of nodes to collapse on. Default: 1", dest="collapse_threshold",type=int)
     tree_group.add_argument('-p','--protect',nargs='*', dest="protect",help="Protect nodes from collapse if they match the search query in the metadata file supplied. E.g. -p adm2=Edinburgh sample_date=2020-03-01:2020-04-01")
 
+    map_group = parser.add_argument_group('map rendering options')
+    map_group.add_argument('--local-lineages',action="store_true",dest="local_lineages",help="Contextualise the cluster lineages at local regional scale. Requires at least one adm2 value in query csv.")
+    map_group.add_argument('--date-restriction',action="store_true",dest="date_restriction",help="Chose whether to date-restrict comparative sequences at regional-scale.")
+    map_group.add_argument('--date-range-start',action="store", type=str, dest="date_range_start", help="Define the start date from which sequences will COG sequences will be used for local context. YYYY-MM-DD format required.")
+    map_group.add_argument('--date-range-end', action="store", type=str, dest="date_range_end", help="Define the end date from which sequences will COG sequences will be used for local context. YYYY-MM-DD format required.")
+    map_group.add_argument('--date-window',action="store", type=int, dest="date_window",help="Define the window +- either side of cluster sample collection date-range. Default is 7 days.")
+    map_group.add_argument("--map-sequences", action="store_true", dest="map_sequences", help="Map the sequences themselves by adm2, coordinates or otuer postcode.")
+    map_group.add_argument("--map-info", required=False, dest="map_info", help="columns containing EITHER x and y coordinates as a comma separated string OR outer postcodes for mapping sequences OR Adm2")
+    map_group.add_argument("--input-crs", required=False, dest="input_crs", help="Coordinate reference system for sequence coordinates")
+    map_group.add_argument("--colour-map-by", required=False, dest="colour_map_by", help="Column to colour mapped sequences by")
+    
     run_group = parser.add_argument_group('run options')
+    run_group.add_argument("--cluster",action="store_true",help="Run cluster civet pipeline. Requires -i/--input csv",dest="cluster")
+    run_group.add_argument("--update",action="store_true",help="Check for changes from previous run of civet. Requires -fm/--from-metadata option in a config.yaml file from previous run",dest="update")
+    run_group.add_argument("--udpate",action="store_true",help="Check for changes from previous run of civet. Requires -fm/--from-metadata option in a config.yaml file from previous run",dest="udpate")
     run_group.add_argument('-c','--generate-config',dest="generate_config",action="store_true",help="Rather than running a civet report, just generate a config file based on the command line arguments provided")
     run_group.add_argument('-b','--launch-browser', action="store_true",help="Optionally launch md viewer in the browser using grip",dest="launch_browser")
 
     misc_group = parser.add_argument_group('misc options')
-    misc_group.add_argument("--safety-level",action="store",help = "Level of anonymisation for users. Options: 0 (no anonymity), 1 (no COGIDs on background data), 2 (no adm2 on data). Default: 1)", dest="safety_level")
+    misc_group.add_argument("--safety-level", action="store", type=int, dest="safety_level",help="Level of anonymisation for users. Options: 0 (no anonymity), 1 (no COGIDs on background data), 2 (no adm2 on data). Default: 1")
     misc_group.add_argument('--tempdir',action="store",help="Specify where you want the temp stuff to go. Default: $TMPDIR")
     misc_group.add_argument("--no-temp",action="store_true",help="Output all intermediate files, for dev purposes.",dest="no_temp")
     misc_group.add_argument("--verbose",action="store_true",help="Print lots of stuff to screen")
@@ -125,6 +141,18 @@ def main(sysargs = sys.argv[1:]):
     # if a yaml file is detected, add everything in it to the config dict
     if configfile:
         qcfunk.parse_yaml_file(configfile, config)
+    
+    """
+    Report options and args added to config, seq header file retrieved
+    """
+    # check args for report group options
+    cfunk.report_group_to_config(args,config)
+
+
+    # update and cluster options
+
+    cfunk.configure_update(args.update,args.udpate,config)
+    qcfunk.add_arg_to_config("cluster",args.cluster, config)
 
     """
     Get outdir, tempdir and data dir. 
@@ -141,9 +169,10 @@ def main(sysargs = sys.argv[1:]):
     # specifying temp directory, outdir if no_temp (tempdir becomes working dir)
     tempdir = qcfunk.get_temp_dir(args.tempdir, args.no_temp,cwd,config)
 
+    qcfunk.add_arg_to_config("remote",args.remote, config)
 
     # find the data dir
-    dfunk.get_datadir(args.datadir,args.background_metadata,cwd,config)
+    cfunk.get_datadir(args.climb,args.uun,args.datadir,args.background_metadata,cwd,config)
 
     # add data and input columns to config
     qcfunk.data_columns_to_config(args,config)
@@ -166,9 +195,21 @@ def main(sysargs = sys.argv[1:]):
         metadata = config["background_metadata"]
         config["no_snipit"]=True
 
-        query_file = os.path.join(config["outdir"], "from_metadata_query.csv")
-        query = qcfunk.generate_query_from_metadata(query_file,args.from_metadata,metadata,config)
-
+        if config["update"]:
+            query_file = os.path.join(config["outdir"], "update_query.csv")
+            run_update = cfunk.check_for_update(query_file,config)
+            if not run_update:
+                print(qcfunk.cyan('Note: no new sequences to report.\nExiting.'))
+                sys.exit(0)
+            else:
+                query = config["query"] # gets added updated in the check_for_update function
+        else:
+            query_file = os.path.join(config["outdir"], "from_metadata_query.csv")
+            query = qcfunk.generate_query_from_metadata(query_file,args.from_metadata,metadata,config)
+    else:
+        if config["update"]:
+            cfunk.check_update_dependencies(config)
+            
     """
     The query file could have been from one of
     - input.csv
@@ -205,35 +246,32 @@ def main(sysargs = sys.argv[1:]):
     selecting the mapping files, 
     the sequencing centre header
     """
-
-    cfunk.get_outgroup_sequence(args.outgroup, cwd, config)
     # accessing package data and adding to config dict
     cfunk.get_package_data(thisdir,config)
 
-    
     # get seq centre header file from pkg data
     cfunk.get_sequencing_centre_header(config)
-    """
-    Report options and args added to config, seq header file retrieved
-    """
-    # check args for report group options
-    cfunk.report_group_to_config(args,config)
 
     
     """
     Mapping options parsing and 
     qc of the input
     """
+    
+    # check args for mapping group options
+    cfunk.map_group_to_config(args,config)
 
     # check args for data group options
     qcfunk.data_columns_to_config(args,config)
 
     # parse the input csv, check col headers and get fields if fields specified
     qcfunk.check_label_and_tree_and_date_fields(config)
-
-    #check adm2s
-    cfunk.check_adm2_values(config)
         
+    # map sequences configuration
+    cfunk.map_sequences_config(config)
+    
+    # local lineages qc
+    cfunk.local_lineages_qc(config)
 
     # # check adm2 values
     # cfunk.check_adm2_values(config)
@@ -273,6 +311,7 @@ def main(sysargs = sys.argv[1:]):
 
     qcfunk.collapse_summary_path_to_config(config)
 
+   
 
     """
     Miscellaneous options parsing
@@ -321,6 +360,52 @@ def main(sysargs = sys.argv[1:]):
     if args.generate_config:
         qcfunk.make_config_file("civet_config.yaml",config)
     
+
+    """
+    cluster civet checks
+    - arg, config, default
+    - is there a query?
+    - check if new things in the local tree
+    - if new sequences, run main civet with updated query
+    - if no new sequences, exit
+    
+    """
+    # cluster civet 
+
+    if config["cluster"]:
+
+        config["today"] = today
+        cfunk.configure_cluster(config)
+
+        cluster_snakefile = qcfunk.get_cluster_snakefile(thisdir)
+
+        if args.verbose:
+            print("\n**** CONFIG ****")
+            for k in sorted(config):
+                print(qcfunk.green(k), config[k])
+            status = snakemake.snakemake(cluster_snakefile, printshellcmds=True, forceall=True, force_incomplete=True,
+                                        workdir=tempdir,config=config, cores=threads,lock=False
+                                        )
+        else:
+            logger = custom_logger.Logger()
+            status = snakemake.snakemake(cluster_snakefile, printshellcmds=False, forceall=True,force_incomplete=True,workdir=tempdir,
+                                        config=config, cores=threads,lock=False,quiet=True,log_handler=logger.log_handler
+                                        )
+
+        if not status:
+            print(qcfunk.cyan(f"Error: Cluster civet did not successfully run"))
+            sys.exit(-1)
+
+        new_seqs, cluster_csv = cfunk.check_for_new_in_cluster(config)
+
+        print(qcfunk.green(f"\nNew sequences found in cluster {today}: ") + f"{new_seqs}")
+
+        if not new_seqs:
+            print(qcfunk.cyan(f"No new sequences in cluster today, {today}"))
+            sys.exit(0)
+        else:
+            config["query"] = cluster_csv
+        
     # find the master Snakefile
     snakefile = qcfunk.get_snakefile(thisdir)
 

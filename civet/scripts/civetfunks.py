@@ -81,55 +81,32 @@ def define_seq_db(config):
     config["seq_db"] = config["background_seqs"]
     
 
-def check_adm2_values(config):
-    
-    get_acceptable_adm2(config)
-    accepted_adm2 = config["clean_locs"]
-    
-    with open(config["query"],"r") as f:
-        reader = csv.DictReader(f)
-        header = reader.fieldnames
-        if "adm2" in header:
-            for row in reader:
-                if row["adm2"].upper().replace(" ","_") not in accepted_adm2 and "|" not in row["adm2"]: 
-                    adm2_value = row["adm2"]
-                    sys.stderr.write(qcfunk.cyan(f'Error: {adm2_value} not a valid adm2 region.\n Find a list of valid adm2 values at:\nhttps://artic-network.github.io/civet/geographic_data.html\n'))
-                    sys.stderr.write(qcfunk.cyan(f'Please note: if you have a region that encompasses multiple adm2 regions eg West Midlands, list the correct adm2 regions separated by the "|" symbol to indicate ambiguity.\n'))
-                    sys.exit(-1)
-                elif "|" in row["adm2"]:
-                    adm2_value = row["adm2"].split("|")
-                    for i in adm2_value:
-                        if i not in accepted_adm2:
-                            sys.stderr.write(qcfunk.cyan(f'Error: {i} found in the ambiguity code {row["adm2"]} not a valid adm2 region.\n Find a list of valid adm2 values at:\nhttps://artic-network.github.io/civet/geographic_data.html\n'))
-                            sys.exit(-1)
+# def check_adm2_values(config):
+#     adm2 = {}
+#     with open(config["clean_locs"],"r") as f:
+#         reader = csv.DictReader(f)
+#         for row in reader:
+#             adm2.append(row["location_in_metadata"])
 
-
-
-def get_outgroup_sequence(outgroup_arg, cwd, config):
-    if outgroup_arg:
-        reference_fasta = os.path.join(cwd, outgroup_arg)
-        if not os.path.isfile(reference_fasta):
-            sys.stderr.write(cyan(f"""Error: cannot find specified outgroup file at {outgroup_arg}\n"""))
-            sys.exit(-1)
-        else:
-            config["reference_fasta"] = reference_fasta
-    elif "outgroup" in config:
-        reference_fasta = os.path.join(cwd, outgroup_arg)
-        if not os.path.isfile(reference_fasta):
-            sys.stderr.write(cyan(f"""Error: cannot find specified outgroup file at {outgroup_arg}\n"""))
-            sys.exit(-1)
-        else:
-            config["reference_fasta"] = reference_fasta
+#     with open(config["query"],"r") as f:
+#         reader = csv.DictReader(f)
+#         header = reader.fieldnames
+#         if "adm2" in header:
+#             for row in reader:
+#                 if row["adm2"].upper() not in adm2:
+#                     adm2_value = row["adm2"]
+#                     loc_file = config["clean_locs"]
+#                     sys.stderr.write(qcfunk.cyan(f'Error: {adm2_value} not a valid adm2 region.\n Find a list of valid adm2 values at:\n{loc_file}\n'))
+#                     sys.exit(-1)
 
 
 def get_package_data(thisdir,config):
-    
     reference_fasta = pkg_resources.resource_filename('civet', 'data/reference.fasta')
     outgroup_fasta = pkg_resources.resource_filename('civet', 'data/outgroup.fasta')
     polytomy_figure = pkg_resources.resource_filename('civet', 'data/polytomies.png')
     report_args = pkg_resources.resource_filename('civet', 'data/report_arguments.txt')
     footer_fig = pkg_resources.resource_filename('civet', 'data/footer.png')
-    clean_locs_file = pkg_resources.resource_filename('civet', 'data/mapping_files/adm2_cleaning.csv')
+    clean_locs = pkg_resources.resource_filename('civet', 'data/mapping_files/adm2_cleaning.csv')
     map_input_1 = pkg_resources.resource_filename('civet', 'data/mapping_files/gadm36_GBR_2.json')
     map_input_2 = pkg_resources.resource_filename('civet', 'data/mapping_files/channel_islands.json')  
     map_input_3 = pkg_resources.resource_filename('civet', 'data/mapping_files/NI_counties.geojson')  
@@ -139,15 +116,14 @@ def get_package_data(thisdir,config):
     spatial_translations_1 = pkg_resources.resource_filename('civet', 'data/mapping_files/HB_Translation.pkl')
     spatial_translations_2 = pkg_resources.resource_filename('civet', 'data/mapping_files/adm2_regions_to_coords.csv')
     appendix_text = pkg_resources.resource_filename('civet', 'data/appendix.txt')
-    if not "reference_fasta" in config:
-        config["reference_fasta"] = reference_fasta
+    config["reference_fasta"] = reference_fasta
     config["outgroup_fasta"] = outgroup_fasta
     config["polytomy_figure"] = polytomy_figure
     config["report_args"] = report_args
     config["footer"] = footer_fig
     config["appendix"] = appendix_text
     
-    config["clean_locs_file"] = clean_locs_file
+    config["clean_locs"] = clean_locs
     config["uk_map"] = map_input_1
     config["channels_map"] = map_input_2
     config["ni_map"] = map_input_3
@@ -706,15 +682,13 @@ def generate_labels(tax,safety_level, custom_tip_fields):
     
     display_name = f"{name}|{date}"
     
-    if "location_label" in tax.attribute_dict.keys() and safety_level != "2": #if it's being run locally OR if safe status is on no adm2 for distribution
-        adm2 = tax.attribute_dict["location_label"]
+    if "adm2" in tax.attribute_dict.keys() and safety_level != "2": #if it's being run locally OR if safe status is on no adm2 for distribution
+        adm2 = tax.attribute_dict["adm2"]
         display_name = f"{name}|{adm2}|{date}"
 
     count = 0
     if len(custom_tip_fields) > 0: 
         for label_element in custom_tip_fields:
-            if label_element == "adm2":
-                label_element = tax.attribute_dict["location_label"]
             if count == 0:
                 display_name = name
             else:   
@@ -722,34 +696,6 @@ def generate_labels(tax,safety_level, custom_tip_fields):
             count += 1
     
     return display_name
-
-
-def get_acceptable_adm2(config):
-
-    GADM_adm2 = [
-    'BARNSLEY', 'BATH_AND_NORTH_EAST_SOMERSET', 'BEDFORDSHIRE', 'BIRMINGHAM', 'BLACKBURN_WITH_DARWEN', 'BLACKPOOL', 'BOLTON', 'BOURNEMOUTH', 'BRACKNELL_FOREST', 'BRADFORD', 'BRIGHTON_AND_HOVE', 'BRISTOL', 'BUCKINGHAMSHIRE', 'BURY',
-    'CALDERDALE', 'CAMBRIDGESHIRE', 'CENTRAL_BEDFORDSHIRE', 'CHESHIRE_EAST', 'CHESHIRE_WEST_AND_CHESTER', 'CORNWALL', 'COVENTRY', 'CUMBRIA', 
-    'DARLINGTON', 'DERBY', 'DERBYSHIRE', 'DEVON', 'DONCASTER', 'DORSET', 'DUDLEY', 'DURHAM', 
-    'EAST_RIDING_OF_YORKSHIRE', 'EAST_SUSSEX', 'ESSEX', 
-    'GATESHEAD', 'GLOUCESTERSHIRE', 'GREATER_LONDON', 
-    'HALTON', 'HAMPSHIRE', 'HARTLEPOOL', 'HEREFORDSHIRE', 'HERTFORDSHIRE', 
-    'ISLE_OF_WIGHT', 'ISLES_OF_SCILLY', 
-    'KENT', 'KINGSTON_UPON_HULL', 'KIRKLEES', 'KNOWSLEY', 
-    'LANCASHIRE', 'LEEDS', 'LEICESTER', 'LEICESTERSHIRE', 'LINCOLNSHIRE', 'LUTON', 
-    'MANCHESTER', 'MEDWAY', 'MIDDLESBROUGH', 'MILTON_KEYNES', 
-    'NEWCASTLE_UPON_TYNE', 'NORFOLK', 'NORTH_LINCOLNSHIRE', 'NORTH_SOMERSET', 'NORTH_TYNESIDE', 'NORTH_YORKSHIRE', 'NORTHAMPTONSHIRE', 'NORTHUMBERLAND', 'NOTTINGHAM', 'NOTTINGHAMSHIRE', 
-    'OLDHAM', 'OXFORDSHIRE', 
-    'PETERBOROUGH', 'PLYMOUTH', 'POOLE', 'PORTSMOUTH', 
-    'READING', 'REDCAR_AND_CLEVELAND', 'ROCHDALE', 'ROTHERHAM', 'RUTLAND', 
-    'SAINT_HELENS', 'SALFORD', 'SANDWELL', 'SEFTON', 'SHEFFIELD', 'SHROPSHIRE', 'SLOUGH', 'SOLIHULL', 'SOMERSET', 'SOUTH_GLOUCESTERSHIRE', 'SOUTH_TYNESIDE', 'SOUTHAMPTON', 'SOUTHEND-ON-SEA', 'STAFFORDSHIRE', 'STOCKPORT', 'STOCKTON-ON-TEES', 'STOKE-ON-TRENT', 'SUFFOLK', 'SUNDERLAND', 'SURREY', 'SWINDON', 
-    'TAMESIDE', 'TELFORD_AND_WREKIN', 'THURROCK', 'TORBAY', 'TRAFFORD', 'WAKEFIELD', 'WALSALL', 'WARRINGTON', 'WARWICKSHIRE', 'WEST_BERKSHIRE', 'WEST_SUSSEX', 'WIGAN', 'WILTSHIRE', 'WINDSOR_AND_MAIDENHEAD', 'WIRRAL', 'WOKINGHAM', 'WOLVERHAMPTON', 'WORCESTERSHIRE', 'YORK',
-    'ANTRIM_AND_NEWTOWNABBEY', 'ARMAGH_BANBRIDGE_AND_CRAIGAVON', 'BELFAST', 'CAUSEWAY_COAST_AND_GLENS', 'DERRY_AND_STRABANE', 'FERMANAGH_AND_OMAGH', 'LISBURN_AND_CASTLEREAGH', 'MID_AND_EAST_ANTRIM', 'MID_ULSTER', 'NEWRY_MOURNE_AND_DOWN', 'NORTH_DOWN_AND_ARDS', 'TYRONE', 'ANTRIM', 'ARMAGH', 'FERMANAGH', 'LONDONDERRY', 'DOWN',
-    'ABERDEEN', 'ABERDEENSHIRE', 'ANGUS', 'ARGYLL_AND_BUTE', 'CLACKMANNANSHIRE', 'DUMFRIES_AND_GALLOWAY', 'DUNDEE', 'EAST_AYRSHIRE', 'EAST_DUNBARTONSHIRE', 'EAST_LOTHIAN', 'EAST_RENFREWSHIRE', 'EDINBURGH', 'EILEAN_SIAR', 'FALKIRK', 'FIFE', 
-    'GLASGOW', 'HIGHLAND', 'INVERCLYDE', 'MIDLOTHIAN', 'MORAY', 'NORTH_AYRSHIRE', 'NORTH_LANARKSHIRE', 'ORKNEY_ISLANDS', 'PERTHSHIRE_AND_KINROSS', 'RENFREWSHIRE', 'SCOTTISH_BORDERS', 'SHETLAND_ISLANDS', 'SOUTH_AYRSHIRE', 'SOUTH_LANARKSHIRE', 'STIRLING', 'WEST_DUNBARTONSHIRE', 'WEST_LOTHIAN',
-    'ANGLESEY', 'BLAENAU_GWENT', 'BRIDGEND', 'CAERPHILLY', 'CARDIFF', 'CARMARTHENSHIRE', 'CEREDIGION', 'CONWY', 'DENBIGHSHIRE', 'FLINTSHIRE', 'GWYNEDD', 'MERTHYR_TYDFIL', 'MONMOUTHSHIRE', 'NEATH_PORT_TALBOT', 'NEWPORT', 'PEMBROKESHIRE', 'POWYS', 'RHONDDA_CYNON_TAFF', 'SWANSEA', 'TORFAEN', 'VALE_OF_GLAMORGAN', 'WREXHAM',
-    'GUERNSEY', "JERSEY"]
-    
-    config["clean_locs"] = GADM_adm2
 
 
 def header(v):
