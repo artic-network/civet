@@ -124,20 +124,18 @@ If **--include-bars** is called, this information will also be displayed as bar 
 ![](doc_figures/include_bars.png)
 
 
-### --table-fields and --include-snp-table
+### --table-fields and --remove-snp-table
 
 The table shown in the report will always include:
 - Query ID
 - Name of the query in the tree if the sequence is in the background metadata OR the name of the closest sequence in the tree if the query has not been found in the background metadata
 - The local tree ID in the report for each query
 
-By using **--table-fields** a comma separated string of metadata column headers may be provided to add other elements to the table.
+By using **--table-fields** a comma separated string of metadata column headers may be provided to add other elements to the table. The default is `sample_date, uk_lineage, lineage, phylotype`. For sequences not found in the COG database, the lineage and phylotype designations will be in reference to the closest sequence to the query in the database.
 
-In addition, for those sequences not found in the metadata, **--include-snp-table** may be called to display:
+In addition, unless **--remove-snp-table** is called, for those sequences not found in the metadata the following will be displayed in the second table.:
 - SNP distance to closest sequence in the metadata
 - What those SNPs are
-
-in the second table.
 
 ### --no-snipit
 

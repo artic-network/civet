@@ -60,7 +60,7 @@ def get_defaults():
                     "date_fields":False,
                     "remote":False,
                     "no_snipit":False,
-                    "include_snp_table":True,
+                    "remove_snp_table":False,
                     "include_bars":False,
                     "cog_report":False,
                     "omit_appendix":True,
@@ -579,8 +579,8 @@ def report_group_to_config(args,config):
 
     ## table_fields
     qcfunk.add_arg_to_config("table_fields",args.table_fields, config)
-    ## include_snp_table
-    qcfunk.add_arg_to_config("include_snp_table",args.include_snp_table, config)
+    ## remove_snp_table
+    qcfunk.add_arg_to_config("remove_snp_table",args.remove_snp_table, config)
 
     ## include_bars
     qcfunk.add_arg_to_config("include_bars",args.include_bars, config)

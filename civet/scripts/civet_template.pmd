@@ -124,7 +124,7 @@ else:
 
 
 ```python, name="first_table", echo=False, results="tex"
-output = table_func.make_custom_table(query_dict, full_tax_dict, table_fields, include_snp_table)
+output = table_func.make_custom_table(query_dict, full_tax_dict, table_fields, remove_snp_table)
 if cog_number != 0 and not_in_cog_number != 0:
     df_cog, df_seqs = output
     print("**Table 1** | Queries found in COG-UK database.\n")

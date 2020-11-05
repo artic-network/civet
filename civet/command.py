@@ -65,7 +65,7 @@ def main(sysargs = sys.argv[1:]):
     report_group.add_argument("--date-fields", action="store", help="Comma separated string of metadata headers containing date information.", dest="date_fields")
     report_group.add_argument("--node-summary", action="store", help="Column to summarise collapsed nodes by. Default = Global lineage", dest="node_summary")
     report_group.add_argument("--table-fields", action="store", help="Fields to include in the table produced in the report. Query ID, name of sequence in tree and the local tree it's found in will always be shown", dest="table_fields")
-    report_group.add_argument("--include-snp-table", action="store_true", help="Include information about closest sequence in database in table. Default is False", dest="include_snp_table")
+    report_group.add_argument("--remove-snp-table", action="store_true", help="Include information about closest sequence in database in table. Default is False", dest="remove_snp_table")
     report_group.add_argument('--no-snipit', action="store_true",help="Don't run snipit graph", dest="no_snipit")
     report_group.add_argument('--include-bars', action="store_true",help="Render barcharts in the output report", dest="include_bars")
     report_group.add_argument('--omit-appendix', action="store_true", help="Omit the appendix section. Default=False", dest="omit_appendix")
@@ -305,7 +305,7 @@ def main(sysargs = sys.argv[1:]):
     rfunk.free_text_args(config)
 
     #get table headers
-    qcfunk.check_table_fields(args.table_fields, args.include_snp_table, config)
+    qcfunk.check_table_fields(config) 
         
     # summarising collapsed nodes config
     qcfunk.check_summary_field("node_summary",config)
