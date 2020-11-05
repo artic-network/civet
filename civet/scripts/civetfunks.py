@@ -60,7 +60,7 @@ def get_defaults():
                     "date_fields":False,
                     "remote":False,
                     "no_snipit":False,
-                    "include_snp_table":False,
+                    "include_snp_table":True,
                     "include_bars":False,
                     "cog_report":False,
                     "omit_appendix":True,

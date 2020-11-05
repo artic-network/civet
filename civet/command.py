@@ -266,9 +266,6 @@ def main(sysargs = sys.argv[1:]):
 
     # parse the input csv, check col headers and get fields if fields specified
     qcfunk.check_label_and_tree_and_date_fields(config)
-
-    #check adm2s
-    cfunk.check_adm2_values(config)
         
     # map sequences configuration
     cfunk.map_sequences_config(config)
@@ -276,8 +273,9 @@ def main(sysargs = sys.argv[1:]):
     # local lineages qc
     cfunk.local_lineages_qc(config)
 
-    # # check adm2 values
-    # cfunk.check_adm2_values(config)
+    #check adm2s
+    if config["local_lineages"] or config["map_sequences"]:
+        cfunk.check_adm2_values(config)
 
     """
     Parsing the tree_group arguments, 
