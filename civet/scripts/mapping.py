@@ -64,8 +64,8 @@ def prep_mapping_data(mapping_input, tax_dict):
     adm2s = []
 
     for tax in tax_dict.values():
-        if tax.attribute_dict["adm2"] != "":
-            adm2s.append(tax.attribute_dict["adm2"]) #should already be upper and with underscores
+        if tax.attribute_dict["adm2_map"] != "":
+            adm2s.append(tax.attribute_dict["adm2_map"].upper().replace(" ","_")) #should already be upper and with underscores, but just in case
 
     if len(adm2s) == 0:
         return False
@@ -146,13 +146,35 @@ def make_centroids_get_counts(result, adm2s, ambiguous_dict):
 
     return centroid_geo, centroid_counts
 
+def pull_map_data(input_file, tax_dict, col_name):
+
+    with open(input_file) as f:
+        reader = csv.DictReader(f)
+        data = [r for r in reader]
+        
+        for seq in data:
+            name = seq["name"]
+            adm2 = seq[col_name]
+
+            if name in tax_dict:
+                tax = tax_dict[name]
+                tax.attribute_dict["adm2_map"] = adm2
+                tax_dict[name] = tax
+
+    for obj in tax_dict.values():
+        if "adm2_map" not in obj.attribute_dict:
+            obj.attribute_dict["adm2_map"] = ""
+
+    return tax_dict
+
+
 def prep_data_old(tax_dict, clean_locs_file):
 
     adm2s = []
 
     for tax in tax_dict.values():
-        if tax.attribute_dict["adm2"] != "":
-            adm2s.append(tax.attribute_dict["adm2"].upper())
+        if tax.attribute_dict["adm2_map"] != "":
+            adm2s.append(tax.attribute_dict["adm2_map"].upper())
 
     metadata_multi_loc = {}
     straight_map = {}
@@ -278,8 +300,10 @@ def make_map(centroid_geo, all_uk, figdir):
 
 
 
-def map_adm2(tax_dict, clean_locs_file, mapping_json_files, figdir, old_data): #So this takes adm2s and plots them onto the whole UK
+def map_adm2(tax_dict, clean_locs_file, mapping_json_files, figdir, input_csv, map_info_col, old_data): #So this takes adm2s and plots them onto the whole UK
 
+    tax_dict = pull_map_data(input_csv, tax_dict, map_info_col)
+    
     if old_data:
         adm2s, metadata_multi_loc, straight_map = prep_data_old(tax_dict, clean_locs_file)
         all_uk, result = prep_mapping_data_old(mapping_json_files, metadata_multi_loc)
@@ -306,12 +330,12 @@ def map_adm2(tax_dict, clean_locs_file, mapping_json_files, figdir, old_data): #
 
     adm2_percentages = {}
 
-    total = len(adm2_counter)
+    total = len(tax_dict)
 
     adm2_to_label = {}
     for taxa in tax_dict.values():
-        if taxa.attribute_dict["adm2"].upper() != taxa.attribute_dict["location_label"].upper():
-            adm2_to_label[taxa.attribute_dict["adm2"]] =  taxa.attribute_dict["location_label"]
+        if taxa.attribute_dict["adm2_map"].upper() != taxa.attribute_dict["location_label"].upper():
+            adm2_to_label[taxa.attribute_dict["adm2_map"]] =  taxa.attribute_dict["location_label"]
 
     for adm2, count in adm2_counter.items():
         adm2_percentages[adm2] = round(((count/total)*100),2)

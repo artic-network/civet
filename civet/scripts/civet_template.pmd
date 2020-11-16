@@ -221,7 +221,7 @@ if include_bars:
 if map_sequences:
     stop_map = False
     if "adm2" in map_info:
-        output = mapping.map_adm2(query_dict, clean_locs_file, mapping_json_files, svg_figdir, old_data)
+        output = mapping.map_adm2(query_dict, clean_locs_file, mapping_json_files, svg_figdir, query, map_info, old_data)
         if output:
             adm2_in_map, adm2_percentages, adm2_to_label = output
         else:

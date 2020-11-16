@@ -35,7 +35,7 @@ To plot the sequences in the query, use the **--map-sequences** option.
 
 There are three options for input: adm2, outer postcode and sequence coordinates. Use **--map-info** to specify which columns contain the geographical data. For adm2, it will show one dot per adm2, sized by the number of sequences in that adm2 region. If it is outer postcode or coordinates, one dot will be shown by sequence.
 
-If using adm2, this column should be "adm2", and if using coordinates there should be separate columns containing the x axis data and the y axis data, provided as a comma separated string in that order. Outer postcode should be a single column, but can be named anything.
+If using adm2, this column should contain the word "adm2", and if using coordinates there should be separate columns containing the x axis data and the y axis data, provided as a comma separated string in that order. Outer postcode should be a single column, but can be named anything.
 
 If providing cooordinates, the coordinate reference system (CRS) they are in must also be specified using the **--input-crs** option. Some common CRSs are EPSG:3395 and EPSG:4326 (eg Manchester in the former is 7038432.30, -248267.47 and in the latter is 53.5,-2.28). If the map that is produced looks odd (for example, the dots showing the sequences are very far away from the map of the UK), it is worth checking the CRS.
 
