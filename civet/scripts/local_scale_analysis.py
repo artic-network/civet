@@ -357,7 +357,7 @@ def adm2_to_centralHBCode(sampleframe, translation_dict, HbtoCode):
         if each in translation_dict:
           HB = translation_dict[each]
         elif "|" in each:
-          HB = decide_single_HB(sampleframe, translation_dict)
+          HB = decide_single_HB(each, translation_dict)
         elif "RHONDDA" in each:
           HB = "Cwm Taf Morgannwg University Health Board"
         HBs.append(HB)
