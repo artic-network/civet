@@ -262,10 +262,7 @@ if map_sequences and not stop_map:
 ```python, name='Regional-scale', echo=False, results='raw'
 if local_lineages:
     print("## Regional-scale background UK lineage mapping")
-    #try:
     mapping.local_lineages_section(lineage_maps, lineage_tables)
-    #except:
-    print("There was no adm2 data available to map with, as none was provided and none of the sequences were found in COG")
 ```
 
 ```python, name="print conclusions", echo=False, results='raw'

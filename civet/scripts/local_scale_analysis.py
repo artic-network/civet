@@ -114,27 +114,28 @@ def getForthBridge(DFin, weightedMatrix):
 
 def tabulateLins(HBCODE, DF, HBNAME):
     for each in [HBCODE]:
-        if len(DF.loc[DF['HBCode'] == each]['uk_lineage'].value_counts().to_frame()) > 20:
-            uk_lin_DF = DF.loc[DF['HBCode'] == each]['uk_lineage'].value_counts()[:20].to_frame()
-            uk_lin_DF = uk_lin_DF.reset_index()
-            uk_lin_DF.columns = ['UK Lineage', 'Count']
-            uk_lin_DF['Count'] = uk_lin_DF['Count'].astype(int)
-        else:
-            uk_lin_DF = DF.loc[DF['HBCode'] == each]['uk_lineage'].value_counts().to_frame()
-            uk_lin_DF = uk_lin_DF.reset_index()
-            uk_lin_DF.columns = ['UK Lineage', 'Count']
-            uk_lin_DF['Count'] = uk_lin_DF['Count'].astype(int)
+      #the first part is never true, it never finds the HBCode being the same
+      if len(DF.loc[DF['HBCode'] == each]['uk_lineage'].value_counts().to_frame()) > 20:
+          uk_lin_DF = DF.loc[DF['HBCode'] == each]['uk_lineage'].value_counts()[:20].to_frame()
+          uk_lin_DF = uk_lin_DF.reset_index()
+          uk_lin_DF.columns = ['UK Lineage', 'Count']
+          uk_lin_DF['Count'] = uk_lin_DF['Count'].astype(int)
+      else:
+          uk_lin_DF = DF.loc[DF['HBCode'] == each]['uk_lineage'].value_counts().to_frame()
+          uk_lin_DF = uk_lin_DF.reset_index()
+          uk_lin_DF.columns = ['UK Lineage', 'Count']
+          uk_lin_DF['Count'] = uk_lin_DF['Count'].astype(int)
 
-        if len(DF.loc[DF['HBCode'] == each]['lineage'].value_counts().to_frame()) > 10:
-            glob_lin_DF = DF.loc[DF['HBCode'] == each]['lineage'].value_counts()[:10].to_frame()
-            glob_lin_DF = glob_lin_DF.reset_index()
-            glob_lin_DF.columns = ['Global Lineage', 'Count']
-            glob_lin_DF['Count'] = glob_lin_DF['Count'].astype(int)
-        else:
-            glob_lin_DF = DF.loc[DF['HBCode'] == each]['lineage'].value_counts().to_frame()
-            glob_lin_DF = glob_lin_DF.reset_index()
-            glob_lin_DF.columns = ['Global Lineage', 'Count']
-            glob_lin_DF['Count'] = glob_lin_DF['Count'].astype(int)
+      if len(DF.loc[DF['HBCode'] == each]['lineage'].value_counts().to_frame()) > 10:
+          glob_lin_DF = DF.loc[DF['HBCode'] == each]['lineage'].value_counts()[:10].to_frame()
+          glob_lin_DF = glob_lin_DF.reset_index()
+          glob_lin_DF.columns = ['Global Lineage', 'Count']
+          glob_lin_DF['Count'] = glob_lin_DF['Count'].astype(int)
+      else:
+          glob_lin_DF = DF.loc[DF['HBCode'] == each]['lineage'].value_counts().to_frame()
+          glob_lin_DF = glob_lin_DF.reset_index()
+          glob_lin_DF.columns = ['Global Lineage', 'Count']
+          glob_lin_DF['Count'] = glob_lin_DF['Count'].astype(int)
 
     tableList = [uk_lin_DF, glob_lin_DF]
     # print(HBNAME)
@@ -331,7 +332,7 @@ def decide_single_HB(adm2, HB_translation):
 def getSampleData_final(MetadataDF, HBTranslation, HBCode_translation):
     cog_meta = MetadataDF
     cog_meta['central_sample_id'] = cog_meta['sequence_name'].str.split('/', expand=True)[1]
-    cog_meta = cog_meta.loc[cog_meta['adm1'].isin(['UK-SCT', 'UK-ENG', 'UK-WLS', 'UK-NIR'])]
+    cog_meta = cog_meta.loc[cog_meta['adm1'].isin(['UK-SCT', 'UK-ENG', 'UK-WLS', 'UK-NIR', 'Scotland', 'Northern_Ireland', "England", "Wales"])]
     HB_translation = decide_HB(cog_meta, HBTranslation)
     cog_meta['HBName'] = cog_meta['adm2'].map(HBTranslation)
     cog_meta['HBCode'] = cog_meta['HBName'].map(HBCode_translation)
