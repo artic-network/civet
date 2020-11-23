@@ -167,30 +167,31 @@ if dates_present:
 ```
 
 ```python, name="show_trees", echo=False, results='raw'
-for i in range(1,overall_tree_number+1):
-    tree_name = "Tree " + str(i)
-    lookup = f"{tree_name_stem}_{i}"
-    print(f"> **Tree {i}** | ")
-    if len(tree_to_tip[lookup]) == 1:
-        print(f"1 sequence of interest")
-    else:
-        print(f"{len(tree_to_tip[lookup])} sequences of interest")
-    print("   ")
-    
-    if lookup not in too_tall_trees:
-        print(f"![]({figdir}/{name_stem}_make_trees_{i}.png)")
+if not omit_trees:
+    for i in range(1,overall_tree_number+1):
+        tree_name = "Tree " + str(i)
+        lookup = f"{tree_name_stem}_{i}"
+        print(f"> **Tree {i}** | ")
+        if len(tree_to_tip[lookup]) == 1:
+            print(f"1 sequence of interest")
+        else:
+            print(f"{len(tree_to_tip[lookup])} sequences of interest")
+        print("   ")
+        
+        if lookup not in too_tall_trees:
+            print(f"![]({figdir}/{name_stem}_make_trees_{i}.png)")
 
-        print(f'<img src="{figdir}/{name_stem}_make_legend_1.png" alt="drawing" style="width:100%;"/>')
-        print("\n")
+            print(f'<img src="{figdir}/{name_stem}_make_legend_1.png" alt="drawing" style="width:100%;"/>')
+            print("\n")
 
-        if dates_present and lookup in tree_to_time_series.keys():
-            print("![](" + figdir + "/" + name_stem + "_time_plot_" + str(tree_to_time_series[lookup]) + ".png)")
+            if dates_present and lookup in tree_to_time_series.keys():
+                print("![](" + figdir + "/" + name_stem + "_time_plot_" + str(tree_to_time_series[lookup]) + ".png)")
 
-        if not no_snipit:
-            print(f"![]({figdir}/genome_graph_{lookup}.png)")
+            if not no_snipit:
+                print(f"![]({figdir}/genome_graph_{lookup}.png)")
 
-    else:
-        print(tree_name + " was too large to be rendered. Please see summary table below. If visualisation is required, please use intermediate tree files and use software such as Figtree.")
+        else:
+            print(tree_name + " was too large to be rendered. Please see summary table below. If visualisation is required, please use intermediate tree files and use software such as Figtree.")
 
 if too_tall_trees != []:
     print("### Large tree summaries\n")
@@ -221,15 +222,16 @@ if include_bars:
 if map_sequences:
     stop_map = False
     if "adm2" in map_info:
-        output = mapping.map_adm2(query_dict, clean_locs_file, mapping_json_files, svg_figdir, query, map_info, old_data)
+        output = mapping.map_adm2(query_dict, clean_locs_file, mapping_json_files, svg_figdir, query, background_metadata, query_metadata_header, background_metadata_header,input_column, data_column, map_info, old_data)
         if output:
             adm2_in_map, adm2_percentages, adm2_to_label = output
         else:
             stop_map = True
     else:
-        output = mapping.map_sequences_using_coordinates(query, mapping_json_files, urban_centres, pc_file, colour_map_by, map_info, input_crs, svg_figdir)
+        output = mapping.map_sequences_using_coordinates(query, background_metadata, query_metadata_header, background_metadata_header, input_column, data_column, mapping_json_files, urban_centres, pc_file, colour_map_by, map_info, input_crs, svg_figdir)
         if output:
             adm2_in_map, adm2_percentages = output
+            adm2_to_label = {}
         else:
             stop_map = True
         

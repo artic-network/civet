@@ -62,7 +62,7 @@ def get_defaults():
                     "no_snipit":False,
                     "remove_snp_table":False,
                     "include_bars":False,
-                    "cog_report":False,
+                    "omit_trees":False,
                     "omit_appendix":True,
                     "table_fields":["sample_date", "uk_lineage", "lineage", "phylotype"],
                     "threads":1,
@@ -590,6 +590,9 @@ def report_group_to_config(args,config):
 
     ## no-snipit
     qcfunk.add_arg_to_config("no_snipit",args.no_snipit, config)
+
+    ## omit-trees
+    qcfunk.add_arg_to_config("omit_trees", args.omit_trees, config)
     
 
 def make_full_civet_table(query_dict, full_taxon_dict, tree_fields, label_fields, input_column, outdir, table_fields):
