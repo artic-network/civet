@@ -7,6 +7,7 @@ import pandas as pd
 from libpysal.weights import Queen, attach_islands, DistanceBand, set_operations
 import json
 import csv
+import numpy as np
 from collections import Counter
 #from vega import VegaLite
 import argparse
@@ -355,13 +356,14 @@ def adm2_to_centralHBCode(sampleframe, translation_dict, HbtoCode):
     adm2 = sampleframe['adm2'].to_list()
     # print(adm2)
     for each in adm2:
-        if each in translation_dict:
-          HB = translation_dict[each]
-        elif "|" in each:
-          HB = decide_single_HB(each, translation_dict)
-        elif "RHONDDA" in each:
-          HB = "Cwm Taf Morgannwg University Health Board"
-        HBs.append(HB)
+        if not pd.isnull(each):
+          if each in translation_dict:
+            HB = translation_dict[each]
+          elif "|" in each:
+            HB = decide_single_HB(each, translation_dict)
+          elif "RHONDDA" in each:
+            HB = "Cwm Taf Morgannwg University Health Board"
+          HBs.append(HB)
     if len(HBs) > 0:
         centralHB = max(HBs, key=HBs.count)
         centralHBCode = HbtoCode[centralHB]
