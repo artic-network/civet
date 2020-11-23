@@ -91,7 +91,7 @@ def check_adm2_values(config):
         header = reader.fieldnames
         if "adm2" in header:
             for row in reader:
-                if row["adm2"].upper().replace(" ","_") not in accepted_adm2 and "|" not in row["adm2"]: 
+                if row["adm2"].upper().replace(" ","_") not in accepted_adm2 and "|" not in row["adm2"] and row["adm2"] != "": 
                     adm2_value = row["adm2"]
                     sys.stderr.write(qcfunk.cyan(f'Error: {adm2_value} not a valid adm2 region.\n Find a list of valid adm2 values at:\nhttps://artic-network.github.io/civet/geographic_data.html\n'))
                     sys.stderr.write(qcfunk.cyan(f'Please note: if you have a region that encompasses multiple adm2 regions eg West Midlands, list the correct adm2 regions separated by the "|" symbol to indicate ambiguity.\n'))
