@@ -65,6 +65,7 @@ def get_defaults():
                     "omit_trees":False,
                     "omit_appendix":True,
                     "table_fields":["sample_date", "uk_lineage", "lineage", "phylotype"],
+                    "context_table_summary":False,
                     "threads":1,
                     "force":True,
                     "cluster":False,
@@ -593,6 +594,9 @@ def report_group_to_config(args,config):
 
     ## omit-trees
     qcfunk.add_arg_to_config("omit_trees", args.omit_trees, config)
+
+    ##context-table
+    qcfunk.add_arg_to_config("context_table_summary", args.context_table_summary, config)
     
 
 def make_full_civet_table(query_dict, full_taxon_dict, tree_fields, label_fields, input_column, outdir, table_fields):
