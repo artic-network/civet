@@ -447,7 +447,7 @@ def generate_coords_from_outer_postcode(pc_file, input_csv, background_metadata,
                     some_missing_trait = True
                 
 
-    if (postcode_col in background_headers or colour_map_trait in background_headers) and (some_missing_outerpostcode or some_missing_trait):
+    if (postcode_col in background_headers and some_missing_outerpostcode) or (colour_map_trait and colour_map_trait in background_headers and some_missing_trait):
         with open(background_metadata) as f:
             reader = csv.DictReader(f)
             data = [r for r in reader]
