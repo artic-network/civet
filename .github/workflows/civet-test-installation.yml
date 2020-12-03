@@ -10,22 +10,24 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v2
+      - uses: conda-incubator/setup-miniconda@v2
+        with:
+          environment-file: environment.yml
+          activate-environment: civet
+          channels: conda-forge,bioconda,defaults
+          mamba-version: "*"
       
       - name: Set up Python 3.7
         uses: actions/setup-python@v2
         with:
           python-version: 3.7
           
-      - name: install dependencies
-        run: |
-          cd $GITHUB_WORKSPACE/civet
-          $CONDA/bin/conda env update --file environment.yml --name base
-          
       - name: install civet
+        shell: bash -l {0}
         run: |
-          cd $GITHUB_WORKSPACE/civet
           python setup.py install
           
       - name: Check version
-        run: $CONDA/bin/civet -v
+        shell: bash -l {0}
+        run: civet -v
         
