@@ -15,10 +15,6 @@ jobs:
         uses: actions/setup-python@v2
         with:
           python-version: 3.7
-
-      - name: clone
-        run: |
-          git clone https://github.com/COG-UK/civet.git
           
       - name: install dependencies
         run: |
