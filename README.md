@@ -1,5 +1,7 @@
 # civet
 
+![civet test output](https://github.com/viralverity/civet/workflows/civet/badge.svg)
+
 **C**luster **I**nvestigation & **V**irus **E**pidemiology **T**ool
 
 <img src="./docs/doc_figures/civet_logo.png" width="350">
