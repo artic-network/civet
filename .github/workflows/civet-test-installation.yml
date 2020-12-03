@@ -1,4 +1,4 @@
-name: civet-installation-test
+name: civet-test-installation
 on:
   push:
     branches: [ actions_dev ]
