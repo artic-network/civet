@@ -1,6 +1,6 @@
 # civet
 
-![civet test output](https://github.com/viralverity/civet/workflows/civet/badge.svg)
+![civet-test-installation](https://github.com/COG-UK/civet/workflows/civet-test-installation/badge.svg)
 
 **C**luster **I**nvestigation & **V**irus **E**pidemiology **T**ool
 
