@@ -307,7 +307,10 @@ def decide_HB(metadata_df, HB_translation):
     if not pd.isnull(adm2):
       if "|" in adm2:
         HB = decide_single_HB(adm2, HBTranslation)  
-        HB_translation[adm2] = HB
+        try:
+          HB_translation[adm2] = HB
+        except:
+          HB_translation = ""
       elif "RHONDDA" in adm2:  
         HB_translation[adm2] = "Cwm Taf Morgannwg University Health Board"    
 
@@ -322,10 +325,16 @@ def decide_single_HB(adm2, HB_translation):
     if "RHONDDA" in item:
       possible_HBs.append("Cwm Taf Morgannwg University Health Board")
     else:
-      possible_HBs.append(HB_translation[item])
+      try:
+        possible_HBs.append(HB_translation[item])
+      except:
+        pass
 
   HB_counts = Counter(possible_HBs)
-  HB = HB_counts.most_common(1)[0][0]
+  try:
+    HB = HB_counts.most_common(1)[0][0]
+  else:
+    HB = ""
 
   return HB
 
@@ -337,7 +346,7 @@ def getSampleData_final(MetadataDF, HBTranslation, HBCode_translation):
     HB_translation = decide_HB(cog_meta, HBTranslation)
     cog_meta['HBName'] = cog_meta['adm2'].map(HBTranslation)
     cog_meta['HBCode'] = cog_meta['HBName'].map(HBCode_translation)
-    cog_meta_clean = adm2cleaning(cog_meta)
+    cog_meta_clean = adm2cleaning(cog_meta)H
     return cog_meta_clean
 
 
