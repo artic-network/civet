@@ -69,6 +69,8 @@ def main(sysargs = sys.argv[1:]):
     report_group.add_argument('--no-snipit', action="store_true",help="Don't run snipit graph", dest="no_snipit")
     report_group.add_argument('--include-bars', action="store_true",help="Render barcharts in the output report", dest="include_bars")
     report_group.add_argument('--omit-appendix', action="store_true", help="Omit the appendix section. Default=False", dest="omit_appendix")
+    report_group.add_argument('--omit-trees', action="store_true", help="Omit trees.", dest="omit_trees")
+    report_group.add_argument('--context-table-summary', help="Provide a field to summarise the context by", dest='context_table_summary')
 
     tree_group = parser.add_argument_group('tree context options')
     tree_group.add_argument('--distance', action="store",help="Extraction from large tree radius. Default: 2", dest="distance",type=int)

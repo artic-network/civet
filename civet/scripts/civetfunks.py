@@ -62,9 +62,10 @@ def get_defaults():
                     "no_snipit":False,
                     "remove_snp_table":False,
                     "include_bars":False,
-                    "cog_report":False,
+                    "omit_trees":False,
                     "omit_appendix":True,
                     "table_fields":["sample_date", "uk_lineage", "lineage", "phylotype"],
+                    "context_table_summary":False,
                     "threads":1,
                     "force":True,
                     "cluster":False,
@@ -91,7 +92,7 @@ def check_adm2_values(config):
         header = reader.fieldnames
         if "adm2" in header:
             for row in reader:
-                if row["adm2"].upper().replace(" ","_") not in accepted_adm2 and "|" not in row["adm2"]: 
+                if row["adm2"].upper().replace(" ","_") not in accepted_adm2 and "|" not in row["adm2"] and row["adm2"] != "": 
                     adm2_value = row["adm2"]
                     sys.stderr.write(qcfunk.cyan(f'Error: {adm2_value} not a valid adm2 region.\n Find a list of valid adm2 values at:\nhttps://artic-network.github.io/civet/geographic_data.html\n'))
                     sys.stderr.write(qcfunk.cyan(f'Please note: if you have a region that encompasses multiple adm2 regions eg West Midlands, list the correct adm2 regions separated by the "|" symbol to indicate ambiguity.\n'))
@@ -590,6 +591,12 @@ def report_group_to_config(args,config):
 
     ## no-snipit
     qcfunk.add_arg_to_config("no_snipit",args.no_snipit, config)
+
+    ## omit-trees
+    qcfunk.add_arg_to_config("omit_trees", args.omit_trees, config)
+
+    ##context-table
+    qcfunk.add_arg_to_config("context_table_summary", args.context_table_summary, config)
     
 
 def make_full_civet_table(query_dict, full_taxon_dict, tree_fields, label_fields, input_column, outdir, table_fields):
@@ -626,9 +633,9 @@ def make_full_civet_table(query_dict, full_taxon_dict, tree_fields, label_fields
             else:
                 df_dict["in_cog"].append("False")
 
-            df_dict["UK_lineage"].append(taxon.uk_lineage)
-            df_dict["lineage"].append(taxon.global_lineage)
-            df_dict["phylotype"].append(taxon.phylotype)
+            # df_dict["UK_lineage"].append(taxon.uk_lineage)
+            # df_dict["lineage"].append(taxon.global_lineage)
+            # df_dict["phylotype"].append(taxon.phylotype)
 
             if taxon.tree != "NA":
                 tree_number = taxon.tree.split("_")[-1]

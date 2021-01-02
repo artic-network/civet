@@ -379,6 +379,8 @@ rule make_report:
         config["name_stem"] = output_prefix
         qcfunk.get_tree_name_stem(config["treedir"],config)
 
+        qcfunk.find_missing_sequences(config)
+
         with open(output.yaml, 'w') as fw:
             yaml.dump(config, fw) #so at the moment, every config option gets passed to the report
 

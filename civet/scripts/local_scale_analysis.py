@@ -7,6 +7,7 @@ import pandas as pd
 from libpysal.weights import Queen, attach_islands, DistanceBand, set_operations
 import json
 import csv
+import numpy as np
 from collections import Counter
 #from vega import VegaLite
 import argparse
@@ -114,27 +115,28 @@ def getForthBridge(DFin, weightedMatrix):
 
 def tabulateLins(HBCODE, DF, HBNAME):
     for each in [HBCODE]:
-        if len(DF.loc[DF['HBCode'] == each]['uk_lineage'].value_counts().to_frame()) > 20:
-            uk_lin_DF = DF.loc[DF['HBCode'] == each]['uk_lineage'].value_counts()[:20].to_frame()
-            uk_lin_DF = uk_lin_DF.reset_index()
-            uk_lin_DF.columns = ['UK Lineage', 'Count']
-            uk_lin_DF['Count'] = uk_lin_DF['Count'].astype(int)
-        else:
-            uk_lin_DF = DF.loc[DF['HBCode'] == each]['uk_lineage'].value_counts().to_frame()
-            uk_lin_DF = uk_lin_DF.reset_index()
-            uk_lin_DF.columns = ['UK Lineage', 'Count']
-            uk_lin_DF['Count'] = uk_lin_DF['Count'].astype(int)
+      #the first part is never true, it never finds the HBCode being the same
+      if len(DF.loc[DF['HBCode'] == each]['uk_lineage'].value_counts().to_frame()) > 20:
+          uk_lin_DF = DF.loc[DF['HBCode'] == each]['uk_lineage'].value_counts()[:20].to_frame()
+          uk_lin_DF = uk_lin_DF.reset_index()
+          uk_lin_DF.columns = ['UK Lineage', 'Count']
+          uk_lin_DF['Count'] = uk_lin_DF['Count'].astype(int)
+      else:
+          uk_lin_DF = DF.loc[DF['HBCode'] == each]['uk_lineage'].value_counts().to_frame()
+          uk_lin_DF = uk_lin_DF.reset_index()
+          uk_lin_DF.columns = ['UK Lineage', 'Count']
+          uk_lin_DF['Count'] = uk_lin_DF['Count'].astype(int)
 
-        if len(DF.loc[DF['HBCode'] == each]['lineage'].value_counts().to_frame()) > 10:
-            glob_lin_DF = DF.loc[DF['HBCode'] == each]['lineage'].value_counts()[:10].to_frame()
-            glob_lin_DF = glob_lin_DF.reset_index()
-            glob_lin_DF.columns = ['Global Lineage', 'Count']
-            glob_lin_DF['Count'] = glob_lin_DF['Count'].astype(int)
-        else:
-            glob_lin_DF = DF.loc[DF['HBCode'] == each]['lineage'].value_counts().to_frame()
-            glob_lin_DF = glob_lin_DF.reset_index()
-            glob_lin_DF.columns = ['Global Lineage', 'Count']
-            glob_lin_DF['Count'] = glob_lin_DF['Count'].astype(int)
+      if len(DF.loc[DF['HBCode'] == each]['lineage'].value_counts().to_frame()) > 10:
+          glob_lin_DF = DF.loc[DF['HBCode'] == each]['lineage'].value_counts()[:10].to_frame()
+          glob_lin_DF = glob_lin_DF.reset_index()
+          glob_lin_DF.columns = ['Global Lineage', 'Count']
+          glob_lin_DF['Count'] = glob_lin_DF['Count'].astype(int)
+      else:
+          glob_lin_DF = DF.loc[DF['HBCode'] == each]['lineage'].value_counts().to_frame()
+          glob_lin_DF = glob_lin_DF.reset_index()
+          glob_lin_DF.columns = ['Global Lineage', 'Count']
+          glob_lin_DF['Count'] = glob_lin_DF['Count'].astype(int)
 
     tableList = [uk_lin_DF, glob_lin_DF]
     # print(HBNAME)
@@ -305,7 +307,10 @@ def decide_HB(metadata_df, HB_translation):
     if not pd.isnull(adm2):
       if "|" in adm2:
         HB = decide_single_HB(adm2, HBTranslation)  
-        HB_translation[adm2] = HB
+        try:
+          HB_translation[adm2] = HB
+        except:
+          HB_translation = ""
       elif "RHONDDA" in adm2:  
         HB_translation[adm2] = "Cwm Taf Morgannwg University Health Board"    
 
@@ -320,10 +325,16 @@ def decide_single_HB(adm2, HB_translation):
     if "RHONDDA" in item:
       possible_HBs.append("Cwm Taf Morgannwg University Health Board")
     else:
-      possible_HBs.append(HB_translation[item])
+      try:
+        possible_HBs.append(HB_translation[item])
+      except:
+        pass
 
   HB_counts = Counter(possible_HBs)
-  HB = HB_counts.most_common(1)[0][0]
+  try:
+    HB = HB_counts.most_common(1)[0][0]
+  else:
+    HB = ""
 
   return HB
 
@@ -331,11 +342,11 @@ def decide_single_HB(adm2, HB_translation):
 def getSampleData_final(MetadataDF, HBTranslation, HBCode_translation):
     cog_meta = MetadataDF
     cog_meta['central_sample_id'] = cog_meta['sequence_name'].str.split('/', expand=True)[1]
-    cog_meta = cog_meta.loc[cog_meta['adm1'].isin(['UK-SCT', 'UK-ENG', 'UK-WLS', 'UK-NIR'])]
+    cog_meta = cog_meta.loc[cog_meta['adm1'].isin(['UK-SCT', 'UK-ENG', 'UK-WLS', 'UK-NIR', 'Scotland', 'Northern_Ireland', "England", "Wales"])]
     HB_translation = decide_HB(cog_meta, HBTranslation)
     cog_meta['HBName'] = cog_meta['adm2'].map(HBTranslation)
     cog_meta['HBCode'] = cog_meta['HBName'].map(HBCode_translation)
-    cog_meta_clean = adm2cleaning(cog_meta)
+    cog_meta_clean = adm2cleaning(cog_meta)H
     return cog_meta_clean
 
 
@@ -354,13 +365,14 @@ def adm2_to_centralHBCode(sampleframe, translation_dict, HbtoCode):
     adm2 = sampleframe['adm2'].to_list()
     # print(adm2)
     for each in adm2:
-        if each in translation_dict:
-          HB = translation_dict[each]
-        elif "|" in each:
-          HB = decide_single_HB(sampleframe, translation_dict)
-        elif "RHONDDA" in each:
-          HB = "Cwm Taf Morgannwg University Health Board"
-        HBs.append(HB)
+        if not pd.isnull(each):
+          if each in translation_dict:
+            HB = translation_dict[each]
+          elif "|" in each:
+            HB = decide_single_HB(each, translation_dict)
+          elif "RHONDDA" in each:
+            HB = "Cwm Taf Morgannwg University Health Board"
+          HBs.append(HB)
     if len(HBs) > 0:
         centralHB = max(HBs, key=HBs.count)
         centralHBCode = HbtoCode[centralHB]
