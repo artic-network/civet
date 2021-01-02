@@ -69,6 +69,7 @@ rule get_closest_cog:
         else:
             shell("touch {output.closest_cog:q} && touch {output.aligned_query:q} && echo 'No closest sequences to find'")
 
+
 rule combine_metadata:
     input:
         closest_cog = rules.get_closest_cog.output.closest_cog,
@@ -120,12 +121,53 @@ rule prune_out_catchments:
         -o "{params.outdir}" \
         --max-parent {config[up_distance]} \
         --max-child {config[down_distance]} \
-        -f newick \
+        -f nexus \
         -p tree_ \
         --ignore-missing \
+        --output-taxa \
         -m "{input.metadata}" \
         --id-column closest 
         """)
+
+rule tree_content:
+    input:
+        summary = os.path.join(config["outdir"],"catchment_trees", "tree_collapsed_nodes.csv")
+    params:
+        tree_dir = os.path.join(config["outdir"],"catchment_trees")
+    output:
+        tree_summary = os.path.join(config["outdir"],"local_content.csv")
+    run:
+        tip_dict = {}
+        catchment_trees = []
+        for r,d,f in os.walk(params.tree_dir):
+            for fn in f:
+                if fn.endswith(".newick"):
+                    file_stem = ".".join(fn.split(".")[:-1])
+                    catchment_trees.append(file_stem)
+                    catchment_summary = os.path.join(r, f"{file_stem}.csv")
+                    with open(catchment_summary, "r") as f:
+                        for l in f:
+                            l = l.rstrip("\n")
+                            tip_dict[l] = file_stem
+        
+        with open(output.tree_summary,"w") as fw:
+            with open(config["background_metadata"],"r") as f:
+                reader = csv.DictReader(f)
+                header_names = reader.fieldnames
+                header_names.append("tree")
+                writer = csv.DictWriter(fw, fieldnames=header_names,lineterminator='\n')
+                writer.writeheader()
+
+                for row in reader:
+                    if row["sequence_name"] in tip_dict:
+                        new_row = row
+                        new_row["tree"]=tip_dict[row["sequence_name"]]
+
+                        writer.writerow(new_row)
+        
+        config["local_metadata"] = os.path.join(config["outdir"],"local_content.csv")
+
+
 
 rule process_catchments:
     input:
@@ -136,6 +178,7 @@ rule process_catchments:
         query_seqs = rules.get_closest_cog.output.aligned_query, #datafunk-processed seqs
         collapse_summary = rules.prune_out_catchments.output.summary,
         background_seqs = config["background_seqs"],
+        local_metadata = os.path.join(config["outdir"],"local_content.csv"),
         outgroup_fasta = config["outgroup_fasta"]
     params:
         tree_dir = os.path.join(config["outdir"],"catchment_trees")
@@ -345,17 +388,20 @@ rule make_report:
         
         shell("make_report.py --config {output.yaml:q} ")
 
-rule launch_grip:
+
+rule render_report:
     input:
-        mdfile = os.path.join(config["outdir"],"report", f"{output_prefix}.md")
+        config = os.path.join(config["outdir"],f"{output_prefix}.yaml"),
+        csv = os.path.join(config["tempdir"],"combined_metadata.csv"),
+        template = config["template"]
     output:
-        out_file = os.path.join(config["outdir"],"report",f"{output_prefix}.html")
+        report = os.path.join(config["outdir"],"report", f"{output_prefix}.html")
     run:
-        shell("grip {input.mdfile:q} --export")
-        if config["launch_browser"]:
-            for i in range(8000, 8100):
-                try:
-                    shell("grip {input.mdfile:q} -b {i}")
-                    break
-                except:
-                    print("Trying next port")
+        shell(
+        """
+        render_report.py \
+        --config {input.yaml:q} \
+        --report {output.report:q} 
+        """)
+        print(pfunk.green("Civet report written to:") + f"{output.report}")
+
