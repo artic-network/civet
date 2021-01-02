@@ -121,7 +121,7 @@ rule prune_out_catchments:
         -o "{params.outdir}" \
         --max-parent {config[up_distance]} \
         --max-child {config[down_distance]} \
-        -f nexus \
+        -f newick \
         -p tree_ \
         --ignore-missing \
         --output-taxa \
