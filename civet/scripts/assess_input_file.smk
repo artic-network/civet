@@ -395,7 +395,7 @@ rule render_report:
     input:
         config = os.path.join(config["outdir"],f"{output_prefix}.yaml"),
         csv = os.path.join(config["tempdir"],"combined_metadata.csv"),
-        template = config["template"]
+        template = config["report_template"]
     output:
         report = os.path.join(config["outdir"],"report", f"{output_prefix}.html")
     run:
