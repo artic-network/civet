@@ -391,19 +391,19 @@ rule make_report:
         shell("make_report.py --config {output.yaml:q} ")
 
 
-rule render_report:
-    input:
-        config = os.path.join(config["outdir"],f"{output_prefix}.yaml"),
-        csv = os.path.join(config["tempdir"],"combined_metadata.csv"),
-        template = config["report_template"]
-    output:
-        report = os.path.join(config["outdir"],"report", f"{output_prefix}.html")
-    run:
-        shell(
-        """
-        render_report.py \
-        --config {input.yaml:q} \
-        --report {output.report:q} 
-        """)
-        print(pfunk.green("Civet report written to:") + f"{output.report}")
+# rule render_report:
+#     input:
+#         config = os.path.join(config["outdir"],f"{output_prefix}.yaml"),
+#         csv = os.path.join(config["tempdir"],"combined_metadata.csv"),
+#         template = config["report_template"]
+#     output:
+#         report = os.path.join(config["outdir"],"report", f"{output_prefix}.html")
+#     run:
+#         shell(
+#         """
+#         render_report.py \
+#         --config {input.yaml:q} \
+#         --report {output.report:q} 
+#         """)
+#         print(pfunk.green("Civet report written to:") + f"{output.report}")
 
