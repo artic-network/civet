@@ -148,7 +148,7 @@ def get_package_data(thisdir,config):
 
 def print_data_error(data_dir):
     sys.stderr.write(qcfunk.cyan(f"Error: data directory should contain the following files or additionally supply a background metadata file:\n") + f"\
-    - cog_global_2020-XX-YY_tree.nexus\n\
+    - cog_global_2020-XX-YY_tree.newick\n\
     - cog_global_2020-XX-YY_metadata.csv\n\
     - cog_global_2020-XX-YY_alignment.fasta\n"+qcfunk.cyan(f"\
 To run civet please either\n1) ssh into CLIMB and run with --CLIMB flag\n\
@@ -174,7 +174,7 @@ def get_background_files(data_dir,background_metadata):
                 data_date = fn.split("_")[2]
                 if not data_date.startswith("20"):
                     data_date = ""
-            elif fn.endswith(".nexus") and fn.startswith("cog_global_"):
+            elif fn.endswith(".newick") and fn.startswith("cog_global_"):
                 background_tree = os.path.join(data_dir, fn)
             elif background_metadata == "" and fn.endswith(".csv") and fn.startswith("cog_global_"):
                 background_metadata = os.path.join(data_dir, fn)

@@ -391,19 +391,17 @@ rule make_report:
         shell("make_report.py --config {output.yaml:q} ")
 
 
-rule render_report:
+rule launch_grip:
     input:
-        config = os.path.join(config["outdir"],f"{output_prefix}.yaml"),
-        csv = os.path.join(config["tempdir"],"combined_metadata.csv"),
-        template = config["report_template"]
+        mdfile = os.path.join(config["outdir"],"report", f"{output_prefix}.md")
     output:
-        report = os.path.join(config["outdir"],"report", f"{output_prefix}.html")
+        out_file = os.path.join(config["outdir"],"report",f"{output_prefix}.html")
     run:
-        shell(
-        """
-        render_report.py \
-        --config {input.yaml:q} \
-        --report {output.report:q} 
-        """)
-        print(pfunk.green("Civet report written to:") + f"{output.report}")
-
+        shell("grip {input.mdfile:q} --export")
+        if config["launch_browser"]:
+            for i in range(8000, 8100):
+                try:
+                    shell("grip {input.mdfile:q} -b {i}")
+                    break
+                except:
+                    print("Trying next port")
