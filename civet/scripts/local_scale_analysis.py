@@ -333,7 +333,7 @@ def decide_single_HB(adm2, HB_translation):
   HB_counts = Counter(possible_HBs)
   try:
     HB = HB_counts.most_common(1)[0][0]
-  else:
+  except:
     HB = ""
 
   return HB
