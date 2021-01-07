@@ -346,7 +346,7 @@ def getSampleData_final(MetadataDF, HBTranslation, HBCode_translation):
     HB_translation = decide_HB(cog_meta, HBTranslation)
     cog_meta['HBName'] = cog_meta['adm2'].map(HBTranslation)
     cog_meta['HBCode'] = cog_meta['HBName'].map(HBCode_translation)
-    cog_meta_clean = adm2cleaning(cog_meta)H
+    cog_meta_clean = adm2cleaning(cog_meta)
     return cog_meta_clean
 
 
