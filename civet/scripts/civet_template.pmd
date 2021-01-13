@@ -182,10 +182,10 @@ if dates_present:
     count = 0
     tree_to_time_series = {}
     for tree in tree_order:
-        count += 1
         lookup = f"{tree_name_stem}_{tree}"
         tips = tree_to_tip[lookup]
         if len(tips) > 1:
+            count += 1
             time_func.plot_time_series(tips, query_dict, max_overall_date, min_overall_date, date_fields, label_fields, lookup, svg_figdir, safety_level = safety_level)
             tree_to_time_series[lookup] = count
 ```

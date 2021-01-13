@@ -158,7 +158,6 @@ def pull_map_data(input_file, background_metadata, input_headers, background_hea
             for seq in data:
                 name = seq[input_name_col]
                 adm2 = seq[col_name]
-                print("input")
 
                 if name in tax_dict:
                     tax = tax_dict[name]
