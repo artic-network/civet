@@ -133,6 +133,10 @@ data source options:
                         Custom metadata file that corresponds to the large
                         global tree/ alignment. Should have a column
                         `sequence_name`.
+  --background-tree BACKGROUND_TREE
+                        Custom tree file in newick format, must match background metadata and background fasta file.
+  --background-sequences BACKGROUND_SEQUENCES
+                        Custom background  dataset in fasta format, must match background metadata and background tree file.
   --CLIMB               Indicates you're running CIVET from within CLIMB, uses
                         default paths in CLIMB to access data
   -r, --remote     Remotely access lineage trees from CLIMB

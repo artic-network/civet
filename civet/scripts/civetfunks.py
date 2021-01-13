@@ -150,10 +150,12 @@ def print_data_error(data_dir):
     sys.stderr.write(qcfunk.cyan(f"Error: data directory should contain the following files or additionally supply a background metadata file:\n") + f"\
     - cog_global_2020-XX-YY_tree.newick\n\
     - cog_global_2020-XX-YY_metadata.csv\n\
-    - cog_global_2020-XX-YY_alignment.fasta\n"+qcfunk.cyan(f"\
+    - cog_global_2020-XX-YY_alignment.fasta\n\n"
+    +qcfunk.cyan("Please also check that the data directory is correctly specified.\n\n")
+    +qcfunk.cyan(f"\
 To run civet please either\n1) ssh into CLIMB and run with --CLIMB flag\n\
 2) Run using `--remote` flag and your CLIMB username specified e.g. `-uun climb-covid19-smithj`\n\
-3) Specify a local directory with the appropriate files, optionally supply a custom metadata file\n\n"""))
+3) Specify a local directory with the appropriate files, optionally supply a custom metadata file, custom background tree or custom background fasta file\n\n"""))
 
 def rsync_data_from_climb(uun, data_dir):
     rsync_command = f"rsync -avzh --exclude 'cog' --delete-after {uun}@bham.covid19.climb.ac.uk:/cephfs/covid/bham/results/phylogenetics/latest/civet/ '{data_dir}'"
@@ -163,18 +165,18 @@ def rsync_data_from_climb(uun, data_dir):
         sys.stderr.write(qcfunk.cyan("Error: rsync command failed.\nCheck your user name is a valid CLIMB username e.g. climb-covid19-smithj\nAlso, check if you have access to CLIMB from this machine and are in the UK\n\n"))
         sys.exit(-1)
 
-def get_background_files(data_dir,background_metadata):
-    background_seqs = ""
-    background_tree = ""
+def get_background_files(data_dir,background_metadata, background_tree, background_seqs):
+    # background_seqs = ""
+    # background_tree = ""
     data_date = ""
     for r,d,f in os.walk(data_dir):
         for fn in f:
-            if fn.endswith(".fasta") and fn.startswith("cog_global_"):
+            if background_seqs == ""  and fn.endswith(".fasta") and fn.startswith("cog_global_"):
                 background_seqs = os.path.join(data_dir, fn)
                 data_date = fn.split("_")[2]
                 if not data_date.startswith("20"):
                     data_date = ""
-            elif fn.endswith(".newick") and fn.startswith("cog_global_"):
+            elif background_tree == ""  and fn.endswith(".newick") and fn.startswith("cog_global_"):
                 background_tree = os.path.join(data_dir, fn)
             elif background_metadata == "" and fn.endswith(".csv") and fn.startswith("cog_global_"):
                 background_metadata = os.path.join(data_dir, fn)
@@ -182,7 +184,7 @@ def get_background_files(data_dir,background_metadata):
     return background_seqs, background_tree, background_metadata, data_date
     
 
-def get_remote_data(uun,background_metadata,data_dir,config):
+def get_remote_data(uun,background_metadata,background_trees, background_seqs,data_dir,config):
     config["remote"]= True
 
     if uun:
@@ -202,7 +204,7 @@ def get_remote_data(uun,background_metadata,data_dir,config):
             sys.stderr.write(qcfunk.cyan("Error: rsync command failed.\nCheck your ssh is configured with Host bham.covid19.climb.ac.uk\nAlternatively enter your CLIMB username with -uun e.g. climb-covid19-smithj\nAlso, check if you have access to CLIMB from this machine and check if you are in the UK\n\n"))
             sys.exit(-1)
 
-    background_seqs, background_tree, background_metadata, data_date = get_background_files(data_dir,background_metadata)
+    background_seqs, background_tree, background_metadata, data_date = get_background_files(data_dir,background_metadata, background_trees, background_seqs)
 
     config["datadir"] = data_dir
     config["data_date"] = data_date
@@ -223,9 +225,11 @@ def get_remote_data(uun,background_metadata,data_dir,config):
         print("    -",background_metadata)
         print("    -",background_tree,"\n")
 
-def get_datadir(args_climb,args_uun,args_datadir,args_metadata,cwd,config):
+def get_datadir(args_climb,args_uun,args_datadir,args_metadata, args_tree, args_fasta, cwd,config):
     data_dir = ""
     background_metadata = ""
+    background_seqs = ""
+    background_tree = ""
     remote= config["remote"]
 
     if args_metadata:
@@ -241,6 +245,35 @@ def get_datadir(args_climb,args_uun,args_datadir,args_metadata,cwd,config):
             background_metadata = os.path.join(config["path_to_query"], expanded_path)
             if not os.path.exists(background_metadata):
                 sys.stderr.write(qcfunk.cyan(f"Error: can't find metadata file at {background_metadata}.\n"))
+                sys.exit(-1)
+    if args_tree:
+        expanded_path = os.path.expanduser(args_tree)
+        background_tree= os.path.join(cwd, expanded_path)
+        if not os.path.exists(background_tree):
+            sys.stderr.write(qcfunk.cyan(f"Error: can't find tree file at {background_tree}.\n"))
+            sys.exit(-1)
+
+    elif "background_tree" in config:
+        if config["background_tree"]:
+            expanded_path = os.path.expanduser(config["background_tree"])
+            background_tree= os.path.join(config["path_to_query"], expanded_path)
+            if not os.path.exists(background_tree):
+                sys.stderr.write(qcfunk.cyan(f"Error: can't find tree file at {background_tree}.\n"))
+                sys.exit(-1)
+
+    if args_fasta:
+        expanded_path = os.path.expanduser(args_fasta)
+        background_seqs = os.path.join(cwd, expanded_path)
+        if not os.path.exists(background_seqs):
+            sys.stderr.write(qcfunk.cyan(f"Error: can't find metadata file at {background_seqs}.\n"))
+            sys.exit(-1)
+
+    elif "background_sequences" in config:
+        if config["background_sequences"]:
+            expanded_path = os.path.expanduser(config["background_sequences"])
+            background_seqs = os.path.join(config["path_to_query"], expanded_path)
+            if not os.path.exists(background_seqs):
+                sys.stderr.write(qcfunk.cyan(f"Error: can't find fasta file at {background_seqs}.\n"))
                 sys.exit(-1)
             
     if args_climb:
@@ -268,7 +301,7 @@ def get_datadir(args_climb,args_uun,args_datadir,args_metadata,cwd,config):
             print_data_error(data_dir)
             sys.exit(-1)
             
-        background_seqs, background_tree, background_metadata, data_date = get_background_files(data_dir,background_metadata)
+        background_seqs, background_tree, background_metadata, data_date = get_background_files(data_dir,background_metadata, background_tree,background_seqs)
 
         config["datadir"] = data_dir
         config["data_date"] = data_date
@@ -288,7 +321,7 @@ def get_datadir(args_climb,args_uun,args_datadir,args_metadata,cwd,config):
 
     elif remote:
         
-        get_remote_data(args_uun, background_metadata, data_dir, config)
+        get_remote_data(args_uun, background_metadata, background_tree, background_seqs, data_dir, config)
 
     config["datadir"]=data_dir
 

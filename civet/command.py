@@ -48,6 +48,8 @@ def main(sysargs = sys.argv[1:]):
     data_group = parser.add_argument_group('data source options')
     data_group.add_argument('-d','--datadir', action="store",help="Local directory that contains the data files. Default: civet-cat")
     data_group.add_argument("-m","--background-metadata",action="store",dest="background_metadata",help="Custom metadata file that corresponds to the large global tree/ alignment. Should have a column `sequence_name`.")
+    data_group.add_argument("--background-tree", action="store", dest="background_tree", help="Custom tree file.")
+    data_group.add_argument("--background-sequences", action="store", dest="background_sequences", help="Custom background fasta file.")
     data_group.add_argument('--CLIMB', action="store_true",dest="climb",help="Indicates you're running CIVET from within CLIMB, uses default paths in CLIMB to access data")
     data_group.add_argument("-r",'--remote', action="store_true",dest="remote",help="Remotely access lineage trees from CLIMB")
     data_group.add_argument("-uun","--your-user-name", action="store", help="Your CLIMB COG-UK username. Required if running with --remote flag", dest="uun")
@@ -174,7 +176,7 @@ def main(sysargs = sys.argv[1:]):
     qcfunk.add_arg_to_config("remote",args.remote, config)
 
     # find the data dir
-    cfunk.get_datadir(args.climb,args.uun,args.datadir,args.background_metadata,cwd,config)
+    cfunk.get_datadir(args.climb,args.uun,args.datadir,args.background_metadata, args.background_tree, args.background_sequences, cwd,config)
 
     # add data and input columns to config
     qcfunk.data_columns_to_config(args,config)

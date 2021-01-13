@@ -54,6 +54,19 @@ This can also be run on CLIMB without the --CLIMB flag to specify an older versi
 ```
 civet -i input.csv -d path/to/data_directory 
 ```
+### --background-tree
+
+By default, civet will look for a newick file in the data directory to use as the tree. To provide a custom tree file, use 
+1) the ``--background-tree`` flag
+or
+2) add `background_tree: path/to/tree.newick` to the config file
+
+### --background-sequences
+
+By default, civet will look for a fasta file in the data directory to use as the background sequence dataset. To provide a custom fasta file, use 
+1) the ``--background-sequences`` flag
+or
+2) add `background_tree: path/to/sequences.fasta` to the config file
 ### --background-metadata
 
 By default, civet will look for a csv containing background data in the data directory. However, to provide custom background data, use 
