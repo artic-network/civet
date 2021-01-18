@@ -23,6 +23,7 @@ parser.add_argument("--cog-meta-global", action="store", type=str, dest="cog_met
 parser.add_argument("--user-sample-data", action="store", type=str, dest="user_sample_data")
 parser.add_argument("--combined-metadata",action="store",type=str,dest="combined_metadata")
 parser.add_argument("--input-name", action="store", type=str, dest="input_name")
+parser.add_argument("--sample-date-column", action="store", type=str, dest="sample_date_column")
 parser.add_argument("--date-window", action="store",required=False, type=int, dest="date_window")
 parser.add_argument("--output-base-dir", action="store", type=str, dest="output_base_dir")
 parser.add_argument("--output-temp-dir", action="store", type=str, dest="output_temp_dir")
@@ -383,13 +384,13 @@ def adm2_to_centralHBCode(sampleframe, translation_dict, HbtoCode):
         return None
 
 
-def supplement_sample_csv(sample_df,combined_metadata_df,input_name):
+def supplement_sample_csv(sample_df,combined_metadata_df,sample_date_column, input_name):
 
   col_list = sample_df.columns
-  potential_date_cols = []
-  for i in col_list:
-    if "date" in i.lower():
-        potential_date_cols.append(i)
+  # potential_date_cols = []
+  # for i in col_list:
+  #   if "date" in i.lower():
+  #       potential_date_cols.append(i)
 
   if "adm2" not in col_list:
     testing_similarity = combined_metadata_df['query'][combined_metadata_df["query"] == combined_metadata_df["closest"]]
@@ -399,7 +400,7 @@ def supplement_sample_csv(sample_df,combined_metadata_df,input_name):
     else:
       return False
 
-  if len(potential_date_cols) == 0:
+  if sample_date_column not in col_list:
     testing_similarity = combined_metadata_df['query'][combined_metadata_df["query"] == combined_metadata_df["closest"]]
 
     if len(testing_similarity) > 0:
@@ -409,41 +410,45 @@ def supplement_sample_csv(sample_df,combined_metadata_df,input_name):
 
   return sample_df
 
-def defineDateRestriction(samplesDF, windowSize):
+def defineDateRestriction(samplesDF, windowSize, sample_date_column):
   
   col_list = samplesDF.columns
-  potential_date_cols = []
-  for i in col_list:
-    if "date" in i.lower():
-      potential_date_cols.append(i)
+  # potential_date_cols = []
+  # for i in col_list:
+  #   if "date" in i.lower():
+  #     potential_date_cols.append(i)
 
-  if len(potential_date_cols) == 0:
-    print('No dates found, will revert to using all available data for local lineage analysis.')
+  # if len(potential_date_cols) == 0:
+  #   print('No dates found, will revert to using all available data for local lineage analysis.')
+  #   return None
+
+  # collection = False
+  # for j in potential_date_cols:
+  #   if "collection" in j.lower():
+  #     date_col = j
+  #     collection = True
+  #     break
+  #   else:
+  #     date_col = j #we shouldn't do this - it's picking the most recent one in the loop
+
+  # if collection:
+  #   print(f"Collection date not found, using {j} to restrict local lineages by")
+
+  if sample_date_column not in samplesDF.columns and "sample_date" not in samplesDF.columns:
+    print('No dates found, will revert to using all available data for local lineage analysis. Please use "--sample-date-column" argument to specify a custom column header for dates.')
     return None
-
-  collection = False
-  for j in potential_date_cols:
-    if "collection" in j.lower():
-      date_col = j
-      collection = True
-      break
-    else:
-      date_col = j
-      
-  if collection:
-    print(f"Collection date not found, using {j} to restrict local lineages by")
-
-  datedSamples = samplesDF.dropna(subset=[date_col])
-  if len(datedSamples) == 0:
-      print('No collection dates specified, will revert to using all available data for local lineage analysis.')
-      return None
-  if len(datedSamples) > 0:
-      datedSamples[date_col] = pd.to_datetime(datedSamples[date_col], format="%Y-%m-%d")
-      datedSamples.sort_values(by=[date_col], inplace=True)
-      start = datedSamples.iloc[[0]][date_col].item() + pd.DateOffset(days=-windowSize)
-      end = datedSamples.iloc[[-1]][date_col].item() + pd.DateOffset(days=windowSize)
-      daterange = {'start_date': start, 'end_date': end}
-      return daterange
+  else:
+    datedSamples = samplesDF.dropna(subset=[sample_date_column])
+    if len(datedSamples) == 0:
+        print('No collection dates specified, will revert to using all available data for local lineage analysis.')
+        return None
+    if len(datedSamples) > 0:
+        datedSamples[sample_date_column] = pd.to_datetime(datedSamples[sample_date_column], format="%Y-%m-%d")
+        datedSamples.sort_values(by=[sample_date_column], inplace=True)
+        start = datedSamples.iloc[[0]][sample_date_column].item() + pd.DateOffset(days=-windowSize)
+        end = datedSamples.iloc[[-1]][sample_date_column].item() + pd.DateOffset(days=windowSize)
+        daterange = {'start_date': start, 'end_date': end}
+        return daterange
 
 
 def finaliseMapping(boardMAP):
@@ -459,14 +464,14 @@ def hbcode_hbname_translation(mapDF):
     translation = dict(zip(mapDF.HBName, mapDF.HBCode))
     return translation
 
-def do_date_restriction(cogDF, samplecsv, start, end, window=7, restriction_bool=False):
+def do_date_restriction(cogDF, samplecsv, start, end, sample_date_column, window=7, restriction_bool=False):
     if restriction_bool:
         if start and end:
             date_list = {'start_date': date_start, 'end_date': date_end}
             cogOut = dateRestriction(cogDF, date_list)
             return cogOut
         else:
-            date_list = defineDateRestriction(samplecsv, window)
+            date_list = defineDateRestriction(samplecsv, window, sample_date_column)
             if date_list is not None:
                 cogOut = dateRestriction(cogDF, date_list)
                 return cogOut
@@ -653,7 +658,7 @@ HBTranslation = new_translator
 
 
 #if the inputs don't have adm2 or dates, but if some of them are in COG
-inputSamples = supplement_sample_csv(inputSamples, combined_metadata, argsIN.input_name)
+inputSamples = supplement_sample_csv(inputSamples, combined_metadata, argsIN.sample_date_column, argsIN.input_name)
 if type(inputSamples) == bool:
   print("NO ADM2 PRESENT, CANNOT PRODUCE LOCAL LINEAGE MAPPING")
 else:
@@ -684,9 +689,9 @@ else:
   #mainland_boards=update_adm15(mainland_boards)
   ###Checking user defined dates###
   if not argsIN.date_restriction:
-      cog_meta=do_date_restriction(COGDATA, inputSamples, date_start, date_end)
+      cog_meta=do_date_restriction(COGDATA, inputSamples, date_start, date_end, argsIN.sample_date_column)
   else:
-      cog_meta=do_date_restriction(COGDATA, inputSamples, date_start, date_end, restriction_bool=True, window=int(argsIN.date_window))
+      cog_meta=do_date_restriction(COGDATA, inputSamples, date_start, date_end, argsIN.sample_date_column, restriction_bool=True, window=int(argsIN.date_window))
   ### Final restricted meta
   cog_final = getSampleData_final(cog_meta, HBTranslation, HBCode_name_translation)
   ## Proessing input csv ##

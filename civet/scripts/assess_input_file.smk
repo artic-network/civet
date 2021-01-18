@@ -304,6 +304,7 @@ rule regional_mapping:
         --user-sample-data {input.query:q} \
         --combined-metadata {input.combined_metadata:q} \
         --input-name {config[input_column]:q} \
+        --sample-date-column {config[sample_date_column]} \
         --output-base-dir {params.figdir:q} \
         --output-temp-dir {config[tempdir]:q}
             """)

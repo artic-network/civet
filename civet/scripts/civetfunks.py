@@ -6,6 +6,7 @@ import csv
 import sys
 from Bio import SeqIO
 from datetime import date
+import datetime as dt
 from collections import defaultdict
 import pandas as pd
 import random
@@ -456,6 +457,7 @@ def prepping_civet_arguments(name_stem_input, tree_fields_input, graphic_dict_in
 def local_lineages_qc(config):
 
     query_file = config["query"]
+    date_format = "%Y-%m-%d"
 
     if config["local_lineages"]:
 
@@ -467,11 +469,19 @@ def local_lineages_qc(config):
             sys.exit(-1)
 
         if config["date_restriction"]:
-
             if config["date_range_start"] and type(config["date_range_start"]) == str:
-                qcfunk.check_date_format(config["date_range_start"], config_key="date_range_start")
+                try:
+                    check_date = dt.datetime.strptime(config["date_range_start"], date_format).date()
+                except:
+                    print(qcfunk.cyan(f'date range start in incorrect format. Please use i.e. YYYY-MM-DD'))
+                    sys.exit(-1)
+                
             if config["date_range_end"] and type(config["date_range_end"]) == str:
-                qcfunk.check_date_format(config["date_range_end"], config_key="date_range_end")
+                try:
+                    check_date = dt.datetime.strptime(config["date_range_end"], date_format).date()
+                except:
+                    print(qcfunk.cyan(f'date range end in incorrect format. Please use i.e. YYYY-MM-DD'))
+                    sys.exit(-1)
 
             if config["date_range_start"] and config["date_range_end"]:
                 print(qcfunk.green(f"Local lineage analysis restricted to {config['date_range_start']} to {config['date_range_end']}"))
@@ -480,9 +490,14 @@ def local_lineages_qc(config):
             else:
                 print(qcfunk.green(f"Local lineage analysis restricted to {config['date_window']} days around the sampling range"))
 
-        else:
+        elif config['date_range_start'] or config["date_range_end"]:
+            print(qcfunk.cyan("Date restriction data provided but --date-restriction flag not used. Please use --date-restriction flag in config or command line."))
+            sys.exit(-1)
 
+        else:
             print(qcfunk.green(f"Local lineage analysis not restricted by time, will show background lineage composition for the whole of the epidemic"))
+
+        
 
 def local_lineages_to_config(central, neighbouring, region, config):
 

@@ -308,7 +308,7 @@ if map_sequences and not stop_map:
 ```python, name='Regional-scale', echo=False, results='raw'
 if local_lineages:
     print("## Regional-scale background UK lineage mapping")
-    mapping.local_lineages_section(lineage_maps, lineage_tables)
+    mapping.local_lineages_section(lineage_maps, lineage_tables, date_restriction, date_range_start, date_range_end, date_window)
 ```
 
 ```python, name="print conclusions", echo=False, results='raw'

@@ -603,7 +603,7 @@ def convert_str_to_list(string, rel_dir):
     
     return lst
 
-def local_lineages_section(lineage_maps, lineage_tables):
+def local_lineages_section(lineage_maps, lineage_tables, date_restriction, date_range_start, date_range_end, date_window):
 
     print("These figures show the background diversity of lineages in the local area to aid with identifying uncommon lineages.")
     
@@ -611,6 +611,8 @@ def local_lineages_section(lineage_maps, lineage_tables):
     centralLoc = [t for t in big_list if "_central_" in t][0]
     tableList = [t for t in big_list if "_central_" not in t]
     centralName = centralLoc.split('/')[-1].split("_")[0]
+
+    today = pd.to_datetime('today').date()
 
     with open(centralLoc) as f:
         for l in f:
@@ -620,7 +622,17 @@ def local_lineages_section(lineage_maps, lineage_tables):
     linmapList = convert_str_to_list(lineage_maps, True)        
 
     print(f'Based on the sample density for submitted sequences with adm2 metadata, **{centralName}** was determined to be the focal NHS Health-board.\n')
-    print(f'The below figure visualises the relative proportion of assigned UK-Lineages for samples sampled in **{centralName}** for the defined time-frame.')
+    
+    if date_restriction:
+        if date_range_start and date_range_end:
+            print(f'The below figure visualises the relative proportion of assigned UK-Lineages for samples sampled in **{centralName}** from {date_range_start} to {date_range_end}')
+        elif date_range_start and not date_range_end:
+            print(f'The below figure visualises the relative proportion of assigned UK-Lineages for samples sampled in **{centralName}** from {date_range_start} to {today}')
+        elif date_window:
+            print(f'The below figure visualises the relative proportion of assigned UK-Lineages for samples sampled in **{centralName}** for {date_window} days before the most recent sample.')
+    else:
+        print(f'The below figure visualises the relative proportion of assigned UK-Lineages for samples sampled in **{centralName}** for the whole epidemic.')
+    
     print ("![]("+linmapList[0]+")\n")
     print(f'The below figure visualises the relative proportions of assigned UK-Lineages for samples collected in the whole region for the defined time-frame. Plot-size demonstrates relative numbers of sequences across given NHS healthboards.')
     print ("![]("+linmapList[2]+")\n")
