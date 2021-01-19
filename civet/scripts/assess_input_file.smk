@@ -42,10 +42,9 @@ rule check_cog_db_all:
         cog = os.path.join(config["tempdir"],"query_in_all_cog.csv"),
         cog_seqs = os.path.join(config["tempdir"],"query_in_all_cog.fasta"),
         not_cog = os.path.join(config["tempdir"],"not_in_all_cog.csv")
-    shell:
+    run:
         if config["background_metadata_all"]:
-            """
-            check_cog_db.py --query {input.not_in_cog:q} \
+            shell("""check_cog_db.py --query {input.not_in_cog:q} \
                             --cog-seqs {input.background_seqs:q} \
                             --cog-metadata {config[background_metadata_all]:q} \
                             --field {config[data_column]} \
@@ -53,10 +52,10 @@ rule check_cog_db_all:
                             --in-metadata {output.cog:q} \
                             --in-seqs {output.cog_seqs:q} \
                             --not-in-cog {output.not_cog:q} \
-                            --all-cog
-            """
+                            --all-cog """)
         else:
-            shell("cp {input.not_in_cog:q} {output.not_cog:q} && touch {output.cog_seqs} && touch {output.cog}")
+            print("just touching the files instead")
+            shell("cp {input.not_in_cog:q} {output.not_cog:q} && touch {output.cog_seqs:q} && touch {output.cog:q}")
             
 
 rule get_closest_cog:
@@ -72,18 +71,18 @@ rule get_closest_cog:
         closest_cog = os.path.join(config["tempdir"],"closest_cog.csv"),
         aligned_query = os.path.join(config["tempdir"],"post_qc_query.aligned.fasta")
     run:
-        num_seqs = config["num_seqs"]
         if config["background_metadata_all"]:
             to_find_closest = {}
             
             for record in SeqIO.parse(input.in_all_cog_seqs,"fasta"):
                 to_find_closest[record.id] = ("COG_database",record.seq)
+                config["num_seqs"]+=1
 
-            if config["fasta"] != "" and num_seqs != 0:
-                for record in SeqIO.parse(config["post_qc_query"]):
+            if config["fasta"] != "":
+                for record in SeqIO.parse(config["post_qc_query"],"fasta"):
                     to_find_closest[record.id] = ("input_fasta",record.seq)
 
-            with open(os.path.join(config["tempdir"],"combined_seqs.fasta") as fw:
+            with open(os.path.join(config["tempdir"],"combined_seqs.fasta"),"w") as fw:
                 for record in to_find_closest:
                     fw.write("f>{record} source={to_find_closest[record][0]}\n{to_find_closest[record][1]}")
 
@@ -95,7 +94,7 @@ rule get_closest_cog:
             num_seqs = config["num_seqs"]
             print(qcfunk.green(f"Passing {num_seqs} sequences into search pipeline:"))
 
-            for record in SeqIO.parse(config["post_qc_query"], "fasta"):
+            for record in SeqIO.parse(config["to_find_closest"], "fasta"):
                 print(f"    - {record.id}")
 
             shell("snakemake --nolock --snakefile {input.snakefile:q} "

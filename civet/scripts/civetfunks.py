@@ -31,6 +31,7 @@ def get_defaults():
                     "conclusions": "",
                     "max_ambiguity":0.5,
                     "min_length":10000,
+                    "num_seqs":0,
                     "no_temp":False,
                     "datadir":"",
                     "input_column":"name",
@@ -54,6 +55,7 @@ def get_defaults():
                     "date_range_start":False,
                     "date_range_end":False,
                     "launch_browser":False,
+                    "background_metadata_all":False,
                     "node_summary":"country",
                     "date_window":7,
                     "colour_by":"adm1=Paired",
@@ -235,8 +237,8 @@ def get_datadir(args_climb,args_uun,args_datadir,args_metadata, args_tree, args_
     background_seqs = ""
     background_tree = ""
     remote= config["remote"]
-    config["background_metadata_all"] = False
-
+    cog_all = False
+    
     if args_metadata:
         expanded_path = os.path.expanduser(args_metadata)
         background_metadata = os.path.join(cwd, expanded_path)
@@ -283,6 +285,7 @@ def get_datadir(args_climb,args_uun,args_datadir,args_metadata, args_tree, args_
             
     if args_climb:
         data_dir = "/cephfs/covid/bham/results/phylogenetics/latest/civet/cog"
+        cog_all = True
         if os.path.exists(data_dir):
             config["remote"] = False
             config["username"] = ""
@@ -307,7 +310,7 @@ def get_datadir(args_climb,args_uun,args_datadir,args_metadata, args_tree, args_
             sys.exit(-1)
         
         
-        background_seqs, background_tree, background_metadata, data_date, background_metadata_all = get_background_files(data_dir,background_metadata, background_tree,background_seqs, True)
+        background_seqs, background_tree, background_metadata, data_date, background_metadata_all = get_background_files(data_dir,background_metadata, background_tree,background_seqs, cog_all)
         
         
         config["datadir"] = data_dir
