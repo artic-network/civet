@@ -181,13 +181,11 @@ def get_background_files(data_dir,background_metadata, background_tree, backgrou
                     data_date = ""
             elif background_tree == ""  and fn.endswith(".newick") and fn.startswith("cog_global_"):
                 background_tree = os.path.join(data_dir, fn)
-            elif background_metadata == "" and fn.endswith(".csv") and fn.startswith("cog_global_"):
-                background_metadata = os.path.join(data_dir, fn)
             elif background_metadata_all and fn.endswith("all.csv") and fn.startswith("cog_global_"):
                 background_metadata_all = os.path.join(data_dir, fn)
-
-
-
+            elif background_metadata == "" and fn.endswith(".csv") and fn.startswith("cog_global_"):
+                background_metadata = os.path.join(data_dir, fn)
+                
     return background_seqs, background_tree, background_metadata, data_date, background_metadata_all
     
 
@@ -238,7 +236,7 @@ def get_datadir(args_climb,args_uun,args_datadir,args_metadata, args_tree, args_
     background_tree = ""
     remote= config["remote"]
     cog_all = False
-    
+
     if args_metadata:
         expanded_path = os.path.expanduser(args_metadata)
         background_metadata = os.path.join(cwd, expanded_path)
