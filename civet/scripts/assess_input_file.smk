@@ -34,38 +34,84 @@ rule check_cog_db:
                         --not-in-cog {output.not_cog:q} 
         """
 
+rule check_cog_db_all:
+    input:
+        not_in_cog = rules.check_cog_db.output.not_cog,
+        background_seqs = config["background_seqs"]
+    output:
+        cog = os.path.join(config["tempdir"],"query_in_all_cog.csv"),
+        cog_seqs = os.path.join(config["tempdir"],"query_in_all_cog.fasta"),
+        not_cog = os.path.join(config["tempdir"],"not_in_all_cog.csv")
+    shell:
+        if config["background_metadata_all"]:
+            """
+            check_cog_db.py --query {input.not_in_cog:q} \
+                            --cog-seqs {input.background_seqs:q} \
+                            --cog-metadata {config[background_metadata_all]:q} \
+                            --field {config[data_column]} \
+                            --input-column {config[input_column]} \
+                            --in-metadata {output.cog:q} \
+                            --in-seqs {output.cog_seqs:q} \
+                            --not-in-cog {output.not_cog:q} \
+                            --all-cog
+            """
+        else:
+            shell("cp {input.not_in_cog:q} {output.not_cog:q} && touch {output.cog_seqs} && touch {output.cog}")
+            
+
 rule get_closest_cog:
     input:
         snakefile = os.path.join(workflow.current_basedir,"find_closest_cog.smk"),
         reference_fasta = config["reference_fasta"],
         background_seqs = config["background_seqs"],
-        background_metadata = config["background_metadata"]
+        background_metadata = config["background_metadata"],
+        in_all_cog = rules.check_cog_db_all.output.cog,
+        in_all_cog_seqs = rules.check_cog_db_all.output.cog_seqs,
+        not_in_cog = rules.check_cog_db_all.output.not_cog
     output:
         closest_cog = os.path.join(config["tempdir"],"closest_cog.csv"),
         aligned_query = os.path.join(config["tempdir"],"post_qc_query.aligned.fasta")
     run:
-        if config["fasta"] != "":
-            if config["num_seqs"] != 0:
-                num_seqs = config["num_seqs"]
-                print(qcfunk.green(f"Passing {num_seqs} sequences into search pipeline:"))
+        num_seqs = config["num_seqs"]
+        if config["background_metadata_all"]:
+            to_find_closest = {}
+            
+            for record in SeqIO.parse(input.in_all_cog_seqs,"fasta"):
+                to_find_closest[record.id] = ("COG_database",record.seq)
 
-                for record in SeqIO.parse(config["post_qc_query"], "fasta"):
-                    print(f"    - {record.id}")
+            if config["fasta"] != "" and num_seqs != 0:
+                for record in SeqIO.parse(config["post_qc_query"]):
+                    to_find_closest[record.id] = ("input_fasta",record.seq)
 
-                shell("snakemake --nolock --snakefile {input.snakefile:q} "
-                            "{config[force]} "
-                            "{config[log_string]}"
-                            "--directory {config[tempdir]:q} "
-                            "--config "
-                            "tempdir={config[tempdir]:q} "
-                            "background_metadata={input.background_metadata:q} "
-                            "background_seqs={input.background_seqs:q} "
-                            "to_find_closest='{config[post_qc_query]}' "
-                            "data_column={config[data_column]} "
-                            "trim_start={config[trim_start]} "
-                            "trim_end={config[trim_end]} "
-                            "reference_fasta={input.reference_fasta:q} "
-                            "--cores {workflow.cores}")
+            with open(os.path.join(config["tempdir"],"combined_seqs.fasta") as fw:
+                for record in to_find_closest:
+                    fw.write("f>{record} source={to_find_closest[record][0]}\n{to_find_closest[record][1]}")
+
+            config["to_find_closest"] = os.path.join(config["tempdir"],"combined_seqs.fasta")
+        else:
+            config["to_find_closest"] = config["post_qc_query"]
+
+        if config["num_seqs"] != 0:
+            num_seqs = config["num_seqs"]
+            print(qcfunk.green(f"Passing {num_seqs} sequences into search pipeline:"))
+
+            for record in SeqIO.parse(config["post_qc_query"], "fasta"):
+                print(f"    - {record.id}")
+
+            shell("snakemake --nolock --snakefile {input.snakefile:q} "
+                        "{config[force]} "
+                        "{config[log_string]}"
+                        "--directory {config[tempdir]:q} "
+                        "--config "
+                        "tempdir={config[tempdir]:q} "
+                        "background_metadata={input.background_metadata:q} "
+                        "background_seqs={input.background_seqs:q} "
+                        "to_find_closest='{config[to_find_closest]}' "
+                        "data_column={config[data_column]} "
+                        "trim_start={config[trim_start]} "
+                        "trim_end={config[trim_end]} "
+                        "reference_fasta={input.reference_fasta:q} "
+                        "--cores {workflow.cores}")
         else:
             shell("touch {output.closest_cog:q} && touch {output.aligned_query:q} && echo 'No closest sequences to find'")
 

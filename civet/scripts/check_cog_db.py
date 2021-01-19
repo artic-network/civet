@@ -20,6 +20,7 @@ def parse_args():
     parser.add_argument("--in-seqs", action="store", type=str, dest="in_seqs")
     parser.add_argument("--not-in-cog", action="store", type=str, dest="not_in_cog")
     parser.add_argument("--input-column",action="store",dest="input_column")
+    parser.add_argument("--all-cog",action="store_true",dest="all_cog")
     return parser.parse_args()
 
 def check_cog_db():
@@ -51,7 +52,10 @@ def check_cog_db():
                     row["cog_id"] = row[column_to_match]
                     row["query"]=row["sequence_name"]
                     row["closest"]=row["sequence_name"]
-                    row["source"]="phylogeny"
+                    if args.all_cog:
+                        row["source"]="on CLIMB; not in phylogeny"
+                    else:
+                        row["source"]="phylogeny"
                     in_cog_metadata.append(row)
                     in_cog_names[row[column_to_match]] = row["sequence_name"]
     
@@ -72,7 +76,11 @@ def check_cog_db():
                 sequence_name = in_cog_names[name]
                 if sequence_name==record.id:
                     found.append(name)
-                    fw.write(f">{name} sequence_name={record.id} status=in_cog\n{record.seq}\n")
+                    if args.all_cog:
+                        status = "on_climb"
+                    else:
+                        status = "in_phylogeny"
+                    fw.write(f">{name} sequence_name={record.id} status={status}\n{record.seq}\n")
 
     with open(args.not_in_cog, "w") as fw:
         
