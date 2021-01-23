@@ -208,7 +208,7 @@ def get_remote_data(uun,background_metadata,background_trees, background_seqs,da
             sys.stderr.write(qcfunk.cyan("Error: rsync command failed.\nCheck your ssh is configured with Host bham.covid19.climb.ac.uk\nAlternatively enter your CLIMB username with -uun e.g. climb-covid19-smithj\nAlso, check if you have access to CLIMB from this machine and check if you are in the UK\n\n"))
             sys.exit(-1)
 
-    background_seqs, background_tree, background_metadata, data_date = get_background_files(data_dir,background_metadata, background_trees, background_seqs)
+    background_seqs, background_tree, background_metadata, data_date, background_metadata_all = get_background_files(data_dir,background_metadata, background_trees, background_seqs)
 
     config["datadir"] = data_dir
     config["data_date"] = data_date
