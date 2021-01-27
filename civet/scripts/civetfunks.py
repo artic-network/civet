@@ -283,7 +283,7 @@ def get_datadir(args_climb,args_uun,args_datadir,args_metadata, args_tree, args_
             
     if args_climb:
         data_dir = "/cephfs/covid/bham/results/phylogenetics/latest/civet/cog"
-        cog_all = True
+        cog_all = False
         if os.path.exists(data_dir):
             config["remote"] = False
             config["username"] = ""
