@@ -7,7 +7,9 @@ The following adm2 values are accepted by all civet mapping functions, including
 
 If a location is not in the list, it will not be accepted. However, some postcodes and commonly used locations do not map completely to one adm2 region. In these cases, list the possible adm2s from the options below, using the pipe symbol `|` to separate them. Commonly used regions and their corresponding adm2 list are shown under the relevant country below.  
 
-For example, if "West Midalnds" appears in the query input, replace it with `BIRMINGHAM|COVENTRY|DUDLEY|SANDWELL|SOLIHULL|WALSALL|WOLVERHAMPTON` and the mapping functions will work.
+For example, if "West Midlands" appears in the query input, replace it with `BIRMINGHAM|COVENTRY|DUDLEY|SANDWELL|SOLIHULL|WALSALL|WOLVERHAMPTON` and the mapping functions will work.
+
+NB While the list of accepted adm2s is a standard list, these instructions are *only for civet* and should not be viewed as instructions for metadata input into the COG-UK pipeline.
 
 ### England
 
