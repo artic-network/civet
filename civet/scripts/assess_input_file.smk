@@ -34,40 +34,86 @@ rule check_cog_db:
                         --not-in-cog {output.not_cog:q} 
         """
 
+rule check_cog_db_all:
+    input:
+        not_in_cog = rules.check_cog_db.output.not_cog,
+        background_seqs = config["background_seqs"]
+    output:
+        cog = os.path.join(config["tempdir"],"query_in_all_cog.csv"),
+        cog_seqs = os.path.join(config["tempdir"],"query_in_all_cog.fasta"),
+        not_cog = os.path.join(config["tempdir"],"not_in_all_cog.csv")
+    run:
+        if config["background_metadata_all"]:
+            shell("""check_cog_db.py --query {input.not_in_cog:q} \
+                            --cog-seqs {input.background_seqs:q} \
+                            --cog-metadata {config[background_metadata_all]:q} \
+                            --field {config[data_column]} \
+                            --input-column {config[input_column]} \
+                            --in-metadata {output.cog:q} \
+                            --in-seqs {output.cog_seqs:q} \
+                            --not-in-cog {output.not_cog:q} \
+                            --all-cog """)
+        else:
+            print("just touching the files instead")
+            shell("cp {input.not_in_cog:q} {output.not_cog:q} && touch {output.cog_seqs:q} && touch {output.cog:q}")
+            
+
 rule get_closest_cog:
     input:
         snakefile = os.path.join(workflow.current_basedir,"find_closest_cog.smk"),
         reference_fasta = config["reference_fasta"],
         background_seqs = config["background_seqs"],
-        background_metadata = config["background_metadata"]
+        background_metadata = config["background_metadata"],
+        in_all_cog = rules.check_cog_db_all.output.cog,
+        in_all_cog_seqs = rules.check_cog_db_all.output.cog_seqs,
+        not_in_cog = rules.check_cog_db_all.output.not_cog
     output:
         closest_cog = os.path.join(config["tempdir"],"closest_cog.csv"),
         aligned_query = os.path.join(config["tempdir"],"post_qc_query.aligned.fasta")
     run:
-        if config["fasta"] != "":
-            if config["num_seqs"] != 0:
-                num_seqs = config["num_seqs"]
-                print(qcfunk.green(f"Passing {num_seqs} sequences into search pipeline:"))
+        if config["background_metadata_all"]:
+            to_find_closest = {}
+            
+            for record in SeqIO.parse(input.in_all_cog_seqs,"fasta"):
+                to_find_closest[record.id] = ("COG_database",record.seq)
+                config["num_seqs"]+=1
 
-                for record in SeqIO.parse(config["post_qc_query"], "fasta"):
-                    print(f"    - {record.id}")
+            if config["fasta"] != "":
+                for record in SeqIO.parse(config["post_qc_query"],"fasta"):
+                    to_find_closest[record.id] = ("input_fasta",record.seq)
 
-                shell("snakemake --nolock --snakefile {input.snakefile:q} "
-                            "{config[force]} "
-                            "{config[log_string]}"
-                            "--directory {config[tempdir]:q} "
-                            "--config "
-                            "tempdir={config[tempdir]:q} "
-                            "background_metadata={input.background_metadata:q} "
-                            "background_seqs={input.background_seqs:q} "
-                            "to_find_closest='{config[post_qc_query]}' "
-                            "data_column={config[data_column]} "
-                            "trim_start={config[trim_start]} "
-                            "trim_end={config[trim_end]} "
-                            "reference_fasta={input.reference_fasta:q} "
-                            "--cores {workflow.cores}")
+            with open(os.path.join(config["tempdir"],"combined_seqs.fasta"),"w") as fw:
+                for record in to_find_closest:
+                    fw.write("f>{record} source={to_find_closest[record][0]}\n{to_find_closest[record][1]}")
+
+            config["to_find_closest"] = os.path.join(config["tempdir"],"combined_seqs.fasta")
+        else:
+            config["to_find_closest"] = config["post_qc_query"]
+
+        if config["num_seqs"] != 0:
+            num_seqs = config["num_seqs"]
+            print(qcfunk.green(f"Passing {num_seqs} sequences into search pipeline:"))
+
+            for record in SeqIO.parse(config["to_find_closest"], "fasta"):
+                print(f"    - {record.id}")
+
+            shell("snakemake --nolock --snakefile {input.snakefile:q} "
+                        "{config[force]} "
+                        "{config[log_string]}"
+                        "--directory {config[tempdir]:q} "
+                        "--config "
+                        "tempdir={config[tempdir]:q} "
+                        "background_metadata={input.background_metadata:q} "
+                        "background_seqs={input.background_seqs:q} "
+                        "to_find_closest='{config[to_find_closest]}' "
+                        "data_column={config[data_column]} "
+                        "trim_start={config[trim_start]} "
+                        "trim_end={config[trim_end]} "
+                        "reference_fasta={input.reference_fasta:q} "
+                        "--cores {workflow.cores}")
         else:
             shell("touch {output.closest_cog:q} && touch {output.aligned_query:q} && echo 'No closest sequences to find'")
+
 
 rule combine_metadata:
     input:
@@ -123,9 +169,50 @@ rule prune_out_catchments:
         -f newick \
         -p tree_ \
         --ignore-missing \
+        --output-taxa \
         -m "{input.metadata}" \
         --id-column closest 
         """)
+
+rule tree_content:
+    input:
+        summary = os.path.join(config["outdir"],"catchment_trees", "tree_collapsed_nodes.csv")
+    params:
+        tree_dir = os.path.join(config["outdir"],"catchment_trees")
+    output:
+        tree_summary = os.path.join(config["outdir"],"local_content.csv")
+    run:
+        tip_dict = {}
+        catchment_trees = []
+        for r,d,f in os.walk(params.tree_dir):
+            for fn in f:
+                if fn.endswith(".newick"):
+                    file_stem = ".".join(fn.split(".")[:-1])
+                    catchment_trees.append(file_stem)
+                    catchment_summary = os.path.join(r, f"{file_stem}.csv")
+                    with open(catchment_summary, "r") as f:
+                        for l in f:
+                            l = l.rstrip("\n")
+                            tip_dict[l] = file_stem
+        
+        with open(output.tree_summary,"w") as fw:
+            with open(config["background_metadata"],"r") as f:
+                reader = csv.DictReader(f)
+                header_names = reader.fieldnames
+                header_names.append("tree")
+                writer = csv.DictWriter(fw, fieldnames=header_names,lineterminator='\n')
+                writer.writeheader()
+
+                for row in reader:
+                    if row["sequence_name"] in tip_dict:
+                        new_row = row
+                        new_row["tree"]=tip_dict[row["sequence_name"]]
+
+                        writer.writerow(new_row)
+        
+        config["local_metadata"] = os.path.join(config["outdir"],"local_content.csv")
+
+
 
 rule process_catchments:
     input:
@@ -136,6 +223,7 @@ rule process_catchments:
         query_seqs = rules.get_closest_cog.output.aligned_query, #datafunk-processed seqs
         collapse_summary = rules.prune_out_catchments.output.summary,
         background_seqs = config["background_seqs"],
+        local_metadata = os.path.join(config["outdir"],"local_content.csv"),
         outgroup_fasta = config["outgroup_fasta"]
     params:
         tree_dir = os.path.join(config["outdir"],"catchment_trees")
@@ -261,6 +349,7 @@ rule regional_mapping:
         --user-sample-data {input.query:q} \
         --combined-metadata {input.combined_metadata:q} \
         --input-name {config[input_column]:q} \
+        --sample-date-column {config[sample_date_column]} \
         --output-base-dir {params.figdir:q} \
         --output-temp-dir {config[tempdir]:q}
             """)
@@ -336,6 +425,8 @@ rule make_report:
         config["name_stem"] = output_prefix
         qcfunk.get_tree_name_stem(config["treedir"],config)
 
+        qcfunk.find_missing_sequences(config)
+
         with open(output.yaml, 'w') as fw:
             yaml.dump(config, fw) #so at the moment, every config option gets passed to the report
 
@@ -344,6 +435,7 @@ rule make_report:
         cp {config[footer]:q} {output.footer_fig:q} """)
         
         shell("make_report.py --config {output.yaml:q} ")
+
 
 rule launch_grip:
     input:

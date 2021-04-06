@@ -1,0 +1,33 @@
+name: civet-test-installation
+on:
+  push:
+    branches: [ actions_dev ]
+  pull_request:
+    branches: [ actions_dev ]
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v2
+      - uses: conda-incubator/setup-miniconda@v2
+        with:
+          environment-file: environment.yml
+          activate-environment: civet
+          channels: conda-forge,bioconda,defaults
+          mamba-version: "*"
+      
+      - name: Set up Python 3.7
+        uses: actions/setup-python@v2
+        with:
+          python-version: 3.7
+          
+      - name: install civet
+        shell: bash -l {0}
+        run: |
+          python setup.py install
+          
+      - name: Check version
+        shell: bash -l {0}
+        run: civet -v
+        

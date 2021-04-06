@@ -6,6 +6,7 @@ import csv
 import sys
 from Bio import SeqIO
 from datetime import date
+import datetime as dt
 from collections import defaultdict
 import pandas as pd
 import random
@@ -30,6 +31,7 @@ def get_defaults():
                     "conclusions": "",
                     "max_ambiguity":0.5,
                     "min_length":10000,
+                    "num_seqs":0,
                     "no_temp":False,
                     "datadir":"",
                     "input_column":"name",
@@ -53,6 +55,7 @@ def get_defaults():
                     "date_range_start":False,
                     "date_range_end":False,
                     "launch_browser":False,
+                    "background_metadata_all":False,
                     "node_summary":"country",
                     "date_window":7,
                     "colour_by":"adm1=Paired",
@@ -60,11 +63,12 @@ def get_defaults():
                     "date_fields":False,
                     "remote":False,
                     "no_snipit":False,
-                    "include_snp_table":False,
+                    "remove_snp_table":False,
                     "include_bars":False,
-                    "cog_report":False,
+                    "omit_trees":False,
                     "omit_appendix":True,
                     "table_fields":["sample_date", "uk_lineage", "lineage", "phylotype"],
+                    "context_table_summary":False,
                     "threads":1,
                     "force":True,
                     "cluster":False,
@@ -82,16 +86,16 @@ def define_seq_db(config):
     
 
 def check_adm2_values(config):
-    
+
     get_acceptable_adm2(config)
     accepted_adm2 = config["clean_locs"]
-    
+
     with open(config["query"],"r") as f:
         reader = csv.DictReader(f)
         header = reader.fieldnames
         if "adm2" in header:
             for row in reader:
-                if row["adm2"].upper().replace(" ","_") not in accepted_adm2 and "|" not in row["adm2"]: 
+                if row["adm2"].upper().replace(" ","_") not in accepted_adm2 and "|" not in row["adm2"] and row["adm2"] != "": 
                     adm2_value = row["adm2"]
                     sys.stderr.write(qcfunk.cyan(f'Error: {adm2_value} not a valid adm2 region.\n Find a list of valid adm2 values at:\nhttps://artic-network.github.io/civet/geographic_data.html\n'))
                     sys.stderr.write(qcfunk.cyan(f'Please note: if you have a region that encompasses multiple adm2 regions eg West Midlands, list the correct adm2 regions separated by the "|" symbol to indicate ambiguity.\n'))
@@ -104,26 +108,7 @@ def check_adm2_values(config):
                             sys.exit(-1)
 
 
-
-def get_outgroup_sequence(outgroup_arg, cwd, config):
-    if outgroup_arg:
-        reference_fasta = os.path.join(cwd, outgroup_arg)
-        if not os.path.isfile(reference_fasta):
-            sys.stderr.write(cyan(f"""Error: cannot find specified outgroup file at {outgroup_arg}\n"""))
-            sys.exit(-1)
-        else:
-            config["reference_fasta"] = reference_fasta
-    elif "outgroup" in config:
-        reference_fasta = os.path.join(cwd, outgroup_arg)
-        if not os.path.isfile(reference_fasta):
-            sys.stderr.write(cyan(f"""Error: cannot find specified outgroup file at {outgroup_arg}\n"""))
-            sys.exit(-1)
-        else:
-            config["reference_fasta"] = reference_fasta
-
-
 def get_package_data(thisdir,config):
-    
     reference_fasta = pkg_resources.resource_filename('civet', 'data/reference.fasta')
     outgroup_fasta = pkg_resources.resource_filename('civet', 'data/outgroup.fasta')
     polytomy_figure = pkg_resources.resource_filename('civet', 'data/polytomies.png')
@@ -139,8 +124,7 @@ def get_package_data(thisdir,config):
     spatial_translations_1 = pkg_resources.resource_filename('civet', 'data/mapping_files/HB_Translation.pkl')
     spatial_translations_2 = pkg_resources.resource_filename('civet', 'data/mapping_files/adm2_regions_to_coords.csv')
     appendix_text = pkg_resources.resource_filename('civet', 'data/appendix.txt')
-    if not "reference_fasta" in config:
-        config["reference_fasta"] = reference_fasta
+    config["reference_fasta"] = reference_fasta
     config["outgroup_fasta"] = outgroup_fasta
     config["polytomy_figure"] = polytomy_figure
     config["report_args"] = report_args
@@ -167,12 +151,14 @@ def get_package_data(thisdir,config):
 
 def print_data_error(data_dir):
     sys.stderr.write(qcfunk.cyan(f"Error: data directory should contain the following files or additionally supply a background metadata file:\n") + f"\
-    - cog_global_2020-XX-YY_tree.nexus\n\
+    - cog_global_2020-XX-YY_tree.newick\n\
     - cog_global_2020-XX-YY_metadata.csv\n\
-    - cog_global_2020-XX-YY_alignment.fasta\n"+qcfunk.cyan(f"\
+    - cog_global_2020-XX-YY_alignment.fasta\n\n"
+    +qcfunk.cyan("Please also check that the data directory is correctly specified.\n\n")
+    +qcfunk.cyan(f"\
 To run civet please either\n1) ssh into CLIMB and run with --CLIMB flag\n\
 2) Run using `--remote` flag and your CLIMB username specified e.g. `-uun climb-covid19-smithj`\n\
-3) Specify a local directory with the appropriate files, optionally supply a custom metadata file\n\n"""))
+3) Specify a local directory with the appropriate files, optionally supply a custom metadata file, custom background tree or custom background fasta file\n\n"""))
 
 def rsync_data_from_climb(uun, data_dir):
     rsync_command = f"rsync -avzh --exclude 'cog' --delete-after {uun}@bham.covid19.climb.ac.uk:/cephfs/covid/bham/results/phylogenetics/latest/civet/ '{data_dir}'"
@@ -182,28 +168,29 @@ def rsync_data_from_climb(uun, data_dir):
         sys.stderr.write(qcfunk.cyan("Error: rsync command failed.\nCheck your user name is a valid CLIMB username e.g. climb-covid19-smithj\nAlso, check if you have access to CLIMB from this machine and are in the UK\n\n"))
         sys.exit(-1)
 
-def get_background_files(data_dir,background_metadata):
-    background_seqs = ""
-    background_tree = ""
+def get_background_files(data_dir,background_metadata, background_tree, background_seqs,background_metadata_all=False):
+    # background_seqs = ""
+    # background_tree = ""
     data_date = ""
     for r,d,f in os.walk(data_dir):
         for fn in f:
-            if fn.endswith(".fasta") and fn.startswith("cog_global_"):
+            if background_seqs == ""  and fn.endswith(".fasta") and fn.startswith("cog_global_"):
                 background_seqs = os.path.join(data_dir, fn)
                 data_date = fn.split("_")[2]
                 if not data_date.startswith("20"):
                     data_date = ""
-            elif fn.endswith(".nexus") and fn.startswith("cog_global_"):
+            elif background_tree == ""  and fn.endswith(".newick") and fn.startswith("cog_global_"):
                 background_tree = os.path.join(data_dir, fn)
+            elif background_metadata_all and fn.endswith("all.csv") and fn.startswith("cog_global_"):
+                background_metadata_all = os.path.join(data_dir, fn)
             elif background_metadata == "" and fn.endswith(".csv") and fn.startswith("cog_global_"):
                 background_metadata = os.path.join(data_dir, fn)
-
-    return background_seqs, background_tree, background_metadata, data_date
+                
+    return background_seqs, background_tree, background_metadata, data_date, background_metadata_all
     
 
-def get_remote_data(uun,background_metadata,data_dir,config):
+def get_remote_data(uun,background_metadata,background_trees, background_seqs,data_dir,config):
     config["remote"]= True
-
     if uun:
         config["username"] = uun
         rsync_data_from_climb(uun, data_dir)
@@ -221,7 +208,7 @@ def get_remote_data(uun,background_metadata,data_dir,config):
             sys.stderr.write(qcfunk.cyan("Error: rsync command failed.\nCheck your ssh is configured with Host bham.covid19.climb.ac.uk\nAlternatively enter your CLIMB username with -uun e.g. climb-covid19-smithj\nAlso, check if you have access to CLIMB from this machine and check if you are in the UK\n\n"))
             sys.exit(-1)
 
-    background_seqs, background_tree, background_metadata, data_date = get_background_files(data_dir,background_metadata)
+    background_seqs, background_tree, background_metadata, data_date, background_metadata_all = get_background_files(data_dir,background_metadata, background_trees, background_seqs)
 
     config["datadir"] = data_dir
     config["data_date"] = data_date
@@ -242,10 +229,13 @@ def get_remote_data(uun,background_metadata,data_dir,config):
         print("    -",background_metadata)
         print("    -",background_tree,"\n")
 
-def get_datadir(args_climb,args_uun,args_datadir,args_metadata,cwd,config):
+def get_datadir(args_climb,args_uun,args_datadir,args_metadata, args_tree, args_fasta, cwd,config):
     data_dir = ""
     background_metadata = ""
+    background_seqs = ""
+    background_tree = ""
     remote= config["remote"]
+    cog_all = False
 
     if args_metadata:
         expanded_path = os.path.expanduser(args_metadata)
@@ -261,9 +251,39 @@ def get_datadir(args_climb,args_uun,args_datadir,args_metadata,cwd,config):
             if not os.path.exists(background_metadata):
                 sys.stderr.write(qcfunk.cyan(f"Error: can't find metadata file at {background_metadata}.\n"))
                 sys.exit(-1)
+    if args_tree:
+        expanded_path = os.path.expanduser(args_tree)
+        background_tree= os.path.join(cwd, expanded_path)
+        if not os.path.exists(background_tree):
+            sys.stderr.write(qcfunk.cyan(f"Error: can't find tree file at {background_tree}.\n"))
+            sys.exit(-1)
+
+    elif "background_tree" in config:
+        if config["background_tree"]:
+            expanded_path = os.path.expanduser(config["background_tree"])
+            background_tree= os.path.join(config["path_to_query"], expanded_path)
+            if not os.path.exists(background_tree):
+                sys.stderr.write(qcfunk.cyan(f"Error: can't find tree file at {background_tree}.\n"))
+                sys.exit(-1)
+
+    if args_fasta:
+        expanded_path = os.path.expanduser(args_fasta)
+        background_seqs = os.path.join(cwd, expanded_path)
+        if not os.path.exists(background_seqs):
+            sys.stderr.write(qcfunk.cyan(f"Error: can't find metadata file at {background_seqs}.\n"))
+            sys.exit(-1)
+
+    elif "background_sequences" in config:
+        if config["background_sequences"]:
+            expanded_path = os.path.expanduser(config["background_sequences"])
+            background_seqs = os.path.join(config["path_to_query"], expanded_path)
+            if not os.path.exists(background_seqs):
+                sys.stderr.write(qcfunk.cyan(f"Error: can't find fasta file at {background_seqs}.\n"))
+                sys.exit(-1)
             
     if args_climb:
         data_dir = "/cephfs/covid/bham/results/phylogenetics/latest/civet/cog"
+        cog_all = False
         if os.path.exists(data_dir):
             config["remote"] = False
             config["username"] = ""
@@ -286,9 +306,11 @@ def get_datadir(args_climb,args_uun,args_datadir,args_metadata,cwd,config):
         if not os.path.exists(data_dir):
             print_data_error(data_dir)
             sys.exit(-1)
-            
-        background_seqs, background_tree, background_metadata, data_date = get_background_files(data_dir,background_metadata)
-
+        
+        
+        background_seqs, background_tree, background_metadata, data_date, background_metadata_all = get_background_files(data_dir,background_metadata, background_tree,background_seqs, cog_all)
+        
+        
         config["datadir"] = data_dir
         config["data_date"] = data_date
 
@@ -299,15 +321,17 @@ def get_datadir(args_climb,args_uun,args_datadir,args_metadata,cwd,config):
             config["background_metadata"] = background_metadata
             config["background_seqs"] = background_seqs
             config["background_tree"] = background_tree
+            config["background_metadata_all"] = background_metadata_all
 
             print("Found data:")
             print("    -",background_seqs)
             print("    -",background_metadata)
+            print("    -",background_metadata_all)
             print("    -",background_tree,"\n")
 
     elif remote:
         
-        get_remote_data(args_uun, background_metadata, data_dir, config)
+        get_remote_data(args_uun, background_metadata, background_tree, background_seqs, data_dir, config)
 
     config["datadir"]=data_dir
 
@@ -442,6 +466,7 @@ def prepping_civet_arguments(name_stem_input, tree_fields_input, graphic_dict_in
 def local_lineages_qc(config):
 
     query_file = config["query"]
+    date_format = "%Y-%m-%d"
 
     if config["local_lineages"]:
 
@@ -453,11 +478,19 @@ def local_lineages_qc(config):
             sys.exit(-1)
 
         if config["date_restriction"]:
-
             if config["date_range_start"] and type(config["date_range_start"]) == str:
-                qcfunk.check_date_format(config["date_range_start"], config_key="date_range_start")
+                try:
+                    check_date = dt.datetime.strptime(config["date_range_start"], date_format).date()
+                except:
+                    print(qcfunk.cyan(f'date range start in incorrect format. Please use i.e. YYYY-MM-DD'))
+                    sys.exit(-1)
+                
             if config["date_range_end"] and type(config["date_range_end"]) == str:
-                qcfunk.check_date_format(config["date_range_end"], config_key="date_range_end")
+                try:
+                    check_date = dt.datetime.strptime(config["date_range_end"], date_format).date()
+                except:
+                    print(qcfunk.cyan(f'date range end in incorrect format. Please use i.e. YYYY-MM-DD'))
+                    sys.exit(-1)
 
             if config["date_range_start"] and config["date_range_end"]:
                 print(qcfunk.green(f"Local lineage analysis restricted to {config['date_range_start']} to {config['date_range_end']}"))
@@ -466,9 +499,14 @@ def local_lineages_qc(config):
             else:
                 print(qcfunk.green(f"Local lineage analysis restricted to {config['date_window']} days around the sampling range"))
 
-        else:
+        elif config['date_range_start'] or config["date_range_end"]:
+            print(qcfunk.cyan("Date restriction data provided but --date-restriction flag not used. Please use --date-restriction flag in config or command line."))
+            sys.exit(-1)
 
+        else:
             print(qcfunk.green(f"Local lineage analysis not restricted by time, will show background lineage composition for the whole of the epidemic"))
+
+        
 
 def local_lineages_to_config(central, neighbouring, region, config):
 
@@ -599,8 +637,8 @@ def report_group_to_config(args,config):
 
     ## table_fields
     qcfunk.add_arg_to_config("table_fields",args.table_fields, config)
-    ## include_snp_table
-    qcfunk.add_arg_to_config("include_snp_table",args.include_snp_table, config)
+    ## remove_snp_table
+    qcfunk.add_arg_to_config("remove_snp_table",args.remove_snp_table, config)
 
     ## include_bars
     qcfunk.add_arg_to_config("include_bars",args.include_bars, config)
@@ -610,6 +648,12 @@ def report_group_to_config(args,config):
 
     ## no-snipit
     qcfunk.add_arg_to_config("no_snipit",args.no_snipit, config)
+
+    ## omit-trees
+    qcfunk.add_arg_to_config("omit_trees", args.omit_trees, config)
+
+    ##context-table
+    qcfunk.add_arg_to_config("context_table_summary", args.context_table_summary, config)
     
 
 def make_full_civet_table(query_dict, full_taxon_dict, tree_fields, label_fields, input_column, outdir, table_fields):
@@ -646,9 +690,9 @@ def make_full_civet_table(query_dict, full_taxon_dict, tree_fields, label_fields
             else:
                 df_dict["in_cog"].append("False")
 
-            df_dict["UK_lineage"].append(taxon.uk_lineage)
-            df_dict["lineage"].append(taxon.global_lineage)
-            df_dict["phylotype"].append(taxon.phylotype)
+            # df_dict["UK_lineage"].append(taxon.uk_lineage)
+            # df_dict["lineage"].append(taxon.global_lineage)
+            # df_dict["phylotype"].append(taxon.phylotype)
 
             if taxon.tree != "NA":
                 tree_number = taxon.tree.split("_")[-1]
@@ -715,14 +759,11 @@ def generate_labels(tax,safety_level, custom_tip_fields):
         for label_element in custom_tip_fields:
             if label_element == "adm2":
                 label_element = tax.attribute_dict["location_label"]
-            if count == 0:
-                display_name = name
             else:   
                 display_name = display_name + "|" + tax.attribute_dict[label_element]
             count += 1
     
     return display_name
-
 
 def get_acceptable_adm2(config):
 
@@ -747,9 +788,11 @@ def get_acceptable_adm2(config):
     'ABERDEEN', 'ABERDEENSHIRE', 'ANGUS', 'ARGYLL_AND_BUTE', 'CLACKMANNANSHIRE', 'DUMFRIES_AND_GALLOWAY', 'DUNDEE', 'EAST_AYRSHIRE', 'EAST_DUNBARTONSHIRE', 'EAST_LOTHIAN', 'EAST_RENFREWSHIRE', 'EDINBURGH', 'EILEAN_SIAR', 'FALKIRK', 'FIFE', 
     'GLASGOW', 'HIGHLAND', 'INVERCLYDE', 'MIDLOTHIAN', 'MORAY', 'NORTH_AYRSHIRE', 'NORTH_LANARKSHIRE', 'ORKNEY_ISLANDS', 'PERTHSHIRE_AND_KINROSS', 'RENFREWSHIRE', 'SCOTTISH_BORDERS', 'SHETLAND_ISLANDS', 'SOUTH_AYRSHIRE', 'SOUTH_LANARKSHIRE', 'STIRLING', 'WEST_DUNBARTONSHIRE', 'WEST_LOTHIAN',
     'ANGLESEY', 'BLAENAU_GWENT', 'BRIDGEND', 'CAERPHILLY', 'CARDIFF', 'CARMARTHENSHIRE', 'CEREDIGION', 'CONWY', 'DENBIGHSHIRE', 'FLINTSHIRE', 'GWYNEDD', 'MERTHYR_TYDFIL', 'MONMOUTHSHIRE', 'NEATH_PORT_TALBOT', 'NEWPORT', 'PEMBROKESHIRE', 'POWYS', 'RHONDDA_CYNON_TAFF', 'SWANSEA', 'TORFAEN', 'VALE_OF_GLAMORGAN', 'WREXHAM',
-    'GUERNSEY', "JERSEY"]
-    
+    'GUERNSEY', "JERSEY"
+    ]
+
     config["clean_locs"] = GADM_adm2
+
 
 
 def header(v):
