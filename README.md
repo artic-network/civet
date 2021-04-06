@@ -1,5 +1,7 @@
 # civet
 
+![civet-test-installation](https://github.com/COG-UK/civet/workflows/civet-test-installation/badge.svg)
+
 **C**luster **I**nvestigation & **V**irus **E**pidemiology **T**ool
 
 <img src="./docs/doc_figures/civet_logo.png" width="350">
@@ -12,7 +14,7 @@
   * [Analysis pipeline](./docs/analysis_pipeline.md)
   * [Output](./docs/output.md)
   * [Report options and descriptions](./docs/report_docs.md)
-  * [Mapping options and usage instructions](./docs/map_options_docs.md)
+  * [Mapping options and usage instructions](./docs/map_option_docs.md)
   * [Adminstrative level 2 data](./docs/geographic_data.md)
   * [Example report](./docs/civet_report_example.md)
   * [Contributors & acknowledgements](./docs/acknowledgements.md)
@@ -131,6 +133,10 @@ data source options:
                         Custom metadata file that corresponds to the large
                         global tree/ alignment. Should have a column
                         `sequence_name`.
+  --background-tree BACKGROUND_TREE
+                        Custom tree file in newick format, must match background metadata and background fasta file.
+  --background-sequences BACKGROUND_SEQUENCES
+                        Custom background  dataset in fasta format, must match background metadata and background tree file.
   --CLIMB               Indicates you're running CIVET from within CLIMB, uses
                         default paths in CLIMB to access data
   -r, --remote     Remotely access lineage trees from CLIMB

@@ -4,10 +4,11 @@ import warnings
 import pickle
 import geopandas as gp
 import pandas as pd
-from collections import Counter
 from libpysal.weights import Queen, attach_islands, DistanceBand, set_operations
 import json
 import csv
+import numpy as np
+from collections import Counter
 #from vega import VegaLite
 import argparse
 warnings.filterwarnings("ignore")
@@ -22,6 +23,7 @@ parser.add_argument("--cog-meta-global", action="store", type=str, dest="cog_met
 parser.add_argument("--user-sample-data", action="store", type=str, dest="user_sample_data")
 parser.add_argument("--combined-metadata",action="store",type=str,dest="combined_metadata")
 parser.add_argument("--input-name", action="store", type=str, dest="input_name")
+parser.add_argument("--sample-date-column", action="store", type=str, dest="sample_date_column")
 parser.add_argument("--date-window", action="store",required=False, type=int, dest="date_window")
 parser.add_argument("--output-base-dir", action="store", type=str, dest="output_base_dir")
 parser.add_argument("--output-temp-dir", action="store", type=str, dest="output_temp_dir")
@@ -54,7 +56,7 @@ def adm2cleaning(data_cog, samplecsv=False):
     
     data_cog2['adm2'] = data_cog2['adm2'].str.replace('^MOTHERWELL$', 'NORTH_LANARKSHIRE', regex=True).copy()
     data_cog2['adm2'] = data_cog2['adm2'].str.replace('^GREATER_LONDON$', 'GREATER_LONDON', regex=True)
-    data_cog2['adm2'] = data_cog2['adm2'].str.replace('^BORDERS$', 'SCOTTISH_BORDERS', regex=True)
+    data_cog2['adm2'] = data_cog2['adm2'].str.replace('^BORDERS$', 'SCOTTISH _ORDERS', regex=True)
     data_cog2['adm2'] = data_cog2['adm2'].str.replace('^PAISLEY$', 'RENFREWSHIRE', regex=True)
     data_cog2['adm2'] = data_cog2['adm2'].str.replace('^SUTTON-IN-ASHFIELD$', 'NOTTINGHAMSHIRE', regex=True)
     data_cog2['adm2'] = data_cog2['adm2'].str.replace('^LONDON$', 'GREATER_LONDON', regex=True)
@@ -114,27 +116,28 @@ def getForthBridge(DFin, weightedMatrix):
 
 def tabulateLins(HBCODE, DF, HBNAME):
     for each in [HBCODE]:
-        if len(DF.loc[DF['HBCode'] == each]['uk_lineage'].value_counts().to_frame()) > 20:
-            uk_lin_DF = DF.loc[DF['HBCode'] == each]['uk_lineage'].value_counts()[:20].to_frame()
-            uk_lin_DF = uk_lin_DF.reset_index()
-            uk_lin_DF.columns = ['UK Lineage', 'Count']
-            uk_lin_DF['Count'] = uk_lin_DF['Count'].astype(int)
-        else:
-            uk_lin_DF = DF.loc[DF['HBCode'] == each]['uk_lineage'].value_counts().to_frame()
-            uk_lin_DF = uk_lin_DF.reset_index()
-            uk_lin_DF.columns = ['UK Lineage', 'Count']
-            uk_lin_DF['Count'] = uk_lin_DF['Count'].astype(int)
+      #the first part is never true, it never finds the HBCode being the same
+      if len(DF.loc[DF['HBCode'] == each]['uk_lineage'].value_counts().to_frame()) > 20:
+          uk_lin_DF = DF.loc[DF['HBCode'] == each]['uk_lineage'].value_counts()[:20].to_frame()
+          uk_lin_DF = uk_lin_DF.reset_index()
+          uk_lin_DF.columns = ['UK Lineage', 'Count']
+          uk_lin_DF['Count'] = uk_lin_DF['Count'].astype(int)
+      else:
+          uk_lin_DF = DF.loc[DF['HBCode'] == each]['uk_lineage'].value_counts().to_frame()
+          uk_lin_DF = uk_lin_DF.reset_index()
+          uk_lin_DF.columns = ['UK Lineage', 'Count']
+          uk_lin_DF['Count'] = uk_lin_DF['Count'].astype(int)
 
-        if len(DF.loc[DF['HBCode'] == each]['lineage'].value_counts().to_frame()) > 10:
-            glob_lin_DF = DF.loc[DF['HBCode'] == each]['lineage'].value_counts()[:10].to_frame()
-            glob_lin_DF = glob_lin_DF.reset_index()
-            glob_lin_DF.columns = ['Global Lineage', 'Count']
-            glob_lin_DF['Count'] = glob_lin_DF['Count'].astype(int)
-        else:
-            glob_lin_DF = DF.loc[DF['HBCode'] == each]['lineage'].value_counts().to_frame()
-            glob_lin_DF = glob_lin_DF.reset_index()
-            glob_lin_DF.columns = ['Global Lineage', 'Count']
-            glob_lin_DF['Count'] = glob_lin_DF['Count'].astype(int)
+      if len(DF.loc[DF['HBCode'] == each]['lineage'].value_counts().to_frame()) > 10:
+          glob_lin_DF = DF.loc[DF['HBCode'] == each]['lineage'].value_counts()[:10].to_frame()
+          glob_lin_DF = glob_lin_DF.reset_index()
+          glob_lin_DF.columns = ['Global Lineage', 'Count']
+          glob_lin_DF['Count'] = glob_lin_DF['Count'].astype(int)
+      else:
+          glob_lin_DF = DF.loc[DF['HBCode'] == each]['lineage'].value_counts().to_frame()
+          glob_lin_DF = glob_lin_DF.reset_index()
+          glob_lin_DF.columns = ['Global Lineage', 'Count']
+          glob_lin_DF['Count'] = glob_lin_DF['Count'].astype(int)
 
     tableList = [uk_lin_DF, glob_lin_DF]
     # print(HBNAME)
@@ -296,7 +299,6 @@ def mapProduce(HBSet, DF, region, centralCode=None):
         # VegaLite(singlemapPIE)
         return multicanvasJSON
 
-
 def decide_HB(metadata_df, HB_translation):
 
   possible_HBs = []
@@ -306,7 +308,10 @@ def decide_HB(metadata_df, HB_translation):
     if not pd.isnull(adm2):
       if "|" in adm2:
         HB = decide_single_HB(adm2, HBTranslation)  
-        HB_translation[adm2] = HB
+        try:
+          HB_translation[adm2] = HB
+        except:
+          HB_translation = ""
       elif "RHONDDA" in adm2:  
         HB_translation[adm2] = "Cwm Taf Morgannwg University Health Board"    
 
@@ -316,22 +321,29 @@ def decide_single_HB(adm2, HB_translation):
 
   possible_HBs = []
   possible_adm2s = adm2.split("|")
-  
+
   for item in possible_adm2s:
     if "RHONDDA" in item:
       possible_HBs.append("Cwm Taf Morgannwg University Health Board")
     else:
-      possible_HBs.append(HB_translation[item])
-  
+      try:
+        possible_HBs.append(HB_translation[item])
+      except:
+        pass
+
   HB_counts = Counter(possible_HBs)
-  HB = HB_counts.most_common(1)[0][0]
+  try:
+    HB = HB_counts.most_common(1)[0][0]
+  except:
+    HB = ""
 
   return HB
+
 
 def getSampleData_final(MetadataDF, HBTranslation, HBCode_translation):
     cog_meta = MetadataDF
     cog_meta['central_sample_id'] = cog_meta['sequence_name'].str.split('/', expand=True)[1]
-    cog_meta = cog_meta.loc[cog_meta['adm1'].isin(['UK-SCT', 'UK-ENG', 'UK-WLS', 'UK-NIR'])]
+    cog_meta = cog_meta.loc[cog_meta['adm1'].isin(['UK-SCT', 'UK-ENG', 'UK-WLS', 'UK-NIR', 'Scotland', 'Northern_Ireland', "England", "Wales"])]
     HB_translation = decide_HB(cog_meta, HBTranslation)
     cog_meta['HBName'] = cog_meta['adm2'].map(HBTranslation)
     cog_meta['HBCode'] = cog_meta['HBName'].map(HBCode_translation)
@@ -350,15 +362,18 @@ def adm2_to_centralHBCode(sampleframe, translation_dict, HbtoCode):
     HBs = []
     sampleframe['adm2'] = sampleframe['adm2'].str.upper().replace(" ","_")
     sampleframe = adm2cleaning(sampleframe, samplecsv=True)
+    # print(sampleframe)
     adm2 = sampleframe['adm2'].to_list()
+    # print(adm2)
     for each in adm2:
-        if each in translation_dict:
-          HB = translation_dict[each]
-        elif "|" in each:
-          HB = decide_single_HB(sampleframe, translation_dict)
-        elif "RHONDDA" in each:
-          HB = "Cwm Taf Morgannwg University Health Board"
-        HBs.append(HB)
+        if not pd.isnull(each):
+          if each in translation_dict:
+            HB = translation_dict[each]
+          elif "|" in each:
+            HB = decide_single_HB(each, translation_dict)
+          elif "RHONDDA" in each:
+            HB = "Cwm Taf Morgannwg University Health Board"
+          HBs.append(HB)
     if len(HBs) > 0:
         centralHB = max(HBs, key=HBs.count)
         centralHBCode = HbtoCode[centralHB]
@@ -369,13 +384,13 @@ def adm2_to_centralHBCode(sampleframe, translation_dict, HbtoCode):
         return None
 
 
-def supplement_sample_csv(sample_df,combined_metadata_df,input_name):
+def supplement_sample_csv(sample_df,combined_metadata_df,sample_date_column, input_name):
 
   col_list = sample_df.columns
-  potential_date_cols = []
-  for i in col_list:
-    if "date" in i.lower():
-        potential_date_cols.append(i)
+  # potential_date_cols = []
+  # for i in col_list:
+  #   if "date" in i.lower():
+  #       potential_date_cols.append(i)
 
   if "adm2" not in col_list:
     testing_similarity = combined_metadata_df['query'][combined_metadata_df["query"] == combined_metadata_df["closest"]]
@@ -385,50 +400,55 @@ def supplement_sample_csv(sample_df,combined_metadata_df,input_name):
     else:
       return False
 
-  if len(potential_date_cols) == 0:
+  if sample_date_column not in col_list:
     testing_similarity = combined_metadata_df['query'][combined_metadata_df["query"] == combined_metadata_df["closest"]]
 
     if len(testing_similarity) > 0:
       if "sample_date" in combined_metadata_df:
         sample_df["sample_date"] = combined_metadata_df["sample_date"]
 
+
   return sample_df
 
-def defineDateRestriction(samplesDF, windowSize):
+def defineDateRestriction(samplesDF, windowSize, sample_date_column):
   
   col_list = samplesDF.columns
-  potential_date_cols = []
-  for i in col_list:
-    if "date" in i.lower():
-      potential_date_cols.append(i)
+  # potential_date_cols = []
+  # for i in col_list:
+  #   if "date" in i.lower():
+  #     potential_date_cols.append(i)
 
-  if len(potential_date_cols) == 0:
-    print('No dates found, will revert to using all available data for local lineage analysis.')
+  # if len(potential_date_cols) == 0:
+  #   print('No dates found, will revert to using all available data for local lineage analysis.')
+  #   return None
+
+  # collection = False
+  # for j in potential_date_cols:
+  #   if "collection" in j.lower():
+  #     date_col = j
+  #     collection = True
+  #     break
+  #   else:
+  #     date_col = j #we shouldn't do this - it's picking the most recent one in the loop
+
+  # if collection:
+  #   print(f"Collection date not found, using {j} to restrict local lineages by")
+
+  if sample_date_column not in samplesDF.columns and "sample_date" not in samplesDF.columns:
+    print('No dates found, will revert to using all available data for local lineage analysis. Please use "--sample-date-column" argument to specify a custom column header for dates.')
     return None
-
-  collection = False
-  for j in potential_date_cols:
-    if "collection" in j.lower():
-      date_col = j
-      collection = True
-      break
-    else:
-      date_col = j
-      
-  if collection:
-    print(f"Collection date not found, using {j} to restrict local lineages by")
-
-  datedSamples = samplesDF.dropna(subset=[date_col])
-  if len(datedSamples) == 0:
-      print('No collection dates specified, will revert to using all available data for local lineage analysis.')
-      return None
-  if len(datedSamples) > 0:
-      datedSamples[date_col] = pd.to_datetime(datedSamples[date_col], format="%Y-%m-%d")
-      datedSamples.sort_values(by=[date_col], inplace=True)
-      start = datedSamples.iloc[[0]][date_col].item() + pd.DateOffset(days=-windowSize)
-      end = datedSamples.iloc[[-1]][date_col].item() + pd.DateOffset(days=windowSize)
-      daterange = {'start_date': start, 'end_date': end}
-      return daterange
+  else:
+    datedSamples = samplesDF.dropna(subset=[sample_date_column])
+    if len(datedSamples) == 0:
+        print('No collection dates specified, will revert to using all available data for local lineage analysis.')
+        return None
+    if len(datedSamples) > 0:
+        datedSamples[sample_date_column] = pd.to_datetime(datedSamples[sample_date_column], format="%Y-%m-%d")
+        datedSamples.sort_values(by=[sample_date_column], inplace=True)
+        start = datedSamples.iloc[[0]][sample_date_column].item() + pd.DateOffset(days=-windowSize)
+        end = datedSamples.iloc[[-1]][sample_date_column].item() + pd.DateOffset(days=windowSize)
+        daterange = {'start_date': start, 'end_date': end}
+        return daterange
 
 
 def finaliseMapping(boardMAP):
@@ -444,14 +464,14 @@ def hbcode_hbname_translation(mapDF):
     translation = dict(zip(mapDF.HBName, mapDF.HBCode))
     return translation
 
-def do_date_restriction(cogDF, samplecsv, start, end, window=7, restriction_bool=False):
+def do_date_restriction(cogDF, samplecsv, start, end, sample_date_column, window=7, restriction_bool=False):
     if restriction_bool:
         if start and end:
             date_list = {'start_date': date_start, 'end_date': date_end}
             cogOut = dateRestriction(cogDF, date_list)
             return cogOut
         else:
-            date_list = defineDateRestriction(samplecsv, window)
+            date_list = defineDateRestriction(samplecsv, window, sample_date_column)
             if date_list is not None:
                 cogOut = dateRestriction(cogDF, date_list)
                 return cogOut
@@ -636,8 +656,9 @@ for k,v in HBTranslation.items():
   new_translator[k.replace(" ","_")] = v
 HBTranslation = new_translator
 
+
 #if the inputs don't have adm2 or dates, but if some of them are in COG
-inputSamples = supplement_sample_csv(inputSamples, combined_metadata, argsIN.input_name)
+inputSamples = supplement_sample_csv(inputSamples, combined_metadata, argsIN.sample_date_column, argsIN.input_name)
 if type(inputSamples) == bool:
   print("NO ADM2 PRESENT, CANNOT PRODUCE LOCAL LINEAGE MAPPING")
 else:
@@ -668,9 +689,9 @@ else:
   #mainland_boards=update_adm15(mainland_boards)
   ###Checking user defined dates###
   if not argsIN.date_restriction:
-      cog_meta=do_date_restriction(COGDATA, inputSamples, date_start, date_end)
+      cog_meta=do_date_restriction(COGDATA, inputSamples, date_start, date_end, argsIN.sample_date_column)
   else:
-      cog_meta=do_date_restriction(COGDATA, inputSamples, date_start, date_end, restriction_bool=True, window=int(argsIN.date_window))
+      cog_meta=do_date_restriction(COGDATA, inputSamples, date_start, date_end, argsIN.sample_date_column, restriction_bool=True, window=int(argsIN.date_window))
   ### Final restricted meta
   cog_final = getSampleData_final(cog_meta, HBTranslation, HBCode_name_translation)
   ## Proessing input csv ##

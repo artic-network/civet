@@ -9,6 +9,7 @@ import csv
 import adjustText as aT
 import os
 
+
 def generate_all_uk_dataframe(mapping_input):
 
     uk_file = mapping_input[0]
@@ -34,7 +35,7 @@ def generate_all_uk_dataframe(mapping_input):
 
 
 def find_ambiguities(adm2s):
-    
+
     ambiguous = []
     ambiguous_dict = defaultdict(set)
     clusters = []
@@ -63,8 +64,8 @@ def prep_mapping_data(mapping_input, tax_dict):
     adm2s = []
 
     for tax in tax_dict.values():
-        if tax.attribute_dict["adm2"] != "":
-            adm2s.append(tax.attribute_dict["adm2"]) #should already be upper and with underscores
+        if tax.attribute_dict["adm2_map"] != "":
+            adm2s.append(tax.attribute_dict["adm2_map"].upper().replace(" ","_")) #should already be upper and with underscores, but just in case
 
     if len(adm2s) == 0:
         return False
@@ -78,7 +79,7 @@ def prep_mapping_data(mapping_input, tax_dict):
     uppers = []
     for i in all_uk["NAME_2"]:
         uppers.append(i.upper().replace(" ","_"))
-        
+
     all_uk["NAME_2"] = uppers
 
     original = all_uk.copy()
@@ -86,7 +87,7 @@ def prep_mapping_data(mapping_input, tax_dict):
     ##DEAL WITH MERGED LOCATIONS EG WEST MIDLANDS
 
     for_merging = []
-    
+
     for location in all_uk["NAME_2"]:
         if location in ambiguous_dict:
             for_merging.append(ambiguous_dict[location])
@@ -110,7 +111,7 @@ def prep_mapping_data(mapping_input, tax_dict):
     return all_uk, result, adm2s, ambiguous_dict
 
 def make_centroids_get_counts(result, adm2s, ambiguous_dict):
-    
+
     not_mappable = ["WALES", "OTHER", "UNKNOWN", "UNKNOWN_SOURCE", "NOT_FOUND", "GIBRALTAR", "FALKLAND_ISLANDS", "CITY_CENTRE"]
 
     centroid_df = defaultdict(list)
@@ -141,10 +142,51 @@ def make_centroids_get_counts(result, adm2s, ambiguous_dict):
         centroid_df["geometry"].append(centroid_dict[adm2])
         centroid_df["seq_count"].append(count)
 
-
     centroid_geo = geopandas.GeoDataFrame(centroid_df)
 
     return centroid_geo, centroid_counts
+
+def pull_map_data(input_file, background_metadata, input_headers, background_headers, input_name_col, background_name_col, tax_dict, col_name):
+
+    some_missing_adm2 = False
+    
+    if col_name in input_headers:
+        with open(input_file) as f:
+            reader = csv.DictReader(f)
+            data = [r for r in reader]
+            
+            for seq in data:
+                name = seq[input_name_col]
+                adm2 = seq[col_name]
+
+                if name in tax_dict:
+                    tax = tax_dict[name]
+                    tax.attribute_dict["adm2_map"] = adm2
+                    tax_dict[name] = tax
+                    if adm2 == "":
+                        some_missing_adm2 = True
+    else:
+        some_missing_adm2 = True
+    
+    if col_name in background_headers and some_missing_adm2:
+        with open(background_metadata) as f:
+            reader = csv.DictReader(f)
+            data = [r for r in reader]
+            
+            for seq in data:
+                name = seq["sequence_name"]
+                adm2 = seq[col_name]
+                if name in tax_dict:
+                    if "adm2_map" not in tax_dict[name].attribute_dict or tax_dict[name].attribute_dict["adm2_map"] == "":
+                        tax_dict[name].attribute_dict["adm2_map"] = adm2                        
+    
+    
+    for obj in tax_dict.values():
+        if "adm2_map" not in obj.attribute_dict:
+            obj.attribute_dict["adm2_map"] = ""
+            obj.attribute_dict["location_label"] = ""
+
+    return tax_dict
 
 
 def prep_data_old(tax_dict, clean_locs_file):
@@ -152,8 +194,8 @@ def prep_data_old(tax_dict, clean_locs_file):
     adm2s = []
 
     for tax in tax_dict.values():
-        if tax.attribute_dict["adm2"] != "":
-            adm2s.append(tax.attribute_dict["adm2"].upper())
+        if tax.attribute_dict["adm2_map"] != "":
+            adm2s.append(tax.attribute_dict["adm2_map"].upper())
 
     metadata_multi_loc = {}
     straight_map = {}
@@ -185,7 +227,7 @@ def prep_mapping_data_old(mapping_input, metadata_multi_loc):
 
     uppers = []
     for i in all_uk["NAME_2"]:
-        uppers.append(i.upper())#.replace(" ","_")) put this in when we have the clean locations
+        uppers.append(i.upper())
         
     all_uk["NAME_2"] = uppers
 
@@ -229,6 +271,8 @@ def make_centroids_old(result,adm2s, straight_map):
     for name, geometry in zip(result["NAME_2"], result["geometry"]):
         centroid_dict[name.upper()] = geometry.centroid
 
+    centroids = []
+
     centroid_counts = Counter(adm2s)
 
     centroid_df = defaultdict(list)
@@ -243,8 +287,8 @@ def make_centroids_old(result,adm2s, straight_map):
         except KeyError:
             if adm2 != "" and adm2 not in not_mappable:
                 print(adm2 + " is not associated with an correct adm2 region so cannot be plotted yet.")
-                if "|" in adm2:
-                    print("This may be because you are using cleaned adm2 regions as an input but an old version of the background data pre-cleaning in phylo-pipe. If this is unexpected behaviour please contact Verity Hill.")
+            if "|" in adm2:
+                print("This may be because you are using cleaned adm2 regions as an input but an old version of the background data pre-cleaning in phylo-pipe. If this is unexpected behaviour please contact Verity Hill.")
                 
         try:
             centroid_df["Adm2"].append(adm2)
@@ -277,13 +321,16 @@ def make_map(centroid_geo, all_uk, figdir):
 
 
 
-def map_adm2(tax_dict, clean_locs_file, mapping_json_files, figdir, old_data): #So this takes adm2s and plots them onto the whole UK
+def map_adm2(tax_dict, clean_locs_file, mapping_json_files, figdir, input_csv, background_metadata, input_headers, background_headers, input_name_col, background_name_col, map_info_col, old_data): #So this takes adm2s and plots them onto the whole UK
 
+    tax_dict = pull_map_data(input_csv, background_metadata, input_headers, background_headers,input_name_col, background_name_col, tax_dict, map_info_col)
+    
     if old_data:
         adm2s, metadata_multi_loc, straight_map = prep_data_old(tax_dict, clean_locs_file)
         all_uk, result = prep_mapping_data_old(mapping_json_files, metadata_multi_loc)
         output = make_centroids_old(result, adm2s, straight_map)
 
+    
         if type(output) == bool:
             print("None of the sequences provided have adequate adm2 data and so cannot be mapped")
             return
@@ -304,12 +351,13 @@ def map_adm2(tax_dict, clean_locs_file, mapping_json_files, figdir, old_data): #
 
     adm2_percentages = {}
 
-    total = len(adm2_counter)
+    total = len(tax_dict)
 
     adm2_to_label = {}
+    
     for taxa in tax_dict.values():
-        if taxa.attribute_dict["adm2"].upper() != taxa.attribute_dict["location_label"].upper():
-            adm2_to_label[taxa.attribute_dict["adm2"]] =  taxa.attribute_dict["location_label"]
+        if taxa.attribute_dict["adm2_map"].upper() != taxa.attribute_dict["location_label"].upper():
+            adm2_to_label[taxa.attribute_dict["adm2_map"]] = taxa.attribute_dict["location_label"]
 
     for adm2, count in adm2_counter.items():
         adm2_percentages[adm2] = round(((count/total)*100),2)
@@ -344,7 +392,7 @@ def get_coords_from_file(input_csv, input_crs, colour_map_trait, x_col, y_col):
 
     return name_to_coords, name_to_trait
 
-def generate_coords_from_outer_postcode(pc_file, input_csv, postcode_col, colour_map_trait):
+def generate_coords_from_outer_postcode(pc_file, input_csv, background_metadata, input_headers, background_headers, input_name, background_name, postcode_col, colour_map_trait):
 
     pc_to_coords = {}
     name_to_coords = {}
@@ -355,34 +403,68 @@ def generate_coords_from_outer_postcode(pc_file, input_csv, postcode_col, colour
         data = [r for r in reader]
         
         for line in data:
-
             pc = line["outcode"]
             x = float(line["longitude"])
             y = float(line["latitude"])
-
             pc_to_coords[pc] = ((x,y))
-    
-    
+
+    pc_dict = {}
+    trait_dict = {}
+    done_seqs = []
+    query_seqs = []
+
+    some_missing_trait = False
+    some_missing_outerpostcode = False
+
     with open(input_csv) as f:
         reader = csv.DictReader(f)
         data = [r for r in reader]
         
         for seq in data:
-            name = seq["name"]
-            outer_postcode = seq[postcode_col]
+            name = seq[input_name]
+            query_seqs.append(name)
+            if postcode_col in input_headers:
+                outer_postcode = seq[postcode_col]
             
-            if colour_map_trait:
-                trait = seq[colour_map_trait]
-            
-            if outer_postcode != "":
-                if outer_postcode in pc_to_coords.keys():
-                    name_to_coords[name] = pc_to_coords[outer_postcode]
+                if outer_postcode != "":
+                    if outer_postcode in pc_to_coords.keys():
+                        name_to_coords[name] = pc_to_coords[outer_postcode]
+                        done_seqs.append(name)
 
-                    if colour_map_trait:
-                        name_to_trait[name] = trait
-
+                    else:
+                        pass
                 else:
-                    pass
+                    some_missing_outerpostcode = True
+            else:
+                some_missing_outerpostcode = True
+
+            if colour_map_trait and colour_map_trait in input_headers:
+                if colour_map_trait != "":
+                    name_to_trait[name] = seq[colour_map_trait]
+                else:
+                    name_to_trait[name] = "NA"
+                    some_missing_trait = True
+                
+
+    if (postcode_col in background_headers and some_missing_outerpostcode) or (colour_map_trait and colour_map_trait in background_headers and some_missing_trait):
+        with open(background_metadata) as f:
+            reader = csv.DictReader(f)
+            data = [r for r in reader]
+            
+            for seq in data:
+                name = seq[background_name]
+                if name in query_seqs and name not in done_seqs:
+                    if postcode_col in background_headers:
+                        outer_postcode = seq[postcode_col]
+                    if outer_postcode != "":
+                        if outer_postcode in pc_to_coords.keys():
+                            name_to_coords[name] = pc_to_coords[outer_postcode]
+                            done_seqs.append(name)
+
+                        else:
+                            pass
+                    if colour_map_trait and colour_map_trait in background_headers:
+                        name_to_trait[name] = seq[colour_map_trait]
 
 
     return name_to_coords, name_to_trait
@@ -485,7 +567,7 @@ def plot_coordinates(mapping_json_files, urban_centres, name_to_coords, name_to_
     return adm2_counter, adm2_percentages
         
 
-def map_sequences_using_coordinates(input_csv, mapping_json_files, urban_centres, pc_file,colour_map_trait, map_inputs, input_crs, figdir):
+def map_sequences_using_coordinates(input_csv, background_metadata, input_headers,background_headers,input_name_column, background_name_column, mapping_json_files, urban_centres, pc_file,colour_map_trait, map_inputs, input_crs, figdir):
 
     cols = map_inputs.split(",")
     if len(cols) == 2:
@@ -494,10 +576,12 @@ def map_sequences_using_coordinates(input_csv, mapping_json_files, urban_centres
         name_to_coords, name_to_trait = get_coords_from_file(input_csv, input_crs, colour_map_trait, x_col, y_col)
     elif len(cols) == 1:
         postcode_col = cols[0]
-        name_to_coords, name_to_trait = generate_coords_from_outer_postcode(pc_file, input_csv, postcode_col, colour_map_trait)
+        name_to_coords, name_to_trait = generate_coords_from_outer_postcode(pc_file, input_csv, background_metadata, input_headers, background_headers, input_name_column,background_name_column,postcode_col, colour_map_trait)
     
-    mapping_output = plot_coordinates(mapping_json_files, urban_centres, name_to_coords, name_to_trait, input_crs, colour_map_trait, figdir)
-
+    if len(name_to_coords) != 0:
+        mapping_output = plot_coordinates(mapping_json_files, urban_centres, name_to_coords, name_to_trait, input_crs, colour_map_trait, figdir)
+    else:
+        mapping_output = None
     return mapping_output
 
 
@@ -519,7 +603,7 @@ def convert_str_to_list(string, rel_dir):
     
     return lst
 
-def local_lineages_section(lineage_maps, lineage_tables):
+def local_lineages_section(lineage_maps, lineage_tables, date_restriction, date_range_start, date_range_end, date_window):
 
     print("These figures show the background diversity of lineages in the local area to aid with identifying uncommon lineages.")
     
@@ -527,6 +611,8 @@ def local_lineages_section(lineage_maps, lineage_tables):
     centralLoc = [t for t in big_list if "_central_" in t][0]
     tableList = [t for t in big_list if "_central_" not in t]
     centralName = centralLoc.split('/')[-1].split("_")[0]
+
+    today = pd.to_datetime('today').date()
 
     with open(centralLoc) as f:
         for l in f:
@@ -536,7 +622,17 @@ def local_lineages_section(lineage_maps, lineage_tables):
     linmapList = convert_str_to_list(lineage_maps, True)        
 
     print(f'Based on the sample density for submitted sequences with adm2 metadata, **{centralName}** was determined to be the focal NHS Health-board.\n')
-    print(f'The below figure visualises the relative proportion of assigned UK-Lineages for samples sampled in **{centralName}** for the defined time-frame.')
+    
+    if date_restriction:
+        if date_range_start and date_range_end:
+            print(f'The below figure visualises the relative proportion of assigned UK-Lineages for samples sampled in **{centralName}** from {date_range_start} to {date_range_end}')
+        elif date_range_start and not date_range_end:
+            print(f'The below figure visualises the relative proportion of assigned UK-Lineages for samples sampled in **{centralName}** from {date_range_start} to {today}')
+        elif date_window:
+            print(f'The below figure visualises the relative proportion of assigned UK-Lineages for samples sampled in **{centralName}** for {date_window} days before the most recent sample.')
+    else:
+        print(f'The below figure visualises the relative proportion of assigned UK-Lineages for samples sampled in **{centralName}** for the whole epidemic.')
+    
     print ("![]("+linmapList[0]+")\n")
     print(f'The below figure visualises the relative proportions of assigned UK-Lineages for samples collected in the whole region for the defined time-frame. Plot-size demonstrates relative numbers of sequences across given NHS healthboards.')
     print ("![]("+linmapList[2]+")\n")
