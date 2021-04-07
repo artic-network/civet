@@ -10,11 +10,12 @@ from civet import __version__, _program
 setup(name='civet',
       version=__version__,
       packages=find_packages(),
-      scripts=["civet/scripts/civet.smk",
-      "civet/scripts/civetfunks.py"],
+      scripts=["civet/scripts/civet.smk"],
       package_data={"civet":["data/*"]},
       install_requires=[
-            "biopython>=1.70"
+            "biopython>=1.70",
+            "baltic",
+            "mako>=1.1"
         ],
       description='Cluster Investivation & Virus Epidemiology Tool',
       url='https://github.com/artic-network/civet',
