@@ -15,7 +15,7 @@ def header(v):
                                         {v}""")+colour.green("""
                         ****************************************
                                                                 
-                            Aine O'Toole & Verity Hill       
+                      Aine O'Toole & Verity Hill & Rachel Colquhoun       
                                     Rambaut Group              
                                 Edinburgh University          
 \n"""))
