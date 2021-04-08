@@ -13,7 +13,14 @@ def package_data_check(filename,directory,key,config):
     except:
         sys.stderr.write(colour.cyan(f'Error: Missing package data.')+f'\n\t- {filename}\nPlease install the latest civet version with `civet --update`.\n')
         sys.exit(-1)
-    
+
+def get_snakefile(thisdir):
+    snakefile = os.path.join(thisdir, 'scripts','civet.smk')
+    if not os.path.exists(snakefile):
+        sys.stderr.write(cyan(f'Error: cannot find Snakefile at {snakefile}\n Check installation\n'))
+        sys.exit(-1)
+    return snakefile
+
 def check_install():
     resources = [
         {"key":"reference_fasta",

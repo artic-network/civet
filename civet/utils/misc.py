@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-import log_colours as colour
+from civet.utils import log_colours as colour
 
 
 def header(v):
