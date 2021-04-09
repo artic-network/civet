@@ -24,11 +24,13 @@ def main(sysargs = sys.argv[1:]):
     i_group = parser.add_argument_group('Input options')
     i_group.add_argument('-c',"--config", action="store",help="Input config file in yaml format, all command line arguments can be passed via the config file.", dest="config")
     i_group.add_argument('-i',"--input-csv", action="store",help="Input csv file (with minimally an input_column header, Default=`name`)", dest="input_csv")
+    i_group.add_argument('-icol',"--input-column", action="store",help="Column in input csv file to match with database. Default: `name`", dest="input_column")
+
     i_group.add_argument('-ids',"--id-string", action="store",help="Comma-separated id string with one or more query ids. Example: `EDB3588,EDB3589`.", dest="ids")
 
     i_group.add_argument('-f','--fasta', action="store",help="Optional fasta file. Sequence IDs must match to a query ID specified either in the input csv or ID string.", dest="fasta")
-    i_group.add_argument('--max-ambiguity', action="store", type=float,help="Maximum proportion of Ns allowed to attempt analysis. Default: 0.5",dest="max_ambiguity")
-    i_group.add_argument('--min-length', action="store", type=int,help="Minimum query length allowed to attempt analysis. Default: 10000",dest="min_length")
+    i_group.add_argument('-n','--max-ambiguity', action="store", type=float,help="Maximum proportion of Ns allowed to attempt analysis. Default: 0.5",dest="max_ambiguity")
+    i_group.add_argument('-l','--min-length', action="store", type=int,help="Minimum query length allowed to attempt analysis. Default: 10000",dest="min_length")
     
     i_group.add_argument('-fm','--from-metadata',nargs='*', dest="from_metadata",help="Generate a query from the metadata file supplied. Define a search that will be used to pull out sequences of interest from the large phylogeny. E.g. -fm adm2=Edinburgh sample_date=2020-03-01:2020-04-01")
 
@@ -65,13 +67,15 @@ def main(sysargs = sys.argv[1:]):
 
     config = init.setup_config_dict(cwd, args.config)
 
-    print(config)
 
-    arg_parsing.i_group_parsing(args.input_csv,args.ids,config)
-
+    arg_parsing.input_query_parsing(args.input_csv,args.input_column,args.ids,config)
 
 
+    arg_parsing.input_fasta_parsing(args.fasta,args.max_ambiguity,args.min_length,config)
 
+
+    for i in sorted(config):
+        print(i, config[i])
 
 if __name__ == '__main__':
     main()
