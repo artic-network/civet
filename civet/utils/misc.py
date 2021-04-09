@@ -1,6 +1,16 @@
 #!/usr/bin/env python3
+import os
 from civet.utils import log_colours as colour
 
+def add_arg_to_config(key,arg,config):
+    if arg:
+        config[key] = arg
+
+def add_file_to_config(key,arg,config):
+    if arg:
+        path_to_file = os.path.abspath(config["cwd"])
+        full_path = os.path.join(path_to_file,arg)
+        config[key]=full_path
 
 def header(v):
     print(colour.green("""\n
@@ -106,3 +116,4 @@ def logo():
                                @@@@/*((((((((%@@@@                              
 
 """)
+

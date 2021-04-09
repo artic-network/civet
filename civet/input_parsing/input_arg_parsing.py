@@ -1,19 +1,11 @@
 #!/usr/bin/env python3
 from civet.utils import log_colours as colour
+from civet.utils import misc
 import sys
 import os
 import csv
 from Bio import SeqIO
 
-def add_arg_to_config(key,arg,config):
-    if arg:
-        config[key] = arg
-
-def add_file_to_config(key,arg,config):
-    if arg:
-        path_to_file = os.path.abspath(config["cwd"])
-        full_path = os.path.join(path_to_file,arg)
-        config[key]=full_path
 
 """
 i_group parsing
@@ -79,10 +71,10 @@ def csv_qc(input_csv,input_column):
 
 def input_query_parsing(input_csv,input_column,ids,config):
 
-    add_arg_to_config("ids",ids,config)
+    misc.add_arg_to_config("ids",ids,config)
 
-    add_file_to_config("input_csv",input_csv,config)
-    add_arg_to_config("input_column",input_column,config)
+    misc.add_file_to_config("input_csv",input_csv,config)
+    misc.add_arg_to_config("input_column",input_column,config)
 
     if "ids" in config and "input_csv" in config:
         sys.stderr.write(colour.cyan(f"Error: it looks like you've provide a csv file and an ID string, please provide one or the other.\n"))
@@ -144,12 +136,11 @@ def fasta_ids_list(fasta):
 
     return ids
 
-
 def input_fasta_parsing(input_fasta,maxambig,minlen,config):
     
-    add_file_to_config("fasta",input_fasta,config)
-    add_arg_to_config("max_ambiguity",maxambig,config)
-    add_arg_to_config("min_length",minlen,config)
+    misc.add_file_to_config("fasta",input_fasta,config)
+    misc.add_arg_to_config("max_ambiguity",maxambig,config)
+    misc.add_arg_to_config("min_length",minlen,config)
 
     if "fasta" in config:
         
