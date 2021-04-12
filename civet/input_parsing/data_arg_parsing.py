@@ -33,8 +33,10 @@ def background_data_load(config):
 def check_datadir(config):
     datadir = config["datadir"]
     if not os.path.exists(datadir):
-        print(colour.cyan(f"Error: data directory not found: {datadir}.\n")+"Please check the datadir path provided exists.\n")
-        sys.exit(-1)
+        if not config["background_csv"] or not config["background_fasta"]:
+            print(colour.cyan(f"Error: data directory not found: {datadir}.\n")+"Please check the datadir path (-d/ --datadir) provided exists or supply files with -bc/ --background-csv and -bf/ --background-fasta.\n")
+            sys.exit(-1)
+
     background_data_load(config)
 
 

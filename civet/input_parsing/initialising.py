@@ -142,7 +142,6 @@ def parse_yaml_file(configfile,configdict):
                     break
                     
                 if clean_key in path_keys:
-                    print(path_to_file, value)
                     value = setup_absolute_paths(path_to_file,value)
                 configdict[valid_keys[clean_key]] = value
                 overwriting += 1
