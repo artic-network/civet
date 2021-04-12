@@ -136,13 +136,17 @@ def parse_yaml_file(configfile,configdict):
                 clean_key = key.lstrip("-").replace("-","_").rstrip(" ").lstrip(" ").lower()
 
                 if clean_key in valid_keys:
-                    if clean_key in path_keys:
-                        print(path_to_file, value)
-                        value = setup_absolute_paths(path_to_file,value)
-                    configdict[valid_keys[clean_key]] = value
-                    overwriting += 1
+                    clean_key = valid_keys[clean_key]
                 else:
                     invalid_keys.append(key)
+                    break
+                    
+                if clean_key in path_keys:
+                    print(path_to_file, value)
+                    value = setup_absolute_paths(path_to_file,value)
+                configdict[valid_keys[clean_key]] = value
+                overwriting += 1
+                
 
     if len(invalid_keys)==1:
         sys.stderr.write(colour.cyan(f'Error: invalid key in config file.\n') + f'\t- {invalid_keys[0]}\n')

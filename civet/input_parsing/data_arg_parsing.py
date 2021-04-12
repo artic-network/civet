@@ -89,7 +89,7 @@ def check_background_fasta(background_fasta):
         sys.stderr.write(colour.cyan(f"Please input background sequences in fasta format, with file extension reflecting that.\n"))
         sys.exit(-1)
     else:
-        print(colour.green(f"Background fasta file:") + f" {input_file}")
+        print(colour.green(f"Background fasta file:") + f" {background_fasta}")
     c = 0
     for record in SeqIO.parse(background_fasta, "fasta"):
         c += 1
