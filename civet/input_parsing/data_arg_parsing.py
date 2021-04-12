@@ -4,6 +4,7 @@ from civet.utils import misc
 import sys
 import os
 import csv
+from collections import Counter
 from Bio import SeqIO
 
 def check_dir_for_file(file_list, extension,argument,key,config):
@@ -36,9 +37,6 @@ def check_datadir(config):
         if not config["background_csv"] or not config["background_fasta"]:
             print(colour.cyan(f"Error: data directory not found: {datadir}.\n")+"Please check the datadir path (-d/ --datadir) provided exists or supply files with -bc/ --background-csv and -bf/ --background-fasta.\n")
             sys.exit(-1)
-
-    background_data_load(config)
-
 
 def check_background_csv(background_csv,data_column):
     
@@ -92,39 +90,63 @@ def check_background_fasta(background_fasta):
         sys.exit(-1)
     else:
         print(colour.green(f"Background fasta file:") + f" {background_fasta}")
+    lens = Counter()
     c = 0
     for record in SeqIO.parse(background_fasta, "fasta"):
-        c += 1
-        
+        lens[len(record)] += 1
+        c +=1
+
     if c == 0:
         sys.stderr.write(colour.cyan(f"Error: no records found in fasta file, please check your background fasta is in the correct format.\n"))
         sys.exit(-1)
     else:
         print(colour.green(f"{c} records in background fasta file."))
     
+    if len(lens)>1:
+        len_string = ""
+        for i in lens:
+            if lens[i] == 1:
+                len_string += f"\t- {lens[i]} record is {i} bases\n"
+            else:
+                len_string += f"\t- {lens[i]} records are {i} bases\n"
+        sys.stderr.write(colour.cyan(f"Error: not all records are the same length, please check your background fasta is aligned correctly.\n") + len_string)
+        sys.exit(-1)
     return c
 
 def data_group_parsing(datadir,background_csv,background_fasta,data_column,config):
-    
+    """
+    parses the data group arguments 
+    --datadir (Default $DATADIR)
+    --background-csv (Default False)
+    --background-fasta (Default False)
+    --data-column (Default central_sample_id)
+    """
     if datadir:
         datadir = os.path.abspath(datadir)
 
+    # if command line arg, overwrite config value
     misc.add_arg_to_config("datadir",datadir,config)
     misc.add_file_to_config("background_csv",background_csv,config)
     misc.add_file_to_config("background_fasta",background_fasta,config)
+    misc.add_arg_to_config("data_column",data_column,config)
 
+    # needs either datadir specified or both the files specified
     if not config["datadir"]:
         if not config["background_csv"] and not config["background_fasta"]:
             sys.stderr.write(colour.cyan(f"Error: insufficient background data supplied, please provide a background csv and fasta file.\n"))
             sys.exit(-1)
         
     if config["datadir"]:
+        # does the path exist? if not and if neither file specified exit
         check_datadir(config)
     
-    misc.add_arg_to_config("data_column",data_column,config)
-    
+    # finds the files in the datadir, exits if unclear which files are which
     background_data_load(config)
     
+    # check if it's the right file type, 
+    # see if you can read it, 
+    # check if data_column in csv header, 
+    # count the number of records
     csv_record_count = check_background_csv(config["background_csv"],config["data_column"])
     fasta_record_count = check_background_fasta(config["background_fasta"])
     
