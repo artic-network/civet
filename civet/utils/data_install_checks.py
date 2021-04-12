@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 import pkg_resources
-import log_colours as colour
+from civet.utils import log_colours as colour
 import sys
 import os
 
@@ -21,7 +21,7 @@ def get_snakefile(thisdir):
         sys.exit(-1)
     return snakefile
 
-def check_install():
+def check_install(config):
     resources = [
         {"key":"reference_fasta",
         "directory":"data",

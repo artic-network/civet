@@ -2,7 +2,7 @@
 import subprocess
 import os
 import sys
-import log_colours as colour
+from civet.utils import log_colours as colour
 import importlib
 
 def which(dependency):

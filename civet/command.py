@@ -6,6 +6,8 @@ from civet.input_parsing import input_arg_parsing
 from civet.input_parsing import data_arg_parsing
 
 from civet.utils import misc
+from civet.utils import dependency_checks
+from civet.utils import data_install_checks
 
 import os
 import sys
@@ -72,16 +74,18 @@ def main(sysargs = sys.argv[1:]):
             parser.print_help()
             sys.exit(0)
 
+    dependency_checks.check_dependencies()
+    
 
     config = init.setup_config_dict(cwd, args.config)
 
 
     input_arg_parsing.input_query_parsing(args.input_csv,args.input_column,args.ids,config)
-
-
     input_arg_parsing.input_fasta_parsing(args.fasta,args.max_ambiguity,args.min_length,config)
 
+    data_install_checks.check_install(config)
     data_arg_parsing.data_group_parsing(args.datadir,args.background_csv,args.background_fasta,args.data_column,config)
+    
 
     for i in sorted(config):
         print(i, config[i])
