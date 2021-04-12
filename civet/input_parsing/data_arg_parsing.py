@@ -68,7 +68,6 @@ def check_background_csv(background_csv,data_column):
         sys.stderr.write(colour.cyan(f"Cannot find csv file: ")+f"{background_csv}\n")
         sys.exit(-1)
     print(colour.green(f"Background csv file:") + f" {background_csv}")
-    return c
 
     with open(background_csv,"r") as f:
         reader = csv.DictReader(f)
@@ -83,6 +82,7 @@ def check_background_csv(background_csv,data_column):
             else:
                 sys.stderr.write(colour.cyan(f"Error: {data_column} column not found in background csv file. Please specifiy which column to match with -dcol/ --data-column.\n"))
                 sys.exit(-1)
+    return c
 
 def check_background_fasta(background_fasta):
     ending = background_fasta.split(".")[-1]
