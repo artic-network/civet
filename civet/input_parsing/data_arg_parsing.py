@@ -114,10 +114,6 @@ def check_background_fasta(background_fasta):
         sys.exit(-1)
     return c
 
-def get_package_data(config):
-    config["reference_fasta"] = pkg_resources.resource_filename('civet', 'data/reference.fasta')
-    config["outgroup_fasta"] = pkg_resources.resource_filename('civet', 'data/outgroup.fasta')
-
 def data_group_parsing(datadir,background_csv,background_fasta,data_column,config):
     """
     parses the data group arguments 
@@ -159,4 +155,3 @@ def data_group_parsing(datadir,background_csv,background_fasta,data_column,confi
         sys.stderr.write(colour.cyan(f"Error: different number of background csv and background fasta records.\n")+"Please provide a fasta record for each row in the background metadata file.\n")
         sys.exit(-1)
 
-    get_package_data(config)
