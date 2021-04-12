@@ -13,15 +13,17 @@ def get_defaults():
 
                     # Initialising variables
                     "num_seqs":0,
-                    "datadir":"",
+                    "datadir": os.getenv('DATADIR'),
+                    "background_csv":False,
+                    "background_fasta":False,
                     
                     # Search defined by metadata column
                     "from_metadata":False,
 
                     # Columns to match
                     "input_column":"name",
-                    "database_column":"central_sample_id",
-                    "database_date_column":"sample_date",
+                    "data_column":"central_sample_id",
+                    "data_date_column":"sample_date",
                     "input_date_column":"sample_date",
 
                     # Search parameters
@@ -70,12 +72,25 @@ def arg_dict(config):
                 "input_column":"input_column",
                 "ids":"id_string",
                 "id_string":"id_string",
+
                 "f":"fasta",
                 "fasta":"fasta",
                 "n":"max_ambiguity",
                 "max_ambiguity":"max_ambiguity",
                 "l":"min_length",
                 "min_length":"min_length",
+
+                # dgroup args
+                "datadir":"datadir",
+                "DATADIR":"datadir",
+                "d":"datadir",
+                "background_csv":"background_csv",
+                "bc":"background_csv",
+                "background_fasta":"background_fasta",
+                "bf":"background_fasta",
+                "dcol":"data_column",
+                "data_column":"data_column",
+
                 # ogroup args
 
                 # misc group args
@@ -94,16 +109,16 @@ def load_yaml(f):
         sys.exit(-1)
     return input_config
 
-def setup_file_paths(config):
-    input_files = ["input_csv","fasta","background_csv","background_fasta"]
+def return_path_keys():
+    return ["input_csv","fasta","background_csv","background_fasta","datadir","outdir","tempdir"]
 
-    for key in config:
-        if key in input_files:
-            config[key] = os.path.join(config["input_path"],config[key])
+def setup_absolute_paths(path_to_file,value):
+    return os.path.join(path_to_file,value)
 
 
 def parse_yaml_file(configfile,configdict):
     overwriting = 0
+    path_keys = return_path_keys()
 
     path_to_file = os.path.abspath(os.path.dirname(configfile))
     configdict["input_path"] = path_to_file
@@ -121,6 +136,9 @@ def parse_yaml_file(configfile,configdict):
                 clean_key = key.lstrip("-").replace("-","_").rstrip(" ").lstrip(" ").lower()
 
                 if clean_key in valid_keys:
+                    if clean_key in path_keys:
+                        print(path_to_file, value)
+                        value = setup_absolute_paths(path_to_file,value)
                     configdict[valid_keys[clean_key]] = value
                     overwriting += 1
                 else:
@@ -145,7 +163,6 @@ def setup_config_dict(cwd,config_arg):
         
         parse_yaml_file(configfile,config)
 
-        setup_file_paths(config)
     else:
         config["input_path"] = cwd
     return config

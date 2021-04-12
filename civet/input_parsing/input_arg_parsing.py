@@ -28,7 +28,7 @@ def csv_qc(input_csv,input_column):
     ending = input_csv.split(".")[-1]
 
     if ending in ["yaml","yml","json"]:
-        sys.stderr.write(colour.cyan(f"Error: -i,--input-csv accepts a csv file. As of civet 3.0 please use -c/ --config to input a config file.\n"))
+        sys.stderr.write(colour.cyan(f"Error: -i,--input-csv accepts a csv file. As of civet 3.0 please use -c/ --config to input a config file or -ids/ --id-string to input a comma-separated string of IDs.\n"))
         sys.exit(-1)
     elif ending in ["xls","xlsx"]:
         sys.stderr.write(colour.cyan(f"Error: it looks like you've provided an excel file as input.\n-i,--input-csv accepts a csv file\n"))
@@ -36,7 +36,7 @@ def csv_qc(input_csv,input_column):
     elif ending == "csv":
         pass
     else:
-        sys.stderr.write(colour.cyan(f"Error: -i,--input-csv accepts either a csv or yaml file, or a comma-separated string of IDs\n"))
+        sys.stderr.write(colour.cyan(f"Error: -i,--input-csv accepts a csv file. As of civet 3.0 please use -c/ --config to input a config file or -ids/ --id-string to input a comma-separated string of IDs.\n"))
         sys.exit(-1)
     
     if os.path.isfile(input_csv):

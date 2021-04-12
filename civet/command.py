@@ -2,7 +2,9 @@
 from civet import __version__
 
 from civet.input_parsing import initialising as init
-from civet.input_parsing import arg_parsing
+from civet.input_parsing import input_arg_parsing
+from civet.input_parsing import data_arg_parsing
+
 from civet.utils import misc
 
 import os
@@ -33,6 +35,12 @@ def main(sysargs = sys.argv[1:]):
     i_group.add_argument('-l','--min-length', action="store", type=int,help="Minimum query length allowed to attempt analysis. Default: 10000",dest="min_length")
     
     i_group.add_argument('-fm','--from-metadata',nargs='*', dest="from_metadata",help="Generate a query from the metadata file supplied. Define a search that will be used to pull out sequences of interest from the large phylogeny. E.g. -fm adm2=Edinburgh sample_date=2020-03-01:2020-04-01")
+
+    d_group = parser.add_argument_group('Background data options')
+    d_group.add_argument('-d','--datadir', action="store",help="Directory containing the background data files.")
+    d_group.add_argument("-bc","--background-csv",action="store",dest="background_csv",help="Custom metadata file that corresponds to the large global tree/ alignment. Should have a column `sequence_name`.")
+    d_group.add_argument("-bf","--background-fasta", action="store", dest="background_fasta", help="Custom background fasta file.")
+    d_group.add_argument("-dcol",'--data-column', action="store",help="Column in background csv to match with input IDs. Default: sequence_name", dest="data_column")
 
     o_group = parser.add_argument_group('Output options')
     o_group.add_argument('-o','--output-prefix',action="store",help="Prefix of output directory & report name: Default: civet",dest="output_prefix")
@@ -68,11 +76,12 @@ def main(sysargs = sys.argv[1:]):
     config = init.setup_config_dict(cwd, args.config)
 
 
-    arg_parsing.input_query_parsing(args.input_csv,args.input_column,args.ids,config)
+    input_arg_parsing.input_query_parsing(args.input_csv,args.input_column,args.ids,config)
 
 
-    arg_parsing.input_fasta_parsing(args.fasta,args.max_ambiguity,args.min_length,config)
+    input_arg_parsing.input_fasta_parsing(args.fasta,args.max_ambiguity,args.min_length,config)
 
+    data_arg_parsing.data_group_parsing(args.datadir,args.background_csv,args.background_fasta,args.data_column,config)
 
     for i in sorted(config):
         print(i, config[i])
