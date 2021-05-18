@@ -4,9 +4,9 @@ from civet import __version__
 from civet.input_parsing import initialising as init
 from civet.input_parsing import input_arg_parsing
 from civet.input_parsing import data_arg_parsing
-
 from civet.input_parsing import input_data_parsing
 
+from civet.output_options import directory_setup
 
 from civet.utils import misc
 from civet.utils import dependency_checks
@@ -50,12 +50,12 @@ def main(sysargs = sys.argv[1:]):
     d_group.add_argument("-dcol",'--data-column', action="store",help="Column in background data to match with input IDs. Default: sequence_name", dest="data_column")
 
     o_group = parser.add_argument_group('Output options')
-    o_group.add_argument('--outdir', action="store",help="Output directory. Default: current working directory")
-    o_group.add_argument('-o','--output-prefix',action="store",help="Prefix of output directory & report name: Default: civet",dest="output_prefix")
-
+    o_group.add_argument('-o','--outdir', action="store",help="Output directory. Default: civet-2021-XX-YY")
+    o_group.add_argument('-p','--output-prefix',action="store",help="Prefix of output directory & report name: Default: civet",dest="output_prefix")
+    o_group.add_argument('-ds','--datestamp', action="store",help="Append datestamp to directory name when using `-o/--outdir`. Default: `-o/--outdir` without a datestamp.")
+    o_group.add_argument('--overwrite', action="store_true",help="Overwrite output directory. Default: append a number if `-o/--outdir` exists.")
     o_group.add_argument('--output-data',action="store_true",help="Output intermediate data files to the output directory",dest="output_data")
-    
-    o_group.add_argument('--tempdir',action="store",help="Specify where you want the temp stuff to go. Default: $TMPDIR")
+    o_group.add_argument('-temp','--tempdir',action="store",help="Specify where you want the temp stuff to go. Default: $TMPDIR")
     o_group.add_argument("--no-temp",action="store_true",help="Output all intermediate files. For development/ debugging purposes.",dest="no_temp")
 
     misc_group = parser.add_argument_group('misc options')
@@ -93,6 +93,9 @@ def main(sysargs = sys.argv[1:]):
     
     query_metadata, passed_qc_fasta = input_data_parsing.query_check_against_background_merge_input(config)
 
+    directory_setup.output_group_parsing(args.outdir, args.output_prefix, args.overwrite,args.datestamp, args.output_data, args.tempdir, args.no_temp, config)
+
+    
     for i in sorted(config):
         print(i, config[i])
 
