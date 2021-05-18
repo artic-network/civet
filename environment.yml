@@ -10,7 +10,7 @@ dependencies:
   - python=3.9
   - snakemake-minimal
   - cov-ert::jclusterfunk
-  - gofasta
+  - gofasta>=0.0.4
 variables:
   DATADIR: '/cephfs/covid/bham/results/phylogenetics/latest/civet/cog'
 
