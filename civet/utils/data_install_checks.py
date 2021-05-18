@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 import pkg_resources
-from civet.utils import log_colours as colour
+from civet.utils.log_colours import green,cyan
 import sys
 import os
 
@@ -11,7 +11,7 @@ def package_data_check(filename,directory,key,config):
         data = pkg_resources.resource_filename('civet', package_datafile)
         config[key] = data
     except:
-        sys.stderr.write(colour.cyan(f'Error: Missing package data.')+f'\n\t- {filename}\nPlease install the latest civet version with `civet --update`.\n')
+        sys.stderr.write(cyan(f'Error: Missing package data.')+f'\n\t- {filename}\nPlease install the latest civet version with `civet --update`.\n')
         sys.exit(-1)
 
 def get_snakefile(thisdir):

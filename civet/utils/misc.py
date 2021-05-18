@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 import os
-from civet.utils import log_colours as colour
+from civet.utils.log_colours import green,cyan
 
 def add_arg_to_config(key,arg,config):
     if arg:
@@ -12,8 +12,15 @@ def add_file_to_config(key,arg,config):
         full_path = os.path.join(path_to_file,arg)
         config[key]=full_path
 
+def add_path_to_config(key,arg,config):
+    if arg:
+        expanded_path = os.path.expanduser(arg)
+        path_to_cwd = os.path.abspath(config["cwd"])
+        full_path = os.path.join(path_to_cwd,expanded_path)
+        config[key]=full_path
+
 def header(v):
-    print(colour.green("""\n
+    print(green("""\n
                                     __              __    
                               ____ |__|__  __ _____/  |_ 
                              / ___\|  \  \/ // __ \   __|
@@ -21,8 +28,8 @@ def header(v):
                              \____/ __| \_/  \____/ __|  
 
                 **** Cluster Investigation & Virus Epidemiology Tool ****
-                """)+colour.green(f"""
-                                        {v}""")+colour.green("""
+                """)+green(f"""
+                                        {v}""")+green("""
                         ****************************************
                                                                 
                       Aine O'Toole & Verity Hill & Rachel Colquhoun       
@@ -36,7 +43,7 @@ def preamble(v):
     acknowledgements()
 
 def funding():
-    print(colour.green("""
+    print(green("""
                     Funding:                
                                                                 
                                     ARTIC Network               
@@ -54,7 +61,7 @@ def funding():
 """))
 
 def acknowledgements():
-    print(colour.green("""
+    print(green("""
                     Code contributors:           
                                                             
                         Ben Jackson         gofasta       

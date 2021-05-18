@@ -2,7 +2,7 @@
 import subprocess
 import os
 import sys
-from civet.utils import log_colours as colour
+from civet.utils.log_colours import green,cyan
 import importlib
 
 def which(dependency):
@@ -39,17 +39,17 @@ def check_dependencies():
 
     if missing:
         if len(missing)==1:
-            sys.stderr.write(colour.cyan(f'Error: Missing dependency `{missing[0]}`.')+'\nPlease update your civet environment.\n')
+            sys.stderr.write(cyan(f'Error: Missing dependency `{missing[0]}`.')+'\nPlease update your civet environment.\n')
             sys.exit(-1)
         else:
             dependencies = ""
             for i in missing:
                 dependencies+=f"\t- {i}\n"
 
-            sys.stderr.write(colour.cyan(f'Error: Missing dependencies.')+f'\n{dependencies}Please update your civet environment.\n')
+            sys.stderr.write(cyan(f'Error: Missing dependencies.')+f'\n{dependencies}Please update your civet environment.\n')
             sys.exit(-1)
     else:
-        print(colour.green("All dependencies satisfied."))
+        print(green("All dependencies satisfied."))
 
 
 # check_dependencies()
