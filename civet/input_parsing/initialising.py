@@ -21,8 +21,9 @@ def get_defaults():
                     # Output defaults
                     "output_prefix":"civet",
                     "output_data":False,
+                    "datestamp":False,
                     "no_temp":False,
-
+                    "overwrite":False,
 
                     # Search defined by metadata column
                     "from_metadata":False,
@@ -102,7 +103,17 @@ def arg_dict(config):
                 "data_column":"data_column",
 
                 # ogroup args
-                "o":"output_prefix",
+                "o":"outdir",
+                "outdir":"outdir",
+                "p":"output_prefix",
+                "output_prefix":"output_prefix",
+                "datestamp":"datestamp",
+                "ds":"datestamp",
+                "overwrite":"overwrite",
+                "output_data":"output-data",
+                "no-temp":"no-temp",
+                "tempdir":"tempdir",
+                "temp":"tempdir",
 
                 # misc group args
                 "t":"threads",
