@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-from civet.utils import log_colours as colour
+from civet.utils.log_colours import green,cyan
 from civet.utils import misc
 import sys
 import os
@@ -20,7 +20,7 @@ def ids_qc(ids):
         ids = ids.split(",")
         
     ids = list(set(ids))
-    print(colour.green("Unique IDs input: ") +  f"{len(ids)}")
+    print(green("Unique IDs input: ") +  f"{len(ids)}")
     return ids
 
 def csv_qc(input_csv,input_column):
@@ -28,15 +28,15 @@ def csv_qc(input_csv,input_column):
     ending = input_csv.split(".")[-1]
 
     if ending in ["yaml","yml","json"]:
-        sys.stderr.write(colour.cyan(f"Error: -i,--input-csv accepts a csv file. As of civet 3.0 please use -c/ --config to input a config file or -ids/ --id-string to input a comma-separated string of IDs.\n"))
+        sys.stderr.write(cyan(f"Error: -i,--input-csv accepts a csv file. As of civet 3.0 please use -c/ --config to input a config file or -ids/ --id-string to input a comma-separated string of IDs.\n"))
         sys.exit(-1)
     elif ending in ["xls","xlsx"]:
-        sys.stderr.write(colour.cyan(f"Error: it looks like you've provided an excel file as input.\n-i,--input-csv accepts a csv file\n"))
+        sys.stderr.write(cyan(f"Error: it looks like you've provided an excel file as input.\n-i,--input-csv accepts a csv file\n"))
         sys.exit(-1)
     elif ending == "csv":
         pass
     else:
-        sys.stderr.write(colour.cyan(f"Error: -i,--input-csv accepts a csv file. As of civet 3.0 please use -c/ --config to input a config file or -ids/ --id-string to input a comma-separated string of IDs.\n"))
+        sys.stderr.write(cyan(f"Error: -i,--input-csv accepts a csv file. As of civet 3.0 please use -c/ --config to input a config file or -ids/ --id-string to input a comma-separated string of IDs.\n"))
         sys.exit(-1)
     
     if os.path.isfile(input_csv):
@@ -46,28 +46,31 @@ def csv_qc(input_csv,input_column):
                 reader = csv.DictReader(f)
                 for row in reader:
                     c +=1
-            print(colour.green(f"{c} rows in input csv file."))
+            # print(green(f"{c} rows in input csv file."))
         except:
-            sys.stderr.write(colour.cyan(f"Unable to read csv file, please check your input csv is in the correct format with a header.\n"))
+            sys.stderr.write(cyan(f"Unable to read csv file, please check your input csv is in the correct format with a header.\n"))
             sys.exit(-1)
     else:
-        sys.stderr.write(colour.cyan(f"Cannot find csv file: ")+f"{input_csv}\n")
+        sys.stderr.write(cyan(f"Cannot find csv file: ")+f"{input_csv}\n")
         sys.exit(-1)
-    print(colour.green(f"Input csv file:") + f" {input_csv}")
+    print(green(f"Input csv file:") + f" {input_csv}.")
 
+    input_ids = []
     with open(input_csv,"r") as f:
         reader = csv.DictReader(f)
         if input_column in reader.fieldnames:
-            pass
+            for row in reader:
+                input_ids.append(row[input_column])
         else:
             encode = False
             for i in reader.fieldnames:
                 if "ufeff" in i:
-                    sys.stderr.write(colour.cyan(f"Error: it appears your csv file may have been edited in Excel and now contains hidden characters.\n") + "Please remove said characters in a text editor and try again.")
+                    sys.stderr.write(cyan(f"Error: it appears your csv file may have been edited in Excel and now contains hidden characters.\n") + "Please remove said characters in a text editor and try again.")
                     sys.exit(-1)
             else:
-                sys.stderr.write(colour.cyan(f"Error: {input_column} column not found in input csv file.\n"))
+                sys.stderr.write(cyan(f"Error: {input_column} column not found in input csv file.\n"))
                 sys.exit(-1)
+    return input_ids
 
 def input_query_parsing(input_csv,input_column,ids,config):
 
@@ -77,34 +80,32 @@ def input_query_parsing(input_csv,input_column,ids,config):
     misc.add_arg_to_config("input_column",input_column,config)
 
     if "ids" in config and "input_csv" in config:
-        sys.stderr.write(colour.cyan(f"Error: it looks like you've provide a csv file and an ID string, please provide one or the other.\n"))
+        sys.stderr.write(cyan(f"Error: it looks like you've provided a csv file and an ID string, please provide one or the other.\n"))
         sys.exit(-1)
     elif "ids" in config:
         config["ids"] = ids_qc(config["ids"])
         
     elif "input_csv" in config:
-        csv_qc(config["input_csv"],config["input_column"])
+        config["ids"] = csv_qc(config["input_csv"],config["input_column"])
     
-
-
 def input_fasta_check(input_file):
 
     ending = input_file.split(".")[-1]
 
     if ending not in ["fa","fasta","fas"]:
-        sys.stderr.write(colour.cyan(f"Please input sequences in fasta format, with file extension reflecting that.\n"))
+        sys.stderr.write(cyan(f"Please input sequences in fasta format, with file extension reflecting that.\n"))
         sys.exit(-1)
     else:
-        print(colour.green(f"Input fasta file:") + f" {input_file}")
+        print(green(f"Input fasta file:") + f" {input_file}")
     c = 0
     for record in SeqIO.parse(input_file, "fasta"):
         c += 1
         
     if c == 0:
-        sys.stderr.write(colour.cyan(f"Error: no records found in fasta file, please check your input fasta is in the correct format.\n"))
+        sys.stderr.write(cyan(f"Error: no records found in fasta file, please check your input fasta is in the correct format.\n"))
         sys.exit(-1)
-    else:
-        print(colour.green(f"{c} records in input fasta file."))
+    # else:
+    #     print(green(f"{c} records in input fasta file."))
 
 
 def fasta_qc_level(maxambig,minlen):
@@ -112,20 +113,20 @@ def fasta_qc_level(maxambig,minlen):
         try:
             minlen = int(minlen)
         except:
-            sys.stderr.write(colour.cyan(f"Error: --min-length must be a positive integer.\n"))
+            sys.stderr.write(cyan(f"Error: --min-length must be a positive integer.\n"))
             sys.exit(-1)
     if not minlen > 0:
-        sys.stderr.write(colour.cyan(f"Error: --min-length must be a positive integer.\n"))
+        sys.stderr.write(cyan(f"Error: --min-length must be a positive integer.\n"))
         sys.exit(-1)
     
     if not type(maxambig) is float:
         try:
             maxambig = float(maxambig)
         except:
-            sys.stderr.write(colour.cyan(f"Error: --max-ambiguity must be between 0 and 1.\n"))
+            sys.stderr.write(cyan(f"Error: --max-ambiguity must be between 0 and 1.\n"))
             sys.exit(-1)
     if not (maxambig <=1 and maxambig >=0):
-        sys.stderr.write(colour.cyan(f"Error: --max-ambiguity must be between 0 and 1.\n"))
+        sys.stderr.write(cyan(f"Error: --max-ambiguity must be between 0 and 1.\n"))
         sys.exit(-1)
 
 def fasta_ids_list(fasta):
