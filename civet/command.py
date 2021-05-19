@@ -58,8 +58,12 @@ def main(sysargs = sys.argv[1:]):
     o_group.add_argument('-temp','--tempdir',action="store",help="Specify where you want the temp stuff to go. Default: $TMPDIR")
     o_group.add_argument("--no-temp",action="store_true",help="Output all intermediate files. For development/ debugging purposes.",dest="no_temp")
 
+    r_group = parser.add_argument_group("Report options")
+    r_group.add_argument("--alt-seq-name", action="store", help="Column containing alternative sequence names, for example patient IDs")
+    r_group.add_argument("--anonymise", action="store_true", type=int, dest="anonymise_seqs",help="Generates arbitrary labels for sequences for dissemination")
+
+    
     misc_group = parser.add_argument_group('misc options')
-    misc_group.add_argument("--safety-level", action="store", type=int, dest="safety_level",help="Level of anonymisation for users. Options: 0 (no anonymity), 1 (no COGIDs on background data), 2 (no adm2 on data). Default: 1")
     misc_group.add_argument("--verbose",action="store_true",help="Print lots of stuff to screen")
     misc_group.add_argument("--debug",action="store_true",help="Debugging mode.")
     misc_group.add_argument("--art",action="store_true",help="Print art")
