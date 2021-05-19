@@ -13,11 +13,16 @@ from civet.utils import misc
 from civet.utils import dependency_checks
 from civet.utils import data_install_checks
 
+import civet.utils.custom_logger as custom_logger
+from civet.utils.log_colours import green,cyan,red
+
 import os
 import sys
 import argparse
+import snakemake
 
 cwd = os.getcwd()
+thisdir = os.path.abspath(os.path.dirname(__file__))
 
 def main(sysargs = sys.argv[1:]):
 
@@ -49,6 +54,7 @@ def main(sysargs = sys.argv[1:]):
     d_group.add_argument("-bf","--background-fasta", action="store", dest="background_fasta", help="Custom background fasta file for all background data. Sequence IDs should match the background metadata data_column.")
     d_group.add_argument("-bt","--background-tree", action="store", dest="background_tree", help="Custom background tree file for all background data. Tip names should match the background metadata data_column.")
     d_group.add_argument("-dcol",'--data-column', action="store",help="Column in background data to match with input IDs. Default: sequence_name", dest="data_column")
+    d_group.add_argument("-fcol",'--fasta-column', action="store",help="Column in background data to match with input IDs. Default: `-dcol/--data-column`.", dest="fasta_column")
 
     o_group = parser.add_argument_group('Output options')
     o_group.add_argument('-o','--outdir', action="store",help="Output directory. Default: civet-2021-XX-YY")
@@ -76,6 +82,7 @@ def main(sysargs = sys.argv[1:]):
     """
     Exit with help menu if no args supplied
     """
+
     if len(sysargs)<1: 
         parser.print_help()
         sys.exit(0)
@@ -87,23 +94,55 @@ def main(sysargs = sys.argv[1:]):
 
     dependency_checks.check_dependencies()
     
+    # Initialise config dict
+    config = init.setup_config_dict(cwd,args.config)
+    
+    # Threads and verbosity to config
+    init.misc_args_to_config(args.verbose,args.threads,config)
+    init.set_up_verbosity(config)
 
-    config = init.setup_config_dict(cwd, args.config)
-
-
+    # Sort out where the query info is coming from, csv or id string, optional fasta seqs.
+    # Checks if they're real files, of the right format and that QC args sensible values.
     input_arg_parsing.input_query_parsing(args.input_csv,args.input_column,args.ids,config)
     input_arg_parsing.input_fasta_parsing(args.fasta,args.max_ambiguity,args.min_length,config)
 
+    # Checks access to package data and grabs the snakefile
     data_install_checks.check_install(config)
-    data_arg_parsing.data_group_parsing(args.debug,args.datadir,args.background_csv,args.background_SNPs,args.background_fasta,args.background_tree,args.data_column,config)
-    
-    query_metadata, passed_qc_fasta = input_data_parsing.query_check_against_background_merge_input(config)
+    snakefile = data_install_checks.get_snakefile(thisdir)
 
+    # Checks background data exists and is the right format.
+    # Checks same number of records supplied for csv, fasta and (optional) SNP file. 
+    data_arg_parsing.data_group_parsing(args.debug,args.datadir,args.background_csv,args.background_SNPs,args.background_fasta,args.background_tree,args.data_column,args.fasta_column,config)
+    
+    # Checks there are records to run and matches them up from background or supplied fasta
+    # merges the metadata to a master metadata
+    # runs supplied fasta qc
+    query_metadata, passed_qc_fasta, found_in_background_data = input_data_parsing.query_check_against_background_merge_input(config)
+
+    # sets up the output dir, temp dir, and data output desination
     directory_setup.output_group_parsing(args.outdir, args.output_prefix, args.overwrite,args.datestamp, args.output_data, args.tempdir, args.no_temp, config)
 
-    
-    for i in sorted(config):
-        print(i, config[i])
+    # write the merged metadata, the extracted passed qc supplied fasta and the extracted matched fasta from the background data
+    input_data_parsing.write_parsed_query_files(query_metadata,passed_qc_fasta,found_in_background_data, config)
+
+    # ready to run? either verbose snakemake or quiet mode
+
+    if config["verbose"]:
+        print(red("\n**** CONFIG ****"))
+        for k in sorted(config):
+            print(green(f" - {k}: ") + f"{config[k]}")
+        status = snakemake.snakemake(snakefile, printshellcmds=True, forceall=True, force_incomplete=True,
+                                    workdir=config["tempdir"],config=config, cores=config["threads"],lock=False
+                                    )
+    else:
+        status = snakemake.snakemake(snakefile, printshellcmds=False, forceall=True,force_incomplete=True,workdir=config["tempdir"],
+                                    config=config, cores=config["threads"],lock=False,quiet=True,log_handler=config["log_api"]
+                                    )
+
+    if status: # translate "success" into shell exit code of 0
+       return 0
+
+    return 1
 
 
     ##report options
