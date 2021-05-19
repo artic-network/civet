@@ -13,6 +13,7 @@ from civet.utils import dependency_checks
 from civet.utils import data_install_checks
 
 import civet.utils.custom_logger as custom_logger
+from civet.utils.log_colours import green,cyan,red
 
 import os
 import sys
@@ -120,7 +121,7 @@ def main(sysargs = sys.argv[1:]):
     # ready to run? either verbose snakemake or quiet mode
 
     if config["verbose"]:
-        print("\n**** CONFIG ****")
+        print(red("\n**** CONFIG ****"))
         for k in sorted(config):
             print(green(f" - {k}: ") + f"{config[k]}")
         status = snakemake.snakemake(snakefile, printshellcmds=True, forceall=True, force_incomplete=True,
