@@ -4,6 +4,10 @@ import sys
 import yaml
 from civet.utils.log_colours import green,cyan
 
+import civet.utils.custom_logger as custom_logger
+import civet.utils.log_handler_handle as lh
+from civet.utils import misc
+
 def get_defaults():
     today = date.today()
     default_dict = {
@@ -31,6 +35,7 @@ def get_defaults():
                     # Columns to match
                     "input_column":"name",
                     "data_column":"sequence_name",
+                    "fasta_column":False,
                     "data_date_column":"sample_date",
                     "input_date_column":"sample_date",
 
@@ -50,7 +55,7 @@ def get_defaults():
 
                     # misc defaults
                     "threads":1,
-                    "force":True
+                    "verbose":False
                     }
     return default_dict
 
@@ -101,6 +106,8 @@ def arg_dict(config):
                 "bt":"background_tree",
                 "dcol":"data_column",
                 "data_column":"data_column",
+                "fcol":"fasta_column",
+                "fasta_column":"fasta_column",
 
                 # ogroup args
                 "o":"outdir",
@@ -117,7 +124,9 @@ def arg_dict(config):
 
                 # misc group args
                 "t":"threads",
-                "threads":"threads"
+                "threads":"threads",
+                "v":"verbose",
+                "verbose":"verbose"
     }
     for i in config:
         arguments[i] = i
@@ -190,3 +199,20 @@ def setup_config_dict(cwd,config_arg):
     else:
         config["input_path"] = cwd
     return config
+
+def misc_args_to_config(verbose,threads,config):
+    misc.add_arg_to_config("verbose",verbose,config)
+    misc.add_arg_to_config("threads",threads,config)
+
+def set_up_verbosity(config):
+    if config["verbose"]:
+        config["quiet"] = False
+        config["log_api"] = ""
+        config["log_string"] = ""
+    else:
+        config["quiet"] = True
+        logger = custom_logger.Logger()
+        config["log_api"] = logger.log_handler
+
+        lh_path = os.path.realpath(lh.__file__)
+        config["log_string"] = f"--quiet --log-handler-script {lh_path} "
