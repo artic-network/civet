@@ -7,6 +7,7 @@ from civet.input_parsing import data_arg_parsing
 from civet.input_parsing import input_data_parsing
 
 from civet.output_options import directory_setup
+from civet.output_options import report_content
 
 from civet.utils import misc
 from civet.utils import dependency_checks
@@ -59,7 +60,7 @@ def main(sysargs = sys.argv[1:]):
     o_group.add_argument("--no-temp",action="store_true",help="Output all intermediate files. For development/ debugging purposes.",dest="no_temp")
 
     r_group = parser.add_argument_group("Report options")
-    r_group.add_argument("--alt-seq-name", action="store", help="Column containing alternative sequence names, for example patient IDs")
+    r_group.add_argument("--alt-seq-name", action="store", dest="alt_seq_name", help="Column containing alternative sequence names, for example patient IDs")
     r_group.add_argument("--anonymise", action="store_true", type=int, dest="anonymise_seqs",help="Generates arbitrary labels for sequences for dissemination")
 
     
@@ -102,6 +103,11 @@ def main(sysargs = sys.argv[1:]):
     
     for i in sorted(config):
         print(i, config[i])
+
+
+    ##report options
+
+    report_content.sequence_name_parsing(metadata, args.alt_seq_name, args.anonymise, config)
 
 if __name__ == '__main__':
     main()
