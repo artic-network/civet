@@ -6,6 +6,7 @@ import csv
 import collections
 from Bio import SeqIO
 
+
 def account_for_all_ids(config):
     found_in_background_data = {}
     with open(config["background_csv"],"r") as f:
@@ -33,7 +34,7 @@ def account_for_all_ids(config):
         not_found_str = '\n - '.join(not_found)
         sys.stderr.write(cyan(f"Query records not matched:\n") + f"- {not_found_str}\n" + cyan("Please check input names match against records. Configure which columns to match using `-icol/--input-column` and `-dcol/--data-column`.\n"))
         sys.exit(-1)
-
+    
     return found_in_background_data,header,found_in_input_fasta
 
 def merge_metadata_records(found_in_background_data,header,config):
@@ -41,19 +42,29 @@ def merge_metadata_records(found_in_background_data,header,config):
 
     for record in found_in_background_data:
         record_info[record] = found_in_background_data[record]
+        if not config["input_column"] in record_info[record]:
+            record_info[record][config["input_column"]] = record_info[record][config["data_column"]]
 
     if "input_csv" in config:
         with open(config["input_csv"],"r") as f:
             reader = csv.DictReader(f)
             for row in reader:
                 name = row[config["input_column"]]
+                for col in [config["data_column"],config["fasta_column"]]:
+                    if not col in row:
+                        record_info[name][col] = name
+
                 for key in row:
                     if key not in header:
                         header.append(key)
+                    
                     record_info[name][key] = row[key]
     else:
         for record in config["ids"]:
-            record_info[record][config["input_column"]] = record
+            for col in [config["input_column"],config["data_column"],config["fasta_column"]]: 
+                if col not in header:
+                    header.append(col)
+                    record_info[record][col] = record
     
     for key in header:
         for record in record_info:
@@ -107,16 +118,22 @@ def input_fasta_qc(found_in_input_fasta,config):
                         failed_qc[record.id] = "Sequence duplicated in input fasta file."
                     else:
                         passed_qc.append(record)
-        
-        print(green(f"{len(passed_qc)} supplied query sequences have passed QC."))
-        print(cyan(f"{len(failed_qc)} supplied query sequences have failed QC."))
+        if len(passed_qc) == 1:
+            print(green(f"{len(passed_qc)} supplied query sequence has passed QC."))
+        else:
+            print(green(f"{len(passed_qc)} supplied query sequences have passed QC."))
+
+        if len(failed_qc) == 1:
+            print(cyan(f"{len(failed_qc)} supplied query sequence has failed QC."))
+        else:
+            print(cyan(f"{len(failed_qc)} supplied query sequences have failed QC."))
 
         if len(passed_qc) == 0:
             sys.stderr.write(cyan(f"No supplied sequences pass the QC steps.\n") + f"""Please ensure sequences meet the following:
     \t- Minimum sequence length (>{minlen} bases)
     \t- Maximum ambiguities (<{maxambig} proportion N)
     \t- Whether the records match a query supplied in an ID string or input csv
-    \t- Whether the records are duplicated in the file\n""")
+    \t- Whether the records are duplicated in the file\n""" + cyan("You can change the default QC settings with `-n/--max-ambiguity` and `-l/--min-length`."))
             sys.exit(-1)
 
     return passed_qc, failed_qc
@@ -147,4 +164,54 @@ def query_check_against_background_merge_input(config):
     query_metadata, header = add_sequence_status_to_metadata(query_metadata,header,found_in_background_data,passed_qc,failed_qc)
     config["query_csv_header"] = header
 
-    return query_metadata, passed_qc
+    return query_metadata, passed_qc, found_in_background_data
+
+def write_master_metadata(query_metadata, config):
+    """
+    Requires directory_setup to have been run
+    """
+    
+    with open(os.path.join(config["data_outdir"],"query_metadata.master.csv"),"w") as fw:
+        
+        writer = csv.DictWriter(fw, fieldnames=config["query_csv_header"],lineterminator='\n')
+        writer.writeheader()
+
+        for row in query_metadata:
+            writer.writerow(query_metadata[row])
+
+def write_passed_qc_fasta(passed_qc, config):
+    if passed_qc:
+        with open(os.path.join(config["data_outdir"],"query.passed_qc.fasta"),"w") as fw:
+            SeqIO.write(passed_qc, fw, "fasta")
+
+def write_matched_fasta(found_in_background_data, config):
+
+    num_found_in_background_data = len(found_in_background_data)
+
+    sequence_names_to_match = [found_in_background_data[i][config["fasta_column"]] for i in found_in_background_data]
+
+    if num_found_in_background_data != 0:
+        matched_records = []
+        for record in SeqIO.parse(config["background_fasta"],"fasta"):
+            if record.id in sequence_names_to_match:
+                matched_records.append(record)
+        if len(matched_records) == num_found_in_background_data:
+            with open(os.path.join(config["data_outdir"],"query.matched_background.fasta"),"w") as fw:
+                SeqIO.write(matched_records, fw, "fasta")
+        else:
+            not_found = []
+            matched_ids = [record.id for record in matched_records]
+            for record in found_in_background_data:
+                if record not in matched_ids:
+                    not_found.append(record)
+            not_found_str = "\n- ".join(not_found)
+
+            sys.stderr.write(cyan(f"Some records in background metadata file not found in background fasta file.\n") + f"- {not_found_str}\n" + cyan("Please check sequence ids match against the data in `-dcol/--data-column`.\n"))
+            sys.exit(-1)
+
+def write_parsed_query_files(query_metadata,passed_qc,found_in_background_data, config):
+    write_master_metadata(query_metadata, config)
+
+    write_passed_qc_fasta(passed_qc, config)
+
+    write_matched_fasta(found_in_background_data, config)
