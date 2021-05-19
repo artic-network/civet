@@ -2,7 +2,8 @@
 import os
 from civet.utils.log_colours import green,cyan
 
-def add_col_to_metadata(col_header, dictionary, metadata): #dictionary currenlty is key=sequence name and value=new col value
+
+def add_col_to_metadata(col_header, dictionary, metadata): #dictionary currently is key=sequence name and value=new col value
 
     new_metadata = f'{metadata.strip(".csv")}_new.csv'
 

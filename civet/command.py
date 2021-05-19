@@ -61,7 +61,8 @@ def main(sysargs = sys.argv[1:]):
 
     r_group = parser.add_argument_group("Report options")
     r_group.add_argument("--alt-seq-name", action="store", dest="alt_seq_name", help="Column containing alternative sequence names, for example patient IDs")
-    r_group.add_argument("--anonymise", action="store_true", type=int, dest="anonymise_seqs",help="Generates arbitrary labels for sequences for dissemination")
+    r_group.add_argument("--anonymise", action="store_true", dest="anonymise_seqs",help="Generates arbitrary labels for sequences for dissemination")
+    r_group.add_argument("--timeline-dates", action='store', dest="timeline_dates", help="Data to generated a timeline as a comma separated string")
 
     
     misc_group = parser.add_argument_group('misc options')
@@ -108,6 +109,7 @@ def main(sysargs = sys.argv[1:]):
     ##report options
 
     report_content.sequence_name_parsing(metadata, args.alt_seq_name, args.anonymise, config)
+    report_content.timeline_checking(metadata, args.timeline_dates, config) #actual parsing can come after the pipeline
 
 if __name__ == '__main__':
     main()

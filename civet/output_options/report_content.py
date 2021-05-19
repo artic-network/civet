@@ -2,6 +2,7 @@ import sys
 import csv
 from civet.utils.log_colours import green,cyan
 from civet.utils import misc
+import datetime as dt
 
 
 
@@ -28,7 +29,7 @@ def sequence_name_parsing(metadata, alt_seq_name, anonymise, config):
 
 
 
-def create_anon_ids(metadata):
+def create_anon_ids(metadata): #the names need to be swapped out
 
     anon_dict = {}
     name_list = []
@@ -44,6 +45,43 @@ def create_anon_ids(metadata):
         anon_dict[query] = f"sequence_{count}"
 
     return anon_dict
+
+def check_date_format(to_check, line_count, header):
+
+    date_format = "%Y-%m-%d"
+    
+    try:
+        dt.datetime.strptime(to_check, date_format).date()
+    except:
+        print(qcfunk.cyan(f'date {to_check} on line {line_count} in column {header} in incorrect format. Please use YYYY-MM-DD'))
+        sys.exit(-1)
+
+def timeline_checking(metadata, timeline_dates, config):  
+
+    misc.add_arg_to_config("timeline_dates",timeline_dates,config)
+
+    if config["timeline_dates"]:
+
+        date_header_list = config["timeline_dates"].split(",")
+
+        with open(metadata) as f:
+            data = csv.DictReader(f)
+            for header in date_header_list:
+                if header not in data.fieldnames:
+                    sys.stderr.write(cyan(F"Error: {header} (specified for use in timeline plot) not found in metadata file.\n"))
+                    sys.exit(-1)
+
+            line_count = 0
+            for line in data:
+                line_count += 1
+                for header in date_header_list:
+                    if line[header] != "":
+                        check_date_format(line[header], line_count, header)
+
+
+
+
+
 
 
 
