@@ -47,7 +47,7 @@ def check_datadir(config):
             print(cyan(f"Error: data directory not found: {datadir}.\n")+"Please check the datadir path (-d/ --datadir) provided exists or supply files with -bc/ --background-csv and -bf/ --background-fasta.\n")
             sys.exit(-1)
 
-def check_csv_file(argument,description,csv_file,data_column):
+def check_csv_file(argument,description,csv_file,data_column,fasta_column):
     
     ending = csv_file.split(".")[-1]
 
@@ -78,7 +78,7 @@ def check_csv_file(argument,description,csv_file,data_column):
 
     with open(csv_file,"r") as f:
         reader = csv.DictReader(f)
-        if data_column in reader.fieldnames:
+        if data_column in reader.fieldnames and fasta_column in reader.fieldnames:
             pass
         else:
             encode = False
@@ -87,8 +87,12 @@ def check_csv_file(argument,description,csv_file,data_column):
                     sys.stderr.write(cyan(f"Error: it appears your {description} file may have been edited in Excel and now contains hidden characters.\n") + "Please remove said characters in a text editor and try again.")
                     sys.exit(-1)
             else:
-                sys.stderr.write(cyan(f"Error: {data_column} column not found in {description} file. Please specifiy which column to match with `-dcol/ --data-column.`\n"))
-                sys.exit(-1)
+                if data_column not in reader.fieldnames:
+                    sys.stderr.write(cyan(f"Error: {data_column} column not found in {description} file. Please specifiy which column to match with `-dcol/ --data-column.`\n"))
+                    sys.exit(-1)
+                elif fasta_column not in reader.fieldnames:
+                    sys.stderr.write(cyan(f"Error: {fasta_column} column not found in {description} file. Please specifiy which column to match with `-fcol/ --fasta-column.`\n"))
+                    sys.exit(-1)
     return c
 
 def check_background_fasta(background_fasta):
@@ -122,7 +126,7 @@ def check_background_fasta(background_fasta):
         sys.exit(-1)
     return c
 
-def data_group_parsing(debug,datadir,background_csv,background_SNPs,background_fasta,background_tree,data_column,config):
+def data_group_parsing(debug,datadir,background_csv,background_SNPs,background_fasta,background_tree,data_column,fasta_column,config):
     """
     parses the data group arguments 
     --datadir (Default $DATADIR)
@@ -140,6 +144,7 @@ def data_group_parsing(debug,datadir,background_csv,background_SNPs,background_f
     misc.add_file_to_config("background_fasta",background_fasta,config)
     misc.add_file_to_config("background_tree",background_tree,config)
     misc.add_arg_to_config("data_column",data_column,config)
+    misc.add_arg_to_config("fasta_column",fasta_column,config)
 
     # needs either datadir specified or both the files specified
     if not config["datadir"]:
@@ -159,8 +164,11 @@ def data_group_parsing(debug,datadir,background_csv,background_SNPs,background_f
     # check if data_column in csv header, 
     # count the number of records
 
+    if not config["fasta_column"]:
+        config["fasta_column"] = config["data_column"]
+    
     if not debug:
-        csv_record_count = check_csv_file("-bc/--background-csv","background csv",config["background_csv"],config["data_column"])
+        csv_record_count = check_csv_file("-bc/--background-csv","background csv",config["background_csv"],config["data_column"],config["fasta_column"])
         fasta_record_count = check_background_fasta(config["background_fasta"])
         
         if csv_record_count != fasta_record_count:
@@ -168,7 +176,7 @@ def data_group_parsing(debug,datadir,background_csv,background_SNPs,background_f
             sys.exit(-1)
 
         if config["background_SNPs"]:
-            SNP_record_count = check_csv_file("-bSNP/--background-SNPs","background SNPs",config["background_SNPs"],config["data_column"])
+            SNP_record_count = check_csv_file("-bSNP/--background-SNPs","background SNPs",config["background_SNPs"],config["data_column"],config["fasta_column"])
             if csv_record_count != SNP_record_count:
                 sys.stderr.write(cyan(f"Error: different number of background csv and background SNP records.\n")+"Please provide a SNP record for each row in the background metadata file.\n")
                 sys.exit(-1)
