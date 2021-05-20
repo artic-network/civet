@@ -72,21 +72,33 @@ def output_report_filename(d,config):
 def set_up_tempdir(config):
     if config["no_temp"]:
         tempdir = config["outdir"]
+        config["tempdir"] = tempdir
     elif "tempdir" in config:
-        tempdir = config["tempdir"]
+        to_be_dir = config["tempdir"]
+        try:
+            if not os.path.exists(to_be_dir):
+                os.mkdir(to_be_dir)
+        except:
+            sys.stderr.write(cyan(f'Error: cannot create temp directory {to_be_dir}.\n'))
+            sys.exit(-1)
+        tempdir = tempfile.mkdtemp(dir=to_be_dir)
+        config["tempdir"] = tempdir
+    else:
+        tempdir = tempfile.mkdtemp()
+        config["tempdir"] = tempdir
         try:
             if not os.path.exists(tempdir):
                 os.mkdir(tempdir)
         except:
             sys.stderr.write(cyan(f'Error: cannot create temp directory {tempdir}.\n'))
             sys.exit(-1)
-        temporary_directory = tempfile.TemporaryDirectory(suffix=None, prefix=None, dir=tempdir)
-        tempdir = temporary_directory.name
-    else:
-        temporary_directory = tempfile.TemporaryDirectory(suffix=None, prefix=None, dir=None)
-        tempdir = temporary_directory.name
-
-    config["tempdir"] = tempdir
+        
+        try:
+            with open(os.path.join(tempdir, "test.txt"),"w") as fw:
+                fw.write("Test")
+        except:
+            sys.stderr.write(cyan(f'Error: cannot write to temp directory {tempdir}.\n'))
+            sys.exit(-1)
 
 def set_up_data_outdir(config):
     if config["output_data"]:
