@@ -4,6 +4,8 @@ from civet import __version__
 from civet.input_parsing import initialising as init
 from civet.input_parsing import input_arg_parsing
 from civet.input_parsing import data_arg_parsing
+from civet.input_parsing import analysis_arg_parsing
+
 from civet.input_parsing import input_data_parsing
 
 from civet.output_options import directory_setup
@@ -37,13 +39,10 @@ def main(sysargs = sys.argv[1:]):
     i_group.add_argument('-c',"--config", action="store",help="Input config file in yaml format, all command line arguments can be passed via the config file.", dest="config")
     i_group.add_argument('-i',"--input-csv", action="store",help="Input csv file (with minimally an input_column header, Default=`name`)", dest="input_csv")
     i_group.add_argument('-icol',"--input-column", action="store",help="Column in input csv file to match with database. Default: `name`", dest="input_column")
-
     i_group.add_argument('-ids',"--id-string", action="store",help="Comma-separated id string with one or more query ids. Example: `EDB3588,EDB3589`.", dest="ids")
-
     i_group.add_argument('-f','--fasta', action="store",help="Optional fasta file. Sequence IDs must match to a query ID specified either in the input csv or ID string.", dest="fasta")
     i_group.add_argument('-n','--max-ambiguity', action="store", type=float,help="Maximum proportion of Ns allowed to attempt analysis. Default: 0.5",dest="max_ambiguity")
     i_group.add_argument('-l','--min-length', action="store", type=int,help="Minimum query length allowed to attempt analysis. Default: 20000",dest="min_length")
-    
     i_group.add_argument('-fm','--from-metadata',nargs='*', dest="from_metadata",help="Generate a query from the metadata file supplied. Define a search that will be used to pull out sequences of interest from the large phylogeny. E.g. -fm adm2=Edinburgh sample_date=2020-03-01:2020-04-01")
 
     d_group = parser.add_argument_group('Background data options')
@@ -63,6 +62,11 @@ def main(sysargs = sys.argv[1:]):
     o_group.add_argument('--output-data',action="store_true",help="Output intermediate data files to the output directory",dest="output_data")
     o_group.add_argument('-temp','--tempdir',action="store",help="Specify where you want the temp stuff to go. Default: $TMPDIR")
     o_group.add_argument("--no-temp",action="store_true",help="Output all intermediate files. For development/ debugging purposes.",dest="no_temp")
+
+    a_group = parser.add_argument_group("Analysis group")
+    a_group.add_argument('-ts','--trim-start', type=int, action="store",dest="trim_start",help="Genome position to trim and pad to when aligning input sequences. Default: 265")
+    a_group.add_argument('-te','--trim-end', type=int, action="store",dest="trim_end",help="Genome position to trim and pad from when aligning input sequences. Default: 29674")
+    a_group.add_argument("-r","--reference-fasta",action="store",dest="reference_fasta",help="Custom reference genome to map and pad against. Must match the reference the background data was generated from.")
 
     misc_group = parser.add_argument_group('misc options')
     misc_group.add_argument("--verbose",action="store_true",help="Print lots of stuff to screen")
@@ -90,18 +94,21 @@ def main(sysargs = sys.argv[1:]):
     # Initialise config dict
     config = init.setup_config_dict(cwd,args.config)
     
+    # Checks access to package data and grabs the snakefile
+    data_install_checks.check_install(config)
+    snakefile = data_install_checks.get_snakefile(thisdir)
+
     # Threads and verbosity to config
     init.misc_args_to_config(args.verbose,args.threads,config)
     init.set_up_verbosity(config)
 
+    # Analysis options, including ref and trim and pad
+    analysis_arg_parsing.analysis_group_parsing(args.reference_fasta,args.trim_start,args.trim_end,config)
+    
     # Sort out where the query info is coming from, csv or id string, optional fasta seqs.
     # Checks if they're real files, of the right format and that QC args sensible values.
     input_arg_parsing.input_query_parsing(args.input_csv,args.input_column,args.ids,config)
     input_arg_parsing.input_fasta_parsing(args.fasta,args.max_ambiguity,args.min_length,config)
-
-    # Checks access to package data and grabs the snakefile
-    data_install_checks.check_install(config)
-    snakefile = data_install_checks.get_snakefile(thisdir)
 
     # Checks background data exists and is the right format.
     # Checks same number of records supplied for csv, fasta and (optional) SNP file. 

@@ -122,6 +122,12 @@ def arg_dict(config):
                 "tempdir":"tempdir",
                 "temp":"tempdir",
 
+                # agroup args
+                "ts":"trim_start",
+                "te":"trim_end",
+                "trim_start":"trim_start",
+                "trim_end":"trim_end",
+                
                 # misc group args
                 "t":"threads",
                 "threads":"threads",
