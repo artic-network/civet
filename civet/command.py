@@ -74,7 +74,6 @@ def main(sysargs = sys.argv[1:]):
     r_group.add_argument("--anonymise", action="store_true", dest="anonymise_seqs",help="Generates arbitrary labels for sequences for dissemination")
     r_group.add_argument("--timeline-dates", action='store', dest="timeline_dates", help="Data to generated a timeline as a comma separated string")
 
-    
     misc_group = parser.add_argument_group('misc options')
     misc_group.add_argument("--verbose",action="store_true",help="Print lots of stuff to screen")
     misc_group.add_argument("--debug",action="store_true",help="Debugging mode.")

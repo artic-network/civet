@@ -56,11 +56,11 @@ rule align_to_reference:
         else:
             shell("touch {output.fasta:q}")
 
-rule merge_and_hash_seqs:
+rule seq_brownie:
     input:
         query_fasta = os.path.join(config["tempdir"],"query.aln.fasta")
     output:
-        fasta = os.path.join(config["outdir"],"hashed.aln.fasta"),
+        fasta = os.path.join(config["tempdir"],"hashed.aln.fasta"),
         hash_map = os.path.join(config["tempdir"],"hash_map.csv")
     run:
         records = 0
@@ -92,5 +92,18 @@ rule merge_and_hash_seqs:
 
         print(green("Query sequences collapsed from ") + f"{records}" +green(" to ") + f"{len(seq_map)}" + green(" unique sequences."))
 
-
+rule find_catchment:
+    input:
+        fasta = rules.seq_brownie.output.fasta
+    output:
+        catchments = os.path.join(config["tempdir"],"hash_map.csv")
+    shell:
+        """
+        gofasta updown topranking \
+        -q {input.fasta:q} \
+        -t {input.background_fasta} \
+        -o {output.catchments} \
+        --reference '{config[reference_fasta]}' \
+        --size-total 2000
+        """
 
