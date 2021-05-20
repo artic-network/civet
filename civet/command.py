@@ -9,6 +9,7 @@ from civet.input_parsing import analysis_arg_parsing
 from civet.input_parsing import input_data_parsing
 
 from civet.output_options import directory_setup
+from civet.output_options import report_content
 
 from civet.utils import misc
 from civet.utils import dependency_checks
@@ -68,6 +69,12 @@ def main(sysargs = sys.argv[1:]):
     a_group.add_argument('-te','--trim-end', type=int, action="store",dest="trim_end",help="Genome position to trim and pad from when aligning input sequences. Default: 29674")
     a_group.add_argument("-r","--reference-fasta",action="store",dest="reference_fasta",help="Custom reference genome to map and pad against. Must match the reference the background data was generated from.")
 
+    r_group = parser.add_argument_group("Report options")
+    r_group.add_argument("--alt-seq-name", action="store", dest="alt_seq_name", help="Column containing alternative sequence names, for example patient IDs")
+    r_group.add_argument("--anonymise", action="store_true", dest="anonymise_seqs",help="Generates arbitrary labels for sequences for dissemination")
+    r_group.add_argument("--timeline-dates", action='store', dest="timeline_dates", help="Data to generated a timeline as a comma separated string")
+
+    
     misc_group = parser.add_argument_group('misc options')
     misc_group.add_argument("--verbose",action="store_true",help="Print lots of stuff to screen")
     misc_group.add_argument("--debug",action="store_true",help="Debugging mode.")
@@ -143,6 +150,12 @@ def main(sysargs = sys.argv[1:]):
        return 0
 
     return 1
+
+
+    ##report options
+
+    report_content.sequence_name_parsing(metadata, args.alt_seq_name, args.anonymise, config)
+    report_content.timeline_checking(metadata, args.timeline_dates, config) #actual parsing can come after the pipeline
 
 if __name__ == '__main__':
     main()

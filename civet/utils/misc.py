@@ -2,6 +2,37 @@
 import os
 from civet.utils.log_colours import green,cyan
 
+
+def add_col_to_metadata(col_header, dictionary, metadata): #dictionary currently is key=sequence name and value=new col value
+
+    new_metadata = f'{metadata.strip(".csv")}_new.csv'
+
+    with open(new_metadata, 'w') as fw:
+        
+        with open(metadata) as f:
+            read_data = csv.DictReader(f)
+            fieldnames = read_data.fieldnames
+            write_fieldnames = fieldnames.append(col_header)
+            write_obj = csv.DictWriter(fw, fieldnames=write_fieldnames)
+            write_obj.writeheader()
+
+            for line in read_data:
+                write_dict = {}
+                for field in fieldnames:
+                    write_dict[field]
+                if line["sample_name"] in dictionary:
+                    write_dict[col_header] = dictionary[line["sample_name"]]
+                else:
+                    write_dict[col_header] = ""
+
+                write_obj.writerow(write_dict)
+
+
+    os.remove(metadata)
+    os.rename(new_metadata, metadata)
+                    
+
+
 def add_arg_to_config(key,arg,config):
     if arg:
         config[key] = arg
