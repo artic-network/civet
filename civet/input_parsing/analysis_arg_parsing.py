@@ -53,8 +53,16 @@ def check_coords_within_reference_length(config):
         sys.stderr.write(cyan(f"`-te/--trim-end` and `-ts/--trim-start` must be within the length of the reference genome:\n") + f"Genome: {reference_fasta}\nTrim-start: {te}\nTrim-end: {ts}\n" + cyan("Please check file is in correct format.\n"))
         sys.exit(-1)
 
+def check_catchment_configuration(config):
 
-def analysis_group_parsing(reference_fasta,trim_start,trim_end,config):
+    try:
+        cs = int(config["catchment_size"])
+        config["catchment_size"] = cs
+    except:
+        sys.stderr.write(cyan(f"`-cs/--catchment_size` must be an integer.\n"))
+        sys.exit(-1)
+
+def analysis_group_parsing(reference_fasta,trim_start,trim_end,catchment_size,config):
     """
     parses the data group arguments 
     --datadir (Default $DATADIR)
@@ -67,6 +75,7 @@ def analysis_group_parsing(reference_fasta,trim_start,trim_end,config):
     misc.add_arg_to_config("trim_start",trim_start,config)
     misc.add_arg_to_config("trim_end",trim_end,config)
     misc.add_file_to_config("reference_fasta",reference_fasta,config)
+    misc.add_arg_to_config("catchment_size",catchment_size,config)
 
     check_coords_within_reference_length(config)
-    
+    check_catchment_configuration(config)

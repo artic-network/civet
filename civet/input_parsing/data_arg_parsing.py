@@ -180,3 +180,6 @@ def data_group_parsing(debug,datadir,background_csv,background_SNPs,background_f
             if csv_record_count != SNP_record_count:
                 sys.stderr.write(cyan(f"Error: different number of background csv and background SNP records.\n")+"Please provide a SNP record for each row in the background metadata file.\n")
                 sys.exit(-1)
+            config["background_search_file"] = config["background_SNPs"]
+        else:
+            config["background_search_file"] = config["background_fasta"]

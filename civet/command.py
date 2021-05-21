@@ -68,6 +68,8 @@ def main(sysargs = sys.argv[1:]):
     a_group.add_argument('-ts','--trim-start', type=int, action="store",dest="trim_start",help="Genome position to trim and pad to when aligning input sequences. Default: 265")
     a_group.add_argument('-te','--trim-end', type=int, action="store",dest="trim_end",help="Genome position to trim and pad from when aligning input sequences. Default: 29674")
     a_group.add_argument("-r","--reference-fasta",action="store",dest="reference_fasta",help="Custom reference genome to map and pad against. Must match the reference the background data was generated from.")
+    a_group.add_argument('-cs','--catchment-size', type=int, action="store",dest="catchment_size",help="Max number of sequences in a catchment. Default: 1000")
+
 
     r_group = parser.add_argument_group("Report options")
     r_group.add_argument("--alt-seq-name", action="store", dest="alt_seq_name", help="Column containing alternative sequence names, for example patient IDs")
@@ -109,7 +111,7 @@ def main(sysargs = sys.argv[1:]):
     init.set_up_verbosity(config)
 
     # Analysis options, including ref and trim and pad
-    analysis_arg_parsing.analysis_group_parsing(args.reference_fasta,args.trim_start,args.trim_end,config)
+    analysis_arg_parsing.analysis_group_parsing(args.reference_fasta,args.trim_start,args.trim_end,args.catchment_size,config)
     
     # Sort out where the query info is coming from, csv or id string, optional fasta seqs.
     # Checks if they're real files, of the right format and that QC args sensible values.
