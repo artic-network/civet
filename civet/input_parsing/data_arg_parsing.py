@@ -126,6 +126,25 @@ def check_background_fasta(background_fasta):
         sys.exit(-1)
     return c
 
+def check_background_snps(config):
+    
+    if config["background_SNPs"]:
+        fields = ['query',"SNPs","ambiguities","SNPcount","ambcount"]
+        missing = []
+        with open(config["background_SNPs"], "r") as f:
+            reader = csv.DictReader(f)
+            header = reader.fieldnames
+            for field in fields:
+                if field not in header:
+                    missing.append(field)
+        if len(missing) > 1:
+            sys.stderr.write(cyan(f"Error: some required fields missing from background SNPs file:\n") + "\n - ".join(missing) + "\n")
+            sys.exit(-1)
+        elif len(missing) == 1:
+            sys.stderr.write(cyan(f"Error: background SNPs file missing field: ") + missing[0] + "\n")
+            sys.exit(-1)
+
+
 def data_group_parsing(debug,datadir,background_csv,background_SNPs,background_fasta,background_tree,data_column,fasta_column,config):
     """
     parses the data group arguments 
@@ -167,6 +186,12 @@ def data_group_parsing(debug,datadir,background_csv,background_SNPs,background_f
     if not config["fasta_column"]:
         config["fasta_column"] = config["data_column"]
     
+    if config["background_SNPs"]:
+        config["background_search_file"] = config["background_SNPs"]
+        check_background_snps(config)
+    else:
+        config["background_search_file"] = config["background_fasta"]
+
     if not debug:
         csv_record_count = check_csv_file("-bc/--background-csv","background csv",config["background_csv"],config["data_column"],config["fasta_column"])
         fasta_record_count = check_background_fasta(config["background_fasta"])
@@ -180,6 +205,4 @@ def data_group_parsing(debug,datadir,background_csv,background_SNPs,background_f
             if csv_record_count != SNP_record_count:
                 sys.stderr.write(cyan(f"Error: different number of background csv and background SNP records.\n")+"Please provide a SNP record for each row in the background metadata file.\n")
                 sys.exit(-1)
-            config["background_search_file"] = config["background_SNPs"]
-        else:
-            config["background_search_file"] = config["background_fasta"]
+
