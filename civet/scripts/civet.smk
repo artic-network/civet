@@ -123,3 +123,34 @@ rule merge_catchments:
 
         catchment_parsing.add_catchments_to_metadata(config["background_csv"],output.csv,output.catchment_csv,catchment_dict,config)
 
+"""
+rule downsampling:
+    input:
+
+    output:
+
+    run:
+        optional downsampling of catchments, with a protection/ enrichment metric 
+        that can prevent certain sequences being removed
+
+rule tree_building:
+    input:
+
+    output:
+
+    run:
+        take each catchment, 
+        get a sequence file for each
+        with outgroup, queries, catchment seqs
+        spawn off a side snakemake with catchment wildcard that builds an iqtree for each one
+
+rule render_report:
+    input:
+
+    output:
+
+    run:
+        take processed metadata
+        take treefiles
+        render report using mako
+"""
