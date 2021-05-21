@@ -20,7 +20,7 @@ def sequence_name_parsing(metadata, alt_seq_name, anonymise, config):
         with open(metadata) as f:
             data = csv.DictReader(f)
             if config["alt_seq_name"] not in data.fieldnames:
-                sys.stderr.write(cyan(F"Error: {config["alt_seq_name"]} not found in metadata file.\n") + "Please provide a column containing alternate sequence names, or use --anonymise if you would like civet to make them for you.\n"))
+                sys.stderr.write(cyan(f"Error: {config['alt_seq_name']} not found in metadata file.\n") + "Please provide a column containing alternate sequence names, or use --anonymise if you would like civet to make them for you.\n")
                 sys.exit(-1)
 
     elif config["anonymise"]:
@@ -68,7 +68,7 @@ def timeline_checking(metadata, timeline_dates, config):
             data = csv.DictReader(f)
             for header in date_header_list:
                 if header not in data.fieldnames:
-                    sys.stderr.write(cyan(F"Error: {header} (specified for use in timeline plot) not found in metadata file.\n"))
+                    sys.stderr.write(cyan(f"Error: {header} (specified for use in timeline plot) not found in metadata file.\n"))
                     sys.exit(-1)
 
             line_count = 0
