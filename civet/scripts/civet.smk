@@ -1,7 +1,7 @@
 from civet.utils.log_colours import green,cyan,red
+from civet.analysis_functions import catchment_parsing
 
 import collections
-import hashlib
 from Bio import SeqIO
 
 """
@@ -21,12 +21,12 @@ account for ones that dont map
            - add an outgroup
            - build the tree with outgroup and downsample
 
-- summarise non-downsampled catchements in the data
+- summarise non-downsampled catchments in the data
 
 """
 rule all:
     input:
-        os.path.join(config["outdir"],"hashed.aln.fasta")
+        os.path.join(config["outdir"],"catchments.merged.csv")
 
 rule align_to_reference:
     input:
@@ -64,22 +64,14 @@ rule seq_brownie:
         hash_map = os.path.join(config["tempdir"],"hash_map.csv")
     run:
         records = 0
-        def add_to_hash(seq_file,seq_map,hash_map,records):
-            for record in SeqIO.parse(seq_file, "fasta"):
-                records +=1
-                seq = str(record.seq).encode()
-                hash_object = hashlib.md5(seq)
-                seq_map[hash_object.hexdigest()] = record.seq
-                hash_map[hash_object.hexdigest()].append(record.id)
-            return records
-                
+        
         seq_map = {}
         hash_map = collections.defaultdict(list)
         if config["matched_fasta"]:
-            records = add_to_hash(config["matched_fasta"],seq_map,hash_map,records)
+            records = catchment_parsing.add_to_hash(config["matched_fasta"],seq_map,hash_map,records)
 
         if config["query_fasta"]:
-            records = add_to_hash(input.query_fasta,seq_map,hash_map,records)
+            records = catchment_parsing.add_to_hash(input.query_fasta,seq_map,hash_map,records)
         
         with open(output.fasta,"w") as fseqs:
             for key in seq_map:
@@ -96,14 +88,26 @@ rule find_catchment:
     input:
         fasta = rules.seq_brownie.output.fasta
     output:
-        catchments = os.path.join(config["tempdir"],"hash_map.csv")
+        catchments = os.path.join(config["outdir"],"catchments.csv")
     shell:
         """
         gofasta updown topranking \
         -q {input.fasta:q} \
-        -t {input.background_fasta} \
-        -o {output.catchments} \
+        -t '{config[background_search_file]}' \
+        -o {output.catchments:q} \
         --reference '{config[reference_fasta]}' \
-        --size-total 2000
+        --size-total {config[catchment_size]}
         """
+
+rule merge_catchments:
+    input:
+        catchments = rules.find_catchment.output.catchments
+    output:
+        merged_catchments = os.path.join(config["outdir"],"catchments.merged.csv"),
+        catchment_key = os.path.join(config["tempdir"],"catchment_key.csv")
+    run:
+        merged_catchments = catchment_parsing.get_merged_catchments(input.catchments,output.catchment_key,output.merged_catchments,config)
+    
+        print(green("Merged into ")+f'{len(merged_catchments)}' + green(" catchments."))
+        
 
