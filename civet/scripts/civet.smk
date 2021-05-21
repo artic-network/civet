@@ -1,5 +1,6 @@
 from civet.utils.log_colours import green,cyan,red
 from civet.analysis_functions import catchment_parsing
+from civet.utils import misc
 
 import collections
 from Bio import SeqIO
@@ -26,7 +27,7 @@ account for ones that dont map
 """
 rule all:
     input:
-        os.path.join(config["outdir"],"catchments.merged.csv")
+        os.path.join(config["datadir"],"query_metadata.catchments.csv")
 
 rule align_to_reference:
     input:
@@ -61,12 +62,14 @@ rule seq_brownie:
         query_fasta = os.path.join(config["tempdir"],"query.aln.fasta")
     output:
         fasta = os.path.join(config["tempdir"],"hashed.aln.fasta"),
-        hash_map = os.path.join(config["tempdir"],"hash_map.csv")
+        csv = os.path.join(config["tempdir"],"metadata.seq_brownie.master.csv")
     run:
         records = 0
         
         seq_map = {}
         hash_map = collections.defaultdict(list)
+        hash_map_for_metadata = {}
+
         if config["matched_fasta"]:
             records = catchment_parsing.add_to_hash(config["matched_fasta"],seq_map,hash_map,records)
 
@@ -77,18 +80,20 @@ rule seq_brownie:
             for key in seq_map:
                 fseqs.write(f">{key}\n{seq_map[key]}\n")
 
-        with open(output.hash_map,"w") as fmap:
-            fmap.write("key,sequences\n")
             for key in hash_map:
-                fmap.write(f"{key},{';'.join(hash_map[key])}\n")
+                for seq in hash_map[key]:
+                    hash_map_for_metadata[seq] = key
+        
+        misc.add_col_to_metadata("hash", hash_map_for_metadata, config["query_metadata"], output.csv, config["fasta_column"], config)
 
+        config["query_metadata"] = output.csv
         print(green("Query sequences collapsed from ") + f"{records}" +green(" to ") + f"{len(seq_map)}" + green(" unique sequences."))
 
 rule find_catchment:
     input:
         fasta = rules.seq_brownie.output.fasta
     output:
-        catchments = os.path.join(config["outdir"],"catchments.csv")
+        catchments = os.path.join(config["tempdir"],"catchments.csv")
     shell:
         """
         gofasta updown topranking \
@@ -101,13 +106,20 @@ rule find_catchment:
 
 rule merge_catchments:
     input:
-        catchments = rules.find_catchment.output.catchments
+        catchments = rules.find_catchment.output.catchments,
+        csv = rules.seq_brownie.output.csv
     output:
-        merged_catchments = os.path.join(config["outdir"],"catchments.merged.csv"),
-        catchment_key = os.path.join(config["tempdir"],"catchment_key.csv")
+        merged_catchments = os.path.join(config["tempdir"],"catchments.merged.csv"),
+        csv = os.path.join(config["tempdir"],"query_metadata.key.csv"),
+        catchment_csv = os.path.join(config["datadir"],"query_metadata.catchments.csv")
     run:
-        merged_catchments = catchment_parsing.get_merged_catchments(input.catchments,output.catchment_key,output.merged_catchments,config)
-    
-        print(green("Merged into ")+f'{len(merged_catchments)}' + green(" catchments."))
+        catchment_dict, catchment_key, catchment_count = catchment_parsing.get_merged_catchments(input.catchments,output.merged_catchments,config)
         
+        misc.add_col_to_metadata("catchment", catchment_key, input.csv, output.csv, "hash", config)
+
+        config["query_metadata"] = output.csv
+
+        print(green("Merged into ")+f'{catchment_count}' + green(" catchments."))
+
+        catchment_parsing.add_catchments_to_metadata(config["background_csv"],output.csv,output.catchment_csv,catchment_dict,config)
 
