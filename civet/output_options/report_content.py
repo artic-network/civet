@@ -48,15 +48,6 @@ def create_anon_ids(metadata): #the names need to be swapped out
 
     return anon_dict
 
-def check_date_format(to_check, line_count, header):
-
-    date_format = "%Y-%m-%d"
-    
-    try:
-        dt.datetime.strptime(to_check, date_format).date()
-    except:
-        print(qcfunk.cyan(f'date {to_check} on line {line_count} in column {header} in incorrect format. Please use YYYY-MM-DD'))
-        sys.exit(-1)
 
 def timeline_checking(metadata, timeline_dates, config):  
 
@@ -78,7 +69,7 @@ def timeline_checking(metadata, timeline_dates, config):
                 line_count += 1
                 for header in date_header_list:
                     if line[header] != "":
-                        check_date_format(line[header], line_count, header)
+                        misc.check_date_format(line[header], line_count, header)
 
 
     return config

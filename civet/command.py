@@ -80,19 +80,19 @@ def main(sysargs = sys.argv[1:]):
     
     
     m_group = parser.add_argument_group("Map options") #can go in report options too
-    m_group.add_argument("--uk", action="store_true", help="Leads to importation of UK-specific map modules")
+    #m_group.add_argument("--uk", action="store_true", help="Leads to importation of UK-specific map modules")
     m_group.add_argument("--map-file", action="store", help="JSON or GeoJSON containing polygons to plot queries or background on. NB not required for the UK")
 
     m_group.add_argument("--map-queries", dest="plot_queries", action="store_true", help="Plots queries as dots on a map")
     m_group.add_argument("--query-map-column", dest="query_map_column", action="store", help="Column containing coordinate information to plot queries on a map")
-    m_group.add_argument("--query-map-colour", dest="query_map_colour", action="store", help="Trait to colour the dots on the map by") #maybe this could be interactive?
     #british or american spelling?
 
     m_group.add_argument("--map-background", dest="plot_background", action="store_true", help="Shows background diversity in relevant regions")
     m_group.add_argument("--background-map-column", dest="background_map_column", action="store", help="Column in the csv that contains geographical data to map background sequences. NB not required for UK")
     m_group.add_argument("--background-map-date-window", dest="background_map_date_window", action="store", help="Number of days to restrict the background diversity analysis to, relative to the query dates.")
     m_group.add_argument("--background-map-date-start", dest="background_map_date_start", action="store", help="Earliest date to analyse background diversity analysis, format = YYYY-MM-DD")
-    m_group.add_argument("--background-map-date-end", dest="background_map_date_end", action="store", help=help="Latest date to analyse background diversity analysis, format = YYYY-MM-DD"))
+    m_group.add_argument("--background-map-date-end", dest="background_map_date_end", action="store", help="Latest date to analyse background diversity analysis, format = YYYY-MM-DD")
+    m_group.add_argument("--background-map-date-column", dest="background_map_date_column", action="store", help="Column to use to draw dates from to restrict background lineage diversity mapping, format = YYYY-MM-DD")
     
     misc_group = parser.add_argument_group('misc options')
     misc_group.add_argument("--verbose",action="store_true",help="Print lots of stuff to screen")
@@ -159,7 +159,7 @@ def main(sysargs = sys.argv[1:]):
     config = report_content.sequence_name_parsing(metadata, args.alt_seq_name, args.anonymise, config)
     config = report_content.timeline_checking(metadata, args.timeline_dates, config) #actual parsing comes after the pipeline
 
-    config = maps.parse_map_options(metadata, args.map_queries, args.map_background, args.uk, args.query_map_column, args.query_map_colour, args.background_map_column,args.background_map_date_window, args.background_map_date_start, args.background_map_date_end, config)
+    config = maps.parse_map_options(metadata, args.map_queries, args.map_background, args.query_map_column, args.background_map_column,args.background_map_date_window, args.background_map_date_start, args.background_map_date_end, config)
 
     # ready to run? either verbose snakemake or quiet mode
 
