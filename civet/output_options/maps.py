@@ -3,26 +3,18 @@ import csv
 from civet.utils.log_colours import green,cyan
 from civet.utils import misc
 import datetime as dt
+from collections import defaultdict
+import json
 
-## No uk-specific stuff in here if at all possible - the local lineages should just compare to whatever column they give
 ## Should just take any map file - should have a check that some of the sequences in match to 
 
 
+##Think about what the defaults are - for local lins, could be adm1. 
+# If in the UK, would want it to be the "suggested_aggregated" or w/e that col is called. Could have it as adm1 and tell people using it we advise agg_adm2
 
-## How are we doing shape files - this is probably the biggest unsolved problem for now
-##Maybe:
-    #if col is country, then can use one that we have
-    #could we store adm1 for every country? Look into that. Will have to do a bit of optimising there probably 
-    #if col is adm2 and UK, no problem, we'll provide that. 
-    #if col is adm2 and not UK, they have to provide a shapefile
 
-##Think about what the defaults are - for local lins, could be adm1. If in the UK, would want it to be the "suggested_aggregated" or w/e that col is called
 
-# if args.uk: #or, this could be if it's run on CLIMB or some other proxy for it being UK
-        #     from civet.output_options import uk_maps
-        #     uk_maps.uk_specific_map_actions()
-
-def parse_map_options(metadata, map_queries, map_background, query_map_column, background_map_column,background_map_date_window, background_map_date_start,background_map_date_end, background_map_date_column, config):
+def parse_map_options(metadata, map_queries, map_background, latitude_column, longitude_column, background_map_column,background_map_date_window, background_map_date_start,background_map_date_end, background_map_date_column, config):
 
     misc.add_arg_to_config("map_background", map_background, config)
     misc.add_arg_to_config("background_map_column", background_map_column, config)
@@ -32,7 +24,8 @@ def parse_map_options(metadata, map_queries, map_background, query_map_column, b
     misc.add_arg_to_config("background_map_date_column", background_map_date_column, config)
 
     misc.add_arg_to_config("map_queries",map_queries,config)
-    misc.add_arg_to_config("query_map_column",query_map_column,config)
+    misc.add_arg_to_config("longitude_column",longitude_column,config)
+    misc.add_arg_to_config("latitude_column", latitude_column, config)
 
     if config["map_background"] or config["map_queries"]:
         with open(metadata) as f:
@@ -80,33 +73,79 @@ def parse_map_options(metadata, map_queries, map_background, query_map_column, b
                     else:
                         print(green("No date restriction provided, analysing background lineage diversity for the whole pandemic.\n"))
 
+                    check_shapefile(config, "background", metadata, shapefile_location)
+
             if config["map_queries"]:
-                if not config["query_map_column"]:
-                    sys.stderr.write(cyan(f'Error: --map-queries provided, but no column containing geographical data specified.\n') + "Please specify using '--query-map-column'\n")
+                if not config["longitude_column"] or not config["latitude_column"]:
+                    sys.stderr.write(cyan(f'Error: --map-queries provided, but no columns containing longitude and latitude coordinates specified.\n') + "Please specify using '--latitude-column' and '--longitude-column'\n")
                     sys.exit(-1)
-                elif config["query_map_column"] not in headers:
-                    sys.stderr.write(cyan(f"Error: {config['query_map_column']} not found in metadata file for mapping queries\n") + "\n")
+                elif config["longitude_column"] not in headers:
+                    sys.stderr.write(cyan(f"Error: {config['longitude_column']} not found in metadata file for mapping queries\n") + "\n")
+                    sys.exit(-1)
+                elif config["latitude_column"] not in headers:
+                    sys.stderr.write(cyan(f"Error: {config['latitude_column']} not found in metadata file for mapping queries\n") + "\n")
                     sys.exit(-1)
                 
+                check_shapefile(config, "queries", metadata, shapefile_location)
 
 
     if (config["background_map_date_column"] or config["background_map_column"] or config["background_map_date_start"] or config["background_map_date_end"] or config["background_map_date_window"]) and not config["map_background"]:
         sys.stderr.write(cyan(f'Arguments for mapping background lineage diversity, but --map-background not used.\n') + 'Please also use --map-background to use this function\n')
     if config["query_map_column"] and not config["map_queries"]:
         sys.stderr.write(cyan(f'Arguments for mapping queries diversity, but --map-queries not used.\n') + 'Please also use --map-queries to use this function\n')
-   
 
-def restrict_by_date():
-
-
-def check_shape_file():
+   return config
 
 
-def check__map_col(): #presence of arg and also in the csv metadata
-    #this can be general for any type of map, run it independently for local lineages or mapping the dots
-    # if it's UK, then this will be provided already so the check can be the same
 
-def check_presence_shapefile(): #a bit trickier
+def make_query_map_json(config, metadata):
+
+    lat_col = config["latitude_column"]
+    long_col = config["longitude_column"]
+    name_col = config["data_column"] 
+
+    overall_dict = defaultdict(dict)
+
+    all_queries = {}
+    all_queries['queries'] = []
+
+    with open(metadata) as f:
+        data = csv.DictReader(f)
+        for l in data:
+            if l["query_boolean"] == "TRUE":
+                per_seq_dict = {}
+                per_seq_dict["sequence_name"] = l[name_col]
+                per_seq_dict["latitude"] = l[lat_col]
+                per_seq_dict["longitude"] = l[long_col]
+                
+                all_queries['queries'].append(per_seq_dict)
+
+    with open(os.path.join(config["tempdir"],'query_map_data.json', 'w') as outfile:
+        json.dump(all_queries, outfile)
+
+
+def make_background_map_json(config, background_metadata): #this needs the full background metadata, not the query metadata
+
+
+
+
+def restrict_by_date(config, metadata):
+
+
+
+
+
+def check_shapefile(config, map_type, metadata, utils_dir):
+## How are we doing shape files - this is probably the biggest unsolved problem for now
+##Maybe:
+    #if col is country, then can use one that we have
+    #could we store adm1 for every country? Look into that. Will have to do a bit of optimising there probably 
+    #if col is adm2 and UK, no problem, we'll provide that. 
+    #if col is adm2 and not UK, they have to provide a shapefile
+    #will also have to think about the title in the shapefile
+
+#Docs for this are going to need to be good!
+
 
 
 

@@ -84,8 +84,8 @@ def main(sysargs = sys.argv[1:]):
     m_group.add_argument("--map-file", action="store", help="JSON or GeoJSON containing polygons to plot queries or background on. NB not required for the UK")
 
     m_group.add_argument("--map-queries", dest="plot_queries", action="store_true", help="Plots queries as dots on a map")
-    m_group.add_argument("--query-map-column", dest="query_map_column", action="store", help="Column containing coordinate information to plot queries on a map")
-    #british or american spelling?
+    m_group.add_argument("--latitude-column", dest="latitude_column", action="store", help="Column containing latitude coordinate information to plot queries on a map")
+    m_group.add_argument("--longitude-column", dest="longitude_column", action="store", help="Column containing longitude coordinate information to plot queries on a map")
 
     m_group.add_argument("--map-background", dest="plot_background", action="store_true", help="Shows background diversity in relevant regions")
     m_group.add_argument("--background-map-column", dest="background_map_column", action="store", help="Column in the csv that contains geographical data to map background sequences. NB not required for UK")
@@ -159,7 +159,7 @@ def main(sysargs = sys.argv[1:]):
     config = report_content.sequence_name_parsing(metadata, args.alt_seq_name, args.anonymise, config)
     config = report_content.timeline_checking(metadata, args.timeline_dates, config) #actual parsing comes after the pipeline
 
-    config = maps.parse_map_options(metadata, args.map_queries, args.map_background, args.query_map_column, args.background_map_column,args.background_map_date_window, args.background_map_date_start, args.background_map_date_end, config)
+    config = maps.parse_map_options(metadata, args.map_queries, args.map_background, args.latitude_column, args.longitude_column, args.background_map_column,args.background_map_date_window, args.background_map_date_start, args.background_map_date_end, config)
 
     # ready to run? either verbose snakemake or quiet mode
 
