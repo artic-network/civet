@@ -8,6 +8,7 @@ from civet.input_parsing import input_data_parsing
 
 from civet.output_options import directory_setup
 from civet.output_options import report_content
+from civet.output_options import maps
 
 from civet.utils import misc
 from civet.utils import dependency_checks
@@ -69,7 +70,22 @@ def main(sysargs = sys.argv[1:]):
     r_group.add_argument("--alt-seq-name", action="store", dest="alt_seq_name", help="Column containing alternative sequence names, for example patient IDs")
     r_group.add_argument("--anonymise", action="store_true", dest="anonymise_seqs",help="Generates arbitrary labels for sequences for dissemination")
     r_group.add_argument("--timeline-dates", action='store', dest="timeline_dates", help="Data to generated a timeline as a comma separated string")
+    
+    
+    m_group = parser.add_argument_group("Map options") #can go in report options too
+    m_group.add_argument("--uk", action="store_true", help="Leads to importation of UK-specific map modules")
+    m_group.add_argument("--map-file", action="store", help="JSON or GeoJSON containing polygons to plot queries or background on. NB not required for the UK")
 
+    m_group.add_argument("--map-queries", dest="plot_queries", action="store_true", help="Plots queries as dots on a map")
+    m_group.add_argument("--query-map-column", dest="query_map_column", action="store", help="Column containing coordinate information to plot queries on a map")
+    m_group.add_argument("--query-map-colour", dest="query_map_colour", action="store", help="Trait to colour the dots on the map by") #maybe this could be interactive?
+    #british or american spelling?
+
+    m_group.add_argument("--map-background", dest="plot_background", action="store_true", help="Shows background diversity in relevant regions")
+    m_group.add_argument("--background-map-column", dest="background_map_column", action="store", help="Column in the csv that contains geographical data to map background sequences. NB not required for UK")
+    m_group.add_argument("--background-map-date-window", dest="background_map_date_window", action="store", help="Number of days to restrict the background diversity analysis to, relative to the query dates.")
+    m_group.add_argument("--background-map-date-start", dest="background_map_date_start", action="store", help="Earliest date to analyse background diversity analysis, format = YYYY-MM-DD")
+    m_group.add_argument("--background-map-date-end", dest="background_map_date_end", action="store", help=help="Latest date to analyse background diversity analysis, format = YYYY-MM-DD"))
     
     misc_group = parser.add_argument_group('misc options')
     misc_group.add_argument("--verbose",action="store_true",help="Print lots of stuff to screen")
@@ -125,6 +141,12 @@ def main(sysargs = sys.argv[1:]):
     # write the merged metadata, the extracted passed qc supplied fasta and the extracted matched fasta from the background data
     input_data_parsing.write_parsed_query_files(query_metadata,passed_qc_fasta,found_in_background_data, config)
 
+    ##report options
+    report_content.sequence_name_parsing(metadata, args.alt_seq_name, args.anonymise, config)
+    report_content.timeline_checking(metadata, args.timeline_dates, config) #actual parsing comes after the pipeline
+
+    config = maps.parse_map_options(metadata, args.map_queries, args.map_background, args.uk, args.query_map_column, args.query_map_colour, args.background_map_column,args.background_map_date_window, args.background_map_date_start, args.background_map_date_end, config)
+
     # ready to run? either verbose snakemake or quiet mode
 
     if config["verbose"]:
@@ -143,12 +165,7 @@ def main(sysargs = sys.argv[1:]):
        return 0
 
     return 1
-
-
-    ##report options
-
-    report_content.sequence_name_parsing(metadata, args.alt_seq_name, args.anonymise, config)
-    report_content.timeline_checking(metadata, args.timeline_dates, config) #actual parsing can come after the pipeline
+    
 
 if __name__ == '__main__':
     main()

@@ -27,6 +27,8 @@ def sequence_name_parsing(metadata, alt_seq_name, anonymise, config):
         anon_dict = create_anon_ids(metadata)
         add_col_to_metadata("alternative_seq_name", anon_dict, metadata)
 
+    return config
+
 
 
 def create_anon_ids(metadata): #the names need to be swapped out
@@ -78,6 +80,8 @@ def timeline_checking(metadata, timeline_dates, config):
                     if line[header] != "":
                         check_date_format(line[header], line_count, header)
 
+
+    return config
 
 
 
