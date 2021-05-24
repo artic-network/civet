@@ -248,10 +248,6 @@ def restrict_by_date(config):
     return start_date, end_date
 
 
-
-
-
-
 def check_shapefile(config, map_type, metadata, utils_dir):
 ## How are we doing shape files - this is probably the biggest unsolved problem for now
 ##Maybe:

@@ -16,6 +16,7 @@ def sequence_name_parsing(metadata, alt_seq_name, anonymise, config):
     misc.add_arg_to_config("alt_seq_name",alt_seq_name,config)
     misc.add_arg_to_config("anonymise",anonymise,config)
 
+    ##need to do some bits here - should add a column saying display name or something regardless, and then other figures can pull from that
     if config["alt_seq_name"]:
         with open(metadata) as f:
             data = csv.DictReader(f)
@@ -24,14 +25,17 @@ def sequence_name_parsing(metadata, alt_seq_name, anonymise, config):
                 sys.exit(-1)
 
     elif config["anonymise"]:
-        anon_dict = create_anon_ids(metadata)
-        add_col_to_metadata("alternative_seq_name", anon_dict, metadata)
+        anon_dict = create_anon_ids(config, metadata)
+        add_col_to_metadata("display_name", anon_dict, metadata) #needs updating
+
+    else:
+        add_col_to_metadata("display_name", ) #needs updating
 
     return config
+#then at some point we need to update the treefile with these display names using jclusterfunk
 
 
-
-def create_anon_ids(metadata): #the names need to be swapped out
+def create_anon_ids(config, metadata): #the names need to be swapped out
 
     anon_dict = {}
     name_list = []
@@ -39,8 +43,8 @@ def create_anon_ids(metadata): #the names need to be swapped out
     with open(metadata) as f:
         data = csv.DictReader(f)
         for line in data:
-            if line["query_status"]: #not sure what the header/format is
-                name_list.append(line["sequence_name"]) #or whatever
+            if line["query_boolean"] == "TRUE": 
+                name_list.append(line[config["data_column"]])
 
     count = 0
     for query in random.shuffle(name_list):
@@ -51,7 +55,7 @@ def create_anon_ids(metadata): #the names need to be swapped out
 
 def timeline_checking(metadata, timeline_dates, config):  
 
-    misc.add_arg_to_config("timeline_dates",timeline_dates,config)
+    misc.add_arg_to_config("timeline_dates",timeline_dates,config) #default is None
 
     if config["timeline_dates"]:
 
@@ -73,6 +77,34 @@ def timeline_checking(metadata, timeline_dates, config):
 
 
     return config
+
+
+def make_timeline_json(config):
+
+    date_cols = config["timeline_dates"].split(",")
+
+    overall = defaultdict(dict)
+    overall['catchments'] = defaultdict(dict)
+
+    with open(config["query_metadata"]) as f:
+        data = csv.DictReader(f)
+        for l in data:
+            if l['query_boolean'] == "TRUE":
+                if l['catchment'] in overall['catchments']:
+                    dict_list = overall['catchments'][l['catchment']]
+                else:
+                    dict_list = []
+                
+                new_dict = {}
+                new_dict["sequence_name"] = l['display_name'] 
+                for col in date_cols:
+                    new_dict[col] = l[col]
+                
+                dict_list.append(new_dict)
+                overall['catchments'][l['catchment']] = dict_list
+
+    with open(os.path.join(config["tempdir"],'timeline_data.json'), 'w') as outfile:
+        json.dump(overall, outfile)
 
 
 
