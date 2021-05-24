@@ -6,6 +6,10 @@ import csv
 import collections
 from Bio import SeqIO
 
+"""
+To do: 
+check supplied ref length and background data are the same
+"""
 
 def account_for_all_ids(config):
     found_in_background_data = {}
@@ -106,6 +110,7 @@ def input_fasta_qc(found_in_input_fasta,config):
         maxambig = config["max_ambiguity"]
         for record_name in found_in_input_fasta:
             record = found_in_input_fasta[record_name]
+            passed_ids = [i.id for i in passed_qc]
             if len(record) < minlen:
                 failed_qc[record.id] = f"Sequence too short: Sequence length {len(record)}"
             else:
@@ -114,7 +119,7 @@ def input_fasta_qc(found_in_input_fasta,config):
                 if prop_N > maxambig: 
                     failed_qc[record.id] = f"N content: {prop_N}"
                 else:
-                    if record.id in passed_qc:
+                    if record.id in passed_ids:
                         failed_qc[record.id] = "Sequence duplicated in input fasta file."
                     else:
                         passed_qc.append(record)
@@ -179,35 +184,43 @@ def write_master_metadata(query_metadata, config):
         for row in query_metadata:
             writer.writerow(query_metadata[row])
 
+    config["query_metadata"] = os.path.join(config["data_outdir"],"query_metadata.master.csv")
+
 def write_passed_qc_fasta(passed_qc, config):
     if passed_qc:
-        with open(os.path.join(config["data_outdir"],"query.passed_qc.fasta"),"w") as fw:
+        config["query_fasta"] = os.path.join(config["tempdir"],"query.passed_qc.fasta")
+        with open(config["query_fasta"],"w") as fw:
             SeqIO.write(passed_qc, fw, "fasta")
+
+    else:
+        config["query_fasta"] = False
 
 def write_matched_fasta(found_in_background_data, config):
 
     num_found_in_background_data = len(found_in_background_data)
 
     sequence_names_to_match = [found_in_background_data[i][config["fasta_column"]] for i in found_in_background_data]
-
+    config["matched_fasta"] = False
     if num_found_in_background_data != 0:
         matched_records = []
         for record in SeqIO.parse(config["background_fasta"],"fasta"):
             if record.id in sequence_names_to_match:
                 matched_records.append(record)
-        if len(matched_records) == num_found_in_background_data:
-            with open(os.path.join(config["data_outdir"],"query.matched_background.fasta"),"w") as fw:
-                SeqIO.write(matched_records, fw, "fasta")
-        else:
-            not_found = []
-            matched_ids = [record.id for record in matched_records]
-            for record in found_in_background_data:
-                if record not in matched_ids:
-                    not_found.append(record)
-            not_found_str = "\n- ".join(not_found)
 
-            sys.stderr.write(cyan(f"Some records in background metadata file not found in background fasta file.\n") + f"- {not_found_str}\n" + cyan("Please check sequence ids match against the data in `-dcol/--data-column`.\n"))
-            sys.exit(-1)
+        if matched_records:
+            if len(matched_records) == num_found_in_background_data:
+                config["matched_fasta"] = os.path.join(config["tempdir"],"query.matched_background.fasta")
+                with open(os.path.join(config["matched_fasta"]),"w") as fw:
+                    SeqIO.write(matched_records, fw, "fasta")
+            else:
+                not_found = []
+                matched_ids = [record.id for record in matched_records]
+                for record in found_in_background_data:
+                    if record not in matched_ids:
+                        not_found.append(record)
+                not_found_str = "\n- ".join(not_found)
+                sys.stderr.write(cyan(f"Some records in background metadata file not found in background fasta file.\n") + f"- {not_found_str}\n" + cyan("Please check sequence ids match against the data in `-dcol/--data-column`.\n"))
+                sys.exit(-1)
 
 def write_parsed_query_files(query_metadata,passed_qc,found_in_background_data, config):
     write_master_metadata(query_metadata, config)

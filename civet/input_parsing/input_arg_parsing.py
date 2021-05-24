@@ -23,6 +23,12 @@ def ids_qc(ids):
     print(green("Unique IDs input: ") +  f"{len(ids)}")
     return ids
 
+def check_for_protected_col_names(header):
+    for field in header:
+        if field in ["hash","catchment","query_boolean","qc_status","source"]:
+            sys.stderr.write(cyan(f"Error: `{field}` is a protected column name used internally in civet, please rename this column.\n"))
+            sys.exit(-1)
+
 def csv_qc(input_csv,input_column):
 
     ending = input_csv.split(".")[-1]
@@ -150,3 +156,5 @@ def input_fasta_parsing(input_fasta,maxambig,minlen,config):
 
         if not "input_csv" in config and not "ids" in config:
             config["ids"] = fasta_ids_list(config["fasta"])
+
+

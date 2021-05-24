@@ -49,6 +49,9 @@ def get_defaults():
                     "trim_start":265,   # where to pad to using datafunk
                     "trim_end":29674,
 
+                    # catchment config
+                    "catchment_size":1000,
+
                     # QC standards for input fasta file
                     "max_ambiguity":0.5,
                     "min_length":20000,
@@ -121,6 +124,14 @@ def arg_dict(config):
                 "no-temp":"no-temp",
                 "tempdir":"tempdir",
                 "temp":"tempdir",
+
+                # agroup args
+                "ts":"trim_start",
+                "te":"trim_end",
+                "trim_start":"trim_start",
+                "trim_end":"trim_end",
+                "cs":"catchment_size",
+                "catchment_size":"catchment_size",
 
                 # misc group args
                 "t":"threads",

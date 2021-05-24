@@ -1,38 +1,33 @@
 #!/usr/bin/env python3
 import os
+import csv
 from civet.utils.log_colours import green,cyan
 
 
-def add_col_to_metadata(col_header, dictionary, metadata): #dictionary currently is key=sequence name and value=new col value
-
-    new_metadata = f'{metadata.strip(".csv")}_new.csv'
-
+def add_col_to_metadata(new_column_name, new_column_dict, metadata, new_metadata, match_column, config): 
+    #dictionary currently is key=sequence name and value=new col value
+    print(green("Adding column to master metadata:"), new_column_name)
     with open(new_metadata, 'w') as fw:
         
-        with open(metadata) as f:
-            read_data = csv.DictReader(f)
-            fieldnames = read_data.fieldnames
-            write_fieldnames = fieldnames.append(col_header)
-            write_obj = csv.DictWriter(fw, fieldnames=write_fieldnames)
-            write_obj.writeheader()
+        with open(metadata,"r") as f:
+            reader = csv.DictReader(f)
+            header = reader.fieldnames
+            header.append(new_column_name)
+            config["query_csv_header"] = header
+            
+            writer = csv.DictWriter(fw, fieldnames=config["query_csv_header"],lineterminator='\n')
+            writer.writeheader()
 
-            for line in read_data:
-                write_dict = {}
-                for field in fieldnames:
-                    write_dict[field]
-                if line["sample_name"] in dictionary:
-                    write_dict[col_header] = dictionary[line["sample_name"]]
+            for row in reader:
+                new_row = row
+
+                if new_row[match_column] in new_column_dict:
+                    new_row[new_column_name] = new_column_dict[new_row[match_column]]
                 else:
-                    write_dict[col_header] = ""
+                    new_row[new_column_name] = ""
 
-                write_obj.writerow(write_dict)
-
-
-    os.remove(metadata)
-    os.rename(new_metadata, metadata)
-                    
-
-
+                writer.writerow(new_row)
+                
 def add_arg_to_config(key,arg,config):
     if arg:
         config[key] = arg

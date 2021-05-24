@@ -4,6 +4,7 @@ from civet import __version__
 from civet.input_parsing import initialising as init
 from civet.input_parsing import input_arg_parsing
 from civet.input_parsing import data_arg_parsing
+from civet.input_parsing import analysis_arg_parsing
 from civet.input_parsing import input_data_parsing
 
 from civet.output_options import directory_setup
@@ -66,6 +67,12 @@ def main(sysargs = sys.argv[1:]):
     o_group.add_argument('-temp','--tempdir',action="store",help="Specify where you want the temp stuff to go. Default: $TMPDIR")
     o_group.add_argument("--no-temp",action="store_true",help="Output all intermediate files. For development/ debugging purposes.",dest="no_temp")
 
+    a_group = parser.add_argument_group("Analysis group")
+    a_group.add_argument('-ts','--trim-start', type=int, action="store",dest="trim_start",help="Genome position to trim and pad to when aligning input sequences. Default: 265")
+    a_group.add_argument('-te','--trim-end', type=int, action="store",dest="trim_end",help="Genome position to trim and pad from when aligning input sequences. Default: 29674")
+    a_group.add_argument("-r","--reference-fasta",action="store",dest="reference_fasta",help="Custom reference genome to map and pad against. Must match the reference the background data was generated from.")
+    a_group.add_argument('-cs','--catchment-size', type=int, action="store",dest="catchment_size",help="Max number of sequences in a catchment. Default: 1000")
+
     r_group = parser.add_argument_group("Report options")
     r_group.add_argument("--alt-seq-name", action="store", dest="alt_seq_name", help="Column containing alternative sequence names, for example patient IDs")
     r_group.add_argument("--anonymise", action="store_true", dest="anonymise_seqs",help="Generates arbitrary labels for sequences for dissemination")
@@ -113,9 +120,16 @@ def main(sysargs = sys.argv[1:]):
     # Initialise config dict
     config = init.setup_config_dict(cwd,args.config)
     
+    # Checks access to package data and grabs the snakefile
+    data_install_checks.check_install(config)
+    snakefile = data_install_checks.get_snakefile(thisdir)
+    
     # Threads and verbosity to config
     init.misc_args_to_config(args.verbose,args.threads,config)
     init.set_up_verbosity(config)
+
+    # Analysis options, including ref and trim and pad
+    analysis_arg_parsing.analysis_group_parsing(args.reference_fasta,args.trim_start,args.trim_end,args.catchment_size,config)
 
     # Sort out where the query info is coming from, csv or id string, optional fasta seqs.
     # Checks if they're real files, of the right format and that QC args sensible values.
@@ -142,8 +156,8 @@ def main(sysargs = sys.argv[1:]):
     input_data_parsing.write_parsed_query_files(query_metadata,passed_qc_fasta,found_in_background_data, config)
 
     ##report options
-    report_content.sequence_name_parsing(metadata, args.alt_seq_name, args.anonymise, config)
-    report_content.timeline_checking(metadata, args.timeline_dates, config) #actual parsing comes after the pipeline
+    config = report_content.sequence_name_parsing(metadata, args.alt_seq_name, args.anonymise, config)
+    config = report_content.timeline_checking(metadata, args.timeline_dates, config) #actual parsing comes after the pipeline
 
     config = maps.parse_map_options(metadata, args.map_queries, args.map_background, args.uk, args.query_map_column, args.query_map_colour, args.background_map_column,args.background_map_date_window, args.background_map_date_start, args.background_map_date_end, config)
 
