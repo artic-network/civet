@@ -123,10 +123,11 @@ def parse_map_options(metadata, map_queries, map_background, latitude_column, lo
             check_shapefile(config, "queries", metadata, shapefile_location)
 
 
-    if (config["background_map_date_column"] or config["background_map_column"] or config["background_map_date_start"] or config["background_map_date_end"] or config["background_map_date_window"]) and not config["map_background"]:
-        sys.stderr.write(cyan(f'Arguments for mapping background lineage diversity, but --map-background not used.\n') + 'Please also use --map-background to use this function\n')
-    if config["query_map_column"] and not config["map_queries"]:
-        sys.stderr.write(cyan(f'Arguments for mapping queries, but --map-queries not used.\n') + 'Please also use --map-queries to use this function\n')
+    # if (config["background_map_date_column"] or config["background_map_column"] or config["background_map_date_start"] or config["background_map_date_end"] or config["background_map_date_window"]) and not config["map_background"]:
+    #     sys.stderr.write(cyan(f'Arguments for mapping background lineage diversity, but --map-background not used.\n') + 'Please also use --map-background to use this function\n')
+    # if config["query_map_column"] and not config["map_queries"]:
+    #     sys.stderr.write(cyan(f'Arguments for mapping queries, but --map-queries not used.\n') + 'Please also use --map-queries to use this function\n')
+    #commented out because we want to be able to have defaults for these
 
    return config
 

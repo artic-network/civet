@@ -81,7 +81,7 @@ def main(sysargs = sys.argv[1:]):
     
     m_group = parser.add_argument_group("Map options") #can go in report options too
     #m_group.add_argument("--uk", action="store_true", help="Leads to importation of UK-specific map modules")
-    m_group.add_argument("--map-file", action="store", help="JSON or GeoJSON containing polygons to plot queries or background on. NB not required for the UK")
+    # m_group.add_argument("--map-file", action="store", help="JSON or GeoJSON containing polygons to plot queries or background on. NB not required for the UK")
 
     m_group.add_argument("--map-queries", dest="plot_queries", action="store_true", help="Plots queries as dots on a map")
     m_group.add_argument("--latitude-column", dest="latitude_column", action="store", help="Column containing latitude coordinate information to plot queries on a map")
