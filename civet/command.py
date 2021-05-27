@@ -74,25 +74,25 @@ def main(sysargs = sys.argv[1:]):
     a_group.add_argument('-cs','--catchment-size', type=int, action="store",dest="catchment_size",help="Max number of sequences in a catchment. Default: 1000")
 
     r_group = parser.add_argument_group("Report options")
-    r_group.add_argument("--alt-seq-name", action="store", dest="alt_seq_name", help="Column containing alternative sequence names, for example patient IDs")
-    r_group.add_argument("--anonymise", action="store_true", dest="anonymise_seqs",help="Generates arbitrary labels for sequences for dissemination")
-    r_group.add_argument("--timeline-dates", action='store', dest="timeline_dates", help="Data to generated a timeline as a comma separated string")
+    r_group.add_argument("-alt", "--alt-seq-name", action="store", dest="alt_seq_name", help="Column containing alternative sequence names, for example patient IDs")
+    r_group.add_argument("-anon", "--anonymise", action="store_true", dest="anonymise_seqs",help="Generates arbitrary labels for sequences for dissemination")
+    r_group.add_argument("-td", "--timeline-dates", action='store', dest="timeline_dates", help="Data to generated a timeline as a comma separated string")
     
     
     m_group = parser.add_argument_group("Map options") #can go in report options too
     #m_group.add_argument("--uk", action="store_true", help="Leads to importation of UK-specific map modules")
     # m_group.add_argument("--map-file", action="store", help="JSON or GeoJSON containing polygons to plot queries or background on. NB not required for the UK")
 
-    m_group.add_argument("--map-queries", dest="plot_queries", action="store_true", help="Plots queries as dots on a map")
-    m_group.add_argument("--latitude-column", dest="latitude_column", action="store", help="Column containing latitude coordinate information to plot queries on a map")
-    m_group.add_argument("--longitude-column", dest="longitude_column", action="store", help="Column containing longitude coordinate information to plot queries on a map")
+    m_group.add_argument("-mq", "--map-queries", dest="plot_queries", action="store_true", help="Plots queries as dots on a map")
+    m_group.add_argument("-lat","--latitude-column", dest="latitude_column", action="store", help="Column containing latitude coordinate information to plot queries on a map")
+    m_group.add_argument("-long","--longitude-column", dest="longitude_column", action="store", help="Column containing longitude coordinate information to plot queries on a map")
 
-    m_group.add_argument("--map-background", dest="plot_background", action="store_true", help="Shows background diversity in relevant regions")
-    m_group.add_argument("--background-map-column", dest="background_map_column", action="store", help="Column in the csv that contains geographical data to map background sequences. NB not required for UK")
-    m_group.add_argument("--background-map-date-window", dest="background_map_date_window", action="store", help="Number of days to restrict the background diversity analysis to, relative to the query dates.")
-    m_group.add_argument("--background-map-date-start", dest="background_map_date_start", action="store", help="Earliest date to analyse background diversity analysis, format = YYYY-MM-DD")
-    m_group.add_argument("--background-map-date-end", dest="background_map_date_end", action="store", help="Latest date to analyse background diversity analysis, format = YYYY-MM-DD")
-    m_group.add_argument("--background-map-date-column", dest="background_map_date_column", action="store", help="Column to use to draw dates from to restrict background lineage diversity mapping, format = YYYY-MM-DD")
+    m_group.add_argument("-mbg","--map-background", dest="plot_background", action="store_true", help="Shows background diversity in relevant regions")
+    m_group.add_argument("-bgcol","--background-map-column", dest="background_map_column", action="store", help="Column in the csv that contains geographical data to map background sequences. NB not required for UK")
+    m_group.add_argument("-dw","--background-map-date-window", dest="background_map_date_window", action="store", help="Number of days to restrict the background diversity analysis to, relative to the query dates.")
+    m_group.add_argument("-ds","--background-map-date-start", dest="background_map_date_start", action="store", help="Earliest date to analyse background diversity analysis, format = YYYY-MM-DD")
+    m_group.add_argument("-de","--background-map-date-end", dest="background_map_date_end", action="store", help="Latest date to analyse background diversity analysis, format = YYYY-MM-DD")
+    m_group.add_argument("-bgdate","--background-map-date-column", dest="background_map_date_column", action="store", help="Column to use to draw dates from to restrict background lineage diversity mapping, format = YYYY-MM-DD")
     
     misc_group = parser.add_argument_group('misc options')
     misc_group.add_argument("--verbose",action="store_true",help="Print lots of stuff to screen")
