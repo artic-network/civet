@@ -84,30 +84,29 @@ def make_timeline_json(config):
     date_cols = config["timeline_dates"].split(",")
 
     overall = defaultdict(dict)
-    overall['catchments'] = defaultdict(dict)
 
-    with open(config["query_metadata"]) as f:
+    with open(metadata) as f:
         data = csv.DictReader(f)
         for l in data:
             if l['query_boolean'] == "TRUE":
-                if l['catchment'] in overall['catchments']:
-                    dict_list = overall['catchments'][l['catchment']]
+                            
+                if l['catchment'] in overall:
+                    dict_list = overall[l['catchment']]
                 else:
                     dict_list = []
                 
-                new_dict = {}
-                new_dict["sequence_name"] = l['display_name'] 
                 for col in date_cols:
-                    new_dict[col] = l[col]
+                    new_dict = {}
+                    new_dict["sequence_name"] = l["sequence_name"]
+                    new_dict["date"] = l[col]
+                    new_dict["date_type"] = col
+                    dict_list.append(new_dict)
                 
-                dict_list.append(new_dict)
-                overall['catchments'][l['catchment']] = dict_list
+                
+                overall[l['catchment']] = dict_list
 
     with open(os.path.join(config["tempdir"],'timeline_data.json'), 'w') as outfile:
         json.dump(overall, outfile)
-
-
-
 
 
 
