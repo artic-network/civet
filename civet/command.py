@@ -57,6 +57,7 @@ def main(sysargs = sys.argv[1:]):
     d_group.add_argument("-bt","--background-tree", action="store", dest="background_tree", help="Custom background tree file for all background data. Tip names should match the background metadata data_column.")
     d_group.add_argument("-dcol",'--data-column', action="store",help="Column in background data to match with input IDs. Default: sequence_name", dest="data_column")
     d_group.add_argument("-fcol",'--fasta-column', action="store",help="Column in background data to match with input IDs. Default: `-dcol/--data-column`.", dest="fasta_column")
+    
 
     o_group = parser.add_argument_group('Output options')
     o_group.add_argument('-o','--outdir', action="store",help="Output directory. Default: civet-2021-XX-YY")
@@ -77,7 +78,11 @@ def main(sysargs = sys.argv[1:]):
     r_group.add_argument("-alt", "--alt-seq-name", action="store", dest="alt_seq_name", help="Column containing alternative sequence names, for example patient IDs")
     r_group.add_argument("-anon", "--anonymise", action="store_true", dest="anonymise_seqs",help="Generates arbitrary labels for sequences for dissemination")
     r_group.add_argument("-td", "--timeline-dates", action='store', dest="timeline_dates", help="Data to generated a timeline as a comma separated string")
-    
+    r_group.add_argument("-ddc","--data-date-column", action="store", dest="data_date_column", help="Column in background data with date data in. Default=sample_date")
+    r_group.add_argument("-idatc", "--input-date-column", action="store", dest="input_date_column", help="Column in input data with date data in. Default=sample_date")
+    r_group.add_argument("-ftcol","--found-table-cols", action='store', dest="found_table_cols", help="Columns to include in the table for queries found in the background data. Default:--data_column,--date_date_column,lineage,country,catchment")
+    r_group.add_argument("-ptcol","--provided-table-cols", action='store', dest="provided_table_cols", help="Columns to include in the table for queries provided in the fasta file. Default: --data_column,--input_date_column,closest,SNP_distance,SNP_list")
+
     
     m_group = parser.add_argument_group("Map options") #can go in report options too
     #m_group.add_argument("--uk", action="store_true", help="Leads to importation of UK-specific map modules")

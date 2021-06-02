@@ -97,7 +97,7 @@ def make_timeline_json(config):
                 
                 for col in date_cols:
                     new_dict = {}
-                    new_dict["sequence_name"] = l["sequence_name"]
+                    new_dict["sequence_name"] = l["display_name"]
                     new_dict["date"] = l[col]
                     new_dict["date_type"] = col
                     dict_list.append(new_dict)
@@ -107,6 +107,54 @@ def make_timeline_json(config):
 
     with open(os.path.join(config["tempdir"],'timeline_data.json'), 'w') as outfile:
         json.dump(overall, outfile)
+
+def parse_date_columns(metadata, data_date_column, input_date_column, config): #needs to be done on combined metadata file currently - can be edited to be done earlier on if the combined metadata is done too late
+
+    misc.add_arg_to_config("data_date_column", data_date_column, config)
+    misc.add_arg_to_config("input_date_column", input_date_column, config)
+
+    with open(metadata) as f:
+        reader = csv.DictReader(f)
+        
+        if data_date_column not in reader.fieldnames:
+            sys.stderr.write(cyan(f"Error: {data_date_column} column not found in metadata file. Please specifiy which column to match with `-ddcol/--data-date-column.`\n"))
+            sys.exit(-1)
+        elif input_date_column not in reader.fieldnames:
+            sys.stderr.write(cyan(f"Error: {input_date_column} column not found in metadata sfile. Please specifiy which column to match with `-idatcol/--input-date-column.`\n"))
+            sys.exit(-1)
+
+
+
+def parse_and_qc_table_cols(metadata, found_table_cols, provided_table_cols, config): #needs to be done on combined metadata file
+
+    """
+    parses the report group arguments:
+    --found-table-cols (Default --data_column,--data_date_column,lineage,country,catchment)
+    --provided-table-cols (Default --fasta_column,--input_date_column,closest,SNP_distance,SNP_list")
+    """
+
+    # if command line arg, overwrite config value
+    misc.add_arg_to_config("found_table_cols",found_table_cols,config)
+    misc.add_arg_to_config("provided_table_cols",provided_table_cols,config)
+
+    with open(metadata) as f:
+        reader = csv.DictReader()
+        fieldnames = reader.fieldnames
+    
+    if config["found_table_cols"]:
+        for col in config["found_table_cols"]:
+            if col != "catchment":
+                if col not in fieldnames:
+                    sys.stderr.write(cyan(f"Error: {col} column not found in metadata file. Please specifiy which column to match with `-ddcol/--data-date-column.`\n"))
+                    sys.exit(-1)
+    else:
+        config["found_table_cols"] = ",".join([config["data_column"], config["data_date_column"],"lineage","country","catchment"])
+    
+    #don't need to check this - the others are already checked, and then the other stuff is within the processed metadata 
+    #think about this - maybe don't allow them to do this? not sure
+    if not config["provided_table_cols"]: 
+        config["provided_table_cols"] = ",".join([config["fasta_column"], config['input_date_column'],"closest","SNP_distance","SNP_list"])
+
 
 
 
