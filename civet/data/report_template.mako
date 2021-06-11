@@ -15,6 +15,9 @@
     <script src="https://stackpath.bootstrapcdn.com/bootstrap/3.4.1/js/bootstrap.min.js" integrity="sha384-aJ21OjlMXNL5UyIl/XNwTMqvzeRMZH2w8c5cRVpzpU8Y5bApTppSuUkhZXN0VxHd" crossorigin="anonymous"></script>
     <script src="https://cdn.jsdelivr.net/gh/rambaut/figtree.js@db798529/dist/figtree.umd.js"></script>
     <script src="https://d3js.org/d3.v6.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/vega@5.15.0"></script>
+	<script src="https://cdn.jsdelivr.net/npm/vega-lite@4.15.0"></script>
+	<script src="https://cdn.jsdelivr.net/npm/vega-embed@6.11.1"></script>
     <meta charset="utf-8">
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
     <meta name="viewport" content="width=device-width, initial-scale=1">
@@ -389,6 +392,7 @@
         });
         });
     </script>
+    				
     
     <!--Figtree.js-->
     <script type="text/javascript"> 
@@ -398,7 +402,7 @@
               //Remove table
           tableDiv.html("")
               if (data !== undefined) {
-                  const visibleData = Object.keys(data).filter(d=>d!==${data_column});
+                  const visibleData = Object.keys(data).filter(d=>d!==${config['data_column']});
                   tableDiv.append("h3")
                       .attr("class",'tooltip-header')
                       .text(tipId)
@@ -519,89 +523,56 @@
         </h1> 
         <br>
         </div>
-        <p class="command-block">        
-        <strong>Command</strong>
-        <pre> ${command} </pre>
-        </p>
-        <!-- <p class="lead">polecat identified 5 clusters</p> -->
     
     <br>
-
-
-    %if config["queries_found"]:
-    <h3><strong>Table 1</strong> | Summary of queries found in background dataset   <input class="searchbar" type="text" id="myInput" onkeyup="myFunction('myInput','myTable')" placeholder="Search for cluster..." title="searchbar"></h3>
-    <table class="table table-striped" id="myTable">
-        <tr class="header">
-        %for col in config["background_table_cols"]:
-        <th style="width:10%;">${col.title().replace("_"," ")}</th>
-        %endfor
-        </tr>
-        % for row in summary_data:
-        % if row["source"] == "input_fasta":
-            <tr>
-              %for col in background_table_cols:
-              <td>${row[${col}]}</td>
-              %endfor
-            </tr>
-        % endif
-        % endfor
-        </table>
+	
+	 %if '1' in config["report_content"]:
+			<%include file="query_table_chunk.txt"
+				args="config=config, query_summary_data=query_summary_data"
+				/>
     %endif
-        
-    %if config["queries_provided"]:
-        <%
-        if config["queries_found"]:
-          provided_table_number = 2
-        else:
-          provided_table_number = 1
-        %>
-        <h3><strong>Table ${provided_table_number}/strong> | Summary of queries provided in fasta file  <input class="searchbar" type="text" id="myInput" onkeyup="myFunction('myInput','myTable')" placeholder="Search for cluster..." title="searchbar"></h3>
-        <table class="table table-striped" id="myTable">
-        <tr class="header">
-            %for col in config["provided_table_cols"]:
-            <th style="width:10%;">${col.title().replace("_"," ")}</th>
-            %endfor
-            </tr>
-            % for row in summary_data:
-            % if row["source"] == "input_fasta":
-                <tr>
-                  %for col in provided_table_cols:
-                  <td>${row[${col}]}</td>
-                  %endfor
-                </tr>
-            % endif
-            % endfor
-        </table>
-    %endif
-        
         
         %for catchment in catchments:
-        <!-- make tree (commented out for now while other bits are worked out)
-        <br>
-          <div class="slider-block" id="slider_${catchment['catchment_id']}">
-            <p>Expansion</p>
-            <input class="slider" type="range" id="rangeinput_${catchment['catchment_id']}"  min="0" max="1" style="width: 100px" step="0.01" value="0" />
-            <span class="highlight"></span>
-          </div> 
+        <h2>${catchment.replace("_"," ").title()}</h2> 
+        
+        %if '2' in config["report_content"]:
+        
+        here is where the catchment summary table will go
+        
+        %endif
+        %if '3' in config["report_content"]:
+        
+        here is where the tree will go
+        
+        %endif
+        %if '4' in config["report_content"]:
+        
+        here is where the snipit will go
+        
+        %endif
+        %if '5' in config["report_content"]:
+        <%rel_catch = catchment%>
+		<%include file="timeline_chunk.txt"
+				args="catchment=rel_catch, config=config, timeline_data=timeline_data"
+				/>
+        
+		%endif
+		%endfor
+		
+		
+		%if '6' in config["report_content"]:
+		
+		here is where the local lineages will go
+		
+		%endif
+		%if '7' in config["report_content"]:
+		
+		here is where the queries plotted will go
+		
+		%endif
 
-          <div class="row tree-container">
-      
-            <div class="col-xs-7">
-              <svg class="tree_svg" width="600" height="400" id="tree_${catchment['catchment_id']}"></svg>
-            </div>
-            <div class="col-xs-4 sticky" id="tooltip_${catchment['catchment_id']}">
-            </div> 
-            <script type="text/javascript">
-              buildTree("tree_${catchment['catchment_id']}", 
-                        "${catchment['treeString']}",
-                        "tooltip_${catchment['catchment_id']}",
-                        '${background_data}',
-                        "rangeinput_${catchment['catchment_id']}");
-            </script> 
-          </div> -->
 
-        <!--here is where the per catchment timeline stuff will go-->
-        % endfor
+       
 
         <script>
           function myFunction(myInput, myTable) {
@@ -627,10 +598,10 @@
       <div class="container-fluid text-right text-md-right">
         <hr>
         <div class="row">
-          <div class="col-sm-1">
+          <!--<div class="col-sm-1">
             <p>
             <img class="polecat-logo" src=https://raw.githubusercontent.com/COG-UK/polecat/master/docs/doc_figures/polecat_logo.svg vertical-align="left" width="50" height="50"></img>
-            <p>
+            <p> -->
         </div>
 
       <div class="col-sm-11" style="text-align: right;">
@@ -646,5 +617,7 @@
 
     <script src="https://code.jquery.com/jquery-1.12.4.min.js" integrity="sha384-nvAa0+6Qg9clwYCGGPpDQLVpLNn0fRaROjHqs13t4Ggj3Ez50XnGQqc/r8MhnRDZ" crossorigin="anonymous"></script>
     <script src="https://stackpath.bootstrapcdn.com/bootstrap/3.4.1/js/bootstrap.min.js" integrity="sha384-aJ21OjlMXNL5UyIl/XNwTMqvzeRMZH2w8c5cRVpzpU8Y5bApTppSuUkhZXN0VxHd" crossorigin="anonymous"></script>
+    
+    
   </body>
 </html>
