@@ -3,6 +3,8 @@ from civet.analysis_functions import catchment_parsing
 from civet.utils import misc
 
 import collections
+import sys
+import yaml
 from Bio import SeqIO
 
 """
@@ -11,13 +13,14 @@ To do:
 - input fasta, map to ref trim and pad- take note of insertions
 account for ones that dont map
 
-- merge and hash aligned input fasta and extracted matched fasta
+- *done* merge and hash aligned input fasta and extracted matched fasta
 
-- pull out local catchments from hashed sequences (configure distance and shape)
+- *done* pull out local catchments from hashed sequences (configure distance and shape)
 
-- find a sensible way to merge local catchments
+- *done* find a sensible way to merge local catchments
 
 -qs - are we building a tree?
+    - define analysis/ report content
     if yes - downsample local catchments (by what trait, enrich for things, protect things)
            - add an outgroup
            - build the tree with outgroup and downsample
@@ -27,7 +30,8 @@ account for ones that dont map
 """
 rule all:
     input:
-        os.path.join(config["datadir"],"query_metadata.catchments.csv")
+        os.path.join(config["data_outdir"],"catchments","query_metadata.catchments.csv"),
+        os.path.join(config["tempdir"],"catchments","tree.txt")
 
 rule align_to_reference:
     input:
@@ -108,13 +112,21 @@ rule merge_catchments:
     input:
         catchments = rules.find_catchment.output.catchments,
         csv = rules.seq_brownie.output.csv
+    params:
+        catchment_dir = os.path.join(config["data_outdir"],"catchments")
     output:
-        merged_catchments = os.path.join(config["tempdir"],"catchments.merged.csv"),
+        yaml = os.path.join(config["tempdir"],"catchments","config.yaml"),
+        merged = os.path.join(config["tempdir"],"catchments","catchments_merged.csv"),
         csv = os.path.join(config["tempdir"],"query_metadata.key.csv"),
-        catchment_csv = os.path.join(config["datadir"],"query_metadata.catchments.csv")
+        catchment_csv = os.path.join(config["data_outdir"],"catchments","query_metadata.catchments.csv")
     run:
-        catchment_dict, catchment_key, catchment_count = catchment_parsing.get_merged_catchments(input.catchments,output.merged_catchments,config)
-        
+        catchment_dict, catchment_key, catchment_count = catchment_parsing.get_merged_catchments(input.catchments,output.merged,config)
+        config["catchment_count"] = catchment_count
+
+        if config["catchment_count"] == 0:
+            sys.stderr.write(cyan(f"Error: no catchments matched in background data file.\n"))
+            sys.exit(-1)
+
         misc.add_col_to_metadata("catchment", catchment_key, input.csv, output.csv, "hash", config)
 
         config["query_metadata"] = output.csv
@@ -122,6 +134,12 @@ rule merge_catchments:
         print(green("Merged into ")+f'{catchment_count}' + green(" catchments."))
 
         catchment_parsing.add_catchments_to_metadata(config["background_csv"],output.csv,output.catchment_csv,catchment_dict,config)
+        
+        if '3' in config["report_content"]:
+            with open(output.yaml, 'w') as fw:
+                yaml.dump(config, fw) #so at the moment, every config option gets passed to the report
+            print("Writing catchment fasta files.")
+            catchment_parsing.write_catchment_fasta(catchment_dict,params.catchment_dir,config)
 
 """
 rule downsampling:
@@ -132,18 +150,27 @@ rule downsampling:
     run:
         optional downsampling of catchments, with a protection/ enrichment metric 
         that can prevent certain sequences being removed
+"""
 
 rule tree_building:
     input:
-
+        csv = rules.merge_catchments.output.csv,
+        yaml = rules.merge_catchments.output.yaml,
+        snakefile = os.path.join(workflow.current_basedir,"build_catchment_trees.smk")
     output:
-
+        txt = os.path.join(config["tempdir"],"catchments","tree.txt")
     run:
-        take each catchment, 
-        get a sequence file for each
-        with outgroup, queries, catchment seqs
-        spawn off a side snakemake with catchment wildcard that builds an iqtree for each one
+        if '3' in config["report_content"]:
+            print(green("Running tree building pipeline."))
+            # spawn off a side snakemake with catchment wildcard that builds an iqtree for each one
+            shell("snakemake --nolock --snakefile {input.snakefile:q} "
+                    "--forceall "
+                    "{config[log_string]} "
+                    "--directory {config[tempdir]:q} "
+                    "--configfile {input.yaml:q} "
+                    "--cores {workflow.cores} && touch {output.txt}")
 
+"""
 rule render_report:
     input:
 

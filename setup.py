@@ -10,7 +10,10 @@ from civet import __version__, _program
 setup(name='civet',
       version=__version__,
       packages=find_packages(),
-      scripts=["civet/scripts/civet.smk"],
+      scripts=[
+            "civet/scripts/civet.smk",
+            "civet/scripts/build_catchment_trees.smk"
+            ],
       package_data={"civet":["data/*"]},
       install_requires=[
             "biopython>=1.70",
