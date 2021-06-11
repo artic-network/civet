@@ -3,7 +3,7 @@ import csv
 from Bio import SeqIO
 import hashlib
 
-
+import os
 
 def add_to_hash(seq_file,seq_map,hash_map,records):
     for record in SeqIO.parse(seq_file, "fasta"):
@@ -98,11 +98,9 @@ def add_catchments_to_metadata(background_csv,query_metadata,query_metadata_with
                     for field in config["query_csv_header"]:
                         if field not in new_row:
                             new_row[field] = ""
-
                     catchment_records.append(new_row)
 
     with open(query_metadata_with_catchments,"w") as fw:
-
         writer = csv.DictWriter(fw, fieldnames=config["query_csv_header"],lineterminator='\n')
         writer.writeheader()
 
@@ -111,8 +109,20 @@ def add_catchments_to_metadata(background_csv,query_metadata,query_metadata_with
             for row in reader:
                 new_row = row
                 new_row["query_boolean"] = True
-                
                 writer.writerow(new_row)
 
         for record in catchment_records:
             writer.writerow(record)
+
+def write_catchment_fasta(catchment_dict,catchment_dir,config):
+    seq_dict = collections.defaultdict(list)
+    for record in SeqIO.parse(config["background_fasta"],"fasta"):
+        if record.id in catchment_dict:
+            seq_dict[catchment_dict[record.id]].append(record)
+
+    for catchment in seq_dict:
+        with open(os.path.join(catchment_dir,f"{catchment}.fasta"),"w") as fw:
+            records = seq_dict[catchment]
+            for record in SeqIO.parse(config["outgroup_fasta"],"fasta"):
+                records.append(record)
+            SeqIO.write(records,fw,"fasta")
