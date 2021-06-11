@@ -50,27 +50,28 @@ def get_defaults():
                     "trim_end":29674,
 
                     # catchment config
-                    "catchment_size":1000,
+                    "catchment_size":100,
+                    "downsample":1,
 
                     # QC standards for input fasta file
                     "max_ambiguity":0.5,
                     "min_length":20000,
 
                     #Report options
-                    "alt_seq_name":"sequence_name"
+                    "report_content":"1,2,3",
                     "anonymise":False,
                     "timeline_dates":False,
 
                     #Map options
-                    "map_queries":False,
-                    "latitude_column":"latitude",
-                    "longitude_column":"longitude",
-                    "map_background":False,
-                    "background_map_column":"adm1",
-                    "background_map_date_window":7,
-                    "background_map_date_start":False,
-                    "background_map_date_end":False,
-                    "background_map_date_column":"sample_date",
+                    # "map_queries":False,
+                    # "latitude_column":"latitude",
+                    # "longitude_column":"longitude",
+                    # "map_background":False,
+                    # "background_map_column":"adm1",
+                    # "background_map_date_window":7,
+                    # "background_map_date_start":False,
+                    # "background_map_date_end":False,
+                    # "background_map_date_column":"sample_date",
 
                     # misc defaults
                     "threads":1,
@@ -148,35 +149,37 @@ def arg_dict(config):
                 "trim_end":"trim_end",
                 "cs":"catchment_size",
                 "catchment_size":"catchment_size",
+                "downsample":"downsample",
 
                 #rgroup args
-                "alt":"alt_seq_name",
-                "alt_seq_name":"alt_seq_name"
-                "anon":"anonymise",
+                "report_content":"report_content",
+                "rc":"report_content",
+                # "alt":"alt_seq_name",
+                # "alt_seq_name":"alt_seq_name"
                 "anonymise":"anonymise",
                 "anonymize":"anonymise",
-                "td":"timeline_dates",
-                "timeline_dates":"timeline_dates",
+                # "td":"timeline_dates",
+                # "timeline_dates":"timeline_dates",
 
                 #mgroup args
-                "mq":"map_queries",
-                "map_queries":"map_queries"
-                "lat":"latitude_column",
-                "latitude_column":"latitude_column",
-                "long":"longitude_column",
-                "longitude_column":"longitude_column"
-                "mbg":"map_background",
-                "map_background":"map_background",
-                "bgcol":"background_map_column",
-                "background_map_column":"background_map_column",
-                "dw":"background_map_date_window",
-                "background_map_date_window":"background_map_date_window",
-                "ds":"background_map_date_start",
-                "background_map_date_start":"background_map_date_start",
-                "de":"background_map_date_end",
-                "background_map_date_end":"background_map_date_end",
-                "bgdate":"background_map_date_column",
-                "background_map_date_column":"background_map_date_column",
+                # "mq":"map_queries",
+                # "map_queries":"map_queries"
+                # "lat":"latitude_column",
+                # "latitude_column":"latitude_column",
+                # "long":"longitude_column",
+                # "longitude_column":"longitude_column",
+                # "mbg":"map_background",
+                # "map_background":"map_background",
+                # "bgcol":"background_map_column",
+                # "background_map_column":"background_map_column",
+                # "dw":"background_map_date_window",
+                # "background_map_date_window":"background_map_date_window",
+                # "ds":"background_map_date_start",
+                # "background_map_date_start":"background_map_date_start",
+                # "de":"background_map_date_end",
+                # "background_map_date_end":"background_map_date_end",
+                # "bgdate":"background_map_date_column",
+                # "background_map_date_column":"background_map_date_column",
 
                 # misc group args
                 "t":"threads",
