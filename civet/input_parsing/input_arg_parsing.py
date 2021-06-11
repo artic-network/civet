@@ -157,4 +157,3 @@ def input_fasta_parsing(input_fasta,maxambig,minlen,config):
         if not "input_csv" in config and not "ids" in config:
             config["ids"] = fasta_ids_list(config["fasta"])
 
-
