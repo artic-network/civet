@@ -6,10 +6,9 @@ from civet.input_parsing import input_arg_parsing
 from civet.input_parsing import data_arg_parsing
 from civet.input_parsing import analysis_arg_parsing
 from civet.input_parsing import input_data_parsing
+from civet.input_parsing import report_arg_parsing
 
 from civet.output_options import directory_setup
-from civet.output_options import report_content
-from civet.output_options import maps
 
 from civet.utils import misc
 from civet.utils import dependency_checks
@@ -72,27 +71,28 @@ def main(sysargs = sys.argv[1:]):
     a_group.add_argument('-te','--trim-end', type=int, action="store",dest="trim_end",help="Genome position to trim and pad from when aligning input sequences. Default: 29674")
     a_group.add_argument("-r","--reference-fasta",action="store",dest="reference_fasta",help="Custom reference genome to map and pad against. Must match the reference the background data was generated from.")
     a_group.add_argument('-cs','--catchment-size', type=int, action="store",dest="catchment_size",help="Max number of sequences in a catchment. Default: 1000")
+    a_group.add_argument('--downsample', type=int, action="store",dest="downsample",help="Indicates how many shared number of SNPs to downsample catchment by. Default: 2. Set to 0 to turn downsampling off.")
 
     r_group = parser.add_argument_group("Report options")
-    r_group.add_argument("-alt", "--alt-seq-name", action="store", dest="alt_seq_name", help="Column containing alternative sequence names, for example patient IDs")
-    r_group.add_argument("-anon", "--anonymise", action="store_true", dest="anonymise_seqs",help="Generates arbitrary labels for sequences for dissemination")
-    r_group.add_argument("-td", "--timeline-dates", action='store', dest="timeline_dates", help="Data to generated a timeline as a comma separated string")
-    
+    r_group.add_argument("-rc", "--report-content", nargs='*', action="store", dest="report_content", help="""One or more comma separated numeric strings to define the report content. Default: 1,2,3""")
+    r_group.add_argument("--anonymise", action="store_true", dest="anonymise",help="Generates arbitrary labels for sequences for dissemination")
+
+    t_group = parser.add_argument_group("Timeline options")
+    t_group.add_argument("-td", "--timeline-dates", action='store', dest="timeline_dates", help="Data to generated a timeline as a comma separated string")
     
     m_group = parser.add_argument_group("Map options") #can go in report options too
     #m_group.add_argument("--uk", action="store_true", help="Leads to importation of UK-specific map modules")
     # m_group.add_argument("--map-file", action="store", help="JSON or GeoJSON containing polygons to plot queries or background on. NB not required for the UK")
-
-    m_group.add_argument("-mq", "--map-queries", dest="plot_queries", action="store_true", help="Plots queries as dots on a map")
+    m_group.add_argument("-mq", "--map-queries", dest="map_queries", action="store_true", help="Plots queries as dots on a map")
     m_group.add_argument("-lat","--latitude-column", dest="latitude_column", action="store", help="Column containing latitude coordinate information to plot queries on a map")
     m_group.add_argument("-long","--longitude-column", dest="longitude_column", action="store", help="Column containing longitude coordinate information to plot queries on a map")
 
-    m_group.add_argument("-mbg","--map-background", dest="plot_background", action="store_true", help="Shows background diversity in relevant regions")
-    m_group.add_argument("-bgcol","--background-map-column", dest="background_map_column", action="store", help="Column in the csv that contains geographical data to map background sequences. NB not required for UK")
-    m_group.add_argument("-dw","--background-map-date-window", dest="background_map_date_window", action="store", help="Number of days to restrict the background diversity analysis to, relative to the query dates.")
-    m_group.add_argument("-ds","--background-map-date-start", dest="background_map_date_start", action="store", help="Earliest date to analyse background diversity analysis, format = YYYY-MM-DD")
-    m_group.add_argument("-de","--background-map-date-end", dest="background_map_date_end", action="store", help="Latest date to analyse background diversity analysis, format = YYYY-MM-DD")
-    m_group.add_argument("-bgdate","--background-map-date-column", dest="background_map_date_column", action="store", help="Column to use to draw dates from to restrict background lineage diversity mapping, format = YYYY-MM-DD")
+    # m_group.add_argument("-mbg","--map-background", dest="map_background", action="store_true", help="Shows background diversity in relevant regions")
+    # m_group.add_argument("-bgcol","--background-map-column", dest="background_map_column", action="store", help="Column in the csv that contains geographical data to map background sequences. NB not required for UK")
+    # m_group.add_argument("-dw","--background-map-date-window", dest="background_map_date_window", action="store", help="Number of days to restrict the background diversity analysis to, relative to the query dates.")
+    # m_group.add_argument("-ds","--background-map-date-start", dest="background_map_date_start", action="store", help="Earliest date to analyse background diversity analysis, format = YYYY-MM-DD")
+    # m_group.add_argument("-de","--background-map-date-end", dest="background_map_date_end", action="store", help="Latest date to analyse background diversity analysis, format = YYYY-MM-DD")
+    # m_group.add_argument("-bgdate","--background-map-date-column", dest="background_map_date_column", action="store", help="Column to use to draw dates from to restrict background lineage diversity mapping, format = YYYY-MM-DD")
     
     misc_group = parser.add_argument_group('misc options')
     misc_group.add_argument("--verbose",action="store_true",help="Print lots of stuff to screen")
@@ -129,7 +129,11 @@ def main(sysargs = sys.argv[1:]):
     init.set_up_verbosity(config)
 
     # Analysis options, including ref and trim and pad
-    analysis_arg_parsing.analysis_group_parsing(args.reference_fasta,args.trim_start,args.trim_end,args.catchment_size,config)
+    analysis_arg_parsing.analysis_group_parsing(args.reference_fasta,args.trim_start,args.trim_end,args.catchment_size,args.downsample,config)
+    
+    # Define what's going to go in the report
+    # stored under config = { "report_content": [1, 2, 3, 4], "reports": [1,2,3,4],[1,2]}
+    report_arg_parsing.report_group_parsing(args.report_content,args.anonymise,config)
 
     # Sort out where the query info is coming from, csv or id string, optional fasta seqs.
     # Checks if they're real files, of the right format and that QC args sensible values.
@@ -143,7 +147,14 @@ def main(sysargs = sys.argv[1:]):
     # Checks background data exists and is the right format.
     # Checks same number of records supplied for csv, fasta and (optional) SNP file. 
     data_arg_parsing.data_group_parsing(args.debug,args.datadir,args.background_csv,args.background_SNPs,args.background_fasta,args.background_tree,args.data_column,args.fasta_column,config)
+
+    # Report options parsing
+    if 5 in config["report_content"]:
+        report_content.timeline_checking(metadata, args.timeline_dates, config) #actual parsing comes after the pipeline
     
+    # if 6 in config["report_content"]:
+    #     maps.parse_map_options(metadata, args.map_queries, args.map_background, args.latitude_column, args.longitude_column, args.background_map_column,args.background_map_date_window, args.background_map_date_start, args.background_map_date_end, config)
+
     # Checks there are records to run and matches them up from background or supplied fasta
     # merges the metadata to a master metadata
     # runs supplied fasta qc
@@ -154,12 +165,6 @@ def main(sysargs = sys.argv[1:]):
 
     # write the merged metadata, the extracted passed qc supplied fasta and the extracted matched fasta from the background data
     input_data_parsing.write_parsed_query_files(query_metadata,passed_qc_fasta,found_in_background_data, config)
-
-    ##report options
-    config = report_content.sequence_name_parsing(metadata, args.alt_seq_name, args.anonymise, config)
-    config = report_content.timeline_checking(metadata, args.timeline_dates, config) #actual parsing comes after the pipeline
-
-    config = maps.parse_map_options(metadata, args.map_queries, args.map_background, args.latitude_column, args.longitude_column, args.background_map_column,args.background_map_date_window, args.background_map_date_start, args.background_map_date_end, config)
 
     # ready to run? either verbose snakemake or quiet mode
 
