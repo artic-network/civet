@@ -19,12 +19,13 @@ account for ones that dont map
 
 - *done* find a sensible way to merge local catchments
 
--qs - are we building a tree?
-    - define analysis/ report content
+-qs - *done* are we building a tree?
+    - *done* define analysis/ report content
     if yes - downsample local catchments (by what trait, enrich for things, protect things)
-           - add an outgroup
-           - build the tree with outgroup and downsample
-
+           - *done* add an outgroup
+           - *done* build the tree with outgroup 
+           - *done* prune out outgroup
+    if no, pass to next step: report making
 - summarise non-downsampled catchments in the data
 
 """
