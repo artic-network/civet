@@ -62,7 +62,7 @@ def check_catchment_configuration(config):
         sys.stderr.write(cyan(f"`-cs/--catchment_size` must be an integer.\n"))
         sys.exit(-1)
 
-def analysis_group_parsing(reference_fasta,trim_start,trim_end,catchment_size,config):
+def analysis_group_parsing(reference_fasta,trim_start,trim_end,catchment_size,downsample,config):
     """
     parses the data group arguments 
     --datadir (Default $DATADIR)
@@ -76,6 +76,7 @@ def analysis_group_parsing(reference_fasta,trim_start,trim_end,catchment_size,co
     misc.add_arg_to_config("trim_end",trim_end,config)
     misc.add_file_to_config("reference_fasta",reference_fasta,config)
     misc.add_arg_to_config("catchment_size",catchment_size,config)
+    misc.add_arg_to_config("downsample",downsample,config)
 
     check_coords_within_reference_length(config)
     check_catchment_configuration(config)
