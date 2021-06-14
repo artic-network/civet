@@ -9,6 +9,7 @@ from civet.input_parsing import input_data_parsing
 from civet.input_parsing import report_arg_parsing
 
 from civet.figure_functions import name_functions
+from civet.figure_functions import report_functions
 
 from civet.output_options import directory_setup
 
@@ -80,14 +81,14 @@ def main(sysargs = sys.argv[1:]):
     r_group.add_argument("-rc", "--report-content", nargs='*', action="store", dest="report_content", help="""One or more comma separated numeric strings to define the report content. Default: 1,2,3""")
     r_group.add_argument("--anonymise", action="store_true", dest="anonymise",help="Generates arbitrary labels for sequences for dissemination")
     r_group.add_argument("-alt", "--report-column", action="store", dest="report_column", help="Column containing alternative sequence names, for example patient IDs")
-    # t_group.add_argument("-ftcol","--found-table-cols", action='store', dest="found_table_cols", help="Columns to include in the table for queries found in the background data. Default:--data_column,--date_date_column,lineage,country,catchment")
-    # t_group.add_argument("-ptcol","--provided-table-cols", action='store', dest="provided_table_cols", help="Columns to include in the table for queries provided in the fasta file. Default: --data_column,--input_date_column,closest,SNP_distance,SNP_list")
+    r_group.add_argument("-ftable","--found-seq-table", action='store', dest="found_seq_table", help="Columns to include in the table for queries found in the background data. Default:--data_column,--date_date_column,lineage,country,catchment")
+    r_group.add_argument("-ntable","--novel-seq-table", action='store', dest="novel_seq_table", help="Columns to include in the table for queries provided in the fasta file. Default: --data_column,--input_date_column,closest,SNP_distance,SNP_list")
     
 
-    # t_group = parser.add_argument_group("Timeline options")
+    t_group = parser.add_argument_group("Timeline options")
     # t_group.add_argument("-td", "--timeline-dates", action='store', dest="timeline_dates", help="Data to generated a timeline as a comma separated string")
-    # t_group.add_argument("-ddc","--data-date-column", action="store", dest="data_date_column", help="Column in background data with date data in. Default=sample_date")
-    # t_group.add_argument("-idatc", "--input-date-column", action="store", dest="input_date_column", help="Column in input data with date data in. Default=sample_date")
+    t_group.add_argument("-bdate","--background-date-column", action="store", dest="background_date_column", help="Column in background data with date data in. Default=sample_date")
+    t_group.add_argument("-date", "--date-column", action="store", dest="date_column", help="Column in input data with date data in. Default=sample_date")
 
     m_group = parser.add_argument_group("Map options") #can go in report options too
     #m_group.add_argument("--uk", action="store_true", help="Leads to importation of UK-specific map modules")
@@ -158,7 +159,11 @@ def main(sysargs = sys.argv[1:]):
     data_arg_parsing.data_group_parsing(args.debug,args.datadir,args.background_csv,args.background_SNPs,args.background_fasta,args.background_tree,args.data_column,args.fasta_column,config)
 
     # Report options parsing
+    print(config)
     config, name_dict = name_functions.sequence_name_parsing(args.report_column, args.anonymise, config)
+    report_functions.parse_input_date(args.date_column,config)
+    report_functions.parse_background_date(args.background_date_column, config)
+    report_functions.parse_and_qc_table_cols(args.found_seq_table, args.novel_seq_table, config)
 
     if 5 in config["report_content"]:
         report_content.timeline_checking(metadata, args.timeline_dates, config) #actual parsing comes after the pipeline
@@ -173,6 +178,8 @@ def main(sysargs = sys.argv[1:]):
 
     # sets up the output dir, temp dir, and data output desination
     directory_setup.output_group_parsing(args.outdir, args.output_prefix, args.overwrite,args.datestamp, args.output_data, args.tempdir, args.no_temp, config)
+
+
 
     # write the merged metadata, the extracted passed qc supplied fasta and the extracted matched fasta from the background data
     input_data_parsing.write_parsed_query_files(query_metadata,passed_qc_fasta,found_in_background_data, config)

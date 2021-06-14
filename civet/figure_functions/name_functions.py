@@ -16,32 +16,42 @@ def sequence_name_parsing(report_column, anonymise, config):
     misc.add_arg_to_config("report_column",report_column,config)
     misc.add_arg_to_config("anonymise",anonymise,config)
 
-    metadata = config["input_csv"] 
     name_dict = {}
 
-    if config["anonymise"]:
-        name_dict = create_anon_ids(config, metadata)
+    if "input_csv" in config:
+        metadata = config["input_csv"] 
+        if config["anonymise"]:
+            name_dict = create_anon_ids_from_csv(config, metadata)
 
-    elif config["report_column"]:
-        with open(metadata) as f:
-            data = csv.DictReader(f)
-            if config["report_column"] not in data.fieldnames:
-                sys.stderr.write(cyan(f"Error: {config['report_column']} not found in input metadata file.\n") + "Please provide a column containing alternate sequence names, or use --anonymise if you would like civet to make them for you.\n")
-                sys.exit(-1)
-            else:
+        elif config["report_column"]:
+            with open(metadata) as f:
+                data = csv.DictReader(f)
+                if config["report_column"] not in data.fieldnames:
+                    sys.stderr.write(cyan(f"Error: {config['report_column']} not found in input metadata file.\n") + "Please provide a column containing alternate sequence names, or use --anonymise if you would like civet to make them for you.\n")
+                    sys.exit(-1)
+                else:
+                    for l in data:
+                        name_dict[l[config['input_column']]] = l[config['report_column']]
+
+        else:
+            with open(metadata) as f: 
+                data = csv.DictReader(f)
                 for l in data:
-                    name_dict[l[config['input_column']]] = l[config['report_column']]
+                    name_dict[l[config['input_column']]] = l[config['input_column']]
 
-    else:
-        with open(metadata) as f: #does this metadata exist by here if they don't provide a csv? 
-            data = csv.DictReader(f)
-            for l in data:
-                name_dict[l[config['input_column']]] = l[config['input_column']]
+
+    elif "ids" in config:
+        if config["anonymise"]:
+            name_dict = create_anon_ids_from_list(config["ids"])
+        else:
+            for name in config["ids"]:
+                name_dict[name] = name
+
 
     return config, name_dict
 
 
-def create_anon_ids(config, metadata): #the names need to be swapped out
+def create_anon_ids_from_csv(config, metadata): #the names need to be swapped out
 
     anon_dict = {}
     name_list = []
@@ -55,6 +65,17 @@ def create_anon_ids(config, metadata): #the names need to be swapped out
 
     count = 0
     for query in name_list:
+        count += 1
+        anon_dict[query] = f"sequence_{count}"
+
+    return anon_dict
+
+def create_anon_ids_from_list(input_list):
+
+    random.shuffle(input_list)
+
+    count = 0
+    for query in input_list:
         count += 1
         anon_dict[query] = f"sequence_{count}"
 
