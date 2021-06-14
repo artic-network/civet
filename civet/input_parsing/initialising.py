@@ -60,10 +60,10 @@ def get_defaults():
                     "anonymise":False,
                     "report_column": False,
                     "timeline_dates":False,
-                    "found_table_cols":False,
-                    "provided_table_cols":False,
-                    "data_date_column":"sample_date",
-                    "input_date_column":"sample_date",
+                    "found_seq_table":False,
+                    "novel_seq_table":False,
+                    "background_date_column":False,
+                    "date_column":False,
 
                     #Map options
                     # "map_queries":False,
@@ -163,14 +163,14 @@ def arg_dict(config):
                 "anonymize":"anonymise",
                 # "td":"timeline_dates",
                 # "timeline_dates":"timeline_dates",
-                # "ftcol":"found_table_cols",
-                # "found_table_cols":"found_table_cols",
-                # "ptcol":"provided_table_cols".
-                # "provided_table_cols":"provided_table_cols",
-                # "data_date_column":"data_date_column",
-                # "ddc":"data_date_column",
-                # "input_date_column":"input_date_column",
-                # "idatc":"input_date_column",
+                "ftable":"found_seq_table",
+                "found_seq_table":"found_seq_table",
+                "ntable":"novel_seq_table",
+                "novel_seq_table":"novel_seq_table",
+                "background_date_column":"background_date_column",
+                "bdate":"background_date_column",
+                "date_column":"date_column",
+                "date":"date_column",
 
                 #mgroup args
                 # "mq":"map_queries",

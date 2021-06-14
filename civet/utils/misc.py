@@ -2,7 +2,8 @@
 import os
 import csv
 from civet.utils.log_colours import green,cyan
-
+import sys
+import datetime as dt
 
 def add_col_to_metadata(new_column_name, new_column_dict, metadata, new_metadata, match_column, config): 
     #dictionary currently is key=sequence name and value=new col value
@@ -35,7 +36,7 @@ def check_date_format(to_check, line_count, header):
     try:
         dt.datetime.strptime(to_check, date_format).date()
     except:
-        print(qcfunk.cyan(f'date {to_check} on line {line_count} in column {header} in incorrect format. Please use YYYY-MM-DD'))
+        print(cyan(f'date {to_check} on line {line_count} in column {header} in incorrect format. Please use YYYY-MM-DD'))
         sys.exit(-1)
                 
 def add_arg_to_config(key,arg,config):
