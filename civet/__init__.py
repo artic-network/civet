@@ -6,7 +6,7 @@ __all__ = [
     "input_parsing",
     "analysis_functions",
     "output_options",
-    "figure_functions",
+    "report_functions",
     "utils"]
 
 from civet import *
