@@ -58,6 +58,7 @@ def get_defaults():
                     #Report options
                     "report_content":"1,2,3",
                     "anonymise":False,
+                    "report_column": False,
                     "timeline_dates":False,
                     "found_table_cols":False,
                     "provided_table_cols":False,
@@ -156,8 +157,8 @@ def arg_dict(config):
                 #rgroup args
                 "report_content":"report_content",
                 "rc":"report_content",
-                # "alt":"alt_seq_name",
-                # "alt_seq_name":"alt_seq_name"
+                "alt":"report_column",
+                "report_column":"report_column",
                 "anonymise":"anonymise",
                 "anonymize":"anonymise",
                 # "td":"timeline_dates",

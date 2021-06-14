@@ -8,6 +8,8 @@ from civet.input_parsing import analysis_arg_parsing
 from civet.input_parsing import input_data_parsing
 from civet.input_parsing import report_arg_parsing
 
+from civet.figure_functions import name_functions
+
 from civet.output_options import directory_setup
 
 from civet.utils import misc
@@ -77,7 +79,7 @@ def main(sysargs = sys.argv[1:]):
     r_group = parser.add_argument_group("Report options")
     r_group.add_argument("-rc", "--report-content", nargs='*', action="store", dest="report_content", help="""One or more comma separated numeric strings to define the report content. Default: 1,2,3""")
     r_group.add_argument("--anonymise", action="store_true", dest="anonymise",help="Generates arbitrary labels for sequences for dissemination")
-    # r_group.add_argument("-alt", "--alt-seq-name", action="store", dest="alt_seq_name", help="Column containing alternative sequence names, for example patient IDs")
+    r_group.add_argument("-alt", "--report-column", action="store", dest="report_column", help="Column containing alternative sequence names, for example patient IDs")
     # t_group.add_argument("-ftcol","--found-table-cols", action='store', dest="found_table_cols", help="Columns to include in the table for queries found in the background data. Default:--data_column,--date_date_column,lineage,country,catchment")
     # t_group.add_argument("-ptcol","--provided-table-cols", action='store', dest="provided_table_cols", help="Columns to include in the table for queries provided in the fasta file. Default: --data_column,--input_date_column,closest,SNP_distance,SNP_list")
     
@@ -156,6 +158,8 @@ def main(sysargs = sys.argv[1:]):
     data_arg_parsing.data_group_parsing(args.debug,args.datadir,args.background_csv,args.background_SNPs,args.background_fasta,args.background_tree,args.data_column,args.fasta_column,config)
 
     # Report options parsing
+    config, name_dict = name_functions.sequence_name_parsing(args.report_column, args.anonymise, config)
+
     if 5 in config["report_content"]:
         report_content.timeline_checking(metadata, args.timeline_dates, config) #actual parsing comes after the pipeline
     
@@ -172,6 +176,7 @@ def main(sysargs = sys.argv[1:]):
 
     # write the merged metadata, the extracted passed qc supplied fasta and the extracted matched fasta from the background data
     input_data_parsing.write_parsed_query_files(query_metadata,passed_qc_fasta,found_in_background_data, config)
+    name_functions.write_names_to_file(config, name_dict)
 
     # ready to run? either verbose snakemake or quiet mode
 

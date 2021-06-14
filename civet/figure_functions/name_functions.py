@@ -1,21 +1,46 @@
-def sequence_name_qc(alt_seq_name, config):
+import csv
+import sys
+import os
+import random
+from civet.utils import misc
+from civet.utils.log_colours import green,cyan
+
+
+def sequence_name_parsing(report_column, anonymise, config):
     """
     parses the report group arguments 
-    --alt-seq-name (Default $SEQ_NAME)
+    --report-column (Default $SEQ_NAME)
     --anonymise (Default False)
     """
     # if command line arg, overwrite config value
-    misc.add_arg_to_config("alt_seq_name",alt_seq_name,config)
+    misc.add_arg_to_config("report_column",report_column,config)
     misc.add_arg_to_config("anonymise",anonymise,config)
 
-    ##need to do some bits here - should add a column saying display name or something regardless, and then other figures can pull from that
-    if config["alt_seq_name"]:
+    metadata = config["input_csv"] 
+    name_dict = {}
+
+    if config["anonymise"]:
+        name_dict = create_anon_ids(config, metadata)
+
+    elif config["report_column"]:
         with open(metadata) as f:
             data = csv.DictReader(f)
-            if config["alt_seq_name"] not in data.fieldnames:
-                sys.stderr.write(cyan(f"Error: {config['alt_seq_name']} not found in metadata file.\n") + "Please provide a column containing alternate sequence names, or use --anonymise if you would like civet to make them for you.\n")
+            if config["report_column"] not in data.fieldnames:
+                sys.stderr.write(cyan(f"Error: {config['report_column']} not found in input metadata file.\n") + "Please provide a column containing alternate sequence names, or use --anonymise if you would like civet to make them for you.\n")
                 sys.exit(-1)
-                
+            else:
+                for l in data:
+                    name_dict[l[config['input_column']]] = l[config['report_column']]
+
+    else:
+        with open(metadata) as f: #does this metadata exist by here if they don't provide a csv? 
+            data = csv.DictReader(f)
+            for l in data:
+                name_dict[l[config['input_column']]] = l[config['input_column']]
+
+    return config, name_dict
+
+
 def create_anon_ids(config, metadata): #the names need to be swapped out
 
     anon_dict = {}
@@ -24,11 +49,21 @@ def create_anon_ids(config, metadata): #the names need to be swapped out
     with open(metadata) as f:
         data = csv.DictReader(f)
         for line in data:
-            if line["query_boolean"] == "TRUE": 
-                name_list.append(line[config["data_column"]])
+            name_list.append(line[config["input_column"]])
+
+    random.shuffle(name_list)
 
     count = 0
-    for query in random.shuffle(name_list):
+    for query in name_list:
+        count += 1
         anon_dict[query] = f"sequence_{count}"
 
     return anon_dict
+
+def write_names_to_file(config, name_dict):
+
+    new_metadata = os.path.join(config["tempdir"], "query_metadata.name_procssed.master.csv")
+
+    misc.add_col_to_metadata("display_name",name_dict, config["query_metadata"], new_metadata, config["input_column"], config)
+
+    config["query_metadata"] = new_metadata
