@@ -1,7 +1,7 @@
 from civet.utils.log_colours import green,cyan,red
 from civet.analysis_functions import catchment_parsing
 from civet.utils import misc
-
+from civet.report_functions import report
 import collections
 import sys
 import yaml
@@ -171,14 +171,11 @@ rule tree_building:
                     "--configfile {input.yaml:q} "
                     "--cores {workflow.cores} && touch {output.txt}")
 
-"""
 rule render_report:
     input:
-
+        csv = rules.merge_catchments.output.csv
     output:
-
+        html = os.path.join(config["outdir"],"report.html")
     run:
-        take processed metadata
-        take treefiles
-        render report using mako
-"""
+        report.make_report(input.csv,os.path.join(config["data_outdir"],"catchments"),config)
+        
