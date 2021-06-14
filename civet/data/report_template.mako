@@ -245,7 +245,7 @@
         pre {
           display: none;
         }
-        .polecat-logo {
+        .civet-logo {
           width: 2cm;
           height: 2cm;
         }
@@ -255,7 +255,7 @@
         .page-footer {
           display: none;
         }
-        .polecat-header {
+        .civet-header {
           text-align: left;
         }
         .content-block, p {
@@ -600,7 +600,7 @@
         <div class="row">
           <!--<div class="col-sm-1">
             <p>
-            <img class="polecat-logo" src=https://raw.githubusercontent.com/COG-UK/polecat/master/docs/doc_figures/polecat_logo.svg vertical-align="left" width="50" height="50"></img>
+            <img class="civet-logo" src=https://github.com/COG-UK/civet/workflows/civet-test-installation/badge.svg vertical-align="left" width="50" height="50"></img>
             <p> -->
         </div>
 
