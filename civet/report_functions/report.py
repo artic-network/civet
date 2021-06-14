@@ -63,7 +63,7 @@ def make_timeline_colours(config):
 
     return config
 
-def make_report():
+def make_report(metadata,tree_path,config):
 #all of the if statements
 #need to call this multiple times if there are multiple reports wanted
     query_summary_data = make_summary_data(metadata, config)
