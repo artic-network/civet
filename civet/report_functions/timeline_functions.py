@@ -1,5 +1,10 @@
+import csv
+import sys
+from civet.utils.log_colours import cyan 
+from civet.utils import misc
 
-def timeline_checking(metadata, timeline_dates, config):  
+
+def timeline_checking(timeline_dates, config):  
 
     misc.add_arg_to_config("timeline_dates",timeline_dates,config) #default is None
 
@@ -7,23 +12,56 @@ def timeline_checking(metadata, timeline_dates, config):
 
         date_header_list = config["timeline_dates"].split(",")
 
-        with open(metadata) as f:
-            data = csv.DictReader(f)
-            for header in date_header_list:
-                if header not in data.fieldnames:
-                    sys.stderr.write(cyan(f"Error: {header} (specified for use in timeline plot) not found in metadata file.\n"))
-                    sys.exit(-1)
+        if "input_csv" in config:
+            with open(config["input_csv"]) as f:
+                data = csv.DictReader(f)
+                input_headers = data.fieldnames
+        else:    
+            input_headers = []
 
-            line_count = 0
-            for line in data:
-                line_count += 1
-                for header in date_header_list:
-                    if line[header] != "":
-                        misc.check_date_format(line[header], line_count, header)
+        with open(config["background_csv"]) as f:
+            data = csv.DictReader(f)
+            background_headers = data.fieldnames
+
+        input_cols_to_check = []
+        background_cols_to_check = []
+
+        for header in date_header_list:
+            if header not in input_headers and header not in background_headers:
+                sys.stderr.write(cyan(f"Error: {header} (specified for use in timeline plot) not found in either metadata file.\n"))
+                sys.exit(-1)
+
+            elif header in input_headers:
+                input_cols_to_check.append(header)
+            elif header in background_headers:
+                background_cols_to_check.append(header)
+
+        count = 0
+        if "input_csv" in config:
+            with open(config["input_csv"]) as f:
+                data = csv.DictReader(f)
+                for l in data:
+                    for header in input_cols_to_check:
+                        count += 1
+                        if l[header] != "":
+                            misc.check_date_format(l[header], count, header)
+        
+        count = 0
+        with open(config["background_csv"]) as f:
+            data = csv.DictReader(f)
+            for l in data:
+                for header in background_cols_to_check:
+                    count += 1
+                    if l[header] != "":
+                        misc.check_date_format(l[header], count, header)
+
+
+    else:
+        sys.stderr.write(cyan(f"Error: Timeline option given in report content argument, but no data provided. Please use -td/--timeline-dates to specify column headers containing data.\n"))
+        sys.exit(-1)
 
 
     return config
-
 
 
 def make_timeline_json(config):
@@ -50,5 +88,9 @@ def make_timeline_json(config):
                 dict_list.append(new_dict)
                 overall['catchments'][l['catchment']] = dict_list
 
-    with open(os.path.join(config["tempdir"],'timeline_data.json'), 'w') as outfile:
-        json.dump(overall, outfile)
+    return overall
+
+    # with open(os.path.join(config["tempdir"],'timeline_data.json'), 'w') as outfile:
+    #     json.dump(overall, outfile)
+
+    

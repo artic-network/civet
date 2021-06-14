@@ -1,8 +1,9 @@
 import json
 import csv
-from mako import Template
+from mako.template import Template
 from mako.lookup import TemplateLookup
 import datetime as dt
+from civet.report_functions import timeline_functions
 
 
 
@@ -52,9 +53,13 @@ def make_catchment_summary_data(metadata):
     return catchment_summary_data
 
 
-def get_timeline(timeline_json):
-    with open(timeline_json,'r') as f:
-        timeline_data = json.load(f)
+def get_timeline(config):
+
+    timeline_data = report_functions.make_timeline_json(config)
+
+    # with open(timeline_json,'r') as f:
+    #     timeline_data = json.load(f)
+    
     return timeline_data
 
 def make_timeline_colours(config):
@@ -67,7 +72,7 @@ def make_report(metadata,tree_path,config):
 #all of the if statements
 #need to call this multiple times if there are multiple reports wanted
     query_summary_data = make_summary_data(metadata, config)
-    timeline_data = get_timeline(timeline_json) 
+    timeline_data = get_timeline(config) 
     config = make_timeline_colours(config)
     catchment_lst, tree_strings = process_catchments()
 

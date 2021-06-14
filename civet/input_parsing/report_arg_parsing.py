@@ -4,7 +4,7 @@ from civet.utils.log_colours import green,cyan
 from civet.utils import misc
 import datetime as dt
 
-def qc_report_content(config):
+def qc_report_content(config): #doesn't work with default
     reports = config["report_content"]
     to_generate = []
     to_run = []
@@ -17,10 +17,10 @@ def qc_report_content(config):
             sys.exit(-1)
         
         for i in report_options:
-            if i in range(1,7):
+            if i in range(1,8):
                 to_run.append(i)
             else:
-                sys.stderr.write(cyan(f'Error: {i} is an invalid -rc/ --report-content option. Options 1..6 inclusive.\n'))
+                sys.stderr.write(cyan(f'Error: {i} is an invalid -rc/ --report-content option. Options 1..7 inclusive.\n'))
                 sys.exit(-1)
 
         report_options = sorted(list(set(report_options)))
@@ -36,7 +36,7 @@ def qc_report_content(config):
             print(f"{c}. {content_str}")
     else:
         print(green("Report to generate:"))
-        content_str = ",".join(i[0])
+        content_str = ",".join([str(i) for i in to_generate[0]])
         print(f"{content_str}")
         
     config["report_content"] = to_run
