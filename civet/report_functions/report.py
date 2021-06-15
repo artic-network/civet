@@ -78,9 +78,9 @@ def make_report(metadata,report_to_generate,config):
 
     date = dt.datetime.today()
 
-    chunks = TemplateLookup(directories=["../civet/data/report_chunks/"]) #absolute or relative works
+    mylookup = TemplateLookup(directories=["../civet/data/report_chunks/",]) #absolute or relative works
 
-    mytemplate = Template(filename=config["report_template"], strict_undefined=True, lookup=chunks)
+    mytemplate = Template(filename=config["report_template"], strict_undefined=True, lookup=mylookup)
     
     with open(report_to_generate, 'w') as f:
         f.write(mytemplate.render(date=date,
