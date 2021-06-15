@@ -56,7 +56,7 @@ def get_defaults():
                     "min_length":20000,
 
                     #Report options
-                    "report_content":"1,2,3",
+                    "report_content":["1,2,3"],
                     "anonymise":False,
                     "report_column": False,
                     "timeline_dates":False,

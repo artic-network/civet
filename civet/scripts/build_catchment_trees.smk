@@ -19,7 +19,7 @@ rule iqtree:
         iqtree -s {input.aln:q} \
         -m HKY \
         -blmin  0.0000000001 \
-        -nt 1 
+        -nt 1 \
         -redo \
         -o outgroup \
         -quiet &> {log:q}
@@ -38,3 +38,5 @@ rule prune_outgroup:
         -t outgroup \
         -f newick 
         """
+
+# rule expand out hash in tree

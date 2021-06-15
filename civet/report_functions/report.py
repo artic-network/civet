@@ -72,18 +72,9 @@ def make_timeline_colours(config):
 def make_report(metadata,report_to_generate,config):
     #all of the if statements
     #need to call this multiple times if there are multiple reports wanted
-    query_summary_data = make_summary_data(metadata, config)
+    query_summary_data = make_query_summary_data(metadata, config)
     
-    if '3' in report_to_generate:
-        # will need to do this separately for trees and 
-        # catchments as trees might not be rendered
-        catchment_lst, tree_strings = process_catchments()
 
-
-    if '5' in report_to_generate:
-        timeline_data = get_timeline(timeline_json) 
-        make_timeline_colours(config)
-    
     
     date = dt.datetime.today()
 

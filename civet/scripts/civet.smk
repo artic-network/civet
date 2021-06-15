@@ -33,7 +33,7 @@ rule all:
     input:
         os.path.join(config["data_outdir"],"catchments","query_metadata.catchments.csv"),
         os.path.join(config["tempdir"],"catchments","tree.txt"),
-        html = os.path.join(config["tempdir"],"report_prompt.txt")
+        html = os.path.join(config["outdir"],config["output_reports"][0])
 
 rule align_to_reference:
     input:
@@ -136,10 +136,14 @@ rule merge_catchments:
         print(green("Merged into ")+f'{catchment_count}' + green(" catchments."))
 
         catchment_parsing.add_catchments_to_metadata(config["background_csv"],output.csv,output.catchment_csv,catchment_dict,config)
-        
+        with open(output.yaml, 'w') as fw:
+            yaml.dump(config, fw) 
+        if config["verbose"]:
+            print(red("\n**** CONFIG ****"))
+            for k in sorted(config):
+                print(green(f" - {k}: ") + f"{config[k]}")
         if '3' in config["report_content"]:
-            with open(output.yaml, 'w') as fw:
-                yaml.dump(config, fw) #so at the moment, every config option gets passed to the report
+            #so at the moment, every config option gets passed to the report
             print("Writing catchment fasta files.")
             catchment_parsing.write_catchment_fasta(catchment_dict,params.catchment_dir,config)
 
@@ -156,8 +160,8 @@ rule downsampling:
 
 rule tree_building:
     input:
-        csv = rules.merge_catchments.output.csv,
         yaml = rules.merge_catchments.output.yaml,
+        csv = rules.merge_catchments.output.csv,
         snakefile = os.path.join(workflow.current_basedir,"build_catchment_trees.smk")
     output:
         txt = os.path.join(config["tempdir"],"catchments","tree.txt")
@@ -173,13 +177,13 @@ rule tree_building:
                     "--cores {workflow.cores} && touch {output.txt:q}")
         else:
             shell("touch {output.txt:q}")
-            
+
 rule render_report:
     input:
         csv = rules.merge_catchments.output.csv
     output:
-        html = os.path.join(config["tempdir"],"report_prompt.txt")
+        html = os.path.join(config["outdir"],config["output_reports"][0])
     run:
-        for report_to_generate in config["reports"]:
+        for report_to_generate in config["output_reports"]:
             report.make_report(input.csv,report_to_generate,config)
         

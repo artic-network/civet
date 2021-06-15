@@ -26,20 +26,18 @@ def qc_report_content(config): #doesn't work with default
         report_options = sorted(list(set(report_options)))
         to_generate.append(report_options)
         
-    to_run = sorted(list(set(to_run)))
-    print(to_run, to_generate)
-    
+    to_run = sorted(list(set(to_run)))    
 
     if len(to_generate)>1:
         print(green("Reports to generate:"))
         c = 0
         for i in to_generate:
             c+=1
-            content_str = ",".join(i)
+            content_str = ",".join([str(x) for x in i])
             print(f"{c}. {content_str}")
     else:
         print(green("Report to generate:"))
-        content_str = ",".join([str(i) for i in to_generate[0]])
+        content_str = ",".join([str(x) for x in to_generate[0]])
         print(f"{content_str}")
         
     config["report_content"] = to_run

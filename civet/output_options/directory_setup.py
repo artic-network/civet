@@ -62,7 +62,7 @@ def clear_old_files(config):
             except:
                 print(cyan("Can't remove "),f)
 
-def output_report_filename(d,config):
+def output_report_filenames(d,config):
 
     reports = config["reports"]
     report_names = []
@@ -74,8 +74,14 @@ def output_report_filename(d,config):
                 output_report = f"{config['output_prefix']}_{d}_{c}.html"
             else:
                 output_report = f"{config['output_prefix']}_{c}.html"
-    
-    return output_report
+            report_names.append(output_report)
+    else:
+        if config["datestamp"]:
+            output_report = f"{config['output_prefix']}_{d}.html"
+        else:
+            output_report = f"{config['output_prefix']}.html"
+        report_names.append(output_report)
+    return report_names
 
 def set_up_tempdir(config):
     if config["no_temp"]:
@@ -129,7 +135,7 @@ def output_group_parsing(outdir,output_prefix,overwrite,datestamp,output_data,te
     set_up_tempdir(config)
     set_up_data_outdir(config)
 
-    config["output_report"] = output_report_filename(d,config)
+    config["output_reports"] = output_report_filenames(d,config)
 
     clear_old_files(config)
 
