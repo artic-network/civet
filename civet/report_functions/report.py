@@ -14,11 +14,11 @@ def check_which_tables_produced(metadata, config): #call this in the render repo
     queries_found = False
 
     with open(metadata) as f:
-        data = csv.DictReader(f)
-        for l in data:
-            if l["source"] == "background_data":
+        reader = csv.DictReader(f)
+        for row in reader:
+            if row["source"] == "background_data":
                 queries_found = True
-            if l["source"] == "input_fasta":
+            if row["source"] == "input_fasta":
                 queries_provided = True
 
     config["queries_found"] = queries_found
@@ -72,19 +72,24 @@ def make_timeline_colours(config):
 def make_report(metadata,report_to_generate,config):
     #all of the if statements
     #need to call this multiple times if there are multiple reports wanted
+
+    catch
     query_summary_data = make_query_summary_data(metadata, config)
     
+    catchments = [f"catchment_{i}" for i in range(1,config["catchment_count"]+1)]
+    print(__version__,catchments)
 
-    
     date = dt.datetime.today()
 
-    mylookup = TemplateLookup(directories=["../civet/data/report_chunks/"]) #absolute or relative works
+    chunks = TemplateLookup(directories=["../civet/data/report_chunks/"]) #absolute or relative works
 
-    mytemplate = Template(filename=config["report_template"], strict_undefined=True, lookup=mylookup)
-    f = open(config["outfile"], 'w')
-    f.write(mytemplate.render(date=date,query_summary_data=query_summary_data,config=config,
-                              timeline_data = timeline_data,
-                              catchments=["catchment_1","catchment_2"],
-                              version=__version__))
-    f.close()
+    mytemplate = Template(filename=config["report_template"], strict_undefined=True, lookup=chunks)
+    
+    with open(report_to_generate, 'w') as f:
+        f.write(mytemplate.render(date=date,
+                                query_summary_data=query_summary_data,config=config,
+                                timeline_data=timeline_data,
+                                catchments=catchments,
+                                version=__version__)
+                                )
 
