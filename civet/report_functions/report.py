@@ -1,9 +1,11 @@
 import json
 import csv
-from mako import Template
+from mako.template import Template
 from mako.lookup import TemplateLookup
 import datetime as dt
 from civet import __version__
+from civet.report_functions import timeline_functions
+
 
 
 def check_which_tables_produced(metadata, config): #call this in the render report
@@ -52,9 +54,13 @@ def make_catchment_summary_data(metadata):
     return catchment_summary_data
 
 
-def get_timeline(timeline_json):
-    with open(timeline_json,'r') as f:
-        timeline_data = json.load(f)
+def get_timeline(config):
+
+    timeline_data = report_functions.make_timeline_json(config)
+
+    # with open(timeline_json,'r') as f:
+    #     timeline_data = json.load(f)
+    
     return timeline_data
 
 def make_timeline_colours(config):

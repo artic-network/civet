@@ -82,9 +82,9 @@ def main(sysargs = sys.argv[1:]):
     r_group.add_argument("--catchment-table", action='store', dest="catchment_table", help="Columns to include in the summary table for catchments. Default: count,country,lineage")
     
     t_group = parser.add_argument_group("Timeline options")
-    t_group.add_argument("-td", "--timeline-dates", action='store', dest="timeline_dates", help="Data to generated a timeline as a comma separated string")
-    t_group.add_argument("-ddc","--data-date-column", action="store", dest="data_date_column", help="Column in background data with date data in. Default=sample_date")
-    t_group.add_argument("-idatc", "--input-date-column", action="store", dest="input_date_column", help="Column in input data with date data in. Default=sample_date")
+    t_group.add_argument("-td", "--timeline-dates", action='store', dest="timeline_dates", help="Data to generate a timeline as a comma separated string")
+    t_group.add_argument("-dcol","--date-column", action="store", dest="date_column", help="Column in input query with date data in. Default=sample_date")
+    t_group.add_argument("-idatc", "--background-date", action="store", dest="background_date", help="Column in input data with date data in. Default=sample_date")
 
     m_group = parser.add_argument_group("Map options") #can go in report options too
     m_group.add_argument("--uk", action="store_true", help="Leads to importation of UK-specific map modules")
