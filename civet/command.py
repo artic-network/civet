@@ -54,7 +54,7 @@ def main(sysargs = sys.argv[1:]):
     d_group.add_argument("-bSNP","--background-SNPs",action="store",dest="background_SNPs",help="Optional SNP file for all background data. Civet will calculate this file if not supplied, which may take some time. Should have a column matching '--data-column', Default: sequence_name.")
     d_group.add_argument("-bf","--background-fasta", action="store", dest="background_fasta", help="Custom background fasta file for all background data. Sequence IDs should match the background metadata data_column.")
     d_group.add_argument("-bt","--background-tree", action="store", dest="background_tree", help="Custom background tree file for all background data. Tip names should match the background metadata data_column.")
-    d_group.add_argument("-dcol",'--data-column', action="store",help="Column in background data to match with input IDs. Default: sequence_name", dest="data_column")
+    d_group.add_argument("-bcol",'--background-column', action="store",help="Column in background data to match with input IDs. Default: sequence_name", dest="data_column")
     d_group.add_argument("-fcol",'--fasta-column', action="store",help="Column in background data to match with input IDs. Default: `-dcol/--data-column`.", dest="fasta_column")
 
     o_group = parser.add_argument_group('Output options')
@@ -76,9 +76,10 @@ def main(sysargs = sys.argv[1:]):
     r_group = parser.add_argument_group("Report options")
     r_group.add_argument("-rc", "--report-content", nargs='*', action="store", dest="report_content", help="""One or more comma separated numeric strings to define the report content. Default: 1,2,3""")
     r_group.add_argument("--anonymise", action="store_true", dest="anonymise",help="Generates arbitrary labels for sequences for dissemination")
-    r_group.add_argument("-alt", "--alt-seq-name", action="store", dest="alt_seq_name", help="Column containing alternative sequence names, for example patient IDs")
-    t_group.add_argument("-ftcol","--found-table-cols", action='store', dest="found_table_cols", help="Columns to include in the table for queries found in the background data. Default:--data_column,--date_date_column,lineage,country,catchment")
-    t_group.add_argument("-ptcol","--provided-table-cols", action='store', dest="provided_table_cols", help="Columns to include in the table for queries provided in the fasta file. Default: --data_column,--input_date_column,closest,SNP_distance,SNP_list")
+    r_group.add_argument("-rcol", "--report-column", action="store", dest="alt_seq_name", help="Column containing alternative sequence names, for example patient IDs")
+    r_group.add_argument("--table-content-1", action='store', dest="table_content_1", help="Columns to include in the table for queries found in the background data. Default:--data_column,--date_date_column,lineage,country,catchment")
+    r_group.add_argument("--table-content-2", action='store', dest="table_content_2", help="Columns to include in the table for queries found in the background data. Default:--data_column,--date_date_column,lineage,country,catchment")
+    r_group.add_argument("--catchment-table", action='store', dest="catchment_table", help="Columns to include in the summary table for catchments. Default: count,country,lineage")
     
     t_group = parser.add_argument_group("Timeline options")
     t_group.add_argument("-td", "--timeline-dates", action='store', dest="timeline_dates", help="Data to generated a timeline as a comma separated string")
