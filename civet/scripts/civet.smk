@@ -180,10 +180,14 @@ rule tree_building:
 
 rule render_report:
     input:
-        csv = rules.merge_catchments.output.csv
+        csv = rules.merge_catchments.output.csv,
+        yaml = rules.merge_catchments.output.yaml
     output:
         html = os.path.join(config["outdir"],config["output_reports"][0])
     run:
+        with open(input.yaml, 'r') as f:
+            config_loaded = yaml.safe_load(f)
+
         for report_to_generate in config["output_reports"]:
-            report.make_report(input.csv,report_to_generate,config)
+            report.make_report(input.csv,report_to_generate,config_loaded)
         

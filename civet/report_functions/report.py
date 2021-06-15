@@ -39,14 +39,12 @@ def make_query_summary_data(metadata, config):
     with open(metadata, "r") as f:
         reader = csv.DictReader(f)
         for row in reader:
-            cluster_dict = {}
-            for col in config["provided_table_cols"]:
-                cluster_dict[col] = row[col]
-            for col in config["found_table_cols"]:
-                cluster_dict[col] = row[col]
-            cluster_dict["source"] = row["source"]
+            table_row = {}
+            for col in config["table_content"]:
+                table_row[col] = row[col]
+            table_row["source"] = row["source"]
                 
-            query_summary_data.append(cluster_dict)
+            query_summary_data.append(table_row)
     return query_summary_data
 
 def make_catchment_summary_data(metadata):
@@ -73,7 +71,6 @@ def make_report(metadata,report_to_generate,config):
     #all of the if statements
     #need to call this multiple times if there are multiple reports wanted
 
-    catch
     query_summary_data = make_query_summary_data(metadata, config)
     
     catchments = [f"catchment_{i}" for i in range(1,config["catchment_count"]+1)]
@@ -88,7 +85,7 @@ def make_report(metadata,report_to_generate,config):
     with open(report_to_generate, 'w') as f:
         f.write(mytemplate.render(date=date,
                                 query_summary_data=query_summary_data,config=config,
-                                timeline_data=timeline_data,
+                                timeline_data="",
                                 catchments=catchments,
                                 version=__version__)
                                 )
