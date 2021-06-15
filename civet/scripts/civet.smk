@@ -32,7 +32,8 @@ account for ones that dont map
 rule all:
     input:
         os.path.join(config["data_outdir"],"catchments","query_metadata.catchments.csv"),
-        os.path.join(config["tempdir"],"catchments","tree.txt")
+        os.path.join(config["tempdir"],"catchments","tree.txt"),
+        html = os.path.join(config["tempdir"],"report_prompt.txt")
 
 rule align_to_reference:
     input:
@@ -169,13 +170,16 @@ rule tree_building:
                     "{config[log_string]} "
                     "--directory {config[tempdir]:q} "
                     "--configfile {input.yaml:q} "
-                    "--cores {workflow.cores} && touch {output.txt}")
-
+                    "--cores {workflow.cores} && touch {output.txt:q}")
+        else:
+            shell("touch {output.txt:q}")
+            
 rule render_report:
     input:
         csv = rules.merge_catchments.output.csv
     output:
-        html = os.path.join(config["outdir"],"report.html")
+        html = os.path.join(config["tempdir"],"report_prompt.txt")
     run:
-        report.make_report(input.csv,os.path.join(config["data_outdir"],"catchments"),config)
+        for report_to_generate in config["reports"]:
+            report.make_report(input.csv,report_to_generate,config)
         

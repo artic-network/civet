@@ -63,10 +63,18 @@ def clear_old_files(config):
                 print(cyan("Can't remove "),f)
 
 def output_report_filename(d,config):
-    if config["datestamp"]:
-        output_report = f"{config['output_prefix']}_{d}.html"
-    else:
-        output_report = f"{config['output_prefix']}.html"
+
+    reports = config["reports"]
+    report_names = []
+    c = 0
+    if len(reports)>1:
+        for i in reports:
+            c +=1
+            if config["datestamp"]:
+                output_report = f"{config['output_prefix']}_{d}_{c}.html"
+            else:
+                output_report = f"{config['output_prefix']}_{c}.html"
+    
     return output_report
 
 def set_up_tempdir(config):

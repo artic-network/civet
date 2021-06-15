@@ -3,7 +3,7 @@ import csv
 from mako import Template
 from mako.lookup import TemplateLookup
 import datetime as dt
-
+from civet import __version__
 
 
 def check_which_tables_produced(metadata, config): #call this in the render report
@@ -63,23 +63,31 @@ def make_timeline_colours(config):
 
     return config
 
-def make_report(metadata,tree_path,config):
-#all of the if statements
-#need to call this multiple times if there are multiple reports wanted
+def make_report(metadata,report_to_generate,config):
+    #all of the if statements
+    #need to call this multiple times if there are multiple reports wanted
     query_summary_data = make_summary_data(metadata, config)
-    timeline_data = get_timeline(timeline_json) 
-    config = make_timeline_colours(config)
-    catchment_lst, tree_strings = process_catchments()
+    
+    if '3' in report_to_generate:
+        # will need to do this separately for trees and 
+        # catchments as trees might not be rendered
+        catchment_lst, tree_strings = process_catchments()
 
+
+    if '5' in report_to_generate:
+        timeline_data = get_timeline(timeline_json) 
+        make_timeline_colours(config)
+    
+    
     date = dt.datetime.today()
 
-    # mylookup = TemplateLookup(directories=["../civet/data/report_chunks/"]) #absolute or relative works
+    mylookup = TemplateLookup(directories=["../civet/data/report_chunks/"]) #absolute or relative works
 
-    # mytemplate = Template(filename="test_template.mako", strict_undefined=True, lookup=mylookup)
-    # f = open(f"test_report.html", 'w')
-    # f.write(mytemplate.render(date=date,query_summary_data=query_summary_data,config=config,
-    #                           timeline_data = timeline_data,
-    #                           catchments=["catchment_1","catchment_2"],
-    #                           version="3.0"))
-    # f.close()
+    mytemplate = Template(filename=config["report_template"], strict_undefined=True, lookup=mylookup)
+    f = open(config["outfile"], 'w')
+    f.write(mytemplate.render(date=date,query_summary_data=query_summary_data,config=config,
+                              timeline_data = timeline_data,
+                              catchments=["catchment_1","catchment_2"],
+                              version=__version__))
+    f.close()
 

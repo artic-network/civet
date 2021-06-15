@@ -25,8 +25,11 @@ def qc_report_content(config):
 
         report_options = sorted(list(set(report_options)))
         to_generate.append(report_options)
+        
     to_run = sorted(list(set(to_run)))
     print(to_run, to_generate)
+    
+
     if len(to_generate)>1:
         print(green("Reports to generate:"))
         c = 0
