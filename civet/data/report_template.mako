@@ -527,12 +527,12 @@
     <br>
 	
 	 %if '1' in config["report_content"]:
-			<%include file="query_table_chunk.txt"
+			<%include file="query_table.txt"
 				args="config=config, query_summary_data=query_summary_data"
 				/>
     %endif
         
-        %for catchment in catchments:
+    %for catchment in catchments:
         <h2>${catchment.replace("_"," ").title()}</h2> 
         
         %if '2' in config["report_content"]:
@@ -552,7 +552,7 @@
         %endif
         %if '5' in config["report_content"]:
         <%rel_catch = catchment%>
-		<%include file="timeline_chunk.txt"
+		<%include file="timeline.txt"
 				args="catchment=rel_catch, config=config, timeline_data=timeline_data"
 				/>
         
