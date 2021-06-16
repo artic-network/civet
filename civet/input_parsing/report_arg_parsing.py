@@ -7,6 +7,7 @@ import datetime as dt
 from civet.report_functions import name_functions
 from civet.report_functions import table_functions
 from civet.report_functions import timeline_functions
+from civet.report_functions import map_functions
 
 def qc_report_content(config): #doesn't work with default
     reports = config["report_content"]
@@ -49,7 +50,7 @@ def qc_report_content(config): #doesn't work with default
 
 #then at some point we need to update the treefile with these display names using jclusterfunk
 
-def report_group_parsing(report_content,report_column, anonymise,date_column, background_date_column, table_content, timeline_dates, config):
+def report_group_parsing(report_content,report_column, anonymise,date_column, background_date_column, table_content, timeline_dates, longitude_column, latitude_column, found_in_background_data, config):
     """
     parses the report group arguments 
     --report-content (Default 1,2,3)
@@ -73,8 +74,13 @@ def report_group_parsing(report_content,report_column, anonymise,date_column, ba
 
     if 1 in config['report_content']:
         table_functions.parse_and_qc_table_cols(table_content, config)
+        printable_cols = ",".join(config["table_content"])
+        print(green("Metadata table will contain the following columns: ") + f"{printable_cols}\n")
+
     if 5 in config['report_content']:
         timeline_functions.timeline_checking(timeline_dates, config)
 
-    printable_cols = ",".join(config["table_content"])
-    print(green("Metadata table will contain the following columns: ") + f"{printable_cols}\n")
+
+    if 7 in config['report_content']:
+        map_functions.parse_query_map(longitude_column, latitude_column, found_in_background_data, config)
+

@@ -52,9 +52,9 @@ def main(sysargs = sys.argv[1:]):
     d_group.add_argument('-d','--datadir', action="store",help="Directory containing the background data files.")
     d_group.add_argument("-bc","--background-csv",action="store",dest="background_csv",help="Custom metadata file for all background data. Should have a column matching '--data-column', Default: sequence_name.")
     d_group.add_argument("-bSNP","--background-SNPs",action="store",dest="background_SNPs",help="Optional SNP file for all background data. Civet will calculate this file if not supplied, which may take some time. Should have a column matching '--data-column', Default: sequence_name.")
-    d_group.add_argument("-bf","--background-fasta", action="store", dest="background_fasta", help="Custom background fasta file for all background data. Sequence IDs should match the background metadata data_column.")
-    d_group.add_argument("-bt","--background-tree", action="store", dest="background_tree", help="Custom background tree file for all background data. Tip names should match the background metadata data_column.")
-    d_group.add_argument("-bcol",'--background-column', action="store",help="Column in background data to match with input IDs. Default: sequence_name", dest="data_column")
+    d_group.add_argument("-bf","--background-fasta", action="store", dest="background_fasta", help="Custom background fasta file for all background data. Sequence IDs should match the background metadata background_column.")
+    d_group.add_argument("-bt","--background-tree", action="store", dest="background_tree", help="Custom background tree file for all background data. Tip names should match the background metadata background_column.")
+    d_group.add_argument("-bcol",'--background-column', action="store",help="Column in background data to match with input IDs. Default: sequence_name", dest="background_column")
     d_group.add_argument("-fcol",'--fasta-column', action="store",help="Column in background data to match with input IDs. Default: `-dcol/--data-column`.", dest="fasta_column")
 
     o_group = parser.add_argument_group('Output options')
@@ -82,22 +82,18 @@ def main(sysargs = sys.argv[1:]):
     r_group.add_argument("-td", "--timeline-dates", action='store', dest="timeline_dates", help="Data to generate a timeline as a comma separated string")
     r_group.add_argument("-dcol","--date-column", action="store", dest="date_column", help="Column in input query with date data in. Default=sample_date")
     r_group.add_argument("-bdate", "--background-date-column", action="store", dest="background_date_column", help="Column in input data with date data in. Default=sample_date")
+    r_group.add_argument("-loc","--location", dest="location", action="store", help="Column in the csv that contains geographical data. Default=country")
 
-    # m_group = parser.add_argument_group("Map options") #can go in report options too
-    # m_group.add_argument("--uk", action="store_true", help="Leads to importation of UK-specific map modules")
-    # m_group.add_argument("--map-file", action="store", help="JSON or GeoJSON containing polygons to plot queries or background on. NB not required for the UK")
-    # m_group.add_argument("-mq", "--map-queries", dest="map_queries", action="store_true", help="Plots queries as dots on a map")
-    # m_group.add_argument("-lat","--latitude-column", dest="latitude_column", action="store", help="Column containing latitude coordinate information to plot queries on a map")
-    # m_group.add_argument("-long","--longitude-column", dest="longitude_column", action="store", help="Column containing longitude coordinate information to plot queries on a map")
 
-    # m_group.add_argument("-mbg","--map-background", dest="map_background", action="store_true", help="Shows background diversity in relevant regions")
-    # m_group.add_argument("-bgcol","--location", dest="background_map_column", action="store", help="Column in the csv that contains geographical data to map background sequences. NB not required for UK")
-    # m_group.add_argument("-dw","--background-map-date-window", dest="background_map_date_window", action="store", help="Number of days to restrict the background diversity analysis to, relative to the query dates.")
-    # m_group.add_argument("-ds","--background-map-date-start", dest="background_map_date_start", action="store", help="Earliest date to analyse background diversity analysis, format = YYYY-MM-DD")
-    # m_group.add_argument("-de","--background-map-date-end", dest="background_map_date_end", action="store", help="Latest date to analyse background diversity analysis, format = YYYY-MM-DD")
-    # m_group.add_argument("-bgdate","--background-map-date-column", dest="background_map_date_column", action="store", help="Column to use to draw dates from to restrict background lineage diversity mapping, format = YYYY-MM-DD")
-    
+    m_group = parser.add_argument_group("Map options")
+    m_group.add_argument("--map-file", action="store", help="JSON or GeoJSON containing polygons to plot queries or background on.")
+    m_group.add_argument("-lat","--latitude-column", dest="latitude_column", action="store", help="Column containing latitude coordinate information to plot queries on a map")
+    m_group.add_argument("-long","--longitude-column", dest="longitude_column", action="store", help="Column containing longitude coordinate information to plot queries on a map")
+    m_group.add_argument("--background-map-date-restriction", dest="background_map_date_restriction", action="store", help="Restrict the time frame for mapping background lineage diversity. Can be an integer (number of days either side of queries to restrict to) or a date range, format='YYYY-MM-DD:YYYY-MM-DD'")
+    m_group.add_argument("--background-map-location", dest="background_map_location", action="store", help="Column in background metadata containing location to map background lineage diversity by")
+
     misc_group = parser.add_argument_group('misc options')
+    misc_group.add_argument("--civet-mode", action="store", dest='civet_mode', help="if CLIMB then import UK specific modules. Default=Global")
     misc_group.add_argument("--verbose",action="store_true",help="Print lots of stuff to screen")
     misc_group.add_argument("--debug",action="store_true",help="Debugging mode.")
     misc_group.add_argument("--art",action="store_true",help="Print art")
@@ -145,11 +141,7 @@ def main(sysargs = sys.argv[1:]):
 
     # Checks background data exists and is the right format.
     # Checks same number of records supplied for csv, fasta and (optional) SNP file. 
-    data_arg_parsing.data_group_parsing(args.debug,args.datadir,args.background_csv,args.background_SNPs,args.background_fasta,args.background_tree,args.data_column,args.fasta_column,config)
-
-    # Define what's going to go in the report and sort global report options 
-    # stored under config = { "report_content": [1, 2, 3, 4], "reports": [1,2,3,4],[1,2]}
-    report_arg_parsing.report_group_parsing(args.report_content,args.report_column, args.anonymise, args.date_column, args.background_date_column, args.table_content, args.timeline_dates, config)
+    data_arg_parsing.data_group_parsing(args.debug,args.datadir,args.background_csv,args.background_SNPs,args.background_fasta,args.background_tree,args.background_column,args.fasta_column,config)
     
     # if 6 in config["report_content"]:
     #     maps.parse_map_options(metadata, args.map_queries, args.map_background, args.latitude_column, args.longitude_column, args.background_map_column,args.background_map_date_window, args.background_map_date_start, args.background_map_date_end, config)
@@ -158,6 +150,10 @@ def main(sysargs = sys.argv[1:]):
     # merges the metadata to a master metadata
     # runs supplied fasta qc
     query_metadata, passed_qc_fasta, found_in_background_data = input_data_parsing.query_check_against_background_merge_input(config)
+
+    # Define what's going to go in the report and sort global report options 
+    # stored under config = { "report_content": [1, 2, 3, 4], "reports": [1,2,3,4],[1,2]}
+    report_arg_parsing.report_group_parsing(args.report_content,args.report_column, args.anonymise, args.date_column, args.background_date_column, args.table_content, args.timeline_dates, args.longitude_column, args.latitude_column, found_in_background_data, config)
 
     # sets up the output dir, temp dir, and data output desination
     directory_setup.output_group_parsing(args.outdir, args.output_prefix, args.overwrite,args.datestamp, args.output_data, args.tempdir, args.no_temp, config)

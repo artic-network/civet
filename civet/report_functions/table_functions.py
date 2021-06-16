@@ -51,7 +51,7 @@ def parse_and_qc_table_cols(table_content, config):
 def sort_default_headers(input_fieldnames, background_fieldnames, config):
 
     basic_default_list = [config["input_column"], "lineage", "source", "catchment"]
-    full_default_list = [config["background_date_column"], config["date_column"], "country"]
+    full_default_list = [config["background_date_column"], config["date_column"], "country", "adm1", "suggested_adm2_grouping", "adm2"]
 
     header_list = basic_default_list
 

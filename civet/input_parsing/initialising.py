@@ -34,7 +34,7 @@ def get_defaults():
 
                     # Columns to match
                     "input_column":"name",
-                    "data_column":"sequence_name",
+                    "background_column":"sequence_name",
                     "fasta_column":False,
 
                     # Search parameters
@@ -65,9 +65,9 @@ def get_defaults():
                     "date_column":False,
 
                     #Map options
-                    # "map_queries":False,
-                    # "latitude_column":"latitude",
-                    # "longitude_column":"longitude",
+                    "civet_mode": os.getenv('CIVETMODE'),
+                    "latitude_column":"latitude",
+                    "longitude_column":"longitude",
                     # "map_background":False,
                     # "background_map_column":"adm1",
                     # "background_map_date_window":7,
@@ -126,7 +126,7 @@ def arg_dict(config):
                 "bSNP":"background_SNPs",
                 "background_tree":"background_tree",
                 "bt":"background_tree",
-                "dcol":"data_column",
+                "bcol":"background_column",
                 "background_column":"background_column",
                 "fcol":"fasta_column",
                 "fasta_column":"fasta_column",
@@ -171,10 +171,10 @@ def arg_dict(config):
                 #mgroup args
                 # "mq":"map_queries",
                 # "map_queries":"map_queries"
-                # "lat":"latitude_column",
-                # "latitude_column":"latitude_column",
-                # "long":"longitude_column",
-                # "longitude_column":"longitude_column",
+                "lat":"latitude_column",
+                "latitude_column":"latitude_column",
+                "long":"longitude_column",
+                "longitude_column":"longitude_column",
                 # "mbg":"map_background",
                 # "map_background":"map_background",
                 # "bgcol":"background_map_column",
