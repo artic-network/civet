@@ -60,7 +60,7 @@ def get_defaults():
                     "anonymise":False,
                     "report_column": False,
                     "timeline_dates":False,
-                    "table_content":['sequence_name','lineage','catchment'],
+                    "table_content":False,
                     "background_date_column":False,
                     "date_column":False,
 
@@ -127,7 +127,7 @@ def arg_dict(config):
                 "background_tree":"background_tree",
                 "bt":"background_tree",
                 "dcol":"data_column",
-                "data_column":"data_column",
+                "background_column":"background_column",
                 "fcol":"fasta_column",
                 "fasta_column":"fasta_column",
 

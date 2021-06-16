@@ -4,6 +4,10 @@ from civet.utils.log_colours import green,cyan
 from civet.utils import misc
 import datetime as dt
 
+from civet.report_functions import name_functions
+from civet.report_functions import table_functions
+from civet.report_functions import timeline_functions
+
 def qc_report_content(config): #doesn't work with default
     reports = config["report_content"]
     to_generate = []
@@ -45,15 +49,32 @@ def qc_report_content(config): #doesn't work with default
 
 #then at some point we need to update the treefile with these display names using jclusterfunk
 
-def report_group_parsing(report_content,anonymise,config):
+def report_group_parsing(report_content,report_column, anonymise,date_column, background_date_column, table_content, timeline_dates, config):
     """
     parses the report group arguments 
     --report-content (Default 1,2,3)
+    --report-column (Default $SEQ_NAME)
     --anonymise (Default False)
+    --date-column (default: sample_date if present, False if not)
+    --background-date-column (default: sample_date if present, False if not)
+    --timeline-dates
     """
 
     # if command line arg, overwrite config value
     misc.add_arg_to_config("report_content",report_content,config)
-    misc.add_arg_to_config("anonymise",anonymise,config)
-
     qc_report_content(config)
+
+    #global report options
+    name_functions.sequence_name_parsing(report_column, anonymise, config)
+    table_functions.parse_date_args(date_column, background_date_column, config)
+    #location parsing here
+
+    #parse optional parts of report
+
+    if 1 in config['report_content']:
+        table_functions.parse_and_qc_table_cols(table_content, config)
+    if 5 in config['report_content']:
+        timeline_functions.timeline_checking(timeline_dates, config)
+
+    printable_cols = ",".join(config["table_content"])
+    print(green("Metadata table will contain the following columns: ") + f"{printable_cols}\n")

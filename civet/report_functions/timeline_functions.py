@@ -6,6 +6,11 @@ from civet.utils import misc
 
 def timeline_checking(timeline_dates, config):  
 
+    """
+    parses the report group argument
+    --timeline-dates
+    """
+
     misc.add_arg_to_config("timeline_dates",timeline_dates,config) #default is None
 
     if config["timeline_dates"]:
