@@ -6,7 +6,11 @@ import datetime as dt
 from civet import __version__
 from civet.report_functions import timeline_functions
 
-
+from mako.template import Template
+from mako.runtime import Context
+from mako.exceptions import RichTraceback
+from io import StringIO
+import os
 
 def check_which_tables_produced(metadata, config): #call this in the render report
 
@@ -56,8 +60,8 @@ def get_timeline(config):
 
     timeline_data = report_functions.make_timeline_json(config)
 
-    # with open(timeline_json,'r') as f:
-    #     timeline_data = json.load(f)
+    with open(timeline_json,'r') as f:
+        timeline_data = json.load(f)
     
     return timeline_data
 
@@ -67,25 +71,81 @@ def make_timeline_colours(config):
 
     return config
 
+def define_report_content(metadata,catchments,config):
+    report_content = config["report_content"]
+
+    data_for_report = {}
+    if '1' in report_content:
+        data_for_report["query_summary_data"] = make_query_summary_data(metadata, config)
+    else:
+        data_for_report["query_summary_data"] = ""
+    
+    if '2' in report_content:
+        data_for_report["catchment_data"] = ""
+    else:
+        data_for_report["catchment_data"] = ""
+
+    if '3' in report_content:
+        data_for_report["catchment_tree"] = ""
+    else:
+        data_for_report["catchment_tree"] = ""
+    
+    if '4' in report_content:
+        data_for_report["catchment_snipit"] = ""
+    else:
+        data_for_report["catchment_snipit"] = ""
+
+    if '5' in report_content:
+        data_for_report["timeline_data"] = get_timeline(config)
+    else:
+        data_for_report["timeline_data"] = ""
+    
+    if '6' in report_content:
+        data_for_report["map_background"] = ""
+    else:
+        data_for_report["map_background"] = ""
+    
+    if '7' in report_content:
+        data_for_report["map_queries"] = ""
+    else:
+        data_for_report["map_queries"] = ""
+    
+    return data_for_report
+
+
+
 def make_report(metadata,report_to_generate,config):
-    #all of the if statements
     #need to call this multiple times if there are multiple reports wanted
 
-    query_summary_data = make_query_summary_data(metadata, config)
-    
     catchments = [f"catchment_{i}" for i in range(1,config["catchment_count"]+1)]
 
+    data_for_report = define_report_content(metadata,catchments,config)
+
     date = dt.datetime.today()
-
-    mylookup = TemplateLookup(directories=["../data/report_modules/"]) #absolute or relative works
-
-    mytemplate = Template(filename=config["report_template"], strict_undefined=True, lookup=mylookup)
     
-    with open(report_to_generate, 'w') as f:
-        f.write(mytemplate.render(date=date,
-                                query_summary_data=query_summary_data,config=config,
-                                timeline_data="",
-                                catchments=catchments,
-                                version=__version__)
-                                )
+    template_dir = os.path.abspath(os.path.dirname(config["report_template"]))
+    mylookup = TemplateLookup(directories=[template_dir]) #absolute or relative works
 
+    mytemplate = Template(filename=config["report_template"], lookup=mylookup)
+    buf = StringIO()
+
+    ctx = Context(buf, 
+                    date = date, 
+                    version = __version__, 
+                    catchments = catchments, 
+                    query_summary_data = data_for_report["query_summary_data"],
+                    timeline_data = data_for_report["timeline_data"],
+                    config=config)
+
+    try:
+        mytemplate.render_context(ctx)
+    except:
+        traceback = RichTraceback()
+        for (filename, lineno, function, line) in traceback.traceback:
+            print("File %s, line %s, in %s" % (filename, lineno, function))
+            print(line, "\n")
+        print("%s: %s" % (str(traceback.error.__class__.__name__), traceback.error))
+
+    with open(report_to_generate, 'w') as fw:
+        fw.write(buf.getvalue())
+    

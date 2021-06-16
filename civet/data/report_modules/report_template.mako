@@ -16,8 +16,8 @@
     <script src="https://cdn.jsdelivr.net/gh/rambaut/figtree.js@db798529/dist/figtree.umd.js"></script>
     <script src="https://d3js.org/d3.v6.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/vega@5.15.0"></script>
-	<script src="https://cdn.jsdelivr.net/npm/vega-lite@4.15.0"></script>
-	<script src="https://cdn.jsdelivr.net/npm/vega-embed@6.11.1"></script>
+  <script src="https://cdn.jsdelivr.net/npm/vega-lite@4.15.0"></script>
+  <script src="https://cdn.jsdelivr.net/npm/vega-embed@6.11.1"></script>
     <meta charset="utf-8">
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
     <meta name="viewport" content="width=device-width, initial-scale=1">
@@ -392,7 +392,7 @@
         });
         });
     </script>
-    				
+            
     
     <!--Figtree.js-->
     <script type="text/javascript"> 
@@ -525,11 +525,54 @@
         </div>
     
     <br>
-	
-	 %if '1' in config["report_content"]:
-			<%include file="query_table.txt"
-				args="config=config, query_summary_data=query_summary_data"
-				/>
+  
+   %if '1' in config["report_content"]:
+      
+      %if config["queries_found"]:
+          <h3><strong>Table 1</strong> | Summary of queries found in background dataset   <input class="searchbar" type="text" id="myInput" onkeyup="myFunction('myInput','myTable')" placeholder="Search for sequence..." title="searchbar"></h3>
+          <table class="table table-striped" id="myTable">
+              <tr class="header">
+              %for col in config["found_table_cols"]:
+              <th style="width:10%;">${col.title().replace("_"," ")}</th>
+              %endfor
+              </tr>
+              % for row in query_summary_data:
+              % if row["source"] == "input_fasta":
+                  <tr>
+                    %for col in config["found_table_cols"]:
+                    <td>${row[col]}</td>
+                    %endfor
+                  </tr>
+              % endif
+              % endfor
+              </table>
+          %endif
+    
+    %if config["queries_provided"]:
+          <%
+          if config["queries_found"]:
+            provided_table_number = 2
+          else:
+            provided_table_number = 1
+          %>
+          <h3><strong>Table ${provided_table_number} </strong> | Summary of queries provided in fasta file  <input class="searchbar" type="text" id="myInput" onkeyup="myFunction('myInput','myTable')" placeholder="Search for sequence..." title="searchbar"></h3>
+          <table class="table table-striped" id="myTable">
+          <tr class="header">
+              %for col in config["provided_table_cols"]:
+              <th style="width:10%;">${col.title().replace("_"," ")}</th>
+              %endfor
+              </tr>
+              % for row in query_summary_data:
+              % if row["source"] == "background_data":
+                  <tr>
+                    %for col in config['provided_table_cols']:
+                    <td>${row[col]}</td>
+                    %endfor
+                  </tr>
+              % endif
+              % endfor
+          </table>
+      %endif
     %endif
         
     %for catchment in catchments:
@@ -541,35 +584,100 @@
         
         %endif
         %if '3' in config["report_content"]:
-        
-        here is where the tree will go
-        
+            
+            here is where the tree will go
+            
         %endif
         %if '4' in config["report_content"]:
-        
-        here is where the snipit will go
-        
+            
+            here is where the snipit will go
+            
         %endif
         %if '5' in config["report_content"]:
-        <%rel_catch = catchment%>
-		<%include file="timeline.txt"
-				args="catchment=rel_catch, config=config, timeline_data=timeline_data"
-				/>
+              
+              <div id="${catchment}_timeline"></div>
+                <script>
+                  var vlSpec = {
+                    "$schema": "https://vega.github.io/schema/vega-lite/v5.json",
+                    "width": 600,
+                    "height": 400,
+                    "datasets": ${timeline_data}
+                    ,
+                    "data": {
+                      "name": "${catchment}_timeline"
+                        },
+                      "transform":[
+                        {
+                        "filter": {
+                          "field": "date_type",
+                          "oneOf": ${config["timeline_dates"]}
+                        }
+                        }
+                      ],
+                      "encoding": {
+                        "x": 
+                        {"field": "date", 
+                        "type": "temporal", 
+                        "axis": {"grid": false}},
+                        "y": 
+                        {"field": "sequence_name", 
+                        "type": "nominal",
+                        "axis": {"title": "Sequence name"}},
+                        "color": 
+                        {"field": "date_type", 
+                        "type": "nominal",
+                        "legend": null}
+                      },
+                      "layer": [
+                        {
+                        "mark": "line",
+                        "encoding": {
+                          "detail": {
+                          "field": "sequence_name",
+                          "type": "nominal"
+                          },
+                          "color": {"value": "#db646f"}
+                        }
+                        },
+                        {
+                        "mark": {
+                          "type": "point",
+                          "filled": true,
+                          "tooltip":true
+                        },
+                        "encoding": {
+                          "color": {
+                          "field": "date_type",
+                          "type": "nominal",
+                          "scale": {
+                            "domain": ${config["timeline_dates"]},
+                            "range": ${config["timeline_colours"]}
+                          },
+                          "title": "Date"
+                          },
+                          "size": {"value": 100},
+                          "opacity": {"value": 1}
+                        }
+                        }
+                      ]
+                      };          
+                vegaEmbed('#${catchment}_timeline', vlSpec);
+
+              </script>
+        %endif
+        %endfor
         
-		%endif
-		%endfor
-		
-		
-		%if '6' in config["report_content"]:
-		
-		here is where the local lineages will go
-		
-		%endif
-		%if '7' in config["report_content"]:
-		
-		here is where the queries plotted will go
-		
-		%endif
+        
+        %if '6' in config["report_content"]:
+        
+        here is where the local lineages will go
+        
+        %endif
+        %if '7' in config["report_content"]:
+        
+        here is where the queries plotted will go
+        
+        %endif
 
 
        
@@ -600,7 +708,7 @@
         <div class="row">
           <!--<div class="col-sm-1">
             <p>
-            <img class="civet-logo" src=https://github.com/COG-UK/civet/workflows/civet-test-installation/badge.svg vertical-align="left" width="50" height="50"></img>
+            <img class="civet-logo" src="https://raw.githubusercontent.com/COG-UK/civet/master/docs/doc_figures/civet_logo.svg" vertical-align="left" width="50" height="50"></img>
             <p> -->
         </div>
 

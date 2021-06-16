@@ -14,7 +14,7 @@ setup(name='civet',
             "civet/scripts/civet.smk",
             "civet/scripts/build_catchment_trees.smk"
             ],
-      package_data={"civet":["data/*","data/report_chunks/*"]},
+      package_data={"civet":["data/*","data/report_modules/*"]},
       install_requires=[
             "biopython>=1.70",
             "baltic",
