@@ -30,14 +30,14 @@ def check_install(config):
         "directory":"data",
         "filename":"outgroup.fasta"},
         {"key":"report_template",
-        "directory":"data",
+        "directory":"data/report_modules",
         "filename":"report_template.mako"},
-        {"key":"query_chunk",
-        "directory":"data/report_chunks",
-        "filename":"query_table_chunk.txt"},
-        {"key":"timeline_chunk",
-        "directory":"data/report_chunks",
-        "filename":"timeline_chunk.txt"}
+        {"key":"mako_query_table",
+        "directory":"data/report_modules",
+        "filename":"query_table.txt"},
+        {"key":"mako_timeline",
+        "directory":"data/report_modules",
+        "filename":"timeline.txt"}
     ]
     for resource in resources:
         package_data_check(resource["filename"],resource["directory"],resource["key"],config)
