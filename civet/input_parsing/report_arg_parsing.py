@@ -8,6 +8,7 @@ from civet.report_functions import name_functions
 from civet.report_functions import table_functions
 from civet.report_functions import timeline_functions
 from civet.report_functions import map_functions
+from civet.report_functions import global_report_functions
 
 def qc_report_content(config): #doesn't work with default
     reports = config["report_content"]
@@ -50,7 +51,7 @@ def qc_report_content(config): #doesn't work with default
 
 #then at some point we need to update the treefile with these display names using jclusterfunk
 
-def report_group_parsing(report_content,report_column, anonymise,date_column, background_date_column, table_content, timeline_dates, longitude_column, latitude_column, found_in_background_data, config):
+def report_group_parsing(report_content,report_column, anonymise,date_column, background_date_column,location, table_content, timeline_dates, longitude_column, latitude_column, found_in_background_data, config):
     """
     parses the report group arguments 
     --report-content (Default 1,2,3)
@@ -67,8 +68,8 @@ def report_group_parsing(report_content,report_column, anonymise,date_column, ba
 
     #global report options
     name_functions.sequence_name_parsing(report_column, anonymise, config)
-    table_functions.parse_date_args(date_column, background_date_column, config)
-    #location parsing here
+    global_report_functions.parse_date_args(date_column, background_date_column, config)
+    global_report_functions.parse_location(location, config)
 
     #parse optional parts of report
 
@@ -80,6 +81,9 @@ def report_group_parsing(report_content,report_column, anonymise,date_column, ba
     if 5 in config['report_content']:
         timeline_functions.timeline_checking(timeline_dates, config)
 
+
+    if 6 in config['report_content']:
+        map_functions.parse_background_map_options(map_file, background_map_date_restriction, background_map_location,map_location, found_in_background_metadata, config)
 
     if 7 in config['report_content']:
         map_functions.parse_query_map(longitude_column, latitude_column, found_in_background_data, config)

@@ -5,6 +5,7 @@ from civet.utils import misc
 import datetime as dt
 from collections import defaultdict
 import json
+import datetime as dt
 
 
 ##Think about what the defaults are - for local lins, could be adm1. 
@@ -91,119 +92,116 @@ def parse_query_map(longitude_column, latitude_column, found_in_background_data,
             sys.stderr.write(cyan(f"Error: no query with longitude and latitude information contained in the columns provided ({config['longitude_column'], config['latitude_column']}), so map cannot be produced.\n"))
             sys.exit(-1)
 
-# def parse_map_options(map_file, longitude_column, latitude_column, background_map_date_restriction, config):
+def parse_background_map_options(map_file, background_map_date_restriction, background_map_location,map_location, found_in_background_metadata, config):
 
-#     misc.add_arg_to_config("background_map_date_restriction", background_map_date_restriction, config)    
+    """
+    parses map group arguments:
+    --background-map-date-restriction (default=no restriction)
+    --background-map-location (default=$LOCATION, then adm1 if present, and aggregated_adm2 if civet_mode == CLIMB)
+    # --map-location (default=$LOCATION, then adm1 if present, and aggregated_adm2 if civet_mode==CLIMB)
+    """
+
+    misc.add_arg_to_config("background_map_date_restriction", background_map_date_restriction, config)   
+    misc.add_arg_to_config("background_map_location", background_map_location, config)  
+    # misc.add_arg_to_config("map_location", map_location, config)  
+
+    with open(config["background_csv"]) as f:
+        reader = csv.DictReader(f)
+        background_fieldnames = reader.fieldnames
+
+    
+    if config["background_map_location"]:
+        if config["background_map_location"] not in background_fieldnames: 
+            sys.stderr.write(cyan(f"Error: {config['background_map_location']} not found in background metadata file for mapping background diversity\n") + "\n")
+            sys.exit(-1)
+    
+    else:
+        if config["civet_mode"] == "CLIMB" and "suggested_adm2_grouping" in background_fieldnames: 
+            config["background_map_location"] = "suggested_adm2_grouping"
+        elif "adm1" in background_fieldnames:
+            config["background_map_location"] = "adm1"
+        elif config["location"]:
+            config["background_map_location"] = config["location"]
+        else:
+            sys.stderr.write(cyan(f"Error: no field found in background metadata file for mapping background diversity. Please provide one with -maploc/--background-map-location.\n") + "\n")
+            sys.exit(-1)
 
 
-#     if config["map_background"]:
+    if config["background_map_date_restriction"]:
+        if config["background_date_column"]:
+            date_range = to_search.split(":")
+            if len(date_range) > 1:
+                try:
+                    start_date = dt.datetime.strptime(date_range[0], "%Y-%m-%d").date()
+                except:
+                    sys.stderr.write(cyan("Start date in background map date restriction in incorrect format. Please use YYYY-MM-DD"))
+                    sys.exit(-1)
+                try:
+                    end_date = dt.datetime.strptime(date_range[1], "%Y-%m-%d").date()
+                except:
+                    sys.stderr.write(cyan("End date in background map date restriction in incorrect format. Please use YYYY-MM-DD"))
+                    sys.exit(-1)
 
-#         if not config["background_map_column"]:
-#             sys.stderr.write(cyan(f'Error: --map-background provided, but no column containing the geographical data to summarise background lineages by provided.\n') + "Please specify using '--background-map-column'.\n")
-#             sys.exit(-1)
-#         # elif config["background_map_column"] not in headers: #possibly don't need this check - depends on how we zoom in. If it's all interactive, we don't need it
-#         #     sys.stderr.write(cyan(f"Error: {config['background_map_column']} not found in metadata file for mapping background diversity\n") + "\n")
-#         #     sys.exit(-1)
-#         else:
-
-#             if config["background_map_date_start"]:
-#                 try:
-#                     dt.datetime.strptime(config["background_map_date_start"], "%Y-%m-%d").date()
-#                 except:
-#                     sys.stderr.write(cyan(f"Error: Please provide 'background_map_date_start' argument in YYYY-MM-DD format.\n"))
-#             if config["background_map_date_end"]:
-#                 try:
-#                     dt.datetime.strptime(config["background_map_date_end"], "%Y-%m-%d").date()
-#                 except:
-#                     sys.stderr.write(cyan(f"Error: Please provide 'background_map_date_end' argument in YYYY-MM-DD format.\n"))
-
-#             if config["background_map_date_start"] or config["background_map_date_end"] or config["background_map_date_window"]:
-#                 if not config["background_map_date_column"]:
-#                     sys.stderr.write(cyan(f"Error: no date column provided to restrict background lineage diversity analysis.\n")+ "Please either provide a date column or remove the date restriction arguments to show background lineage diversity over the whole pandemic. \n")
-#                     sys.exit(-1)
-#                 else:
-#                     with open(metadata) as f:
-#                         data = csv.DictReader(f)
-#                         headers = data.fieldnames
-#                         if config["background_map_date_column"] not in data.fieldnames:
-#                             sys.stderr.write(cyan(f"Error: {config['background_map_date_column']} not found in query metadata file for restricting the mapping of background diversity to a specific time window\n"))
-#                             sys.exit(-1)
-#                         else:
-#                             line_count = 0
-#                             date_present = False
-#                             for line in data:
-#                                 line_count += 1
-#                                 if line[config["background_map_date_column"]] != "":
-#                                     misc.check_date_format(line[config["background_map_date_column"]], line_count, config["background_map_date_column"])
-#                                     date_present = True
-#                             if not date_present:
-#                                 sys.stderr.write(cyan(f"Error: no date information in {config['background_map_date_column']}\n") + "Please provide a column with date information, or remove date restriction arguments to show background lineage diversity over the whole pandemic. \n")
+            else:
+                if not date_range[0].isdigit():
+                    sys.stderr.write(cyan("Date window must be a single integer. If you have attempted provided a date, you must provide both the start and end date separated by a colon."))
+                    sys.exit(-1)
                 
-#                     with open(config["background_csv"]) as f:
-#                         data = csv.DictReader(f)
-#                         bg_headers = data.fieldnames()
-#                         if config["background_map_column"] not in bg_headers: 
-#                             sys.stderr.write(cyan(f"Error: {config['background_map_column']} not found in background metadata file for mapping background diversity\n") + "\n")
-#                             sys.exit(-1)
-#                         elif "lineage" not in headers:
-#                             sys.stderr.write(cyan(f"Error: 'lineage' not found in metadata file for mapping background diversity\n") + "\n")
-#                             sys.exit(-1)
-#                         elif config["background_map_date_column"] not in bg_headers:
-#                             sys.stderr.write(cyan(f"Error: {config['background_map_date_column']} not found in background metadata file for restricting the mapping of background diversity to a specific time window\n"))
-#                             sys.exit(-1)
+                else:
+                    start_date, end_date = do_date_window(date_range[0], found_in_background_metadata, config)
 
-#                         else:
-#                             line_count = 0
-#                             for l in data:
-#                                 line_count += 1
-#                                 if line[config["background_map_date_column"]] != "":
-#                                     misc.check_date_format(line[config["background_map_date_column"]], line_count, config["background_map_date_column"])
-#                                     date_present = True
-#                             if not date_present:
-#                                 sys.stderr.write(cyan(f"Error: no date information in {config['background_map_date_column']} in background metadata.\n") + "Please provide a column with date information, or remove date restriction arguments to show background lineage diversity over the whole pandemic. \n")
+            config["start_date"] = start_date
+            config["end_date"] = end_date
+
+            with open(config["background_csv"]) as f:
+                data = csv.DictReader(f)
+                data_count = 0
+                enough_data = False
+                for line in data:
+                    if line[config["date_column"]] != "":
+                        date = dt.datetime.strptime(line[config["date_column"]], "%Y-%m-%d")
+                        if date >= start_date and date <= end_date and line[config["background_map_location"]] != "":
+                            data_count += 1
+                        if data_count > 50:
+                            enough_data = True
+                            break
+                if not enough_data:
+                    sys.stderr.write(cyan(f"Error: fewer than 50 sequences in column {config['background_map_location']} between dates {start_date} and {end_date}. If you want to map background diversity, consider using a different geographical scale (eg country) or a larger time period.\n"))
+                    sys.exit(-1)
+        else:
+            sys.stderr.write(cyan(f"Error: Date restriction defined for background lineage diversity mapping, but no date column provided. Please use '-bdate/--background-date-column' to specify this column. \n") + "\n")
+            sys.exit(-1)
+    else:
+        print(green("No date restriction provided, analysing background lineage diversity for the whole pandemic.\n"))
+
+        # check_shapefile(config, "background", metadata, shapefile_location)
 
 
-#             else:
-#                 print(green("No date restriction provided, analysing background lineage diversity for the whole pandemic.\n"))
+def do_date_window(date_window, found_in_background_metadata, config):
 
-#                 check_shapefile(config, "background", metadata, shapefile_location)
+    start_date = None
+    end_date = None
+
+    date_diff = dt.timedelta(date_window)
         
-        
-            
-#     if config["map_queries"]:
-#         with open(metadata) as f:
-#             data = csv.DictReader(f)
-#             headers = data.fieldnames
-#             if not config["longitude_column"] or not config["latitude_column"]:
-#                 sys.stderr.write(cyan(f'Error: --map-queries provided, but no columns containing longitude and latitude coordinates specified.\n') + "Please specify using '--latitude-column' and '--longitude-column'\n")
-#                 sys.exit(-1)
-#             elif config["longitude_column"] not in headers:
-#                 sys.stderr.write(cyan(f"Error: {config['longitude_column']} not found in metadata file for mapping queries\n") + "\n")
-#                 sys.exit(-1)
-#             elif config["latitude_column"] not in headers:
-#                 sys.stderr.write(cyan(f"Error: {config['latitude_column']} not found in metadata file for mapping queries\n") + "\n")
-#                 sys.exit(-1)
-#             else:
-#                 data_present = False
-#                 for line in data:
-#                     if line["query_boolean"] == "TRUE" and line[config["latitude_column"]] != "" and line[config["longitude_column"]] != "":
-#                         data_present = True
-#                         break
-#                 if not data_present:
-#                     print(cyan("Error: no query with longitude and latitude information, so map cannot be produced.\n"))
+    dates = set()
+    if "input_csv" in config and config['date_column']:
+        with open(config["input_csv"]) as f:
+            data = csv.DictReader(f)
+            for l in data:
+                if l[config['date_column']] != "": #default will be sample_date, it's just in case they provide their own metadata
+                    dates.add(dt.datetime.strptime(l['sample_date'], '%Y-%m-%d').date())
 
-                
-#             check_shapefile(config, "queries", metadata, shapefile_location)
+    for seq, metadata in found_in_background_metadata.items():
+        dates.add(dt.datetime.strptime(metadata[config["background_date_column"]],'%Y-%m-%d').date())
+          
+    earliest = sorted(dates)[0]
+    latest = sorted(dates)[-1]
 
+    start_date = earliest - date_diff
+    end_date = latest + date_diff
 
-#     # if (config["background_map_date_column"] or config["background_map_column"] or config["background_map_date_start"] or config["background_map_date_end"] or config["background_map_date_window"]) and not config["map_background"]:
-#     #     sys.stderr.write(cyan(f'Arguments for mapping background lineage diversity, but --map-background not used.\n') + 'Please also use --map-background to use this function\n')
-#     # if config["query_map_column"] and not config["map_queries"]:
-#     #     sys.stderr.write(cyan(f'Arguments for mapping queries, but --map-queries not used.\n') + 'Please also use --map-queries to use this function\n')
-#     #commented out because we want to be able to have defaults for these
-
-
-
+    return start_date, end_date
 
 # def make_query_map_json(config, metadata): 
 # #plan would be to just plot this on the world map JSON that you can then zoom in on wherever required
@@ -284,41 +282,7 @@ def parse_query_map(longitude_column, latitude_column, found_in_background_data,
 #         json.dump(overall, outfile)
 
 
-# def restrict_by_date(config):
 
-#     start_date = None
-#     end_date = None
-
-#     if config["background_map_date_window"]:
-#         date_diff = dt.timedelta(config["background_map_date_window"])
-#         dates = set()
-#         with open(config["query_metadata"]) as f:
-#             data = csv.DictReader(f)
-#             for l in data:
-#                 if l['query_boolean'] == 'TRUE':
-#                     if l[config['background_map_date_column'] != "": #default will be sample_date, it's just in case they provide their own metadata
-#                         dates.add(dt.datetime.strptime(l['sample_date'], '%Y-%m-%d').date())
-                
-#         earliest = sorted(dates)[0]
-#         latest = sorted(dates)[-1]
-
-#         start_date = earliest - date_diff
-#         end_date = latest + date_diff
-
-#         return start_date, end_date
-
-#     if config["background_map_date_start"]:
-#         start_date = config["background_map_date_start"]
-
-#     if config["background_map_date_end"]:
-#         end_date = config["background_map_date_end"]
-
-#     if config["background_map_date_start"] and not config["background_map_date_end"]:
-#         end_date = dt.datetime.today().date()
-#     elif config["background_map_date_end"] and not config["background_map_date_start"]:
-#         start_date = dt.date(2019,1,12)
-
-#     return start_date, end_date
 
 
 # def check_shapefile(config, map_type, metadata, utils_dir):

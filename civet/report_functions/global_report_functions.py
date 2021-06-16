@@ -130,3 +130,22 @@ def parse_date_args(date_column, background_date_column, config):
     qc_date_col("background_date_column", config, config["background_csv"], "background", "-bdate/--background-date-column")
 
 
+def parse_location(location, config):
+    """
+    parses the report group arguments:
+    --location (default: country if present, False if not)
+    """
+
+    misc.add_arg_to_config("location", location, config)
+
+    with open(config["background_csv"]) as f:
+        data = csv.DictReader(f)
+        headers = data.fieldnames
+     
+        if config["location"]:
+            if config["location"] not in reader.fieldnames:
+                sys.stderr.write(cyan(f"Error: {config['location']} column not found in background metadata file. Please specifiy which column to match with -loc/--location`\n"))
+                sys.exit(-1)
+        else:
+            if "country" in reader.fieldnames:
+                config["location"] = "country"

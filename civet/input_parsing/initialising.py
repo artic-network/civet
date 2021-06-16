@@ -63,19 +63,18 @@ def get_defaults():
                     "table_content":False,
                     "background_date_column":False,
                     "date_column":False,
+                    "location":False,
 
                     #Map options
-                    "civet_mode": os.getenv('CIVETMODE'),
                     "latitude_column":"latitude",
                     "longitude_column":"longitude",
-                    # "map_background":False,
-                    # "background_map_column":"adm1",
-                    # "background_map_date_window":7,
-                    # "background_map_date_start":False,
-                    # "background_map_date_end":False,
-                    # "background_map_date_column":"sample_date",
+                    "background_map_column":False,
+                    # "map_column":False,
+                    "background_map_date_restriction":False,
 
                     # misc defaults
+                    # "civet_mode": os.getenv('CIVETMODE'),
+                    "civet_mode":"CLIMB", #will be above, just for debugging now
                     "threads":1,
                     "verbose":False
                     }
@@ -169,24 +168,16 @@ def arg_dict(config):
                 "date":"date_column",
 
                 #mgroup args
-                # "mq":"map_queries",
-                # "map_queries":"map_queries"
                 "lat":"latitude_column",
                 "latitude_column":"latitude_column",
                 "long":"longitude_column",
                 "longitude_column":"longitude_column",
-                # "mbg":"map_background",
-                # "map_background":"map_background",
-                # "bgcol":"background_map_column",
-                # "background_map_column":"background_map_column",
-                # "dw":"background_map_date_window",
-                # "background_map_date_window":"background_map_date_window",
-                # "ds":"background_map_date_start",
-                # "background_map_date_start":"background_map_date_start",
-                # "de":"background_map_date_end",
-                # "background_map_date_end":"background_map_date_end",
-                # "bgdate":"background_map_date_column",
-                # "background_map_date_column":"background_map_date_column",
+                "background_map_date_restriction":"background_map_date_restriction",
+                "daterestric":"background_map_date_restriction",
+                "background_map_location":"background_map_location",
+                "maploc":"background_map_location",
+                # "maploc":"map_location",
+                # "map_location":"map_location",
 
                 # misc group args
                 "t":"threads",
