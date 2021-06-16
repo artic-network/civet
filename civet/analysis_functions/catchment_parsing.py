@@ -81,7 +81,7 @@ def add_catchments_to_metadata(background_csv,query_metadata,query_metadata_with
         for row in reader:
             
             # exclude querys as they're already in the metadata
-            if row[config["data_column"]] in config["ids"]:
+            if row[config["background_column"]] in config["ids"]:
                 pass
             else:
                 # the column used for sequence matching

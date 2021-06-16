@@ -17,8 +17,8 @@ def account_for_all_ids(config):
         reader = csv.DictReader(f)
         header = reader.fieldnames
         for row in reader:
-            if row[config["data_column"]] in config["ids"]:
-                found_in_background_data[row[config["data_column"]]] = row
+            if row[config["background_column"]] in config["ids"]:
+                found_in_background_data[row[config["background_column"]]] = row
     
     print(green(f"Number of queries matched in background data:") + f" {len(found_in_background_data)}")
     
@@ -47,14 +47,14 @@ def merge_metadata_records(found_in_background_data,header,config):
     for record in found_in_background_data:
         record_info[record] = found_in_background_data[record]
         if not config["input_column"] in record_info[record]:
-            record_info[record][config["input_column"]] = record_info[record][config["data_column"]]
+            record_info[record][config["input_column"]] = record_info[record][config["background_column"]]
 
     if "input_csv" in config:
         with open(config["input_csv"],"r") as f:
             reader = csv.DictReader(f)
             for row in reader:
                 name = row[config["input_column"]]
-                for col in [config["data_column"],config["fasta_column"]]:
+                for col in [config["background_column"],config["fasta_column"]]:
                     if not col in row:
                         record_info[name][col] = name
 
@@ -65,7 +65,7 @@ def merge_metadata_records(found_in_background_data,header,config):
                     record_info[name][key] = row[key]
     else:
         for record in config["ids"]:
-            for col in [config["input_column"],config["data_column"],config["fasta_column"]]: 
+            for col in [config["input_column"],config["background_column"],config["fasta_column"]]: 
                 if col not in header:
                     header.append(col)
                     record_info[record][col] = record

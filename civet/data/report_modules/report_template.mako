@@ -402,7 +402,7 @@
               //Remove table
           tableDiv.html("")
               if (data !== undefined) {
-                  const visibleData = Object.keys(data).filter(d=>d!==${config['data_column']});
+                  const visibleData = Object.keys(data).filter(d=>d!==${config['background_column']});
                   tableDiv.append("h3")
                       .attr("class",'tooltip-header')
                       .text(tipId)
