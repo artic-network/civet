@@ -58,7 +58,7 @@ def make_catchment_summary_data(metadata):
 
 def get_timeline(config):
 
-    timeline_data = report_functions.make_timeline_json(config)
+    timeline_data = timeline_functions.make_timeline_json(config)
 
     with open(timeline_json,'r') as f:
         timeline_data = json.load(f)
@@ -70,6 +70,24 @@ def make_timeline_colours(config):
     ##make a number of hex codes that has the same number as the number of dates then assign it to config["timeline_colours"]
 
     return config
+
+def get_snipit(catchments,data_for_report):
+    for catchment in catchments:
+        snipit_svg = ""
+        with open(os.path.join(config["data_outdir"],"snipit",f"{catchment}.snipit.svg"),"r") as f:
+            for l in f:
+                l = l.rstrip("\n")
+                snipit_svg+=f"{l}\n"
+        data_for_report[catchment]["snipit_svg"] = snipit_svg
+
+def get_newick(catchments,data_for_report):
+    for catchment in catchments:
+        newick = ""
+        with open(os.path.join(config["data_outdir"],"catchments",f"{catchment}.tree"),"r") as f:
+            for l in f:
+                l = l.rstrip("\n")
+                newick+=f"{l}\n"
+        data_for_report[catchment]["newick"] = newick
 
 def define_report_content(metadata,catchments,config):
     report_content = config["report_content"]
@@ -86,19 +104,20 @@ def define_report_content(metadata,catchments,config):
         data_for_report["catchment_data"] = ""
 
     if '3' in report_content:
-        data_for_report["catchment_tree"] = ""
+        get_newick(catchments,data_for_report)
     else:
-        data_for_report["catchment_tree"] = ""
+        data_for_report[catchment]["newick"] = ""
     
     if '4' in report_content:
-        data_for_report["catchment_snipit"] = ""
+        get_snipit(catchments,data_for_report)
     else:
-        data_for_report["catchment_snipit"] = ""
+        data_for_report[catchment]["snipit_svg"] = ""
 
     if '5' in report_content:
-        data_for_report["timeline_data"] = get_timeline(config)
+        for catchment in catchments:
+            data_for_report[catchment]["timeline_data"] = get_timeline(config)
     else:
-        data_for_report["timeline_data"] = ""
+            data_for_report[catchment]["timeline_data"] = ""
     
     if '6' in report_content:
         data_for_report["map_background"] = ""

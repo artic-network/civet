@@ -69,7 +69,7 @@ def timeline_checking(timeline_dates, config):
     return config
 
 
-def make_timeline_json(config):
+def make_timeline_json(catchment,config):
 
     date_cols = config["timeline_dates"].split(",")
 
@@ -77,11 +77,11 @@ def make_timeline_json(config):
     overall['catchments'] = defaultdict(dict)
 
     with open(config["query_metadata"]) as f:
-        data = csv.DictReader(f)
-        for l in data:
-            if l['query_boolean'] == "TRUE":
-                if l['catchment'] in overall['catchments']:
-                    dict_list = overall['catchments'][l['catchment']]
+        reader = csv.DictReader(f)
+        for row in reader:
+            if row['query_boolean'] == "True":
+                if row['catchment'] in overall['catchments']:
+                    dict_list = overall['catchments'][row['catchment']]
                 else:
                     dict_list = []
                 

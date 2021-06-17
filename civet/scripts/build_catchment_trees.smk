@@ -1,11 +1,10 @@
 import os
 
 catchments = [f"catchment_{i}" for i in range(1,config["catchment_count"]+1)]
-print(catchments)
 
 rule all:
     input:
-        expand(os.path.join(config["data_outdir"],"catchments","{catchment}.pruned.tree"), catchment=catchments)
+        expand(os.path.join(config["data_outdir"],"catchments","{catchment}.tree"), catchment=catchments)
 
 rule iqtree:
     input:
@@ -39,4 +38,19 @@ rule prune_outgroup:
         -f newick 
         """
 
-# rule expand out hash in tree
+rule expand_hash:
+    input:
+        tree = rules.prune_outgroup.output.tree,
+        csv = config["csv"]
+    output:
+        tree = os.path.join(config["data_outdir"],"catchments","{catchment}.tree")
+    shell:
+        """
+        jclusterfunk insert -c hash \
+                            -n {config[input_column]} \
+                            -i {input.tree:q} \
+                            -m {input.csv:q} \
+                            --ignore-missing \
+                            -f newick \
+                            -o {output.tree}
+        """

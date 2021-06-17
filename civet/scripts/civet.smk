@@ -113,7 +113,8 @@ rule find_catchment:
 rule merge_catchments:
     input:
         catchments = rules.find_catchment.output.catchments,
-        csv = rules.seq_brownie.output.csv
+        csv = rules.seq_brownie.output.csv,
+        fasta  = rules.seq_brownie.output.fasta
     params:
         catchment_dir = os.path.join(config["data_outdir"],"catchments")
     output:
@@ -142,10 +143,11 @@ rule merge_catchments:
             print(red("\n**** CONFIG ****"))
             for k in sorted(config):
                 print(green(f" - {k}: ") + f"{config[k]}")
+
         if '3' in config["report_content"]:
             #so at the moment, every config option gets passed to the report
-            print("Writing catchment fasta files.")
-            catchment_parsing.write_catchment_fasta(catchment_dict,params.catchment_dir,config)
+            print(green("Writing catchment fasta files."))
+            catchment_parsing.write_catchment_fasta(catchment_dict,input.fasta,params.catchment_dir,config)
 
 """
 rule downsampling:
@@ -163,6 +165,7 @@ rule tree_building:
         yaml = rules.merge_catchments.output.yaml,
         csv = rules.merge_catchments.output.csv,
         snakefile = os.path.join(workflow.current_basedir,"build_catchment_trees.smk")
+    log: 
     output:
         txt = os.path.join(config["tempdir"],"catchments","tree.txt")
     run:
@@ -174,14 +177,40 @@ rule tree_building:
                     "{config[log_string]} "
                     "--directory {config[tempdir]:q} "
                     "--configfile {input.yaml:q} "
+                    "--config csv={input.csv:q} "
                     "--cores {workflow.cores} && touch {output.txt:q}")
         else:
             shell("touch {output.txt:q}")
 
+rule snipit:
+    input:
+        yaml = rules.merge_catchments.output.yaml,
+        csv = rules.merge_catchments.output.csv,
+        fasta = rules.seq_brownie.output.fasta,
+        snakefile = os.path.join(workflow.current_basedir,"snipit_runner.smk")
+    output:
+        txt = os.path.join(config["tempdir"],"snipit","prompt.txt")
+    run:
+        if '4' in config["report_content"]:
+            print(green("Running snipit pipeline."))
+            # spawn off a side snakemake with catchment wildcard that builds an iqtree for each one
+            shell("snakemake --nolock --snakefile {input.snakefile:q} "
+                    "--forceall "
+                    "{config[log_string]} "
+                    "--directory {config[tempdir]:q} "
+                    "--configfile {input.yaml:q} "
+                    "--config fasta={input.fasta:q} csv={input.csv:q} "
+                    "--cores {workflow.cores} && touch {output.txt:q}")
+        else:
+            shell("touch {output.txt:q}")
+
+
 rule render_report:
     input:
         csv = rules.merge_catchments.output.csv,
-        yaml = rules.merge_catchments.output.yaml
+        yaml = rules.merge_catchments.output.yaml,
+        snipit = rules.snipit.output.txt,
+        trees = rules.tree_building.output.txt
     output:
         html = os.path.join(config["outdir"],config["output_reports"][0])
     run:
