@@ -143,9 +143,9 @@ def parse_location(location, config):
         headers = data.fieldnames
      
         if config["location"]:
-            if config["location"] not in reader.fieldnames:
+            if config["location"] not in data.fieldnames:
                 sys.stderr.write(cyan(f"Error: {config['location']} column not found in background metadata file. Please specifiy which column to match with -loc/--location`\n"))
                 sys.exit(-1)
         else:
-            if "country" in reader.fieldnames:
+            if "country" in data.fieldnames:
                 config["location"] = "country"
