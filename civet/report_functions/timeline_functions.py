@@ -75,32 +75,32 @@ def timeline_checking(timeline_dates, config):
 
 def make_timeline_json(catchment,config):
 
-    date_cols = config["timeline_dates"].split(",")
-    config["timeline_dates"] = date_cols
+    print(config["timeline_dates"])
+
+    if type(config["timeline_dates"]) == str:
+        date_cols = config["timeline_dates"].split(",")
+        config["timeline_dates"] = date_cols
+
+    date_cols = config["timeline_dates"]
 
     overall = defaultdict(dict)
-
+    catchment_string = f'{catchment}_timeline'
+    dict_list = []
     with open(config["query_metadata"]) as f:
         data = csv.DictReader(f)
         for l in data:
+            if l['catchment'] == catchment:
+                
+                for col in date_cols:
+                    new_dict = {}
+                    new_dict["sequence_name"] = l[config["report_column"]]
+                    new_dict["date"] = l[col]
+                    new_dict["date_type"] = col
+                    dict_list.append(new_dict)
+                
+    overall[catchment_string] = dict_list  
 
-            catchment_string = f"{l['catchment']}_timeline"
-           
-            if catchment_string in overall:
-                dict_list = overall[catchment_string]
-            else:
-                dict_list = []
-            
-            for col in date_cols:
-                new_dict = {}
-                new_dict["sequence_name"] = l[config["report_column"]]
-                new_dict["date"] = l[col]
-                new_dict["date_type"] = col
-                dict_list.append(new_dict)
-            
-            overall[catchment_string] = dict_list  
-
-    timeline_json = os.path.join(config["tempdir"],'timeline_data.json')
+    timeline_json = os.path.join(config["tempdir"],f'timeline_data_{catchment}.json')
 
     with open(timeline_json, 'w') as outfile:
         json.dump(overall, outfile)

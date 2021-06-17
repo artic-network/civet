@@ -583,6 +583,7 @@
             
         %endif
         %if '5' in config["report_content"]:
+        <%timeline_data = data_for_report[catchment]["timeline_data"] %>
               
               <div id="${catchment}_timeline"></div>
                 <script>

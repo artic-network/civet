@@ -56,9 +56,9 @@ def make_catchment_summary_data(metadata):
     return catchment_summary_data
 
 
-def get_timeline(config):
+def get_timeline(catchment, config):
 
-    timeline_json = timeline_functions.make_timeline_json(config)
+    timeline_json = timeline_functions.make_timeline_json(catchment, config)
 
     with open(timeline_json,'r') as f:
         timeline_data = json.load(f)
@@ -88,6 +88,9 @@ def define_report_content(metadata,catchments,config):
     report_content = config["report_content"]
 
     data_for_report = {}
+    for catchment in catchments:
+        data_for_report[catchment] = {}
+
     if '1' in report_content:
         data_for_report["query_summary_data"] = make_query_summary_data(metadata, config)
         data_for_report["fasta_summary_data"] = make_fasta_summary_data(metadata, config)
@@ -103,17 +106,20 @@ def define_report_content(metadata,catchments,config):
     if '3' in report_content:
         get_newick(catchments,data_for_report)
     else:
-        data_for_report[catchment]["newick"] = ""
+        for catchment in catchments:
+            data_for_report[catchment]["newick"] = ""
     
     if '4' in report_content:
         get_snipit(catchments,data_for_report)
     else:
-        data_for_report[catchment]["snipit_svg"] = ""
+        for catchment in catchments:
+            data_for_report[catchment]["snipit_svg"] = ""
 
     if '5' in report_content:
         for catchment in catchments:
-            data_for_report[catchment]["timeline_data"] = get_timeline(config)
+            data_for_report[catchment]["timeline_data"] = get_timeline(catchment, config)
     else:
+        for catchment in catchments:
             data_for_report[catchment]["timeline_data"] = ""
     
     if '6' in report_content:
@@ -151,7 +157,8 @@ def make_report(metadata,report_to_generate,config):
                     catchments = catchments, 
                     query_summary_data = data_for_report["query_summary_data"],
                     fasta_summary_data = data_for_report["fasta_summary_data"],
-                    timeline_data = data_for_report["timeline_data"],
+                    data_for_report = data_for_report,
+                    # timeline_data = data_for_report["timeline_data"],
                     config=config)
 
     try:
