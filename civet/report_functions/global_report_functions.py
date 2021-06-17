@@ -142,3 +142,15 @@ def parse_location(location, config):
         else:
             if "country" in data.fieldnames:
                 config["location"] = "country"
+
+def get_acceptable_colours(config):
+
+    acceptable_colours = []
+
+    with open(config["html_colours"]) as f:
+        data = csv.DictReader(f)
+        for l in data:
+            acceptable_colours.append(l["name"].lower())
+            # acceptable_colours.append(l["hex"].lower())
+
+    return acceptable_colours

@@ -6,6 +6,7 @@ import sys
 from civet.utils.log_colours import cyan 
 from civet.utils import misc
 
+from civet.report_functions import global_report_functions
 
 def timeline_checking(timeline_dates, config):  
 
@@ -106,9 +107,46 @@ def make_timeline_json(config):
 
     return timeline_json
 
-def make_timeline_colours(config):
+def make_timeline_colours(timeline_colours, config):
+ 
+    """
+    parses the report group argument
+    --timeline-colours
+    """
 
-    ##make a number of hex codes that has the same number as the number of dates then assign it to config["timeline_colours"]
+    misc.add_arg_to_config("timeline_colours",timeline_colours,config)
 
-    config["timeline_colours"] = ['#e6959c', '#911a24']
+    
+    if not config["timeline_dates"]:
+        sys.stderr(cyan("You have provided colours for the timeline but no data to plot. Please provide the columns containing the timeline data using -td/--timeline-dates.\n"))
+        sys.exit(-1)
+    
+    n_colours = len(config["timeline_dates"].split(","))
+    acceptable_colour_names = global_report_functions.get_acceptable_colours(config)
+    
+    if config["timeline_colours"]:
+        colour_list = timeline_colours.split(",")
+        if len(colour_list) < n_colours:
+            sys.stderr(cyan(f"You haven't provided enough colours for the timeline. Please provide {n_colours} (the number of columns you have specified for plotting in the timeline.\n"))
+            sys.exit(-1)
+        else:
+            for i in colour_list:
+                if "#" not in i:
+                    if i.lower() not in acceptable_colours:
+                        sys.stderr(cyan(f'{i} not a valid html colour. See https://htmlcolorcodes.com/color-names/ for acceptable names and hex codes.\n'))
+                        sys.exit(-1)
+
+    else:
+        colour_list = []
+        logo_colours = ["#B6B8C8", "#D4B489", "#A6626F", "#733646", "#A47E3E", "#DC9598"]
+        if n_colours <= 6:
+            for i in range(n_colours):
+                colour_list.append(logo_colours[i])
+        else:
+            for i in range(n_colours):
+                colour_list.append(acceptable_colours[i])
+
+    config["timeline_colours"] = colour_list        
+
+
 

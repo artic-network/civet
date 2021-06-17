@@ -624,7 +624,7 @@
                           "field": "sequence_name",
                           "type": "nominal"
                           },
-                          "color": {"value": "#db646f"}
+                          "color": {"value": "#A9A9A9"}
                         }
                         },
                         {

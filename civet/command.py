@@ -81,6 +81,7 @@ def main(sysargs = sys.argv[1:]):
     r_group.add_argument("--table-content", action='store', dest="table_content", help="Columns to include in the table for queries. Default:--background_column,--background_date_column,source,lineage,country,catchment")
     r_group.add_argument("--catchment-table", action='store', dest="catchment_table", help="Columns to include in the summary table for catchments. Default: count,country,lineage")
     r_group.add_argument("-td", "--timeline-dates", action='store', dest="timeline_dates", help="Data to generate a timeline as a comma separated string")
+    r_group.add_argument("--timeline-colours", action='store', dest="timeline_colours",help="Comma separated string of hex codes or names of HTML compatible colours to colour dots by in the timeline.")
     r_group.add_argument("-dcol","--date-column", action="store", dest="date_column", help="Column in input query with date data in. Default=sample_date")
     r_group.add_argument("-bdate", "--background-date-column", action="store", dest="background_date_column", help="Column in input data with date data in. Default=sample_date")
     r_group.add_argument("-loc","--location", dest="location", action="store", help="Column in the background csv that contains geographical data. Default=country")
@@ -153,7 +154,7 @@ def main(sysargs = sys.argv[1:]):
 
     # Define what's going to go in the report and sort global report options 
     # stored under config = { "report_content": [1, 2, 3, 4], "reports": [1,2,3,4],[1,2]}
-    name_dict = report_arg_parsing.report_group_parsing(args.report_content,args.report_column, args.anonymise, args.date_column, args.background_date_column,args.location, args.table_content, args.timeline_dates, args.background_map_date_restriction, args.background_map_location, args.longitude_column, args.latitude_column, found_in_background_data, config)
+    name_dict = report_arg_parsing.report_group_parsing(args.report_content,args.report_column, args.anonymise, args.date_column, args.background_date_column,args.location, args.table_content, args.timeline_dates, args.timeline_colours, args.background_map_date_restriction, args.background_map_location, args.longitude_column, args.latitude_column, found_in_background_data, config)
 
     # sets up the output dir, temp dir, and data output desination
     directory_setup.output_group_parsing(args.outdir, args.output_prefix, args.overwrite,args.datestamp, args.output_data, args.tempdir, args.no_temp, config)

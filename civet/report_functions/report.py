@@ -62,8 +62,6 @@ def get_timeline(config):
 
     with open(timeline_json,'r') as f:
         timeline_data = json.load(f)
-
-    timeline_functions.make_timeline_colours(config)
     
     return timeline_data
 

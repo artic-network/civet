@@ -37,7 +37,10 @@ def check_install(config):
         "filename":"query_table.txt"},
         {"key":"mako_timeline",
         "directory":"data/report_modules",
-        "filename":"timeline.txt"}
+        "filename":"timeline.txt"},
+        {"key":"html_colours",
+        "directory":"data",
+        "filename":"html_colours.csv"}
     ]
     for resource in resources:
         package_data_check(resource["filename"],resource["directory"],resource["key"],config)

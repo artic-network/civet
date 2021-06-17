@@ -50,7 +50,7 @@ def qc_report_content(config): #doesn't work with default
 
 #then at some point we need to update the treefile with these display names using jclusterfunk
 
-def report_group_parsing(report_content,report_column, anonymise,date_column, background_date_column,location, table_content, timeline_dates, background_map_date_restriction, background_map_location, longitude_column, latitude_column, found_in_background_data, config):
+def report_group_parsing(report_content,report_column, anonymise,date_column, background_date_column,location, table_content, timeline_dates, timeline_colours, background_map_date_restriction, background_map_location, longitude_column, latitude_column, found_in_background_data, config):
     """
     parses the report group arguments 
     --report-content (Default 1,2,3)
@@ -79,6 +79,7 @@ def report_group_parsing(report_content,report_column, anonymise,date_column, ba
 
     if 5 in config['report_content']:
         timeline_functions.timeline_checking(timeline_dates, config)
+        timeline_functions.make_timeline_colours(timeline_colours,config)
 
 
     if 6 in config['report_content']:
