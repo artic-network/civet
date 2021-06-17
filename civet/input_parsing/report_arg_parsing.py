@@ -4,7 +4,6 @@ from civet.utils.log_colours import green,cyan
 from civet.utils import misc
 import datetime as dt
 
-from civet.report_functions import name_functions
 from civet.report_functions import table_functions
 from civet.report_functions import timeline_functions
 from civet.report_functions import map_functions
@@ -67,7 +66,7 @@ def report_group_parsing(report_content,report_column, anonymise,date_column, ba
     qc_report_content(config)
 
     #global report options
-    name_functions.sequence_name_parsing(report_column, anonymise, config)
+    global_report_functions.sequence_name_parsing(report_column, anonymise, config)
     global_report_functions.parse_date_args(date_column, background_date_column, config)
     global_report_functions.parse_location(location, config)
 
