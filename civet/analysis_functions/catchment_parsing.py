@@ -36,6 +36,7 @@ def get_merged_catchments(catchment_file,merged_catchment_file,config):
         reader = csv.DictReader(f)
         
         for row in reader:
+            query_dict[row["query"]].append(row["query"])
             for col in ["closestsame","closestup","closestdown","closestside"]:
                 seqs = row[col].split(";")
                 for seq in seqs:
@@ -114,9 +115,13 @@ def add_catchments_to_metadata(background_csv,query_metadata,query_metadata_with
         for record in catchment_records:
             writer.writerow(record)
 
-def write_catchment_fasta(catchment_dict,catchment_dir,config):
+def write_catchment_fasta(catchment_dict,fasta,catchment_dir,config):
     seq_dict = collections.defaultdict(list)
     for record in SeqIO.parse(config["background_fasta"],"fasta"):
+        if record.id in catchment_dict:
+            seq_dict[catchment_dict[record.id]].append(record)
+    
+    for record in SeqIO.parse(fasta,"fasta"):
         if record.id in catchment_dict:
             seq_dict[catchment_dict[record.id]].append(record)
 

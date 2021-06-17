@@ -73,7 +73,7 @@ def timeline_checking(timeline_dates, config):
     return config
 
 
-def make_timeline_json(config):
+def make_timeline_json(catchment,config):
 
     date_cols = config["timeline_dates"].split(",")
     config["timeline_dates"] = date_cols

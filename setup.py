@@ -12,13 +12,15 @@ setup(name='civet',
       packages=find_packages(),
       scripts=[
             "civet/scripts/civet.smk",
-            "civet/scripts/build_catchment_trees.smk"
+            "civet/scripts/build_catchment_trees.smk",
+            "civet/scripts/snipit_runner.smk"
             ],
       package_data={"civet":["data/*","data/report_modules/*"]},
       install_requires=[
             "biopython>=1.70",
             "baltic",
-            "mako>=1.1"
+            "mako>=1.1",
+            "snipit"
         ],
       description='Cluster Investivation & Virus Epidemiology Tool',
       url='https://github.com/artic-network/civet',

@@ -564,6 +564,7 @@
 
         
     %for catchment in catchments:
+        
         <h2>${catchment.replace("_"," ").title()}</h2> 
         
         %if '2' in config["report_content"]:
