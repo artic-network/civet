@@ -1,4 +1,7 @@
 import csv
+from collections import defaultdict
+import json
+import os
 import sys
 from civet.utils.log_colours import cyan 
 from civet.utils import misc
@@ -72,30 +75,40 @@ def timeline_checking(timeline_dates, config):
 def make_timeline_json(config):
 
     date_cols = config["timeline_dates"].split(",")
+    config["timeline_dates"] = date_cols
 
     overall = defaultdict(dict)
-    overall['catchments'] = defaultdict(dict)
 
     with open(config["query_metadata"]) as f:
         data = csv.DictReader(f)
         for l in data:
-            if l['query_boolean'] == "TRUE":
-                if l['catchment'] in overall['catchments']:
-                    dict_list = overall['catchments'][l['catchment']]
-                else:
-                    dict_list = []
-                
+
+            catchment_string = f"{l['catchment']}_timeline"
+           
+            if catchment_string in overall:
+                dict_list = overall[catchment_string]
+            else:
+                dict_list = []
+            
+            for col in date_cols:
                 new_dict = {}
-                new_dict["sequence_name"] = l['display_name'] 
-                for col in date_cols:
-                    new_dict[col] = l[col]
-                
+                new_dict["sequence_name"] = l[config["report_column"]]
+                new_dict["date"] = l[col]
+                new_dict["date_type"] = col
                 dict_list.append(new_dict)
-                overall['catchments'][l['catchment']] = dict_list
+            
+            overall[catchment_string] = dict_list  
 
-    return overall
+    timeline_json = os.path.join(config["tempdir"],'timeline_data.json')
 
-    # with open(os.path.join(config["tempdir"],'timeline_data.json'), 'w') as outfile:
-    #     json.dump(overall, outfile)
+    with open(timeline_json, 'w') as outfile:
+        json.dump(overall, outfile)
 
-    
+    return timeline_json
+
+def make_timeline_colours(config):
+
+    ##make a number of hex codes that has the same number as the number of dates then assign it to config["timeline_colours"]
+
+    config["timeline_colours"] = ['#e6959c', '#911a24']
+

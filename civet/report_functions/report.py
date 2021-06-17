@@ -58,18 +58,15 @@ def make_catchment_summary_data(metadata):
 
 def get_timeline(config):
 
-    timeline_data = report_functions.make_timeline_json(config)
+    timeline_json = timeline_functions.make_timeline_json(config)
 
     with open(timeline_json,'r') as f:
         timeline_data = json.load(f)
+
+    timeline_functions.make_timeline_colours(config)
     
     return timeline_data
 
-def make_timeline_colours(config):
-
-    ##make a number of hex codes that has the same number as the number of dates then assign it to config["timeline_colours"]
-
-    return config
 
 def define_report_content(metadata,catchments,config):
     report_content = config["report_content"]
