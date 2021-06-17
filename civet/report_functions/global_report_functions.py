@@ -2,6 +2,7 @@
 import csv
 import sys
 import os
+import random
 from civet.utils import misc
 from civet.utils.log_colours import green,cyan,red
 
@@ -15,39 +16,31 @@ def sequence_name_parsing(report_column, anonymise, config):
     misc.add_arg_to_config("report_column",report_column,config)
     misc.add_arg_to_config("anonymise",anonymise,config)
 
-    name_dict = {}
+    if config["anonymise"]:
+        name_dict = {}
+        if "input_csv" in config:
+            name_dict = create_anon_ids_from_csv(config, config["input_csv"])
+        elif "ids" in config:
+            name_dict = create_anon_ids_from_list(config["ids"])
 
-    if "input_csv" in config:
-        metadata = config["input_csv"] 
-        if config["anonymise"]:
-            name_dict = create_anon_ids_from_csv(config, metadata)
+        config["report_column"] = "anon_names"
 
-        elif config["report_column"]:
-            with open(metadata) as f:
+        return name_dict
+
+    elif config["report_column"]:
+        if "input_csv" in config:
+            with open(config["input_csv"]) as f:
                 data = csv.DictReader(f)
                 if config["report_column"] not in data.fieldnames:
                     sys.stderr.write(cyan(f"Error: {config['report_column']} not found in input metadata file.\n") + "Please provide a column containing alternate sequence names, or use --anonymise if you would like civet to make them for you.\n")
                     sys.exit(-1)
-                else:
-                    for l in data:
-                        name_dict[l[config['input_column']]] = l[config['report_column']]
-
         else:
-            with open(metadata) as f: 
-                data = csv.DictReader(f)
-                for l in data:
-                    name_dict[l[config['input_column']]] = l[config['input_column']]
+            sys.stderr.write(cyan(f"Error: report column supplied, but not input csv that matches the column to the queries.") + "Please provide an input csv using -i/--input-csv.\n")
 
+    else:
+        config["report_column"] = config["input_column"]
 
-    elif "ids" in config:
-        if config["anonymise"]:
-            name_dict = create_anon_ids_from_list(config["ids"])
-        else:
-            for name in config["ids"]:
-                name_dict[name] = name
-
-
-    return config, name_dict
+    return
 
 
 def create_anon_ids_from_csv(config, metadata): #the names need to be swapped out
@@ -80,11 +73,11 @@ def create_anon_ids_from_list(input_list):
 
     return anon_dict
 
-def write_names_to_file(config, name_dict):
+def write_anon_names_to_file(config, name_dict):
 
-    new_metadata = os.path.join(config["tempdir"], "query_metadata.name_procssed.master.csv")
+    new_metadata = os.path.join(config["tempdir"], "query_metadata.anonymised.master.csv")
 
-    misc.add_col_to_metadata("display_name",name_dict, config["query_metadata"], new_metadata, config["input_column"], config)
+    misc.add_col_to_metadata(config["report_column"],name_dict, config["query_metadata"], new_metadata, config["input_column"], config)
 
     config["query_metadata"] = new_metadata
 

@@ -528,52 +528,40 @@
   
    %if '1' in config["report_content"]:
       
-      %if config["queries_found"]:
-          <h3><strong>Table 1</strong> | Summary of queries found in background dataset   <input class="searchbar" type="text" id="myInput" onkeyup="myFunction('myInput','myTable')" placeholder="Search for sequence..." title="searchbar"></h3>
+          <h3><strong>Table 1</strong> | Summary of queries  <input class="searchbar" type="text" id="myInput" onkeyup="myFunction('myInput','myTable')" placeholder="Search for sequence..." title="searchbar"></h3>
           <table class="table table-striped" id="myTable">
               <tr class="header">
-              %for col in config["found_table_cols"]:
+              %for col in config["table_content"]:
               <th style="width:10%;">${col.title().replace("_"," ")}</th>
               %endfor
               </tr>
               % for row in query_summary_data:
-              % if row["source"] == "input_fasta":
                   <tr>
-                    %for col in config["found_table_cols"]:
+                    %for col in config["table_content"]:
                     <td>${row[col]}</td>
                     %endfor
                   </tr>
-              % endif
               % endfor
               </table>
-          %endif
+
     
-    %if config["queries_provided"]:
-          <%
-          if config["queries_found"]:
-            provided_table_number = 2
-          else:
-            provided_table_number = 1
-          %>
-          <h3><strong>Table ${provided_table_number} </strong> | Summary of queries provided in fasta file  <input class="searchbar" type="text" id="myInput" onkeyup="myFunction('myInput','myTable')" placeholder="Search for sequence..." title="searchbar"></h3>
-          <table class="table table-striped" id="myTable">
+          <h3><strong>Table 2 </strong> | Summary of queries provided in fasta file  <input class="searchbar" type="text" id="myInput" onkeyup="myFunction('myInput','myTable2')" placeholder="Search for sequence..." title="searchbar"></h3>
+          <table class="table table-striped" id="myTable2">
           <tr class="header">
-              %for col in config["provided_table_cols"]:
+              %for col in config["fasta_table_content"]:
               <th style="width:10%;">${col.title().replace("_"," ")}</th>
               %endfor
               </tr>
-              % for row in query_summary_data:
-              % if row["source"] == "background_data":
+              % for row in fasta_summary_data:
                   <tr>
-                    %for col in config['provided_table_cols']:
+                    %for col in config['fasta_table_content']:
                     <td>${row[col]}</td>
                     %endfor
                   </tr>
-              % endif
               % endfor
           </table>
-      %endif
-    %endif
+  %endif
+
         
     %for catchment in catchments:
         

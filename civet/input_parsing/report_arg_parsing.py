@@ -66,7 +66,7 @@ def report_group_parsing(report_content,report_column, anonymise,date_column, ba
     qc_report_content(config)
 
     #global report options
-    global_report_functions.sequence_name_parsing(report_column, anonymise, config)
+    name_output = global_report_functions.sequence_name_parsing(report_column, anonymise, config)
     global_report_functions.parse_date_args(date_column, background_date_column, config)
     global_report_functions.parse_location(location, config)
 
@@ -88,3 +88,4 @@ def report_group_parsing(report_content,report_column, anonymise,date_column, ba
     if 7 in config['report_content']:
         map_functions.parse_query_map(longitude_column, latitude_column, found_in_background_data, config)
 
+    return name_output
