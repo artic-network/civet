@@ -51,7 +51,7 @@ def qc_report_content(config): #doesn't work with default
 
 #then at some point we need to update the treefile with these display names using jclusterfunk
 
-def report_group_parsing(report_content,report_column, anonymise,date_column, background_date_column,location, table_content, timeline_dates, longitude_column, latitude_column, found_in_background_data, config):
+def report_group_parsing(report_content,report_column, anonymise,date_column, background_date_column,location, table_content, timeline_dates, background_map_date_restriction, background_map_location, longitude_column, latitude_column, found_in_background_data, config):
     """
     parses the report group arguments 
     --report-content (Default 1,2,3)
@@ -83,7 +83,8 @@ def report_group_parsing(report_content,report_column, anonymise,date_column, ba
 
 
     if 6 in config['report_content']:
-        map_functions.parse_background_map_options(map_file, background_map_date_restriction, background_map_location,map_location, found_in_background_metadata, config)
+        map_file = "" #stand-in until I sort it
+        map_functions.parse_background_map_options(map_file, background_map_date_restriction, background_map_location, found_in_background_data, config)
 
     if 7 in config['report_content']:
         map_functions.parse_query_map(longitude_column, latitude_column, found_in_background_data, config)

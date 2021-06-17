@@ -152,7 +152,7 @@ def main(sysargs = sys.argv[1:]):
 
     # Define what's going to go in the report and sort global report options 
     # stored under config = { "report_content": [1, 2, 3, 4], "reports": [1,2,3,4],[1,2]}
-    report_arg_parsing.report_group_parsing(args.report_content,args.report_column, args.anonymise, args.date_column, args.background_date_column,args.location, args.table_content, args.timeline_dates, args.longitude_column, args.latitude_column, found_in_background_data, config)
+    report_arg_parsing.report_group_parsing(args.report_content,args.report_column, args.anonymise, args.date_column, args.background_date_column,args.location, args.table_content, args.timeline_dates, args.background_map_date_restriction, args.background_map_location, args.longitude_column, args.latitude_column, found_in_background_data, config)
 
     # sets up the output dir, temp dir, and data output desination
     directory_setup.output_group_parsing(args.outdir, args.output_prefix, args.overwrite,args.datestamp, args.output_data, args.tempdir, args.no_temp, config)

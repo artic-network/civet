@@ -92,7 +92,7 @@ def parse_query_map(longitude_column, latitude_column, found_in_background_data,
             sys.stderr.write(cyan(f"Error: no query with longitude and latitude information contained in the columns provided ({config['longitude_column'], config['latitude_column']}), so map cannot be produced.\n"))
             sys.exit(-1)
 
-def parse_background_map_options(map_file, background_map_date_restriction, background_map_location,map_location, found_in_background_metadata, config):
+def parse_background_map_options(map_file, background_map_date_restriction, background_map_location, found_in_background_metadata, config):
 
     """
     parses map group arguments:
@@ -126,10 +126,9 @@ def parse_background_map_options(map_file, background_map_date_restriction, back
             sys.stderr.write(cyan(f"Error: no field found in background metadata file for mapping background diversity. Please provide one with -maploc/--background-map-location.\n") + "\n")
             sys.exit(-1)
 
-
     if config["background_map_date_restriction"]:
         if config["background_date_column"]:
-            date_range = to_search.split(":")
+            date_range = config["background_map_date_restriction"].split(":")
             if len(date_range) > 1:
                 try:
                     start_date = dt.datetime.strptime(date_range[0], "%Y-%m-%d").date()
@@ -153,20 +152,22 @@ def parse_background_map_options(map_file, background_map_date_restriction, back
             config["start_date"] = start_date
             config["end_date"] = end_date
 
+            print(green(f"Restricting background map analysis between the dates {start_date} and {end_date}"))
+
             with open(config["background_csv"]) as f:
                 data = csv.DictReader(f)
                 data_count = 0
                 enough_data = False
                 for line in data:
-                    if line[config["date_column"]] != "":
-                        date = dt.datetime.strptime(line[config["date_column"]], "%Y-%m-%d")
+                    if line[config["background_date_column"]] != "":
+                        date = dt.datetime.strptime(line[config["background_date_column"]], "%Y-%m-%d").date()
                         if date >= start_date and date <= end_date and line[config["background_map_location"]] != "":
                             data_count += 1
                         if data_count > 50:
                             enough_data = True
                             break
                 if not enough_data:
-                    sys.stderr.write(cyan(f"Error: fewer than 50 sequences in column {config['background_map_location']} between dates {start_date} and {end_date}. If you want to map background diversity, consider using a different geographical scale (eg country) or a larger time period.\n"))
+                    sys.stderr.write(cyan(f"Error: fewer than 50 sequences in column {config['background_map_location']} between dates {start_date} and {end_date}. If you want to map background diversity, consider using a different geographical scale using '-maploc/--background-map-location' or a larger time period.\n"))
                     sys.exit(-1)
         else:
             sys.stderr.write(cyan(f"Error: Date restriction defined for background lineage diversity mapping, but no date column provided. Please use '-bdate/--background-date-column' to specify this column. \n") + "\n")
@@ -182,18 +183,23 @@ def do_date_window(date_window, found_in_background_metadata, config):
     start_date = None
     end_date = None
 
-    date_diff = dt.timedelta(date_window)
+    date_diff = dt.timedelta(int(date_window))
         
     dates = set()
     if "input_csv" in config and config['date_column']:
         with open(config["input_csv"]) as f:
             data = csv.DictReader(f)
             for l in data:
-                if l[config['date_column']] != "": #default will be sample_date, it's just in case they provide their own metadata
-                    dates.add(dt.datetime.strptime(l['sample_date'], '%Y-%m-%d').date())
+                if l[config['date_column']] != "": 
+                    dates.add(dt.datetime.strptime(l[config['date_column']], '%Y-%m-%d').date())
 
-    for seq, metadata in found_in_background_metadata.items():
-        dates.add(dt.datetime.strptime(metadata[config["background_date_column"]],'%Y-%m-%d').date())
+    for seq, metadata in found_in_background_metadata.items(): 
+        if metadata[config["background_date_column"]] != "":
+            dates.add(dt.datetime.strptime(metadata[config["background_date_column"]],'%Y-%m-%d').date())
+
+    if len(dates) == 0:
+        sys.stderr.write(cyan("Error: no dates in queries to restrict using date window. Please provide absolute dates in the format 'YYYY-MM-DD:YYYY-MM-DD' using the argument '-daterestric/--background-map-date-restriction'\n"))
+        sys.exit(-1)
           
     earliest = sorted(dates)[0]
     latest = sorted(dates)[-1]

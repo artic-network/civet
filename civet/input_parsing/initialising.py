@@ -68,7 +68,7 @@ def get_defaults():
                     #Map options
                     "latitude_column":"latitude",
                     "longitude_column":"longitude",
-                    "background_map_column":False,
+                    "background_map_location":False,
                     # "map_column":False,
                     "background_map_date_restriction":False,
 
