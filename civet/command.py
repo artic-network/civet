@@ -126,7 +126,7 @@ def main(sysargs = sys.argv[1:]):
     snakefile = data_install_checks.get_snakefile(thisdir)
     
     # Threads and verbosity to config
-    init.misc_args_to_config(args.verbose,args.threads,config)
+    init.misc_args_to_config(args.verbose,args.threads,args.civet_mode,config)
     init.set_up_verbosity(config)
 
     # Analysis options, including ref and trim and pad

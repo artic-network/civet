@@ -73,8 +73,8 @@ def get_defaults():
                     "background_map_date_restriction":False,
 
                     # misc defaults
-                    # "civet_mode": os.getenv('CIVETMODE'),
-                    "civet_mode":"CLIMB", #will be above, just for debugging now
+                    "civet_mode": os.getenv('CIVETMODE'),
+                    # "civet_mode":"CLIMB", #will be above, just for debugging now
                     "threads":1,
                     "verbose":False
                     }
@@ -180,6 +180,7 @@ def arg_dict(config):
                 # "map_location":"map_location",
 
                 # misc group args
+                "civet_mode":"civet_mode",
                 "t":"threads",
                 "threads":"threads",
                 "v":"verbose",
@@ -257,9 +258,11 @@ def setup_config_dict(cwd,config_arg):
         config["input_path"] = cwd
     return config
 
-def misc_args_to_config(verbose,threads,config):
+def misc_args_to_config(verbose,threads, civet_mode, config):
     misc.add_arg_to_config("verbose",verbose,config)
     misc.add_arg_to_config("threads",threads,config)
+    misc.add_arg_to_config("civet_mode", civet_mode, config)
+
 
 def set_up_verbosity(config):
     if config["verbose"]:
