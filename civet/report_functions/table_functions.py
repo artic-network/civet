@@ -12,8 +12,8 @@ def parse_and_qc_table_cols(table_content, config):
     --table-content (default --background_column,--background_date_column,source,lineage,country,catchment)
     """
 
-    processed_columns = ["source","qc_status","display_name","catchment"]
-    # processed_columns = ["source","qc_status","display_name","catchment","SNP_distance","closest","SNP_list"] #update when the analysis pipeline is done
+    processed_columns = ["source","qc_status",config["report_column"],"catchment"]
+    # processed_columns = ["source","qc_status","config["report_column"]","catchment","SNP_distance","closest","SNP_list"] #update when the analysis pipeline is done
 
     # if command line arg, overwrite config value
     misc.add_arg_to_config("table_content",table_content,config)
@@ -40,17 +40,19 @@ def parse_and_qc_table_cols(table_content, config):
                 sys.stderr.write(cyan(f"Error: {col} column not found in metadata file\n"))
                 sys.exit(-1)
            
-        if config["input_column"] not in content_list: 
-            content_list.insert(0,config["input_column"])
+        if config["report_column"] not in content_list:
+            content_list.insert(0,config["report_column"])
 
         config["table_content"] = content_list 
     else:
         sort_default_headers(input_fieldnames, background_fieldnames, config)
 
+    config["fasta_table_content"] = [config["report_column"]] #just leaving this as this for now, will have more cols in
+
 
 def sort_default_headers(input_fieldnames, background_fieldnames, config):
 
-    basic_default_list = [config["input_column"], "lineage", "source", "catchment"]
+    basic_default_list = [config["report_column"], "lineage", "source", "catchment"]
     full_default_list = [config["background_date_column"], config["date_column"], "country", "adm1", "suggested_adm2_grouping", "adm2"]
 
     header_list = basic_default_list

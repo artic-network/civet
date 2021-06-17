@@ -9,6 +9,7 @@ from civet.input_parsing import input_data_parsing
 from civet.input_parsing import report_arg_parsing
 
 from civet.output_options import directory_setup
+from civet.report_functions import global_report_functions
 
 from civet.utils import misc
 from civet.utils import dependency_checks
@@ -152,13 +153,16 @@ def main(sysargs = sys.argv[1:]):
 
     # Define what's going to go in the report and sort global report options 
     # stored under config = { "report_content": [1, 2, 3, 4], "reports": [1,2,3,4],[1,2]}
-    report_arg_parsing.report_group_parsing(args.report_content,args.report_column, args.anonymise, args.date_column, args.background_date_column,args.location, args.table_content, args.timeline_dates, args.background_map_date_restriction, args.background_map_location, args.longitude_column, args.latitude_column, found_in_background_data, config)
+    name_dict = report_arg_parsing.report_group_parsing(args.report_content,args.report_column, args.anonymise, args.date_column, args.background_date_column,args.location, args.table_content, args.timeline_dates, args.background_map_date_restriction, args.background_map_location, args.longitude_column, args.latitude_column, found_in_background_data, config)
 
     # sets up the output dir, temp dir, and data output desination
     directory_setup.output_group_parsing(args.outdir, args.output_prefix, args.overwrite,args.datestamp, args.output_data, args.tempdir, args.no_temp, config)
 
     # write the merged metadata, the extracted passed qc supplied fasta and the extracted matched fasta from the background data
     input_data_parsing.write_parsed_query_files(query_metadata,passed_qc_fasta,found_in_background_data, config)
+
+    if config["anonymise"]:
+        global_report_functions.write_anon_names_to_file(config, name_dict)
 
     # ready to run? either verbose snakemake or quiet mode
 

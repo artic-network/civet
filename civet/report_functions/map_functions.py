@@ -8,12 +8,6 @@ import json
 import datetime as dt
 
 
-##Think about what the defaults are - for local lins, could be adm1. 
-# If in the UK, would want it to be the "suggested_aggregated" or w/e that col is called. Could have it as adm1 and tell people using it we advise agg_adm2
-
-#will have to have levels of defaults for location - agg_adm2 if present, adm1 if present, country if present. If none present and not given, then crap out
-
-
 def parse_map_file():
 
     return

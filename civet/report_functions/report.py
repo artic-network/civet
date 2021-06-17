@@ -12,21 +12,6 @@ from mako.exceptions import RichTraceback
 from io import StringIO
 import os
 
-def check_which_tables_produced(metadata, config): #call this in the render report
-
-    queries_provided = False
-    queries_found = False
-
-    with open(metadata) as f:
-        reader = csv.DictReader(f)
-        for row in reader:
-            if row["source"] == "background_data":
-                queries_found = True
-            if row["source"] == "input_fasta":
-                queries_provided = True
-
-    config["queries_found"] = queries_found
-    config["queries_provided"] = queries_provided
 
 def process_catchments():
 
@@ -46,10 +31,25 @@ def make_query_summary_data(metadata, config):
             table_row = {}
             for col in config["table_content"]:
                 table_row[col] = row[col]
-            table_row["source"] = row["source"]
                 
             query_summary_data.append(table_row)
+    
     return query_summary_data
+
+def make_fasta_summary_data(metadata,config):
+
+    fasta_summary_data = []
+    with open(metadata, "r") as f:
+        reader = csv.DictReader(f)
+        for row in reader:
+            if row["source"] == "input_fasta":
+                table_row = {}
+                for col in config["fasta_table_content"]:
+                    table_row[col] = row[col]
+                    
+                fasta_summary_data.append(table_row)
+    
+    return fasta_summary_data
 
 def make_catchment_summary_data(metadata):
 
@@ -77,8 +77,10 @@ def define_report_content(metadata,catchments,config):
     data_for_report = {}
     if '1' in report_content:
         data_for_report["query_summary_data"] = make_query_summary_data(metadata, config)
+        data_for_report["fasta_summary_data"] = make_fasta_summary_data(metadata, config)
     else:
         data_for_report["query_summary_data"] = ""
+        data_for_report["fasta_summary_data"] = ""
     
     if '2' in report_content:
         data_for_report["catchment_data"] = ""
@@ -134,6 +136,7 @@ def make_report(metadata,report_to_generate,config):
                     version = __version__, 
                     catchments = catchments, 
                     query_summary_data = data_for_report["query_summary_data"],
+                    fasta_summary_data = data_for_report["fasta_summary_data"],
                     timeline_data = data_for_report["timeline_data"],
                     config=config)
 
