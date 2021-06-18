@@ -22,19 +22,17 @@ rule make_snipit_alignments:
             reader = csv.DictReader(f)
             
             if config["report_column"] in reader.fieldnames:
-                    column = config["report_column"]
-                else:
-                    column = config["input_column"]
+                column = config["report_column"]
+            else:
+                column = config["input_column"]
 
             for row in reader:
                 if "query_boolean" in reader.fieldnames:
                     query = row["query_boolean"]
-                else:
-                    query = True
                 
-                if query:
+                if query=="True":
                     catchment_dict[row["catchment"]].append((row[column], row["hash"]))
-        
+        print(catchment_dict)
         sequences = {}
         for record in SeqIO.parse(input.fasta,"fasta"):
             sequences[record.id] = record
