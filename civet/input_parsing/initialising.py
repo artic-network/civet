@@ -63,8 +63,8 @@ def get_defaults():
                     "timeline_colours":False,
                     "table_content":False,
                     "background_date_column":False,
-                    "date_column":False,
-                    "location":False,
+                    "date_column":"sample_date",
+                    "location_column":"country",
 
                     #Map options
                     "latitude_column":"latitude",
@@ -169,6 +169,8 @@ def arg_dict(config):
                 "bdate":"background_date_column",
                 "date_column":"date_column",
                 "date":"date_column",
+                "location_column":"location_column",
+                "lcol":"location_column",
 
                 #mgroup args
                 "lat":"latitude_column",

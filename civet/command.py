@@ -84,7 +84,7 @@ def main(sysargs = sys.argv[1:]):
     r_group.add_argument("--timeline-colours", action='store', dest="timeline_colours",help="Comma separated string of hex codes or names of HTML compatible colours to colour dots by in the timeline.")
     r_group.add_argument("-dcol","--date-column", action="store", dest="date_column", help="Column in input query with date data in. Default=sample_date")
     r_group.add_argument("-bdate", "--background-date-column", action="store", dest="background_date_column", help="Column in input data with date data in. Default=sample_date")
-    r_group.add_argument("-loc","--location", dest="location", action="store", help="Column in the background csv that contains geographical data. Default=country")
+    r_group.add_argument("-lcol","--location-column", dest="location_column", action="store", help="Column in the background csv that contains geographical data. Default=country")
 
 
     m_group = parser.add_argument_group("Map options")

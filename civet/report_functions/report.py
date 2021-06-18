@@ -30,6 +30,7 @@ def make_query_summary_data(metadata, config):
         for row in reader:
             table_row = {}
             for col in config["table_content"]:
+                ## should there be a 'query_boolean' == 'True' statement here?
                 table_row[col] = row[col]
                 
             query_summary_data.append(table_row)
@@ -51,10 +52,64 @@ def make_fasta_summary_data(metadata,config):
     
     return fasta_summary_data
 
-def make_catchment_summary_data(metadata):
+def check_earliest_latest_dates(d,catchment_summary_dict,catchment):
+    if catchment_summary_dict[catchment]["earliest_date"]:
+        if d < catchment_summary_dict[catchment]["earliest_date"]:
+            catchment_summary_dict[catchment]["earliest_date"] = d
+    else:
+        catchment_summary_dict[catchment]["earliest_date"] = d
+
+    if catchment_summary_dict[catchment]["latest_date"]:
+        if d > catchment_summary_dict[catchment]["latest_date"]:
+            catchment_summary_dict[catchment]["latest_date"] = d
+    else:
+        catchment_summary_dict[catchment]["latest_date"] = d
+
+def make_catchment_summary_data(metadata,catchments,config):
+    catchment_summary_dict = {}
+
+    for catchment in catchments:
+        catchment_summary_dict[catchment] = {
+            'total':0
+        }
+
+    with open(metadata,"r") as f:
+        reader = csv.DictReader(f)
+
+        for row in reader:
+            
+            if row["query_boolean"] = "False":
+                catchment = row["catchment"]
+
+                catchment_summary_dict[catchment]['total'] +=1
+
+                if config["date_column"] in reader.fieldnames:
+                    for i in ['earliest_date','latest_date']:
+                        if i not in catchment_summary_dict[catchment]:
+                            catchment_summary_dict[catchment][i] = ''
+
+                    d = date.fromisoformat(row[config["date_column"]])
+                    check_earliest_latest_dates(d,catchment_summary_dict,catchment)
+
+                if config["location_column"] in reader.fieldnames:
+                    location_column = config["location_column"]
+                    if location_column not in catchment_summary_dict[catchment]:
+                        catchment_summary_dict[catchment][location_column] = collections.Counter()
+
+                    catchment_summary_dict[catchment][location_column][row['location']]+=1
+                
+                if "lineage" in reader.fieldnames:
+                    if "lineage" not in catchment_summary_dict[catchment]:
+                        catchment_summary_dict[catchment]["lineage"] = collections.Counter()
+                    
+                    catchment_summary_dict[catchment]["lineage"][row['lineage']]+=1
+
+                if "SNPs" in reader.fieldnames:
+                    if "SNPs" not in catchment_summary_dict[catchment]:
+                        catchment_summary_dict[catchment]["SNPs"] = collections.defaultdict(list)
+                    catchment_summary_dict[catchment]["SNPs"].append(row["SNPs"])
 
     return catchment_summary_data
-
 
 def get_timeline(catchment, config):
 
@@ -64,7 +119,6 @@ def get_timeline(catchment, config):
         timeline_data = json.load(f)
     
     return timeline_data
-
 
 def get_snipit(catchments,data_for_report):
     for catchment in catchments:
@@ -99,9 +153,18 @@ def define_report_content(metadata,catchments,config):
         data_for_report["fasta_summary_data"] = ""
     
     if '2' in report_content:
-        data_for_report["catchment_data"] = ""
+        catchment_summary_data = make_catchment_summary_data(metadata,catchments,config)
+        # returns at least a dict with total num in per catchment
+        # checks for lineage col, returns lineage counts per catchment
+        # checks for location col, returns location counts per catchment
+        # checks for date col, finds earliest and latest dates per catchment
+        # checks for SNPs col, TO DO: finds 70% consensus of catchment
+
+        for catchment in catchments:
+            
+            data_for_report[catchment]["catchment_summary_data"] = catchment_summary_data[catchment]
     else:
-        data_for_report["catchment_data"] = ""
+        data_for_report[catchment]["catchment_summary_data"] = ""
 
     if '3' in report_content:
         get_newick(catchments,data_for_report)
@@ -123,17 +186,16 @@ def define_report_content(metadata,catchments,config):
             data_for_report[catchment]["timeline_data"] = ""
     
     if '6' in report_content:
-        data_for_report["map_background"] = ""
+        data_for_report[catchment]["map_background"] = ""
     else:
-        data_for_report["map_background"] = ""
+        data_for_report[catchment]["map_background"] = ""
     
     if '7' in report_content:
-        data_for_report["map_queries"] = ""
+        data_for_report[catchment]["map_queries"] = ""
     else:
-        data_for_report["map_queries"] = ""
+        data_for_report[catchment]["map_queries"] = ""
     
     return data_for_report
-
 
 
 def make_report(metadata,report_to_generate,config):
@@ -142,6 +204,9 @@ def make_report(metadata,report_to_generate,config):
     catchments = [f"catchment_{i}" for i in range(1,config["catchment_count"]+1)]
 
     data_for_report = define_report_content(metadata,catchments,config)
+
+    for i in data_for_report:
+        print(i, data_for_report[i])
 
     date = dt.datetime.today()
     
