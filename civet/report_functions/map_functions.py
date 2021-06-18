@@ -6,11 +6,10 @@ import datetime as dt
 from collections import defaultdict
 import json
 import datetime as dt
+# import geopandas as gpd
 
 
-def parse_map_file():
 
-    return
 
 def parse_query_map(longitude_column, latitude_column, found_in_background_data, config):
     """
@@ -168,8 +167,10 @@ def parse_background_map_options(map_file, background_map_date_restriction, back
             sys.exit(-1)
     else:
         print(green("No date restriction provided, analysing background lineage diversity for the whole pandemic.\n"))
+        config["start_date"] = dt.datetime(2019,12,1).date()
+        config["end_date"] = dt.datetime.today().date()
 
-        # check_shapefile(config, "background", metadata, shapefile_location)
+    # check_shapefile(map_file,config)
 
 
 def do_date_window(date_window, found_in_background_metadata, config):
@@ -202,6 +203,74 @@ def do_date_window(date_window, found_in_background_metadata, config):
     end_date = latest + date_diff
 
     return start_date, end_date
+
+def parse_map_file(map_file, config):
+    #winding in the geojsons
+
+    #still need to make UK shapefile
+    #work out what's going on with the LFS stuff with the larger shapefiles - maybe just add them to a website?
+
+    """
+    parses map group arguments:
+    --map-file (default=UK_map if civet_mode == CLIMB, relevant level of world_map (ie adm0 or adm1) if not)
+    """
+
+    misc.add_arg_to_config("map_file", map_file, config)
+
+    if config["map_file"]:
+        if not os.path.exists(confg["map_file"]):
+            sys.stderr.write(cyan(f"{config['map_file']} cannot be found. Please check the path and try again.\n"))
+            sys.exit(-1)
+
+        geodata = gpd.read_file(config["map_file"])
+        if config["background_map_location"] not in geodata.columns:
+            sys.stderr.write(cyan(f"{config['background_map_location']} not found in custom shapefile.\n"))
+            sys.exit(-1)
+        else:
+            acceptable_locations = list(data[config['background_map_location']])
+    
+    if config["civet_mode"] == "CLIMB":
+        map_file = config["uk_map_file"]
+        acceptable_locations = get_acceptable_locatoins(map_file, "UK")
+    else:
+        if config["background_map_location"] == "adm1":
+            map_file = config["adm1_global_file"]
+            acceptable_locations = get_global_location(map_file, "adm1")
+        elif config["background_map_location"] == "country" or config["background_map_location"] == "adm0":
+            map_file = config["adm0_global_file"]
+            acceptable_locations = get_global_location(map_file, "adm0")
+        else:
+            sys.stderr.write(cyan(f"{config['background_map_location']} not in default shapefiles. Please use country/adm0 or adm1 or provide your own shape file using --map-file\n"))
+            sys.exit(-1)
+
+    check_set = set()
+    with open(config["background_csv"]) as f:
+        data = csv.DictReader(f)
+        for line in data:
+            if config["background_date_column"]:
+                date_value = line[config["background_date_column"]]
+                if date_value != "":
+                    date = dt.datetime.strptime(line[config["background_date_column"]]).date()
+                    if date >= config["start_date"] and date <= config["end_date"]:
+                        check_set.add(line[config["background_map_location"]])
+            else:
+                check_set.add(line[config["background_map_location"]])
+
+    for loc in check_set:
+        if loc not in acceptable_locations:
+            if config["map_file"]:
+                sys.stderr(f'{loc} is an invalid location. Please ensure that the metadata values match up to the shapefile you have provided.\n')
+                sys.exit(-1)
+            elif config['civet_mode'] == "CLIMB":
+                sys.stderr(f'{loc} is an invalid location. If you are using the default background metadata, please contact Verity Hill (verity.hill@ed.ac.uk)')
+                sys.exit(-1)
+            else:
+                sys.stderr(f"{loc} isn't in our shapefile. Please see a list of currently accepted locations here: [link]. If you can't find your country's data on that list, please open a github issue on the civet repo aand we will get to it as soon as we can.\n")
+                sys.exit(-1)
+
+    config["map_file"] = map_file
+
+    return
 
 # def make_query_map_json(config, metadata): 
 # #plan would be to just plot this on the world map JSON that you can then zoom in on wherever required
@@ -280,22 +349,3 @@ def do_date_window(date_window, found_in_background_metadata, config):
 
 #     with open(os.path.join(config["tempdir"],'background_map_data.json'), 'w') as outfile:
 #         json.dump(overall, outfile)
-
-
-
-
-
-# def check_shapefile(config, map_type, metadata, utils_dir):
-## How are we doing shape files - this is probably the biggest unsolved problem for now
-##Maybe:
-    #if col is country, then can use one that we have
-    #could we store adm1 for every country? Look into that. Will have to do a bit of optimising there probably 
-    #if col is adm2 and UK, no problem, we'll provide that. 
-    #if col is adm2 and not UK, they have to provide a shapefile
-    #will also have to think about the title in the shapefile
-
-#Docs for this are going to need to be good!
-
-
-
-

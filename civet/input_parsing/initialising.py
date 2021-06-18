@@ -69,13 +69,13 @@ def get_defaults():
                     #Map options
                     "latitude_column":"latitude",
                     "longitude_column":"longitude",
+                    "map_file":False,
                     "background_map_location":False,
                     # "map_column":False,
                     "background_map_date_restriction":False,
 
                     # misc defaults
                     "civet_mode": os.getenv('CIVETMODE'),
-                    # "civet_mode":"CLIMB", #will be above, just for debugging now
                     "threads":1,
                     "verbose":False
                     }
@@ -181,6 +181,7 @@ def arg_dict(config):
                 "daterestric":"background_map_date_restriction",
                 "background_map_location":"background_map_location",
                 "maploc":"background_map_location",
+                "map_file":"map_file",
                 # "maploc":"map_location",
                 # "map_location":"map_location",
 
