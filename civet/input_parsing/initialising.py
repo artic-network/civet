@@ -70,7 +70,7 @@ def get_defaults():
                     "latitude_column":"latitude",
                     "longitude_column":"longitude",
                     "map_file":False,
-                    "background_map_location":False,
+                    "background_map_location":"country",
                     # "map_column":False,
                     "background_map_date_restriction":False,
 
