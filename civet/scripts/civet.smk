@@ -144,7 +144,7 @@ rule merge_catchments:
             for k in sorted(config):
                 print(green(f" - {k}: ") + f"{config[k]}")
 
-        if '3' in config["report_content"]:
+        if '3' in config["report_content"] or '4' in config["report_content"]:
             #so at the moment, every config option gets passed to the report
             print(green("Writing catchment fasta files."))
             catchment_parsing.write_catchment_fasta(catchment_dict,input.fasta,params.catchment_dir,config)
@@ -185,7 +185,7 @@ rule tree_building:
 rule snipit:
     input:
         yaml = rules.merge_catchments.output.yaml,
-        csv = rules.merge_catchments.output.csv,
+        csv = rules.merge_catchments.output.catchment_csv,
         fasta = rules.seq_brownie.output.fasta,
         snakefile = os.path.join(workflow.current_basedir,"snipit_runner.smk")
     output:
@@ -207,7 +207,7 @@ rule snipit:
 
 rule render_report:
     input:
-        csv = rules.merge_catchments.output.csv,
+        csv = rules.merge_catchments.output.catchment_csv,
         yaml = rules.merge_catchments.output.yaml,
         snipit = rules.snipit.output.txt,
         trees = rules.tree_building.output.txt
