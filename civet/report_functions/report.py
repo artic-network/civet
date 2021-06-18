@@ -3,6 +3,8 @@ import csv
 from mako.template import Template
 from mako.lookup import TemplateLookup
 import datetime as dt
+from datetime import date
+import collections
 from civet import __version__
 from civet.report_functions import timeline_functions
 
@@ -12,28 +14,18 @@ from mako.exceptions import RichTraceback
 from io import StringIO
 import os
 
-
-def process_catchments():
-
-    #output is list of catchment IDs
-
-    #dict of 
-    #catchment_id: catchment_1
-    #treeString: newick_string
-
-    return catchment_list, tree_strings
-
 def make_query_summary_data(metadata, config):
     query_summary_data = []
     with open(metadata, "r") as f:
         reader = csv.DictReader(f)
         for row in reader:
-            table_row = {}
-            for col in config["table_content"]:
-                ## should there be a 'query_boolean' == 'True' statement here?
-                table_row[col] = row[col]
-                
-            query_summary_data.append(table_row)
+            if row["query_boolean"] == "True":
+                table_row = {}
+                for col in config["table_content"]:
+                    ## should there be a 'query_boolean' == 'True' statement here?
+                    table_row[col] = row[col]
+                    
+                query_summary_data.append(table_row)
     
     return query_summary_data
 
@@ -78,7 +70,7 @@ def make_catchment_summary_data(metadata,catchments,config):
 
         for row in reader:
             
-            if row["query_boolean"] = "False":
+            if row["query_boolean"] == "False":
                 catchment = row["catchment"]
 
                 catchment_summary_dict[catchment]['total'] +=1
@@ -109,7 +101,7 @@ def make_catchment_summary_data(metadata,catchments,config):
                         catchment_summary_dict[catchment]["SNPs"] = collections.defaultdict(list)
                     catchment_summary_dict[catchment]["SNPs"].append(row["SNPs"])
 
-    return catchment_summary_data
+    return catchment_summary_dict
 
 def get_timeline(catchment, config):
 
@@ -120,7 +112,7 @@ def get_timeline(catchment, config):
     
     return timeline_data
 
-def get_snipit(catchments,data_for_report):
+def get_snipit(catchments,data_for_report,config):
     for catchment in catchments:
         snipit_svg = ""
         with open(os.path.join(config["data_outdir"],"snipit",f"{catchment}.snipit.svg"),"r") as f:
@@ -129,7 +121,7 @@ def get_snipit(catchments,data_for_report):
                 snipit_svg+=f"{l}\n"
         data_for_report[catchment]["snipit_svg"] = snipit_svg
 
-def get_newick(catchments,data_for_report):
+def get_newick(catchments,data_for_report,config):
     for catchment in catchments:
         newick = ""
         with open(os.path.join(config["data_outdir"],"catchments",f"{catchment}.tree"),"r") as f:
@@ -164,16 +156,17 @@ def define_report_content(metadata,catchments,config):
             
             data_for_report[catchment]["catchment_summary_data"] = catchment_summary_data[catchment]
     else:
-        data_for_report[catchment]["catchment_summary_data"] = ""
+        for catchment in catchments:
+            data_for_report[catchment]["catchment_summary_data"] = ""
 
     if '3' in report_content:
-        get_newick(catchments,data_for_report)
+        get_newick(catchments,data_for_report,config)
     else:
         for catchment in catchments:
             data_for_report[catchment]["newick"] = ""
     
     if '4' in report_content:
-        get_snipit(catchments,data_for_report)
+        get_snipit(catchments,data_for_report,config)
     else:
         for catchment in catchments:
             data_for_report[catchment]["snipit_svg"] = ""
@@ -205,8 +198,8 @@ def make_report(metadata,report_to_generate,config):
 
     data_for_report = define_report_content(metadata,catchments,config)
 
-    for i in data_for_report:
-        print(i, data_for_report[i])
+    # for i in data_for_report:
+    #     print(i, data_for_report[i])
 
     date = dt.datetime.today()
     
