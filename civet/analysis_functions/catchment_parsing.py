@@ -41,7 +41,8 @@ def get_merged_catchments(catchment_file,merged_catchment_file,config):
                 seqs = row[col].split(";")
                 for seq in seqs:
                     if seq:
-                        query_dict[row["query"]].append(seq)
+                        if seq not in config["ids"]:
+                            query_dict[row["query"]].append(seq)
     
     # merge catchment sets
     lists = merge([query_dict[i] for i in query_dict])
@@ -67,6 +68,8 @@ def get_merged_catchments(catchment_file,merged_catchment_file,config):
 
             for seq in merged_catchments[catchment]:
                 catchment_dict[seq] = catchment
+
+
 
     return catchment_dict, catchment_key, catchment_count
 
