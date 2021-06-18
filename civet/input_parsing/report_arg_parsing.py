@@ -81,7 +81,6 @@ def report_group_parsing(report_content,report_column, anonymise,date_column, ba
         timeline_functions.timeline_checking(timeline_dates, config)
         timeline_functions.make_timeline_colours(timeline_colours,config)
 
-
     if 6 in config['report_content']:
         map_functions.parse_background_map_options(map_file, background_map_date_restriction, background_map_location, found_in_background_data, config)
 

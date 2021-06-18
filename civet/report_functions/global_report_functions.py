@@ -30,12 +30,12 @@ def sequence_name_parsing(report_column, anonymise, config):
     elif config["report_column"]:
         if "input_csv" in config:
             with open(config["input_csv"]) as f:
-                data = csv.DictReader(f)
-                if config["report_column"] not in data.fieldnames:
+                reader = csv.DictReader(f)
+                if config["report_column"] not in reader.fieldnames:
                     sys.stderr.write(cyan(f"Error: {config['report_column']} not found in input metadata file.\n") + "Please provide a column containing alternate sequence names, or use --anonymise if you would like civet to make them for you.\n")
                     sys.exit(-1)
         else:
-            sys.stderr.write(cyan(f"Error: report column supplied, but not input csv that matches the column to the queries.") + "Please provide an input csv using -i/--input-csv.\n")
+            config["report_column"] = config["background_column"]
 
     else:
         config["report_column"] = config["input_column"]
@@ -49,9 +49,9 @@ def create_anon_ids_from_csv(config, metadata): #the names need to be swapped ou
     name_list = []
 
     with open(metadata) as f:
-        data = csv.DictReader(f)
-        for line in data:
-            name_list.append(line[config["input_column"]])
+        reader = csv.DictReader(f)
+        for row in reader:
+            name_list.append(row[config["input_column"]])
 
     random.shuffle(name_list)
 
@@ -90,66 +90,61 @@ def qc_date_col(column_arg, config, metadata, metadata_name, cl_arg):
             if config[column_arg] not in reader.fieldnames:
                 sys.stderr.write(cyan(f"Error: {column_arg} column not found in {metadata_name} metadata file. Please specifiy which column to match with {cl_arg}`\n"))
                 sys.exit(-1)
-        else:
-            if "sample_date" in reader.fieldnames:
-                config[column_arg] = "sample_date"
 
     if config[column_arg]:
         count = 0
         with open(metadata) as f:
-            data = csv.DictReader(f)
-            for line in data:
+            reader = csv.DictReader(f)
+            for row in reader:
                 count += 1
-                if line[config[column_arg]] != "":
-                    misc.check_date_format(line[config[column_arg]], count, config[column_arg])    
+                if row[config[column_arg]] != "":
+                    misc.check_date_format(row[config[column_arg]], count, config[column_arg])    
 
 def parse_date_args(date_column, background_date_column, config):
 
     """
     parses the report group arguments:
-    --date-column (default: sample_date if present, False if not)
-    --background-date-column (default: sample_date if present, False if not)
+    --date-column (default: sample_date) 
+    --background-date-column (default: False, and then the same as date_column if none provided)
     """
 
     misc.add_arg_to_config("date_column", date_column, config)
+
     misc.add_arg_to_config("background_date_column", background_date_column, config)
+
+    if not config["background_date_column"]:
+        # if nothing provided for this, just make it the same as date_column (default "sample_date")
+        config["background_date_column"] = config["date_column"]
 
     if "input_csv" in config:
         qc_date_col("date_column", config, config["input_csv"], "input", "-date/--date-column")
-    elif config["date_column"]:
-        sys.stderr.write(cyan("You have provided a column header to find date in the input csv using '-date/--date-column' but no input csv. Please use '-bdate/--background-date-column to provide date information from the background metadata, or provide an input csv with this data\n"))
-        sys.exit(-1)
-
+    
     qc_date_col("background_date_column", config, config["background_csv"], "background", "-bdate/--background-date-column")
 
 
-def parse_location(location, config):
+def parse_location(location_column, config):
     """
     parses the report group arguments:
-    --location (default: country if present, False if not)
+    --location_column (default: country)
     """
 
-    misc.add_arg_to_config("location", location, config)
+    misc.add_arg_to_config("location_column", location_column, config)
 
     with open(config["background_csv"]) as f:
-        data = csv.DictReader(f)
-        headers = data.fieldnames
+        reader = csv.DictReader(f)
+        headers = reader.fieldnames
      
-        if config["location"]:
-            if config["location"] not in data.fieldnames:
-                sys.stderr.write(cyan(f"Error: {config['location']} column not found in background metadata file. Please specify which column to match with -loc/--location`\n"))
-                sys.exit(-1)
-        else:
-            if "country" in data.fieldnames:
-                config["location"] = "country"
+        if config["location_column"] not in reader.fieldnames:
+            sys.stderr.write(cyan(f"Error: {config['location_column']} column not found in background metadata file. Please specify which column to match with -lcol/--location_column`\n"))
+            sys.exit(-1)
 
 def get_acceptable_colours(config):
 
     acceptable_colours = []
 
     with open(config["html_colours"]) as f:
-        data = csv.DictReader(f)
-        for l in data:
+        reader = csv.DictReader(f)
+        for row in reader:
             acceptable_colours.append(l["name"].lower())
             # acceptable_colours.append(l["hex"].lower())
 

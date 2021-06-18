@@ -279,7 +279,7 @@ def parse_map_file(map_file, config):
 
 #     lat_col = config["latitude_column"]
 #     long_col = config["longitude_column"]
-#     name_col = config["data_column"] 
+#     name_col = config["background_column"] 
 
 #     overall_dict = defaultdict(dict)
 
@@ -327,7 +327,7 @@ def parse_map_file(map_file, config):
 # def make_background_map_json(config): 
 
 #     lin_col = "lineage" #does this need to be flexible?
-#     name_col = config["data_column"]
+#     name_col = config["background_column"]
 #     geog_col = config["background_map_column"]
 
 #     start_date, end_date = restrict_by_date(config)
