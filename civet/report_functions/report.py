@@ -57,6 +57,18 @@ def check_earliest_latest_dates(d,catchment_summary_dict,catchment):
     else:
         catchment_summary_dict[catchment]["latest_date"] = d
 
+def get_top_10_str(total,counter_dict):
+    summary = ""
+    top = counter_dict.most_common(10)
+    remainder_pcent = 100
+    for i in top:
+        pcent = int(100*(i[1]/total))
+        if pcent >= 1:
+            remainder_pcent-=pcent
+            summary += f"{i[0]} {pcent}% <br>"
+    summary += f"Other {remainder_pcent}% <br>"
+    return summary
+
 def make_catchment_summary_data(metadata,catchments,config):
     catchment_summary_dict = {}
 
@@ -87,8 +99,10 @@ def make_catchment_summary_data(metadata,catchments,config):
                     location_column = config["location_column"]
                     if location_column not in catchment_summary_dict[catchment]:
                         catchment_summary_dict[catchment][location_column] = collections.Counter()
-
-                    catchment_summary_dict[catchment][location_column][row['location']]+=1
+                    if row[location_column] == "":
+                        catchment_summary_dict[catchment][location_column]["Unknown"]+=1
+                    else:
+                        catchment_summary_dict[catchment][location_column][row[location_column]]+=1
                 
                 if "lineage" in reader.fieldnames:
                     if "lineage" not in catchment_summary_dict[catchment]:
@@ -100,6 +114,15 @@ def make_catchment_summary_data(metadata,catchments,config):
                     if "SNPs" not in catchment_summary_dict[catchment]:
                         catchment_summary_dict[catchment]["SNPs"] = collections.defaultdict(list)
                     catchment_summary_dict[catchment]["SNPs"].append(row["SNPs"])
+
+    for catchment in catchment_summary_dict:
+        total = catchment_summary_dict[catchment]["total"]
+        location_column = config["location_column"]
+        if location_column in catchment_summary_dict[catchment]:
+            catchment_summary_dict[catchment][location_column] = get_top_10_str(total,catchment_summary_dict[catchment][location_column])
+        if "lineage" in catchment_summary_dict[catchment]:
+            catchment_summary_dict[catchment]["lineage"] = get_top_10_str(total,catchment_summary_dict[catchment]["lineage"])
+
 
     return catchment_summary_dict
 
@@ -132,10 +155,12 @@ def get_newick(catchments,data_for_report,config):
 
 def define_report_content(metadata,catchments,config):
     report_content = config["report_content"]
-
+    catchment_id = 0
     data_for_report = {}
     for catchment in catchments:
         data_for_report[catchment] = {}
+        catchment_id += 1
+        data_for_report[catchment]["catchmentID"]=f"catchment_{catchment_id}"
 
     if '1' in report_content:
         data_for_report["query_summary_data"] = make_query_summary_data(metadata, config)
@@ -151,9 +176,8 @@ def define_report_content(metadata,catchments,config):
         # checks for location col, returns location counts per catchment
         # checks for date col, finds earliest and latest dates per catchment
         # checks for SNPs col, TO DO: finds 70% consensus of catchment
-
+        
         for catchment in catchments:
-            
             data_for_report[catchment]["catchment_summary_data"] = catchment_summary_data[catchment]
     else:
         for catchment in catchments:
@@ -200,8 +224,6 @@ def make_report(metadata,report_to_generate,config):
 
     # for i in data_for_report:
     #     print(i, data_for_report[i])
-
-    date = dt.datetime.today()
     
     template_dir = os.path.abspath(os.path.dirname(config["report_template"]))
     mylookup = TemplateLookup(directories=[template_dir]) #absolute or relative works
@@ -210,7 +232,7 @@ def make_report(metadata,report_to_generate,config):
     buf = StringIO()
 
     ctx = Context(buf, 
-                    date = date, 
+                    date = config["date"], 
                     version = __version__, 
                     catchments = catchments, 
                     query_summary_data = data_for_report["query_summary_data"],

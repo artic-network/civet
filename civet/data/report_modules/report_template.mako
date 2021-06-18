@@ -35,6 +35,7 @@
           text-align: right;
       
       }
+      svg {width: 90%; height: auto;}
       .center {
           display: block;
           margin-left: auto;
@@ -393,7 +394,27 @@
         });
     </script>
             
-    
+    <script>
+          function myFunction(myInput, myTable) {
+            var input, filter, table, tr, td, i, txtValue;
+            input = document.getElementById(myInput);
+            filter = input.value.toUpperCase();
+            table = document.getElementById(myTable);
+            tr = table.getElementsByTagName("tr");
+            for (i = 0; i < tr.length; i++) {
+              td = tr[i].getElementsByTagName("td")[0];
+              if (td) {
+                txtValue = td.textContent || td.innerText;
+                if (txtValue.toUpperCase().indexOf(filter) > -1) {
+                  tr[i].style.display = "";
+                } else {
+                  tr[i].style.display = "none";
+                }
+              }       
+            }
+          }
+    </script>
+
     <!--Figtree.js-->
     <script type="text/javascript"> 
       const updateTableFactory = (tooltipId,metadata)=>(tipId)=>{
@@ -562,24 +583,58 @@
           </table>
   %endif
 
-        
     %for catchment in catchments:
         
         <h2>${catchment.replace("_"," ").title()}</h2> 
         
         %if '2' in config["report_content"]:
-        
-        here is where the catchment summary table will go
-        
-        %endif
+            <h3><strong>Table ${data_for_report[catchment]["catchmentID"].split("_")[1]}</strong> | Summary of queries  <input class="searchbar" type="text" id="myInput" onkeyup="myFunction('myInput',${data_for_report[catchment]['catchmentID']})" placeholder="Search for sequence..." title="searchbar"></h3>
+              <table class="table table-striped" id='${data_for_report[catchment]["catchmentID"]}'>
+                  <tr class="header">
+                  </tr>
+                  <table class="table table-striped">
+                  <tr class="header">
+                  <th style="width:30%;">Information</th>
+                  <th style="width:60%;"> </th>
+                  </tr>
+                  % for stat in data_for_report[catchment]['catchment_summary_data']:
+                    <tr>
+                      <td>${stat.title().replace("_"," ")}</td>
+                      <td>${data_for_report[catchment]['catchment_summary_data'][stat]}</td>
+                    </tr>
+                  % endfor
+                </table>
+            %endif
+
         %if '3' in config["report_content"]:
             
-            here is where the tree will go
+          <div class="slider-block" id="slider_${data_for_report[catchment]["catchmentID"]}">
+            <p>Expansion</p>
+            <input class="slider" type="range" id="rangeinput_${data_for_report[catchment]["catchmentID"]}"  min="0" max="1" style="width: 100px" step="0.01" value="0" />
+            <span class="highlight"></span>
+          </div> 
+
+          <div class="row tree-container">
+      
+            <div class="col-xs-7">
+              <svg class="tree_svg" width="600" height="400" id="tree_${data_for_report[catchment]["catchmentID"]}"></svg>
+            </div>
+            <div class="col-xs-4 sticky" id="tooltip_${data_for_report[catchment]["catchmentID"]}">
+            </div> 
+            <script type="text/javascript">
+              buildTree("tree_${data_for_report[catchment]["catchmentID"]}", 
+                        "${cluster['treeString']}",
+                        "tooltip_${data_for_report[catchment]["catchmentID"]}",
+                        '${background_data}',
+                        "rangeinput_${data_for_report[catchment]["catchmentID"]}");
+            </script> 
+          </div> 
             
         %endif
         %if '4' in config["report_content"]:
-            
-            here is where the snipit will go
+            <div id="${catchment}_snipit">
+            ${data_for_report[catchment]["snipit_svg"]}
+            </div
             
         %endif
         %if '5' in config["report_content"]:
@@ -670,28 +725,7 @@
         %endif
 
 
-       
 
-        <script>
-          function myFunction(myInput, myTable) {
-            var input, filter, table, tr, td, i, txtValue;
-            input = document.getElementById(myInput);
-            filter = input.value.toUpperCase();
-            table = document.getElementById(myTable);
-            tr = table.getElementsByTagName("tr");
-            for (i = 0; i < tr.length; i++) {
-              td = tr[i].getElementsByTagName("td")[0];
-              if (td) {
-                txtValue = td.textContent || td.innerText;
-                if (txtValue.toUpperCase().indexOf(filter) > -1) {
-                  tr[i].style.display = "";
-                } else {
-                  tr[i].style.display = "none";
-                }
-              }       
-            }
-          }
-          </script>
     <footer class="page-footer">
       <div class="container-fluid text-right text-md-right">
         <hr>
