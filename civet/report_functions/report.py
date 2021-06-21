@@ -151,7 +151,25 @@ def get_newick(catchments,data_for_report,config):
             for l in f:
                 l = l.rstrip("\n")
                 newick+=f"{l}\n"
-        data_for_report[catchment]["newick"] = newick
+        data_for_report[catchment]["newick"] = newick.rstrip("\n")
+
+def get_background_data(metadata,config):
+    background_data = {}
+
+    with open(metadata,"r") as f:
+        reader = csv.DictReader(f)
+        background_columns = []
+        for i in ["lineage",config["location_column"],config["date_column"]]:
+            if i in reader.fieldnames:
+                background_columns.append(i)
+        for row in reader:
+            data = {}
+            for i in background_columns:
+                data[i] = row[i]
+            background_data[row[config["report_column"]]] = data
+    data = json.dumps(background_data) 
+    return data
+
 
 def define_report_content(metadata,catchments,config):
     report_content = config["report_content"]
@@ -221,7 +239,7 @@ def make_report(metadata,report_to_generate,config):
     catchments = [f"catchment_{i}" for i in range(1,config["catchment_count"]+1)]
 
     data_for_report = define_report_content(metadata,catchments,config)
-
+    background_data = get_background_data(metadata,config)
     # for i in data_for_report:
     #     print(i, data_for_report[i])
     
@@ -238,7 +256,7 @@ def make_report(metadata,report_to_generate,config):
                     query_summary_data = data_for_report["query_summary_data"],
                     fasta_summary_data = data_for_report["fasta_summary_data"],
                     data_for_report = data_for_report,
-                    # timeline_data = data_for_report["timeline_data"],
+                    background_data = background_data,
                     config=config)
 
     try:
