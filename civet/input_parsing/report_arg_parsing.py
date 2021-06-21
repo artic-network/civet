@@ -50,7 +50,7 @@ def qc_report_content(config): #doesn't work with default
 
 #then at some point we need to update the treefile with these display names using jclusterfunk
 
-def report_group_parsing(report_content,report_column, anonymise,date_column, background_date_column,location, table_content, timeline_dates, timeline_colours, background_map_date_restriction, background_map_location, map_file, longitude_column, latitude_column, found_in_background_data, config):
+def parse_global_report_options(report_content,report_column, anonymise,date_column, background_date_column,location_column, config):
     """
     parses the report group arguments 
     --report-content (Default 1,2,3)
@@ -68,8 +68,12 @@ def report_group_parsing(report_content,report_column, anonymise,date_column, ba
     #global report options
     name_output = global_report_functions.sequence_name_parsing(report_column, anonymise, config)
     global_report_functions.parse_date_args(date_column, background_date_column, config)
-    global_report_functions.parse_location(location, config)
+    global_report_functions.parse_location(location_column, config)
 
+    return name_output
+
+
+def parse_optional_report_content(table_content, timeline_dates, timeline_colours, config):
     #parse optional parts of report
 
     if 1 in config['report_content']:
@@ -81,10 +85,11 @@ def report_group_parsing(report_content,report_column, anonymise,date_column, ba
         timeline_functions.timeline_checking(timeline_dates, config)
         timeline_functions.make_timeline_colours(timeline_colours,config)
 
+
+def parse_map_options(background_map_date_restriction, background_map_location, map_file, longitude_column, latitude_column, found_in_background_data, config):
+
     if 6 in config['report_content']:
         map_functions.parse_background_map_options(map_file, background_map_date_restriction, background_map_location, found_in_background_data, config)
 
     if 7 in config['report_content']:
         map_functions.parse_query_map(longitude_column, latitude_column, found_in_background_data, config)
-
-    return name_output
