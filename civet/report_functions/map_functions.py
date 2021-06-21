@@ -113,8 +113,8 @@ def parse_background_map_options(map_file, background_map_date_restriction, back
             config["background_map_location"] = "suggested_adm2_grouping"
         elif "adm1" in background_fieldnames:
             config["background_map_location"] = "adm1"
-        elif config["location"]:
-            config["background_map_location"] = config["location"]
+        elif config["location_column"]:
+            config["background_map_location"] = config["location_column"]
         else:
             sys.stderr.write(cyan(f"Error: no field found in background metadata file for mapping background diversity. Please provide one with -maploc/--background-map-location.\n") + "\n")
             sys.exit(-1)

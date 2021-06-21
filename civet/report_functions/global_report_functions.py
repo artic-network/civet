@@ -88,7 +88,7 @@ def qc_date_col(column_arg, config, metadata, metadata_name, cl_arg):
     
         if config[column_arg]:
             if config[column_arg] not in reader.fieldnames:
-                sys.stderr.write(cyan(f"Error: {column_arg} column not found in {metadata_name} metadata file. Please specifiy which column to match with {cl_arg}`\n"))
+                sys.stderr.write(cyan(f"Error: {config[column_arg]} column not found in {metadata_name} metadata file. Please specifiy which column to match with {cl_arg}`\n"))
                 sys.exit(-1)
 
     if config[column_arg]:
@@ -109,17 +109,28 @@ def parse_date_args(date_column, background_date_column, config):
     """
 
     misc.add_arg_to_config("date_column", date_column, config)
-
     misc.add_arg_to_config("background_date_column", background_date_column, config)
 
-    if not config["background_date_column"]:
-        # if nothing provided for this, just make it the same as date_column (default "sample_date")
-        config["background_date_column"] = config["date_column"]
-
     if "input_csv" in config:
+        if not config["date_column"]:
+            with open(config["input_csv"]) as f:
+                reader = csv.DictReader(f)
+                if "sample_date" in reader.fieldnames:
+                    config["date_column"] = "sample_date"
+        
+    if "input_csv" in config and config["date_column"]: #so this will also scoop in "sample_date" assigned above
         qc_date_col("date_column", config, config["input_csv"], "input", "-date/--date-column")
-    
-    qc_date_col("background_date_column", config, config["background_csv"], "background", "-bdate/--background-date-column")
+
+    if not config["background_date_column"]:
+        with open(config["background_csv"]) as f:
+                reader = csv.DictReader(f)
+                if "sample_date" in reader.fieldnames:
+                    config["background_date_column"] = "sample_date"
+                elif config["date_column"] and config["date_column"] in reader.fieldnames:
+                    config["background_date_column"] = config["date_column"]
+
+    if config["background_date_column"]:
+        qc_date_col("background_date_column", config, config["background_csv"], "background", "-bdate/--background-date-column")
 
 
 def parse_location(location_column, config):
@@ -134,9 +145,13 @@ def parse_location(location_column, config):
         reader = csv.DictReader(f)
         headers = reader.fieldnames
      
-        if config["location_column"] not in reader.fieldnames:
-            sys.stderr.write(cyan(f"Error: {config['location_column']} column not found in background metadata file. Please specify which column to match with -lcol/--location_column`\n"))
-            sys.exit(-1)
+        if config["location_column"]:
+            if config["location_column"] not in headers:
+                sys.stderr.write(cyan(f"Error: {config['location_column']} column not found in background metadata file. Please specify which column to match with -loc/--location`\n"))
+                sys.exit(-1)
+        else:
+            if "country" in headers:
+                config["location_column"] = "country"
 
 def get_acceptable_colours(config):
 
@@ -145,7 +160,7 @@ def get_acceptable_colours(config):
     with open(config["html_colours"]) as f:
         reader = csv.DictReader(f)
         for row in reader:
-            acceptable_colours.append(l["name"].lower())
-            # acceptable_colours.append(l["hex"].lower())
+            acceptable_colours.append(row["name"].lower())
+            # acceptable_colours.append(row["hex"].lower())
 
     return acceptable_colours

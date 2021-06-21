@@ -65,6 +65,16 @@ def timeline_checking(timeline_dates, config):
                         misc.check_date_format(l[header], count, header)
 
 
+    elif config["date_column"] and config["background_date_column"]:
+        if config["date_column"] != config["background_date_column"]:
+            config["timeline_dates"] = f'{config["date_column"]},{config["background_date_column"]}'
+        else:
+            config["timeline_dates"] = config["date_column"]
+    elif not config["background_date_column"] and config["date_column"]:
+        config["timeline_dates"] = config["date_column"]
+    elif config["background_date_column"] and not config["date_column"]:
+        config["timeline_dates"] = config["background_date_column"]
+    
     else:
         sys.stderr.write(cyan(f"Error: Timeline option given in report content argument, but no data provided. Please use -td/--timeline-dates to specify column headers containing data.\n"))
         sys.exit(-1)
@@ -74,8 +84,6 @@ def timeline_checking(timeline_dates, config):
 
 
 def make_timeline_json(catchment,config):
-
-    print(config["timeline_dates"])
 
     if type(config["timeline_dates"]) == str:
         date_cols = config["timeline_dates"].split(",")

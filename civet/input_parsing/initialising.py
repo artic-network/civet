@@ -59,20 +59,20 @@ def get_defaults():
                     "report_content":["1,2,3"],
                     "anonymise":False,
                     "report_column": False,
-                    "timeline_dates":False,
+                    "timeline_dates":False, #default is date_column or background_date_column if they are present
                     "timeline_colours":False,
                     "table_content":False,
-                    "background_date_column":False,
-                    "date_column":"sample_date",
-                    "location_column":"country",
+                    "background_date_column":False, #default is sample_date if present in the background csv, then date_column if present
+                    "date_column":False, #default is sample_date if present in the input csv
+                    "location_column":False, #default is country if present in the background csv
 
                     #Map options
                     "latitude_column":"latitude",
                     "longitude_column":"longitude",
-                    "map_file":False,
-                    "background_map_location":"country",
+                    "map_file":False, #if UK, will find the geojson containing aggregated_adm2s, if global will find adm0 or adm1 geojson
+                    "background_map_location":False, #default is location_column
                     # "map_column":False,
-                    "background_map_date_restriction":False,
+                    "background_map_date_restriction":False, #default is no restriction, will do background from 2019-11-01 to today
 
                     # misc defaults
                     "civet_mode": os.getenv('CIVETMODE'),
