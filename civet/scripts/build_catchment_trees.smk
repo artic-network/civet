@@ -29,7 +29,8 @@ rule prune_outgroup:
         tree = rules.iqtree.output.tree,
         prune = config["outgroup_fasta"]
     output:
-        tree = os.path.join(config["tempdir"],"catchments","{catchment}.pruned.tree")
+        tree = os.path.join(config["data_outdir"],"catchments","{catchment}.tree")
+        # tree = os.path.join(config["tempdir"],"catchments","{catchment}.pruned.tree")
     shell:
         """
         jclusterfunk prune  -i {input.tree:q} \
@@ -38,34 +39,34 @@ rule prune_outgroup:
                             -f newick 
         """
 
-rule expand_hash:
-    input:
-        tree = rules.prune_outgroup.output.tree,
-        csv = config["csv"]
-    output:
-        tree = os.path.join(config["tempdir"],"catchments","{catchment}.expanded.tree")
-    shell:
-        """
-        jclusterfunk insert --destination-column hash \
-                            -c {config[report_column]} \
-                            -i {input.tree:q} \
-                            -m {input.csv:q} \
-                            --ignore-missing \
-                            -f newick \
-                            -o {output.tree}
-        """
+# rule expand_hash:
+#     input:
+#         tree = rules.prune_outgroup.output.tree,
+#         csv = config["csv"]
+#     output:
+#         tree = os.path.join(config["tempdir"],"catchments","{catchment}.expanded.tree")
+#     shell:
+#         """
+#         jclusterfunk insert --destination-column hash \
+#                             -c {config[report_column]} \
+#                             -i {input.tree:q} \
+#                             -m {input.csv:q} \
+#                             --ignore-missing \
+#                             -f newick \
+#                             -o {output.tree}
+#         """
 
-rule prune_hashed_seqs:
-    input:
-        tree = rules.expand_hash.output.tree,
-        prune = config["csv"]
-    output:
-        tree = os.path.join(config["data_outdir"],"catchments","{catchment}.tree")
-    run:
-        """
-        jclusterfunk prune  -i {input.tree:q} \
-                            -o {output.tree:q} \
-                            -m {input.prune:q} \
-                            -c hash \
-                            -f newick 
-        """
+# rule prune_hashed_seqs:
+#     input:
+#         tree = rules.expand_hash.output.tree,
+#         prune = config["csv"]
+#     output:
+#         tree = os.path.join(config["data_outdir"],"catchments","{catchment}.tree")
+#     run:
+#         """
+#         jclusterfunk prune  -i {input.tree:q} \
+#                             -o {output.tree:q} \
+#                             -m {input.prune:q} \
+#                             -c hash \
+#                             -f newick 
+#         """
