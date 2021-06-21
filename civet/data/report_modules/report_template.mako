@@ -588,7 +588,7 @@
         <h2>${catchment.replace("_"," ").title()}</h2> 
         
         %if '2' in config["report_content"]:
-            <h3><strong>Table ${data_for_report[catchment]["catchmentID"].split("_")[1]}</strong> | Summary of queries  <input class="searchbar" type="text" id="myInput" onkeyup="myFunction('myInput',${data_for_report[catchment]['catchmentID']})" placeholder="Search for sequence..." title="searchbar"></h3>
+            <h3><strong>Table ${2+int(data_for_report[catchment]["catchmentID"].split("_")[1])}</strong> | Summary of catchment ${data_for_report[catchment]["catchmentID"]}</h3>
               <table class="table table-striped" id='${data_for_report[catchment]["catchmentID"]}'>
                   <tr class="header">
                   </tr>
@@ -622,11 +622,11 @@
             <div class="col-xs-4 sticky" id="tooltip_${data_for_report[catchment]["catchmentID"]}">
             </div> 
             <script type="text/javascript">
-              buildTree("tree_${data_for_report[catchment]["catchmentID"]}", 
-                        "${cluster['treeString']}",
-                        "tooltip_${data_for_report[catchment]["catchmentID"]}",
+              buildTree("tree_${data_for_report[catchment]['catchmentID']}", 
+                        "${data_for_report[catchment]['newick']}",
+                        "tooltip_${data_for_report[catchment]['catchmentID']}",
                         '${background_data}',
-                        "rangeinput_${data_for_report[catchment]["catchmentID"]}");
+                        "rangeinput_${data_for_report[catchment]['catchmentID']}");
             </script> 
           </div> 
             
@@ -634,7 +634,7 @@
         %if '4' in config["report_content"]:
             <div id="${catchment}_snipit">
             ${data_for_report[catchment]["snipit_svg"]}
-            </div
+            </div>
             
         %endif
         %if '5' in config["report_content"]:
