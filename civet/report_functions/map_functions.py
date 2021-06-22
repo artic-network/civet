@@ -6,7 +6,6 @@ import datetime as dt
 from collections import defaultdict
 import json
 import datetime as dt
-# import geopandas as gpd
 
 
 
@@ -207,7 +206,7 @@ def do_date_window(date_window, found_in_background_metadata, config):
 def parse_map_file(map_file, config):
     #winding in the geojsons
 
-    #still need to make UK shapefile
+    #still need to make UK shapefile - no, this exists in b117 paper
     #work out what's going on with the LFS stuff with the larger shapefiles - maybe just add them to a website?
 
     """
@@ -218,20 +217,29 @@ def parse_map_file(map_file, config):
     misc.add_arg_to_config("map_file", map_file, config)
 
     if config["map_file"]:
-        if not os.path.exists(confg["map_file"]):
+        if not os.path.exists(config["map_file"]):
             sys.stderr.write(cyan(f"{config['map_file']} cannot be found. Please check the path and try again.\n"))
             sys.exit(-1)
+        if not config["map_file"].endswith(".json"):
+            sys.stderr.write(cyan(f"{config['map_file']} must be in the format of a geojson. You can use mapshaper.org to convert between file formats.\n"))
+            sys.exit(-1)
 
-        geodata = gpd.read_file(config["map_file"])
-        if config["background_map_location"] not in geodata.columns:
+        with open(config["map_file"]) as f:
+            geodata = json.load(f)
+        
+        headers = geodata["features"][0]["properties"].keys()
+        
+        if config["background_map_location"] not in headers:
             sys.stderr.write(cyan(f"{config['background_map_location']} not found in custom shapefile.\n"))
             sys.exit(-1)
         else:
-            acceptable_locations = list(data[config['background_map_location']])
+            acceptable_locations = []
+            for item in geodata['features']:
+                acceptable_locations.append(item["properties"][config["background_map_location"]])
     
     if config["civet_mode"] == "CLIMB":
         map_file = config["uk_map_file"]
-        acceptable_locations = get_acceptable_locatoins(map_file, "UK")
+        acceptable_locations = get_acceptable_locations(map_file, "UK")
     else:
         if config["background_map_location"] == "adm1":
             map_file = config["adm1_global_file"]
