@@ -13,9 +13,9 @@ def parse_args():
     parser = argparse.ArgumentParser(description='Render report from yaml file.')
 
     parser.add_argument("--csv", action="store", type=str, dest="csv")
-    parser.add_argument("--output-reports", action="store",dest="reports")
+    parser.add_argument("--report", action="store",dest="report")
     parser.add_argument("--yaml", action="store", type=str, dest="yaml")
-
+    return parser.parse_args()
 
 def render_report():
     args = parse_args()
@@ -23,7 +23,8 @@ def render_report():
     with open(args.yaml, 'r') as f:
         config_loaded = yaml.safe_load(f)
     
-    for report_to_generate in args.reports:
+    
+    for report_to_generate in args.report.split(","):
             report.make_report(args.csv,report_to_generate,config_loaded)
 
 if __name__ == '__main__':
