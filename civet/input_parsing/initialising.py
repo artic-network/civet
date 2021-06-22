@@ -13,7 +13,7 @@ def get_defaults():
     default_dict = {
                     "date": today,# date investigation was opened
                     "authors": "", # List of authors, affiliations and contact details
-
+                    "query_limit":5000,
                     # Initialising data variables
                     "num_seqs":0,
                     "datadir": os.getenv('DATADIR'),
@@ -106,6 +106,8 @@ def arg_dict(config):
                 "input_column":"input_column",
                 "ids":"id_string",
                 "id_string":"id_string",
+                "fm":"from_metadata",
+                "from_metadata":"from_metadata",
 
                 "f":"fasta",
                 "fasta":"fasta",
@@ -152,6 +154,7 @@ def arg_dict(config):
                 "cs":"catchment_size",
                 "catchment_size":"catchment_size",
                 "downsample":"downsample",
+                "query_limit":"query_limit",
 
                 #rgroup args
                 "report_content":"report_content",
