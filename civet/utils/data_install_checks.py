@@ -40,7 +40,13 @@ def check_install(config):
         "filename":"timeline.txt"},
         {"key":"html_colours",
         "directory":"data",
-        "filename":"html_colours.csv"}
+        "filename":"html_colours.csv"},
+        {"key":"global_accepted_values",
+        "directory":"data/map_data",
+        "filename":"global_accepted_values.tsv"},
+        {"key":"uk_acceptable_values",
+        "directory":"data/map_data",
+        "filename":"UK_acceptable_values.tsv"}
     ]
     for resource in resources:
         package_data_check(resource["filename"],resource["directory"],resource["key"],config)
