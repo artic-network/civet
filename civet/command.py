@@ -71,6 +71,7 @@ def main(sysargs = sys.argv[1:]):
     a_group.add_argument('-ts','--trim-start', type=int, action="store",dest="trim_start",help="Genome position to trim and pad to when aligning input sequences. Default: 265")
     a_group.add_argument('-te','--trim-end', type=int, action="store",dest="trim_end",help="Genome position to trim and pad from when aligning input sequences. Default: 29674")
     a_group.add_argument("-r","--reference-fasta",action="store",dest="reference_fasta",help="Custom reference genome to map and pad against. Must match the reference the background data was generated from.")
+    a_group.add_argument('-ql','--query-limit', type=int, action="store",dest="query_limit",help="Max number of queries. Default: 5000")
     a_group.add_argument('-cs','--catchment-size', type=int, action="store",dest="catchment_size",help="Max number of sequences in a catchment. Default: 1000")
     a_group.add_argument('--downsample', type=int, action="store",dest="downsample",help="Indicates how many shared number of SNPs to downsample catchment by. Default: 2. Set to 0 to turn downsampling off.")
 
@@ -132,20 +133,22 @@ def main(sysargs = sys.argv[1:]):
     init.set_up_verbosity(config)
 
     # Analysis options, including ref and trim and pad
-    analysis_arg_parsing.analysis_group_parsing(args.reference_fasta,args.trim_start,args.trim_end,args.catchment_size,args.downsample,config)
-
-    # Sort out where the query info is coming from, csv or id string, optional fasta seqs.
-    # Checks if they're real files, of the right format and that QC args sensible values.
-    input_arg_parsing.input_query_parsing(args.input_csv,args.input_column,args.ids,config)
-    input_arg_parsing.input_fasta_parsing(args.fasta,args.max_ambiguity,args.min_length,config)
-
-    # Checks access to package data and grabs the snakefile
-    data_install_checks.check_install(config)
-    snakefile = data_install_checks.get_snakefile(thisdir)
+    analysis_arg_parsing.analysis_group_parsing(args.reference_fasta,args.trim_start,args.trim_end,args.catchment_size,args.downsample,args.query_limit,config)
 
     # Checks background data exists and is the right format.
     # Checks same number of records supplied for csv, fasta and (optional) SNP file. 
     data_arg_parsing.data_group_parsing(args.debug,args.datadir,args.background_csv,args.background_SNPs,args.background_fasta,args.background_tree,args.background_column,args.fasta_column,config)
+
+    # Sort out where the query info is coming from, csv or id string, optional fasta seqs.
+    # Checks if they're real files, of the right format and that QC args sensible values.
+    input_arg_parsing.input_query_parsing(args.input_csv,args.input_column,args.ids,args.from_metadata,config)
+    input_arg_parsing.input_fasta_parsing(args.fasta,args.max_ambiguity,args.min_length,config)
+
+    input_arg_parsing.from_metadata_parsing(config)
+    # Checks access to package data and grabs the snakefile
+    data_install_checks.check_install(config)
+    snakefile = data_install_checks.get_snakefile(thisdir)
+
 
     # Checks there are records to run and matches them up from background or supplied fasta
     # merges the metadata to a master metadata
