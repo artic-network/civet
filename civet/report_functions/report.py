@@ -159,7 +159,7 @@ def get_background_data(metadata,config):
     with open(metadata,"r") as f:
         reader = csv.DictReader(f)
         background_columns = []
-        for i in ["lineage",config["location_column"],config["date_column"]]:
+        for i in [config["report_column"],"lineage",config["location_column"],config["date_column"]]:
             if i in reader.fieldnames:
                 background_columns.append(i)
         for row in reader:
