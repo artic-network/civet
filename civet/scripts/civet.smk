@@ -50,7 +50,7 @@ rule align_to_reference:
         if config["query_fasta"]:
             print(green("Aligning supplied fasta to reference."))
             shell("""
-                    minimap2 -a -x asm5 --sam-hit-only --secondary=no -t  {workflow.cores} {input.reference:q} '{config[fasta]}' -o {params.sam:q} &> {log:q} 
+                    minimap2 -a -x asm5 --sam-hit-only --secondary=no -t  {workflow.cores} {input.reference:q} '{config[query_fasta]}' -o {params.sam:q} &> {log:q} 
                     gofasta sam toMultiAlign \
                         -s {params.sam:q} \
                         -t {workflow.cores} \

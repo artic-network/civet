@@ -28,7 +28,7 @@ def ids_qc(ids):
 
 def check_for_protected_col_names(header):
     for field in header:
-        if field in ["hash","catchment","query_boolean","qc_status","source"]:
+        if field in ["hash","catchment","query_boolean","qc_status","source","seq_N_content","seq_length"]:
             sys.stderr.write(cyan(f"Error: `{field}` is a protected column name used internally in civet, please rename this column.\n"))
             sys.exit(-1)
 
@@ -149,7 +149,6 @@ def fasta_ids_list(fasta):
     for record in SeqIO.parse(fasta,"fasta"):
         ids.append(record.id)
     ids = ids_qc(ids)
-
     return ids
 
 def input_fasta_parsing(input_fasta,maxambig,minlen,config):
