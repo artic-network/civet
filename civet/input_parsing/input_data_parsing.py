@@ -68,10 +68,11 @@ def merge_metadata_records(found_in_background_data,header,config):
             for col in [config["input_column"],config["background_column"],config["fasta_column"]]: 
                 if col not in header:
                     header.append(col)
-                    record_info[record][col] = record
+                record_info[record][col] = record
     
     for key in header:
         for record in record_info:
+
             if key not in record_info[record]:
                 record_info[record][key]=""
     
@@ -80,17 +81,35 @@ def merge_metadata_records(found_in_background_data,header,config):
 def add_sequence_status_to_metadata(record_info,header,found_in_background_data,passed_qc,failed_qc):
     header.append("source")
     header.append("qc_status")
+    header.append("seq_N_content")
+    header.append("seq_length")
+
+    # creating transiently the same data structure as the failed_qc seqs
+    passed_info = {}
+    print("passed_qc")
+    print(passed_qc)
+    print("failed_qc")
+    print(failed_qc)
+    for record in passed_qc:
+        passed_info[record[0].id] = (record[0].id, record[1],record[2])
+
     for record in record_info:
         if record in found_in_background_data:
             record_info[record]["source"] = "background_data"
             record_info[record]["qc_status"] = ""
+            record_info[record]["seq_N_content"] = ""
+            record_info[record]["seq_length"] = ""
         else:
             record_info[record]["source"] = "input_fasta"
 
             if record in failed_qc:
-                record_info[record]["qc_status"] = f"Fail {failed_qc[record]}"
+                record_info[record]["qc_status"] = f"Fail {failed_qc[record][0]}"
+                record_info[record]["seq_N_content"] = failed_qc[record][1]
+                record_info[record]["seq_length"] = failed_qc[record][2]
             else:
                 record_info[record]["qc_status"] = "Pass"
+                record_info[record]["seq_N_content"] = passed_info[record][1]
+                record_info[record]["seq_length"] = passed_info[record][2]
 
     return record_info, header
 
@@ -110,19 +129,22 @@ def input_fasta_qc(found_in_input_fasta,config):
         maxambig = config["max_ambiguity"]
         for record_name in found_in_input_fasta:
             record = found_in_input_fasta[record_name]
-            passed_ids = [i.id for i in passed_qc]
+            
+            passed_ids = [i[0].id for i in passed_qc]
+
+            num_N = str(record.seq).upper().count("N")
+            prop_N = round((num_N)/len(record.seq), 2)
             if len(record) < minlen:
-                failed_qc[record.id] = f"Sequence too short: Sequence length {len(record)}"
+                # fail[id] = (why,n content,len)
+                failed_qc[record.id] = (f"Sequence too short: Sequence length {len(record)}",prop_N,len(record))
             else:
-                num_N = str(record.seq).upper().count("N")
-                prop_N = round((num_N)/len(record.seq), 2)
                 if prop_N > maxambig: 
-                    failed_qc[record.id] = f"N content: {prop_N}"
+                    failed_qc[record.id] = (f"N content: {prop_N}",prop_N,len(record))
                 else:
                     if record.id in passed_ids:
-                        failed_qc[record.id] = "Sequence duplicated in input fasta file."
+                        failed_qc[record.id] = ("Sequence duplicated in input fasta file.",prop_N,len(record))
                     else:
-                        passed_qc.append(record)
+                        passed_qc.append((record,prop_N,len(record)))
         if len(passed_qc) == 1:
             print(green(f"{len(passed_qc)} supplied query sequence has passed QC."))
         else:
@@ -140,7 +162,7 @@ def input_fasta_qc(found_in_input_fasta,config):
     \t- Whether the records match a query supplied in an ID string or input csv
     \t- Whether the records are duplicated in the file\n""" + cyan("You can change the default QC settings with `-n/--max-ambiguity` and `-l/--min-length`."))
             sys.exit(-1)
-
+    
     return passed_qc, failed_qc
 
 def check_if_any_valid_queries(found_in_background_data,passed_qc):
@@ -188,10 +210,10 @@ def write_master_metadata(query_metadata, config):
 
 def write_passed_qc_fasta(passed_qc, config):
     if passed_qc:
+        passed_records = [i[0] for i in passed_qc]
         config["query_fasta"] = os.path.join(config["tempdir"],"query.passed_qc.fasta")
         with open(config["query_fasta"],"w") as fw:
-            SeqIO.write(passed_qc, fw, "fasta")
-
+            SeqIO.write(passed_records, fw, "fasta")
     else:
         config["query_fasta"] = False
 
