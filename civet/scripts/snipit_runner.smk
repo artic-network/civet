@@ -31,8 +31,12 @@ rule make_snipit_alignments:
                     query = row["query_boolean"]
                 
                 if query=="True":
-                    catchment_dict[row["catchment"]].append((row[column], row["hash"]))
-        print(catchment_dict)
+                    if row["source"] == "input_fasta":
+                        if row["qc_status"] == "Pass":
+                            catchment_dict[row["catchment"]].append((row[column], row["hash"]))
+                    else:
+                        catchment_dict[row["catchment"]].append((row[column], row["hash"]))
+
         sequences = {}
         for record in SeqIO.parse(input.fasta,"fasta"):
             sequences[record.id] = record

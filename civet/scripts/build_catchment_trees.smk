@@ -30,7 +30,7 @@ rule prune_outgroup:
         tree = rules.iqtree.output.tree,
         prune = config["outgroup_fasta"]
     output:
-        tree = os.path.join(config["tempdir"],"catchments","{catchment}.pruned.tree")
+        tree = os.path.join(config["tempdir"],"catchments","{catchment}.tree")
     shell:
         """
         jclusterfunk prune  -i {input.tree:q} \
@@ -56,36 +56,36 @@ rule prune_outgroup:
 #                             -o {output.tree}
 #         """
 
-rule prune_hashed_seqs:
-    input:
-        tree = rules.prune_outgroup.output.tree,
-        prune = config["csv"]
-    output:
-        tree = os.path.join(config["tempdir"],"catchments","{catchment}.hash_pruned.tree")
-    run:
-        """
-        jclusterfunk prune  -i {input.tree:q} \
-                            -o {output.tree:q} \
-                            -m {input.prune:q} \
-                            -c hash \
-                            -f newick 
-        """
+# rule prune_hashed_seqs:
+#     input:
+#         tree = rules.prune_outgroup.output.tree,
+#         prune = config["csv"]
+#     output:
+#         tree = os.path.join(config["tempdir"],"catchments","{catchment}.hash_pruned.tree")
+#     run:
+#         """
+#         jclusterfunk prune  -i {input.tree:q} \
+#                             -o {output.tree:q} \
+#                             -m {input.prune:q} \
+#                             -c hash \
+#                             -f newick 
+#         """
 
-rule clump:
-    input:
-        tree = rules.prune_hashed_seqs.output.tree,
-        csv = config["csv"]
-    params:
-        prefix = "{catchment}",
-        outdir = os.path.join(config["data_outdir"],"catchments")
-    output:
-        tree = os.path.join(config["data_outdir"],"catchments","{catchment}.tree")
-    shell:
-        """
-        jclusterfunk sample -c {config[location_column]} \
-                             -i {input.tree:q} \
-                             -m {input.csv:q} \
-                             -p {params.prefix:q} \
-                             -f newick \
-                             -o {params.outdir:q}
-        """
+# rule clump:
+#     input:
+#         tree = rules.prune_hashed_seqs.output.tree,
+#         csv = config["csv"]
+#     params:
+#         prefix = "{catchment}",
+#         outdir = os.path.join(config["data_outdir"],"catchments")
+#     output:
+#         tree = os.path.join(config["data_outdir"],"catchments","{catchment}.tree")
+#     shell:
+#         """
+#         jclusterfunk sample -c {config[location_column]} \
+#                              -i {input.tree:q} \
+#                              -m {input.csv:q} \
+#                              -p {params.prefix:q} \
+#                              -f newick \
+#                              -o {params.outdir:q}
+#         """
