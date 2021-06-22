@@ -7,9 +7,6 @@ from collections import defaultdict
 import json
 import datetime as dt
 
-
-
-
 def parse_query_map(longitude_column, latitude_column, found_in_background_data, config):
     """
     parses map group arguments:
@@ -220,7 +217,7 @@ def parse_map_file(map_file, config):
         if not os.path.exists(config["map_file"]):
             sys.stderr.write(cyan(f"{config['map_file']} cannot be found. Please check the path and try again.\n"))
             sys.exit(-1)
-        if not config["map_file"].endswith(".json"):
+        if not config["map_file"].endswith(".json") and not config['map_file'].endswith(".geojson"):
             sys.stderr.write(cyan(f"{config['map_file']} must be in the format of a geojson. You can use mapshaper.org to convert between file formats.\n"))
             sys.exit(-1)
 
@@ -237,19 +234,23 @@ def parse_map_file(map_file, config):
             for item in geodata['features']:
                 acceptable_locations.append(item["properties"][config["background_map_location"]])
     
-    if config["civet_mode"] == "CLIMB":
-        map_file = config["uk_map_file"]
-        acceptable_locations = get_acceptable_locations(map_file, "UK")
     else:
-        if config["background_map_location"] == "adm1":
-            map_file = config["adm1_global_file"]
-            acceptable_locations = get_global_location(map_file, "adm1")
-        elif config["background_map_location"] == "country" or config["background_map_location"] == "adm0":
-            map_file = config["adm0_global_file"]
-            acceptable_locations = get_global_location(map_file, "adm0")
+        if config["civet_mode"] == "CLIMB":
+            uk_cols = ["suggested_adm2_grouping", "adm1", "adm2"]
+            map_file = config["uk_map_file"]
+            if config["background_map_location"] not in uk_cols:
+                sys.stderr.write(cyan(f'{config["background_map_location"]} not in default UK shapefile. Please provide a custom geojson containing this column to use it using --map-file\n'))
+                sys.exit(-1)
         else:
-            sys.stderr.write(cyan(f"{config['background_map_location']} not in default shapefiles. Please use country/adm0 or adm1 or provide your own shape file using --map-file\n"))
-            sys.exit(-1)
+            if config["background_map_location"] == "adm1":
+                map_file = config["adm1_global_file"]
+            elif config["background_map_location"] == "country" or config["background_map_location"] == "adm0" or config["background_map_location"] == "ISO":
+                map_file = config["adm0_global_file"]
+            else:
+                sys.stderr.write(cyan(f"{config['background_map_location']} not in default shapefiles. Please use country/adm0 or adm1 or provide your own shape file using --map-file\n"))
+                sys.exit(-1)
+
+        acceptable_locations = get_acceptable_locations(map_file, config)
 
     check_set = set()
     with open(config["background_csv"]) as f:
@@ -279,6 +280,28 @@ def parse_map_file(map_file, config):
     config["map_file"] = map_file
 
     return
+
+def get_acceptable_locations(map_file, config):
+
+    if config["civet_mode"] == "CLIMB":
+        if config["background_map_location"] != "adm1":
+            acceptable_locations = ["Scotland", "Wales", "Northern Ireland", "England"]
+        else:
+            acceptable_locations = []
+            with open(config["uk_acceptable_values"]) as f:
+                reader = csv.DictReader(f, delimiter="\t")
+                for row in reader:
+                    acceptable_locations.append(reader[config["background_map_location"]])
+
+    else:
+        acceptable_locations = set()
+        with open(config["global_accepted_values"]) as f:
+            reader = csv.DictReader(f, delimiter="\t")
+            for row in reader:
+                acceptable_locations.add(reader[config["background_map_location"]])
+    
+    return acceptable_locations
+                
 
 # def make_query_map_json(config, metadata): 
 # #plan would be to just plot this on the world map JSON that you can then zoom in on wherever required
