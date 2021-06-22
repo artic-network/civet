@@ -36,6 +36,42 @@
       
       }
       svg {width: 90%; height: auto;}
+      .accordion {
+          background-color: #eee;
+          color: #444;
+          cursor: pointer;
+          padding: 13px;
+          width: 100%;
+          border: none;
+          text-align: left;
+          outline: none;
+          font-size: 15px;
+          transition: 0.4s;
+        }
+
+        .active, .accordion:hover {
+          background-color: #ccc;
+        }
+
+        .accordion:after {
+          content: '\002B';
+          color: #777;
+          font-weight: bold;
+          float: right;
+          margin-left: 5px;
+        }
+
+        .active:after {
+          content: "\2212";
+        }
+
+        .panel {
+          padding: 0 5px;
+          background-color: white;
+          max-height: 0;
+          overflow: hidden;
+          transition: max-height 0.2s ease-out;
+        }
       .center {
           display: block;
           margin-left: auto;
@@ -566,21 +602,42 @@
               </table>
 
     
-          <h3><strong>Table 2 </strong> | Summary of queries provided in fasta file  <input class="searchbar" type="text" id="myInput" onkeyup="myFunction('myInput','myTable2')" placeholder="Search for sequence..." title="searchbar"></h3>
+          <h3><strong>Table 2 </strong> | Queries provided in fasta file</h3>
+          <button class="accordion">Passed QC</button>
+          <div class="panel">
+            <table class="table table-striped" id="myTable2">
+            <tr class="header">
+                %for col in config["fasta_table_content"]:
+                <th style="width:10%;">${col.title().replace("_"," ")}</th>
+                %endfor
+                </tr>
+                % for row in fasta_summary_pass:
+                    <tr>
+                      %for col in config['fasta_table_content']:
+                      <td>${row[col]}</td>
+                      %endfor
+                    </tr>
+                % endfor
+            </table>
+          </div>
+          <button class="accordion">Failed QC</button>
+          <div class="panel">
           <table class="table table-striped" id="myTable2">
-          <tr class="header">
-              %for col in config["fasta_table_content"]:
-              <th style="width:10%;">${col.title().replace("_"," ")}</th>
-              %endfor
-              </tr>
-              % for row in fasta_summary_data:
-                  <tr>
-                    %for col in config['fasta_table_content']:
-                    <td>${row[col]}</td>
-                    %endfor
-                  </tr>
-              % endfor
-          </table>
+            <tr class="header">
+                %for col in config["fasta_table_content"]:
+                <th style="width:10%;">${col.title().replace("_"," ")}</th>
+                %endfor
+                </tr>
+                % for row in fasta_summary_fail:
+                    <tr>
+                      %for col in config['fasta_table_content']:
+                      <td>${row[col]}</td>
+                      %endfor
+                    </tr>
+                % endfor
+            </table>
+          </div>
+
   %endif
 
     %for catchment in catchments:
@@ -724,7 +781,21 @@
         
         %endif
 
-
+    <script>
+        var acc = document.getElementsByClassName("accordion");
+        var i;
+        for (i = 0; i < acc.length; i++) {
+              acc[i].addEventListener("click", function() {
+                this.classList.toggle("active");
+                var panel = this.nextElementSibling;
+                if (panel.style.maxHeight) {
+                  panel.style.maxHeight = null;
+                } else {
+                  panel.style.maxHeight = panel.scrollHeight + "px";
+                } 
+              });
+            }
+    </script>
 
     <footer class="page-footer">
       <div class="container-fluid text-right text-md-right">

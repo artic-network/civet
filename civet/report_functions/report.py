@@ -31,7 +31,8 @@ def make_query_summary_data(metadata, config):
 
 def make_fasta_summary_data(metadata,config):
 
-    fasta_summary_data = []
+    fasta_summary_pass = []
+    fasta_summary_fail = []
     with open(metadata, "r") as f:
         reader = csv.DictReader(f)
         for row in reader:
@@ -40,10 +41,12 @@ def make_fasta_summary_data(metadata,config):
 
                 for col in config["fasta_table_content"]:
                     table_row[col] = row[col]
-                    
-                fasta_summary_data.append(table_row)
+                if row["qc_status"] == "Pass":
+                    fasta_summary_pass.append(table_row)
+                else:
+                    fasta_summary_fail.append(table_row)
     
-    return fasta_summary_data
+    return fasta_summary_pass,fasta_summary_fail
 
 def check_earliest_latest_dates(d,catchment_summary_dict,catchment):
     if catchment_summary_dict[catchment]["earliest_date"]:
@@ -188,10 +191,10 @@ def define_report_content(metadata,catchments,config):
 
     if '1' in report_content:
         data_for_report["query_summary_data"] = make_query_summary_data(metadata, config)
-        data_for_report["fasta_summary_data"] = make_fasta_summary_data(metadata, config)
+        data_for_report["fasta_summary_pass"],data_for_report["fasta_summary_fail"] = make_fasta_summary_data(metadata, config)
     else:
         data_for_report["query_summary_data"] = ""
-        data_for_report["fasta_summary_data"] = ""
+        data_for_report["fasta_summary_pass"],data_for_report["fasta_summary_fail"] = "",""
     
     if '2' in report_content:
         catchment_summary_data = make_catchment_summary_data(metadata,catchments,config)
@@ -260,7 +263,8 @@ def make_report(metadata,report_to_generate,config):
                     version = __version__, 
                     catchments = catchments, 
                     query_summary_data = data_for_report["query_summary_data"],
-                    fasta_summary_data = data_for_report["fasta_summary_data"],
+                    fasta_summary_pass = data_for_report["fasta_summary_pass"],
+                    fasta_summary_fail = data_for_report["fasta_summary_fail"],
                     data_for_report = data_for_report,
                     background_data = background_data,
                     config=config)
