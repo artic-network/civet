@@ -37,6 +37,7 @@ def make_fasta_summary_data(metadata,config):
         for row in reader:
             if row["source"] == "input_fasta":
                 table_row = {}
+
                 for col in config["fasta_table_content"]:
                     table_row[col] = row[col]
                     
@@ -166,7 +167,12 @@ def get_background_data(metadata,config):
             data = {}
             for i in background_columns:
                 data[i] = row[i]
-            background_data[row[config["report_column"]]] = data
+            if row["query_boolean"] == "True":
+                data["Query"] = "True"
+                background_data[row[config["report_column"]]] = data
+            else:
+                data["Query"] = "False"
+                background_data[row[config["background_column"]]] = data
     data = json.dumps(background_data) 
     return data
 

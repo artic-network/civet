@@ -47,7 +47,7 @@ def parse_and_qc_table_cols(table_content, config):
     else:
         sort_default_headers(input_fieldnames, background_fieldnames, config)
 
-    config["fasta_table_content"] = [config["report_column"]] #just leaving this as this for now, will have more cols in
+    config["fasta_table_content"] = [config["report_column"],"seq_N_content","seq_length"]
 
 
 def sort_default_headers(input_fieldnames, background_fieldnames, config):
