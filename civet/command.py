@@ -76,6 +76,7 @@ def main(sysargs = sys.argv[1:]):
     a_group.add_argument('--downsample', type=int, action="store",dest="downsample",help="Indicates how many shared number of SNPs to downsample catchment by. Default: 2. Set to 0 to turn downsampling off.")
 
     r_group = parser.add_argument_group("Report options")
+    r_group.add_argument("-rt", "--report-title", action="store", dest="report_title", help="""Title to display in report. Default: civet report""")
     r_group.add_argument("-rc", "--report-content", nargs='*', action="store", dest="report_content", help="""One or more comma separated numeric strings to define the report content. Default: 1,2,3""")
     r_group.add_argument("--anonymise", action="store_true", dest="anonymise",help="Generates arbitrary labels for sequences for dissemination")
     r_group.add_argument("-rcol", "--report-column", action="store", dest="report_column", help="Column containing alternative sequence names, for example patient IDs")

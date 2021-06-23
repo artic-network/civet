@@ -57,6 +57,7 @@ def get_defaults():
 
                     #Report options
                     "report_content":["1,2,3"],
+                    "report_title":f"civet report",
                     "anonymise":False,
                     "report_column": False,
                     "timeline_dates":False, #default is date_column or background_date_column if they are present
@@ -157,6 +158,8 @@ def arg_dict(config):
                 "query_limit":"query_limit",
 
                 #rgroup args
+                "report_title":"report_title",
+                "rt":"report_title",
                 "report_content":"report_content",
                 "rc":"report_content",
                 "alt":"report_column",
