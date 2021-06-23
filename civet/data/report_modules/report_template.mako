@@ -45,7 +45,6 @@
           border: none;
           text-align: left;
           outline: none;
-          font-size: 15px;
           transition: 0.4s;
         }
 
@@ -66,7 +65,7 @@
         }
 
         .panel {
-          padding: 0 5px;
+          padding: 0 13px;
           background-color: white;
           max-height: 0;
           overflow: hidden;
@@ -325,6 +324,41 @@
       .table>tbody>tr>td, .table>tbody>tr>th, .table>tfoot>tr>td, .table>tfoot>tr>th, .table>thead>tr>td, .table>thead>tr>th {
         border-top: none;
       }
+      .accordion {
+          background-color: #2C2640;
+          color: #F2E7DC;
+          cursor: pointer;
+          padding: 12px;
+          width: 100%;
+          border: none;
+          text-align: left;
+          outline: none;
+          transition: 0.4s;
+        }
+
+        .active, .accordion:hover {
+          background-color: #17141F;
+        }
+
+        .accordion:after {
+          content: '\002B';
+          color: #F2E7DC;
+          font-weight: bold;
+          float: right;
+          margin-left: 5px;
+        }
+
+        .active:after {
+          content: "\2212";
+        }
+
+        .panel {
+          padding: 0 12px;
+          background-color: #2C2640;
+          max-height: 0;
+          overflow: hidden;
+          transition: max-height 0.2s ease-out;
+        }
       pre {
         background-color: #3B325B;
         color: #F2E7DC;
