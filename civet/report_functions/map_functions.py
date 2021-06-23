@@ -7,7 +7,7 @@ from collections import defaultdict
 import json
 import datetime as dt
 
-def parse_query_map(longitude_column, latitude_column, found_in_background_data, config):
+def parse_query_map(query_map_file, longitude_column, latitude_column, found_in_background_data, config):
     """
     parses map group arguments:
     --longitude_column (default=longitude)
@@ -81,7 +81,17 @@ def parse_query_map(longitude_column, latitude_column, found_in_background_data,
             sys.stderr.write(cyan(f"Error: no query with longitude and latitude information contained in the columns provided ({config['longitude_column'], config['latitude_column']}), so map cannot be produced.\n"))
             sys.exit(-1)
 
-def parse_background_map_options(map_file, background_map_date_restriction, background_map_location, found_in_background_metadata, config):
+        if config["query_map_file"]:
+            parse_map_file_arg(query_map_file, "query_map_file", config) #don't need to QC this because it doesn't matter what's in it if only the query map
+        else:
+            if config["civet_mode"] == "CLIMB":
+                map_file = config["uk_map_file"]
+            else:
+                map_file = config["adm0_global_file"]
+            
+            config["query_map_file"] = map_file
+
+def parse_background_map_options(background_map_file, background_map_date_restriction, background_map_location, found_in_background_metadata, config):
 
     """
     parses map group arguments:
@@ -166,7 +176,12 @@ def parse_background_map_options(map_file, background_map_date_restriction, back
         config["start_date"] = dt.datetime(2019,12,1).date()
         config["end_date"] = dt.datetime.today().date()
 
-    # check_shapefile(map_file,config)
+    if config["background_map_file"]:
+        parse_map_file(background_map_file,"background_map_file", config)
+    
+    map_file = qc_map_file(config)
+
+    config["background_map_file"] = map_file
 
 
 def do_date_window(date_window, found_in_background_metadata, config):
@@ -200,28 +215,32 @@ def do_date_window(date_window, found_in_background_metadata, config):
 
     return start_date, end_date
 
-def parse_map_file(map_file, config):
-    #winding in the geojsons
-
-    #still need to make UK shapefile - no, this exists in b117 paper
-    #work out what's going on with the LFS stuff with the larger shapefiles - maybe just add them to a website?
+def parse_map_file_arg(map_file_arg, arg_name, config): #call this twice to make two different map files for background and query, so generalise
 
     """
     parses map group arguments:
-    --map-file (default=UK_map if civet_mode == CLIMB, relevant level of world_map (ie adm0 or adm1) if not)
+    --background-map-file (default=UK_map if civet_mode == CLIMB, relevant level of world_map (ie adm0 or adm1) if not)
+    --query-map-file
     """
+    misc.add_arg_to_config(arg_name, map_file_arg, config)
 
-    misc.add_arg_to_config("map_file", map_file, config)
-
-    if config["map_file"]:
-        if not os.path.exists(config["map_file"]):
-            sys.stderr.write(cyan(f"{config['map_file']} cannot be found. Please check the path and try again.\n"))
+    if config[arg_name]:
+        if not os.path.exists(config[arg_name]):
+            sys.stderr.write(cyan(f"{config[arg_name]} cannot be found. Please check the path and try again.\n"))
             sys.exit(-1)
-        if not config["map_file"].endswith(".json") and not config['map_file'].endswith(".geojson"):
-            sys.stderr.write(cyan(f"{config['map_file']} must be in the format of a geojson. You can use mapshaper.org to convert between file formats.\n"))
+        if not config[arg_name].endswith(".json") and not config[arg_name].endswith(".geojson"):
+            sys.stderr.write(csyan(f"{config[arg_name]} must be in the format of a geojson. You can use mapshaper.org to convert between file formats.\n"))
             sys.exit(-1)
+ 
 
-        with open(config["map_file"]) as f:
+    return map_file
+
+def qc_map_file_for_background_map(config):
+    #winding in the geojsons
+
+    if config["background_map_file"]:
+
+        with open(config["background_map_file"]) as f:
             geodata = json.load(f)
         
         headers = geodata["features"][0]["properties"].keys()
@@ -236,12 +255,12 @@ def parse_map_file(map_file, config):
     
     else:
         if config["civet_mode"] == "CLIMB":
-            uk_cols = ["suggested_adm2_grouping", "adm1", "adm2"]
             map_file = config["uk_map_file"]
+            uk_cols = ["suggested_adm2_grouping", "adm1", "adm2"]
             if config["background_map_location"] not in uk_cols:
                 sys.stderr.write(cyan(f'{config["background_map_location"]} not in default UK shapefile. Please provide a custom geojson containing this column to use it using --map-file\n'))
                 sys.exit(-1)
-        else:
+        else: 
             if config["background_map_location"] == "adm1":
                 map_file = config["adm1_global_file"]
             elif config["background_map_location"] == "country" or config["background_map_location"] == "adm0" or config["background_map_location"] == "ISO":
@@ -267,7 +286,7 @@ def parse_map_file(map_file, config):
 
     for loc in check_set:
         if loc not in acceptable_locations:
-            if config["map_file"]:
+            if config["background_map_file"]:
                 sys.stderr(f'{loc} is an invalid location. Please ensure that the metadata values match up to the shapefile you have provided.\n')
                 sys.exit(-1)
             elif config['civet_mode'] == "CLIMB":
@@ -277,9 +296,7 @@ def parse_map_file(map_file, config):
                 sys.stderr(f"{loc} isn't in our shapefile. Please see a list of currently accepted locations here: [link]. If you can't find your country's data on that list, please open a github issue on the civet repo aand we will get to it as soon as we can.\n")
                 sys.exit(-1)
 
-    config["map_file"] = map_file
-
-    return
+    return map_file
 
 def get_acceptable_locations(map_file, config):
 

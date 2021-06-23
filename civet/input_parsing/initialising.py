@@ -69,7 +69,8 @@ def get_defaults():
                     #Map options
                     "latitude_column":"latitude",
                     "longitude_column":"longitude",
-                    "map_file":False, #if UK, will find the geojson containing aggregated_adm2s, if global will find adm0 or adm1 geojson
+                    "query_map_file":False, #if UK, will find the geojson containing aggregated_adm2s, if global will find adm0 or adm1 geojson
+                    "background_maap_file": False, #Same as above
                     "background_map_location":False, #default is location_column
                     # "map_column":False,
                     "background_map_date_restriction":False, #default is no restriction, will do background from 2019-11-01 to today
@@ -184,7 +185,8 @@ def arg_dict(config):
                 "daterestric":"background_map_date_restriction",
                 "background_map_location":"background_map_location",
                 "maploc":"background_map_location",
-                "map_file":"map_file",
+                "background_map_file":"background_map_file",
+                "query_map_file":"query_map_file",
                 # "maploc":"map_location",
                 # "map_location":"map_location",
 

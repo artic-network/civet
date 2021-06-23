@@ -89,7 +89,8 @@ def main(sysargs = sys.argv[1:]):
 
 
     m_group = parser.add_argument_group("Map options")
-    m_group.add_argument("--map-file", action="store", dest="map_file", help="JSON or GeoJSON containing polygons to plot queries or background on.")
+    m_group.add_argument("--query-map-file", action="store", dest="query_map_file", help="JSON or GeoJSON containing polygons to plot queries on.")
+    m_group.add_argument("--background-map-file", action="store", dest="background_map_file", help="JSON or GeoJSON contaning polygons to plot background diversity on.")
     m_group.add_argument("-lat","--latitude-column", dest="latitude_column", action="store", help="Column containing latitude coordinate information to plot queries on a map")
     m_group.add_argument("-long","--longitude-column", dest="longitude_column", action="store", help="Column containing longitude coordinate information to plot queries on a map")
     m_group.add_argument("-daterestric","--background-map-date-restriction", dest="background_map_date_restriction", action="store", help="Restrict the time frame for mapping background lineage diversity. Can be an integer (number of days either side of queries to restrict to) or a date range, format='YYYY-MM-DD:YYYY-MM-DD'")
@@ -159,7 +160,7 @@ def main(sysargs = sys.argv[1:]):
     # stored under config = { "report_content": [1, 2, 3, 4], "reports": [1,2,3,4],[1,2]}
     name_dict = report_arg_parsing.parse_global_report_options(args.report_content, args.report_column, args.anonymise, args.date_column, args.background_date_column, args.location_column, config)
     report_arg_parsing.parse_optional_report_content(args.table_content, args.timeline_dates, args.timeline_colours, config)
-    report_arg_parsing.parse_map_options(args.background_map_date_restriction, args.background_map_location, args.map_file, args.longitude_column, args.latitude_column, found_in_background_data, config)
+    report_arg_parsing.parse_map_options(args.background_map_date_restriction, args.background_map_location, args.background_map_file, args.query_map_file, args.longitude_column, args.latitude_column, found_in_background_data, config)
 
     # sets up the output dir, temp dir, and data output desination
     directory_setup.output_group_parsing(args.outdir, args.output_prefix, args.overwrite,args.datestamp, args.output_data, args.tempdir, args.no_temp, config)
