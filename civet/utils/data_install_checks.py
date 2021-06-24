@@ -41,9 +41,9 @@ def check_install(config):
         {"key":"html_colours",
         "directory":"data",
         "filename":"html_colours.csv"},
-        {"key":"global_accepted_values",
+        {"key":"global_acceptable_values",
         "directory":"data/map_data",
-        "filename":"global_accepted_values.tsv"},
+        "filename":"global_acceptable_values.tsv"},
         {"key":"uk_acceptable_values",
         "directory":"data/map_data",
         "filename":"UK_acceptable_values.tsv"}

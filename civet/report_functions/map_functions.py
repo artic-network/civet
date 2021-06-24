@@ -243,6 +243,10 @@ def parse_map_file_arg(map_file_arg, arg_name, config):
     return map_file
 
 def qc_map_file_for_background_map(config):
+
+    if config["verbose"]:
+        print("Beginning checks for background map")
+
     #winding in the geojsons
 
     if config["background_map_file"]:
@@ -265,7 +269,7 @@ def qc_map_file_for_background_map(config):
             map_file = "uk_map.json"
             uk_cols = ["suggested_adm2_grouping", "adm1", "adm2"]
             if config["background_map_column"] not in uk_cols:
-                sys.stderr.write(cyan(f'{config["background_map_column"]} not in default UK shapefile. Please provide a custom geojson containing this column to use it using --map-file\n'))
+                sys.stderr.write(cyan(f'{config["background_map_column"]} not in default UK map file.\n Options allowed are "suggested_adm2_grouping","adm1" or "adm2".  Alternatively, please provide a custom geojson containing this column to use it using --map-file\n'))
                 sys.exit(-1)
         else: 
             if config["background_map_column"] == "adm1":
@@ -273,46 +277,48 @@ def qc_map_file_for_background_map(config):
             elif config["background_map_column"] == "country" or config["background_map_column"] == "adm0" or config["background_map_column"] == "ISO":
                 map_file = "adm0_global.json"
             else:
-                sys.stderr.write(cyan(f"{config['background_map_column']} not in default shapefiles. Please use country/adm0 or adm1 or provide your own shape file using --map-file\n"))
+                sys.stderr.write(cyan(f"{config['background_map_column']} not in default map file. Please use country/adm0 or adm1 or provide your own shape file using --map-file\n"))
                 sys.exit(-1)
 
         acceptable_locations = get_acceptable_locations(map_file, config)
-
-
-    print(config["civet_mode"])
-    print(config["background_map_column"])
-    print(map_file)
 
     check_set = set()
     with open(config["background_csv"]) as f:
         data = csv.DictReader(f)
         for line in data:
+            location_value = line[config["background_map_column"]]
             if config["background_date_column"]:
                 date_value = line[config["background_date_column"]]
                 if date_value != "":
-                    date = dt.datetime.strptime(line[config["background_date_column"]], "%Y-%m-%d").date()
+                    date = dt.datetime.strptime(date_value, "%Y-%m-%d").date()
                     if date >= config["start_date"] and date <= config["end_date"]:
-                        if line[config["background_map_column"]] != "":
+                        if location_value != "":
                             if config["civet_mode"] == "CLIMB": 
-                                if line["country"] == "UK" and line[config["background_map_column"]] != "Needs_manual_curation":
-                                    check_set.add(line[config["background_map_column"]])
+                                if line["country"] == "UK" and location_value != "Needs_manual_curation" and "|" not in location_value:
+                                    check_set.add(location_value)
                             else:
-                                check_set.add(line[config["background_map_column"]])
+                                check_set.add(location_value)
             else:
-                if line[config["background_map_column"]] != "" and line[config["background_map_column"]] != "Needs_manual_curation":
-                    check_set.add(line[config["background_map_column"]])
+                if config["civet_mode"] == "CLIMB": 
+                    if line["country"] == "UK" and location_value != "Needs_manual_curation" and "|" not in location_value:
+                        check_set.add(location_value)
+                else:
+                    check_set.add(location_value)
 
     for loc in check_set: #this needs to be different if it's in the UK, only check UK locations
         if loc not in acceptable_locations:
             if config["background_map_file"]:
-                sys.stderr.write(f'{loc} is an invalid location. Please ensure that the metadata values match up to the shapefile you have provided.\n')
+                sys.stderr.write(f'{loc} is an invalid location. Please ensure that the metadata values match up to the map file you have provided.\n')
                 sys.exit(-1)
             elif config['civet_mode'] == "CLIMB":
-                sys.stderr.write(f'{loc} is an invalid location. If you are using the default background metadata, please contact Verity Hill verity.hill@ed.ac.uk\n')
+                sys.stderr.write(f'{loc} is an invalid location. If you are using the default background metadata, please contact Verity Hill (verity.hill@ed.ac.uk)\n')
                 sys.exit(-1)
             else:
-                sys.stderr.write(f"{loc} isn't in our shapefile. Please see a list of currently accepted locations here: [link]. If you can't find your country's data on that list, please open a github issue on the civet repo and we will get to it as soon as we can.\n")
+                sys.stderr.write(f"{loc} isn't in our map file. Please see a list of currently accepted locations here: [link]. If you can't find your country's data on that list, please open a github issue on the civet repo and we will get to it as soon as we can.\n")
                 sys.exit(-1)
+
+    if config["verbose"]:
+        print("Finished with checks for background map")
 
     return map_file
 
@@ -330,7 +336,7 @@ def get_acceptable_locations(map_file, config):
 
     else:
         acceptable_locations = set()
-        with open(config["global_accepted_values"]) as f:
+        with open(config["global_acceptable_values"]) as f:
             reader = csv.DictReader(f, delimiter="\t")
             for row in reader:
                 acceptable_locations.add(row[config["background_map_column"]])
