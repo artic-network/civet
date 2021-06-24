@@ -70,7 +70,7 @@ def get_defaults():
                     "latitude_column":"latitude",
                     "longitude_column":"longitude",
                     "query_map_file":False, #if UK, will find the geojson containing aggregated_adm2s, if global will find adm0 or adm1 geojson
-                    "background_maap_file": False, #Same as above
+                    "background_map_file": False, #Same as above
                     "background_map_location":False, #default is location_column
                     # "map_column":False,
                     "background_map_date_restriction":False, #default is no restriction, will do background from 2019-11-01 to today

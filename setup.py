@@ -15,7 +15,7 @@ setup(name='civet',
             "civet/scripts/build_catchment_trees.smk",
             "civet/scripts/snipit_runner.smk"
             ],
-      package_data={"civet":["data/*","data/report_modules/*"]},
+      package_data={"civet":["data/*","data/report_modules/*","data/map_data/*"]},
       install_requires=[
             "biopython>=1.70",
             "baltic",
