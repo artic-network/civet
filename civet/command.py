@@ -74,6 +74,7 @@ def main(sysargs = sys.argv[1:]):
     a_group.add_argument('-ql','--query-limit', type=int, action="store",dest="query_limit",help="Max number of queries. Default: 5000")
     a_group.add_argument('-cs','--catchment-size', type=int, action="store",dest="catchment_size",help="Max number of sequences in a catchment. Default: 1000")
     a_group.add_argument('--downsample', type=int, action="store",dest="downsample",help="Indicates how many shared number of SNPs to downsample catchment by. Default: 2. Set to 0 to turn downsampling off.")
+    a_group.add_argument('-mem','--max-memory', type=float, action="store",dest="max_memory",help="Indicates the maximum amount of RAM (in GB) to use for tree building. Default: 8")
 
     r_group = parser.add_argument_group("Report options")
     r_group.add_argument("-rt", "--report-title", action="store", dest="report_title", help="""Title to display in report. Default: civet report""")

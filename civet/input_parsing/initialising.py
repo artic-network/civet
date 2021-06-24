@@ -51,6 +51,8 @@ def get_defaults():
                     "catchment_size":100,
                     "downsample":1,
 
+                    "max_memory": 8,
+
                     # QC standards for input fasta file
                     "max_ambiguity":0.5,
                     "min_length":20000,
@@ -157,6 +159,8 @@ def arg_dict(config):
                 "catchment_size":"catchment_size",
                 "downsample":"downsample",
                 "query_limit":"query_limit",
+                "max_memory":"max_memory",
+                "mem":"max_memory",
 
                 #rgroup args
                 "report_title":"report_title",
