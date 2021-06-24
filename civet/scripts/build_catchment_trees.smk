@@ -22,6 +22,7 @@ rule iqtree:
                 -redo \
                 --fast \
                 -o outgroup \
+                -mem {config[max_ram]} \
                 -quiet &> {log:q}
         """
 

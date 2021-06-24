@@ -59,7 +59,23 @@ def check_catchment_configuration(config):
         cs = int(config["catchment_size"])
         config["catchment_size"] = cs
     except:
-        sys.stderr.write(cyan(f"`-cs/--catchment_size` must be an integer.\n"))
+        sys.stderr.write(cyan(f"`-cs/--catchment-size` must be an integer.\n"))
+        sys.exit(-1)
+
+def check_query_limit(config):
+    try:
+        ql = int(config["query_limit"])
+        config["query_limit"] = cs
+    except:
+        sys.stderr.write(cyan(f"`-ql/--query-limit` must be an integer.\n"))
+        sys.exit(-1)
+
+def check_max_memory(config):
+    try:
+        ql = int(config["max_memory"])
+        config["max_memory"] = cs
+    except:
+        sys.stderr.write(cyan(f"`-mem/--max-memory` must be an integer.\n"))
         sys.exit(-1)
 
 def analysis_group_parsing(reference_fasta,trim_start,trim_end,catchment_size,downsample,query_limit,config):
@@ -78,6 +94,9 @@ def analysis_group_parsing(reference_fasta,trim_start,trim_end,catchment_size,do
     misc.add_arg_to_config("catchment_size",catchment_size,config)
     misc.add_arg_to_config("downsample",downsample,config)
     misc.add_arg_to_config("query_limit",query_limit,config)
-
+    misc.add_arg_to_config("max_memory",max_memory,config)
+    
     check_coords_within_reference_length(config)
     check_catchment_configuration(config)
+    check_query_limit(config)
+    check_max_memory(config)

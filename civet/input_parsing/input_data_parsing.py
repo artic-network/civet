@@ -86,10 +86,6 @@ def add_sequence_status_to_metadata(record_info,header,found_in_background_data,
 
     # creating transiently the same data structure as the failed_qc seqs
     passed_info = {}
-    print("passed_qc")
-    print(passed_qc)
-    print("failed_qc")
-    print(failed_qc)
     for record in passed_qc:
         passed_info[record[0].id] = (record[0].id, record[1],record[2])
 
