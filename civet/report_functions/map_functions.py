@@ -92,28 +92,28 @@ def parse_query_map(query_map_file, longitude_column, latitude_column, found_in_
             config["query_map_file"] = map_file
 
 
-def parse_background_map_location(background_map_location, config):
+def parse_background_map_column(background_map_column, config):
 
-    misc.add_arg_to_config("background_map_location", background_map_location, config)  
+    misc.add_arg_to_config("background_map_column", background_map_column, config)  
 
     with open(config["background_csv"]) as f:
         reader = csv.DictReader(f)
         background_fieldnames = reader.fieldnames
         
-    if config["background_map_location"]:
-        if config["background_map_location"] not in background_fieldnames: 
-            sys.stderr.write(cyan(f"Error: {config['background_map_location']} not found in background metadata file for mapping background diversity\n") + "\n")
+    if config["background_map_column"]:
+        if config["background_map_column"] not in background_fieldnames: 
+            sys.stderr.write(cyan(f"Error: {config['background_map_column']} not found in background metadata file for mapping background diversity\n") + "\n")
             sys.exit(-1)
     
     else:
         if config["civet_mode"] == "CLIMB" and "suggested_adm2_grouping" in background_fieldnames: 
-            config["background_map_location"] = "suggested_adm2_grouping"
+            config["background_map_column"] = "suggested_adm2_grouping"
         elif "adm1" in background_fieldnames:
-            config["background_map_location"] = "adm1"
+            config["background_map_column"] = "adm1"
         elif config["location_column"]:
-            config["background_map_location"] = config["location_column"]
+            config["background_map_column"] = config["location_column"]
         else:
-            sys.stderr.write(cyan(f"Error: no field found in background metadata file for mapping background diversity. Please provide one with -maploc/--background-map-location.\n") + "\n")
+            sys.stderr.write(cyan(f"Error: no field found in background metadata file for mapping background diversity. Please provide one with -mapcol/--background-map-column.\n") + "\n")
             sys.exit(-1)
 
 def parse_date_restriction(background_map_date_restriction, config):
@@ -155,13 +155,13 @@ def parse_date_restriction(background_map_date_restriction, config):
                 for line in data:
                     if line[config["background_date_column"]] != "":
                         date = dt.datetime.strptime(line[config["background_date_column"]], "%Y-%m-%d").date()
-                        if date >= start_date and date <= end_date and line[config["background_map_location"]] != "":
+                        if date >= start_date and date <= end_date and line[config["background_map_column"]] != "":
                             data_count += 1
                         if data_count > 50:
                             enough_data = True
                             break
                 if not enough_data:
-                    sys.stderr.write(cyan(f"Error: fewer than 50 sequences in column {config['background_map_location']} between dates {start_date} and {end_date}. If you want to map background diversity, consider using a different geographical scale using '-maploc/--background-map-location' or a larger time period.\n"))
+                    sys.stderr.write(cyan(f"Error: fewer than 50 sequences in column {config['background_map_column']} between dates {start_date} and {end_date}. If you want to map background diversity, consider using a different geographical scale using '-maploc/--background-map-location' or a larger time period.\n"))
                     sys.exit(-1)
         else:
             sys.stderr.write(cyan(f"Error: Date restriction defined for background lineage diversity mapping, but no date column provided. Please use '-bdate/--background-date-column' to specify this column. \n") + "\n")
@@ -171,7 +171,7 @@ def parse_date_restriction(background_map_date_restriction, config):
         config["start_date"] = dt.datetime(2019,12,1).date()
         config["end_date"] = dt.datetime.today().date()
 
-def parse_background_map_options(background_map_file, background_map_date_restriction, background_map_location, found_in_background_metadata, config):
+def parse_background_map_options(background_map_file, background_map_date_restriction, background_map_column, found_in_background_metadata, config):
 
     """
     parses map group arguments:
@@ -180,7 +180,7 @@ def parse_background_map_options(background_map_file, background_map_date_restri
     # --map-location (default=$LOCATION, then adm1 if present, and aggregated_adm2 if civet_mode==CLIMB)
     """
 
-    parse_background_map_location(background_map_location, config)
+    parse_background_map_column(background_map_column, config)
     parse_date_restriction(background_map_date_restriction, config)    
 
     if config["background_map_file"]:
@@ -222,7 +222,7 @@ def do_date_window(date_window, found_in_background_metadata, config):
 
     return start_date, end_date
 
-def parse_map_file_arg(map_file_arg, arg_name, config): #call this twice to make two different map files for background and query, so generalise
+def parse_map_file_arg(map_file_arg, arg_name, config): 
 
     """
     parses map group arguments:
@@ -252,35 +252,35 @@ def qc_map_file_for_background_map(config):
         
         headers = geodata["features"][0]["properties"].keys()
         
-        if config["background_map_location"] not in headers:
-            sys.stderr.write(cyan(f"{config['background_map_location']} not found in custom shapefile.\n"))
+        if config["background_map_column"] not in headers:
+            sys.stderr.write(cyan(f"{config['background_map_column']} not found in custom shapefile.\n"))
             sys.exit(-1)
         else:
             acceptable_locations = []
             for item in geodata['features']:
-                acceptable_locations.append(item["properties"][config["background_map_location"]])
+                acceptable_locations.append(item["properties"][config["background_map_column"]])
     
     else:
         if config["civet_mode"] == "CLIMB":
             map_file = "uk_map.json"
             uk_cols = ["suggested_adm2_grouping", "adm1", "adm2"]
-            if config["background_map_location"] not in uk_cols:
-                sys.stderr.write(cyan(f'{config["background_map_location"]} not in default UK shapefile. Please provide a custom geojson containing this column to use it using --map-file\n'))
+            if config["background_map_column"] not in uk_cols:
+                sys.stderr.write(cyan(f'{config["background_map_column"]} not in default UK shapefile. Please provide a custom geojson containing this column to use it using --map-file\n'))
                 sys.exit(-1)
         else: 
-            if config["background_map_location"] == "adm1":
+            if config["background_map_column"] == "adm1":
                 map_file = "adm1_global.json"
-            elif config["background_map_location"] == "country" or config["background_map_location"] == "adm0" or config["background_map_location"] == "ISO":
+            elif config["background_map_column"] == "country" or config["background_map_column"] == "adm0" or config["background_map_column"] == "ISO":
                 map_file = "adm0_global.json"
             else:
-                sys.stderr.write(cyan(f"{config['background_map_location']} not in default shapefiles. Please use country/adm0 or adm1 or provide your own shape file using --map-file\n"))
+                sys.stderr.write(cyan(f"{config['background_map_column']} not in default shapefiles. Please use country/adm0 or adm1 or provide your own shape file using --map-file\n"))
                 sys.exit(-1)
 
         acceptable_locations = get_acceptable_locations(map_file, config)
 
 
     print(config["civet_mode"])
-    print(config["background_map_location"])
+    print(config["background_map_column"])
     print(map_file)
 
     check_set = set()
@@ -292,15 +292,15 @@ def qc_map_file_for_background_map(config):
                 if date_value != "":
                     date = dt.datetime.strptime(line[config["background_date_column"]], "%Y-%m-%d").date()
                     if date >= config["start_date"] and date <= config["end_date"]:
-                        if line[config["background_map_location"]] != "":
+                        if line[config["background_map_column"]] != "":
                             if config["civet_mode"] == "CLIMB": 
-                                if line["country"] == "UK" and line[config["background_map_location"]] != "Needs_manual_curation":
-                                    check_set.add(line[config["background_map_location"]])
+                                if line["country"] == "UK" and line[config["background_map_column"]] != "Needs_manual_curation":
+                                    check_set.add(line[config["background_map_column"]])
                             else:
-                                check_set.add(line[config["background_map_location"]])
+                                check_set.add(line[config["background_map_column"]])
             else:
-                if line[config["background_map_location"]] != "" and line[config["background_map_location"]] != "Needs_manual_curation":
-                    check_set.add(line[config["background_map_location"]])
+                if line[config["background_map_column"]] != "" and line[config["background_map_column"]] != "Needs_manual_curation":
+                    check_set.add(line[config["background_map_column"]])
 
     for loc in check_set: #this needs to be different if it's in the UK, only check UK locations
         if loc not in acceptable_locations:
@@ -319,21 +319,21 @@ def qc_map_file_for_background_map(config):
 def get_acceptable_locations(map_file, config):
 
     if config["civet_mode"] == "CLIMB":
-        if config["background_map_location"] == "adm1":
+        if config["background_map_column"] == "adm1":
             acceptable_locations = ["Scotland", "Wales", "Northern_Ireland", "England", "Jersey", "Guernsey", "Isle_of_Man", "Falkland_Islands", "Gibraltar"]
         else:
             acceptable_locations = []
             with open(config["uk_acceptable_values"]) as f:
                 reader = csv.DictReader(f, delimiter="\t")
                 for row in reader:
-                    acceptable_locations.append(row[config["background_map_location"]])
+                    acceptable_locations.append(row[config["background_map_column"]])
 
     else:
         acceptable_locations = set()
         with open(config["global_accepted_values"]) as f:
             reader = csv.DictReader(f, delimiter="\t")
             for row in reader:
-                acceptable_locations.add(row[config["background_map_location"]])
+                acceptable_locations.add(row[config["background_map_column"]])
     
     return acceptable_locations
                 
