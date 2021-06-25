@@ -149,16 +149,28 @@ rule merge_catchments:
             print(green("Writing catchment fasta files."))
             catchment_parsing.write_catchment_fasta(catchment_dict,input.fasta,params.catchment_dir,config)
 
-"""
-rule downsampling:
+rule downsample_catchments:
     input:
-
+        csv= rules.merge_catchments.output.catchment_csv
     output:
-
+        csv = os.path.join(config["data_outdir"],"catchments","downsampled.csv")
     run:
-        optional downsampling of catchments, with a protection/ enrichment metric 
-        that can prevent certain sequences being removed
-"""
+        if '3' in config["report_content"]:
+            catchment_dict = collections.defaultdict(list)
+            query_counter = collections.Counter()
+            with open(input.csv,"r") as f:
+                reader = csv.DictReader(f)
+                for row in reader:
+                    if row["query_boolean"] == "True":
+                        query_counter[row["catchment"]]+=1
+                    else:
+                        catchment_dict[row["catchment"]].append(row)
+            
+            for catchment in catchment_dict:
+                target = config["catchment_size"] - query_counter[catchment]
+
+                downsample = downsample_catchment(catchment_dict[catchment],target,config["mode"],config["downsample_column"],config["background_column"],config["downsample_field"],config["factor"])
+                print(downsample)
 
 rule tree_building:
     input:
