@@ -344,33 +344,29 @@ def get_acceptable_locations(map_file, config):
     return acceptable_locations
                 
 
-# def make_query_map_json(config, metadata): 
-# #plan would be to just plot this on the world map JSON that you can then zoom in on wherever required
-# #Then have interactivity for colour-by. Easy enough to add in here to the JSON and QC checks if that's too complicated to have interactive
-# #Possible extension: can generate long/lat 
+def make_query_map_json(config, metadata): 
+#colour by is dynamic
+    lat_col = config["latitude_column"]
+    long_col = config["longitude_column"]
+    name_col = config["background_column"] 
 
-#     lat_col = config["latitude_column"]
-#     long_col = config["longitude_column"]
-#     name_col = config["background_column"] 
+    overall_dict = defaultdict(dict)
 
-#     overall_dict = defaultdict(dict)
+    all_queries = {}
+    all_queries['queries'] = []
 
-#     all_queries = {}
-#     all_queries['queries'] = []
+    with open(metadata) as f:
+        data = csv.DictReader(f)
+        for l in data:
+            per_seq_dict = {}
+            per_seq_dict["sequence_name"] = l[name_col]
+            per_seq_dict["latitude"] = l[lat_col]
+            per_seq_dict["longitude"] = l[long_col]
+            
+            all_queries['queries'].append(per_seq_dict)
 
-#     with open(metadata) as f:
-#         data = csv.DictReader(f)
-#         for l in data:
-#             if l["query_boolean"] == "TRUE":
-#                 per_seq_dict = {}
-#                 per_seq_dict["sequence_name"] = l[name_col]
-#                 per_seq_dict["latitude"] = l[lat_col]
-#                 per_seq_dict["longitude"] = l[long_col]
-                
-#                 all_queries['queries'].append(per_seq_dict)
-
-#     with open(os.path.join(config["tempdir"],'query_map_data.json'), 'w') as outfile:
-#         json.dump(all_queries, outfile)
+    with open(os.path.join(config["tempdir"],'query_map_data.json'), 'w') as outfile:
+        json.dump(all_queries, outfile)
 
 # def populate_background_json(overall, geog_col):
 
