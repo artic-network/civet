@@ -64,10 +64,10 @@ def check_catchment_configuration(config):
 
 def check_query_limit(config):
     try:
-        ql = int(config["query_limit"])
-        config["query_limit"] = cs
+        mq = int(config["max_queries"])
+        config["max_queries"] = mq
     except:
-        sys.stderr.write(cyan(f"`-ql/--query-limit` must be an integer.\n"))
+        sys.stderr.write(cyan(f"`-mq/--max-queries` must be an integer.\n"))
         sys.exit(-1)
 
 def check_for_background_header(config):
@@ -80,8 +80,8 @@ def check_for_background_header(config):
 
 def check_max_memory(config):
     try:
-        ql = int(config["max_memory"])
-        config["max_memory"] = cs
+        mm = int(config["max_memory"])
+        config["max_memory"] = mm
     except:
         sys.stderr.write(cyan(f"`-mem/--max-memory` must be an integer.\n"))
         sys.exit(-1)
@@ -113,6 +113,7 @@ def parse_downsampling_config(config):
     
     elif mode=="random":
         config["mode"]=="random"
+        print(green("Downsampling strategy: ") + "random")
 
     elif mode=="normalise":
         config["mode"]=="normalise"
@@ -123,9 +124,17 @@ def parse_downsampling_config(config):
         else:
             config["downsample_column"]=col
 
+        print(green("Downsampling strategy: ") + "normalise")
+        print(green("Normalising over: ") + col)
+
     elif mode=="enrich":
         config["mode"]=="enrich"
         if factor:
+            try:
+                factor = float(factor)
+            except:
+                sys.stderr.write(cyan(f"`--ds/--downsample` factor must be numerical.\n"))
+                sys.exit(-1)
             config["factor"]=factor
         else:
             config["factor"]=10
@@ -139,6 +148,9 @@ def parse_downsampling_config(config):
             downsample_column,field=col.split("=")
             config["downsample_column"]=downsample_column
             config["downsample_field"]=field
+
+        print(green("Downsampling strategy: ") + "enrich")
+        print(green("Enriching for ") + downsample_column + green(" with ") + field + green(" by a factor of ") + str(config['factor']) + ".")
     else:
         sys.stderr.write(cyan(f"`--ds/--downsample` mode not one of random, normalise or enrich.\n"))
         sys.exit(-1)
@@ -147,7 +159,7 @@ def parse_downsampling_config(config):
         check_for_background_header(config)
 
 
-def analysis_group_parsing(reference_fasta,trim_start,trim_end,catchment_size,downsample,query_limit,config):
+def analysis_group_parsing(reference_fasta,trim_start,trim_end,catchment_size,downsample,max_queries,max_memory,config):
     """
     parses the data group arguments 
     --datadir (Default $DATADIR)
@@ -162,7 +174,7 @@ def analysis_group_parsing(reference_fasta,trim_start,trim_end,catchment_size,do
     misc.add_file_to_config("reference_fasta",reference_fasta,config)
     misc.add_arg_to_config("catchment_size",catchment_size,config)
     misc.add_arg_to_config("downsample",downsample,config)
-    misc.add_arg_to_config("query_limit",query_limit,config)
+    misc.add_arg_to_config("max_queries",max_queries,config)
     misc.add_arg_to_config("max_memory",max_memory,config)
     misc.add_arg_to_config("downsample",downsample,config)
 
