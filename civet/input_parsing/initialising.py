@@ -49,7 +49,11 @@ def get_defaults():
 
                     # catchment config
                     "catchment_size":100,
-                    "downsample":1,
+                    "downsample":["mode=random"],
+                    "mode":False,
+                    "factor"=False,
+                    "downsample_field":False,
+                    "downsample_column":False,
 
                     "max_memory": 8,
 
@@ -143,7 +147,6 @@ def arg_dict(config):
                 "p":"output_prefix",
                 "output_prefix":"output_prefix",
                 "datestamp":"datestamp",
-                "ds":"datestamp",
                 "overwrite":"overwrite",
                 "output_data":"output-data",
                 "no-temp":"no-temp",
@@ -161,6 +164,8 @@ def arg_dict(config):
                 "query_limit":"query_limit",
                 "max_memory":"max_memory",
                 "mem":"max_memory",
+                "downsample":"downsample",
+                "ds":"downsample",
 
                 #rgroup args
                 "report_title":"report_title",

@@ -47,7 +47,7 @@ def main(sysargs = sys.argv[1:]):
     i_group.add_argument('-n','--max-ambiguity', action="store", type=float,help="Maximum proportion of Ns allowed to attempt analysis. Default: 0.5",dest="max_ambiguity")
     i_group.add_argument('-l','--min-length', action="store", type=int,help="Minimum query length allowed to attempt analysis. Default: 20000",dest="min_length")
     
-    i_group.add_argument('-fm','--from-metadata',nargs='*', dest="from_metadata",help="Generate a query from the metadata file supplied. Define a search that will be used to pull out sequences of interest from the large phylogeny. E.g. -fm adm2=Edinburgh sample_date=2020-03-01:2020-04-01")
+    i_group.add_argument('-fm','--from-metadata',nargs='*', dest="from_metadata",help="Generate a query from the metadata file supplied. Define a search that will be used to pull out sequences of interest from the background data. E.g. -fm country=Ireland sample_date=2020-03-01:2020-04-01")
 
     d_group = parser.add_argument_group('Background data options')
     d_group.add_argument('-d','--datadir', action="store",help="Directory containing the background data files.")
@@ -61,7 +61,7 @@ def main(sysargs = sys.argv[1:]):
     o_group = parser.add_argument_group('Output options')
     o_group.add_argument('-o','--outdir', action="store",help="Output directory. Default: civet-2021-XX-YY")
     o_group.add_argument('-p','--output-prefix',action="store",help="Prefix of output directory & report name: Default: civet",dest="output_prefix")
-    o_group.add_argument('-ds','--datestamp', action="store",help="Append datestamp to directory name when using `-o/--outdir`. Default: `-o/--outdir` without a datestamp.")
+    o_group.add_argument('--datestamp', action="store",help="Append datestamp to directory name when using `-o/--outdir`. Default: `-o/--outdir` without a datestamp.")
     o_group.add_argument('--overwrite', action="store_true",help="Overwrite output directory. Default: append a number if `-o/--outdir` exists.")
     o_group.add_argument('--output-data',action="store_true",help="Output intermediate data files to the output directory",dest="output_data")
     o_group.add_argument('-temp','--tempdir',action="store",help="Specify where you want the temp stuff to go. Default: $TMPDIR")
@@ -72,8 +72,13 @@ def main(sysargs = sys.argv[1:]):
     a_group.add_argument('-te','--trim-end', type=int, action="store",dest="trim_end",help="Genome position to trim and pad from when aligning input sequences. Default: 29674")
     a_group.add_argument("-r","--reference-fasta",action="store",dest="reference_fasta",help="Custom reference genome to map and pad against. Must match the reference the background data was generated from.")
     a_group.add_argument('-ql','--query-limit', type=int, action="store",dest="query_limit",help="Max number of queries. Default: 5000")
-    a_group.add_argument('-cs','--catchment-size', type=int, action="store",dest="catchment_size",help="Max number of sequences in a catchment. Default: 1000")
-    a_group.add_argument('--downsample', type=int, action="store",dest="downsample",help="Indicates how many shared number of SNPs to downsample catchment by. Default: 2. Set to 0 to turn downsampling off.")
+    a_group.add_argument('-cs','--catchment-size', type=int, action="store",dest="catchment_size",help="Max number of sequences in a catchment. Default: 300")
+    a_group.add_argument('-ds','--downsample', nargs='*', action="store",dest="downsample",help="""Configuration of catchment downsampling. Indicate mode (random, enrich or normalise. Default: random).
+If using enrich mode, indicate the factor (Default: 10), and the column name and field to enrich.
+E.g. --downsample mode=enrich factor=10 sample_date=2021-02-04:2021-03-04
+If using normalise mode, indicate the column to normalise across.
+E.g. --downsample mode=normalise country""")
+    
     a_group.add_argument('-mem','--max-memory', type=float, action="store",dest="max_memory",help="Indicates the maximum amount of RAM (in GB) to use for tree building. Default: 8")
 
     r_group = parser.add_argument_group("Report options")
@@ -135,12 +140,12 @@ def main(sysargs = sys.argv[1:]):
     init.misc_args_to_config(args.verbose,args.threads,args.civet_mode,config)
     init.set_up_verbosity(config)
 
-    # Analysis options, including ref and trim and pad
-    analysis_arg_parsing.analysis_group_parsing(args.reference_fasta,args.trim_start,args.trim_end,args.catchment_size,args.downsample,args.query_limit,config)
-
     # Checks background data exists and is the right format.
     # Checks same number of records supplied for csv, fasta and (optional) SNP file. 
     data_arg_parsing.data_group_parsing(args.debug,args.datadir,args.background_csv,args.background_SNPs,args.background_fasta,args.background_tree,args.background_column,args.fasta_column,config)
+
+    # Analysis options, including ref and trim and pad
+    analysis_arg_parsing.analysis_group_parsing(args.reference_fasta,args.trim_start,args.trim_end,args.catchment_size,args.downsample,args.query_limit,config)
 
     # Sort out where the query info is coming from, csv or id string, optional fasta seqs.
     # Checks if they're real files, of the right format and that QC args sensible values.
