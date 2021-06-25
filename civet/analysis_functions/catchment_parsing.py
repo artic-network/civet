@@ -173,18 +173,17 @@ def enrich_weights(column,field,factor,metadata):
 
 def downsample_catchment(catchment_metadata,size,strategy,column,background_column,field=None,factor=None):
 
-    if strategy == "smooth":
-        weights = smooth_weights(column,catchment_metadata)
-    elif strategy == "enrich":
-        weights = enrich_weights(column,field,factor,catchment_metadata)
+    if strategy == "random":
+        downsample = choice(names,size=size,replace=False)
+    else:
+        if strategy == "normalise":
+            weights = smooth_weights(column,catchment_metadata)
+        elif strategy == "enrich":
+            weights = enrich_weights(column,field,factor,catchment_metadata)
 
-    names = [row[background_column] for row in catchment_metadata]
-    
-    downsample = choice(names,size=size,replace=False,p=weights)
+        names = [row[background_column] for row in catchment_metadata]
+        
+        downsample = choice(names,size=size,replace=False,p=weights)
 
     return downsample
 
-def downsample(metadata_file,config):
-    size = config["catchment_size"]
-    strategy = config["downsample_strategy"]
-    
