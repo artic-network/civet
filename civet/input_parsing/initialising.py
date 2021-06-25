@@ -13,7 +13,7 @@ def get_defaults():
     default_dict = {
                     "date": today,# date investigation was opened
                     "authors": "", # List of authors, affiliations and contact details
-                    "query_limit":5000,
+                    "max_queries":5000,
                     # Initialising data variables
                     "num_seqs":0,
                     "datadir": os.getenv('DATADIR'),
@@ -49,7 +49,11 @@ def get_defaults():
 
                     # catchment config
                     "catchment_size":100,
-                    "downsample":1,
+                    "downsample":["mode=random"],
+                    "mode":False,
+                    "factor":False,
+                    "downsample_field":False,
+                    "downsample_column":False,
 
                     "max_memory": 8,
 
@@ -143,7 +147,6 @@ def arg_dict(config):
                 "p":"output_prefix",
                 "output_prefix":"output_prefix",
                 "datestamp":"datestamp",
-                "ds":"datestamp",
                 "overwrite":"overwrite",
                 "output_data":"output-data",
                 "no-temp":"no-temp",
@@ -158,9 +161,12 @@ def arg_dict(config):
                 "cs":"catchment_size",
                 "catchment_size":"catchment_size",
                 "downsample":"downsample",
-                "query_limit":"query_limit",
+                "max_queries":"max_queries",
+                "mq":"max_queries",
                 "max_memory":"max_memory",
                 "mem":"max_memory",
+                "downsample":"downsample",
+                "ds":"downsample",
 
                 #rgroup args
                 "report_title":"report_title",

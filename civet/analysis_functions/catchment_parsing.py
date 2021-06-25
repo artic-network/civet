@@ -2,6 +2,7 @@ import collections
 import csv
 from Bio import SeqIO
 import hashlib
+from numpy.random import choice
 
 import os
 
@@ -134,3 +135,55 @@ def write_catchment_fasta(catchment_dict,fasta,catchment_dir,config):
             for record in SeqIO.parse(config["outgroup_fasta"],"fasta"):
                 records.append(record)
             SeqIO.write(records,fw,"fasta")
+
+
+
+def smooth_weights(column,metadata):
+    counter = collections.Counter()
+    for row in metadata:
+        counter[row[column]]+=1
+    prop = 1/len(counter)
+    weights = {}
+    for item in counter:
+        weights[item]=prop/counter[item]
+    weight_list = []
+    for row in metadata:
+        weight_list.append(weights[row[column]])
+    return weight_list
+
+def enrich_weights(column,field,factor,metadata):
+    cum_weight = 0
+    row_dict = {}
+    for row in metadata:
+        if row[column] == field:
+            cum_weight +=1*factor
+            row_dict[row[column]] = 1*factor
+        else:
+            cum_weight +=1
+            row_dict[row[column]] = 1
+        
+    weights = {}
+    for item in row_dict:
+        weights[item]=row_dict[item]/cum_weight
+    
+    weight_list = []
+    for row in metadata:
+        weight_list.append(weights[row[column]])
+    return weight_list
+
+def downsample_catchment(catchment_metadata,size,strategy,column,background_column,field=None,factor=None):
+
+    if strategy == "random":
+        downsample = choice(names,size=size,replace=False)
+    else:
+        if strategy == "normalise":
+            weights = smooth_weights(column,catchment_metadata)
+        elif strategy == "enrich":
+            weights = enrich_weights(column,field,factor,catchment_metadata)
+
+        names = [row[background_column] for row in catchment_metadata]
+        
+        downsample = choice(names,size=size,replace=False,p=weights)
+
+    return downsample
+
