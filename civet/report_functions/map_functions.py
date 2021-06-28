@@ -344,32 +344,38 @@ def get_acceptable_locations(map_file, config):
     return acceptable_locations
                 
 
-def make_query_map_json(config): 
+def make_query_map_info(config): 
 #colour by is dynamic (or will be)
     lat_col = config["latitude_column"]
     long_col = config["longitude_column"]
     name_col = config["background_column"] 
-
-    overall_dict = defaultdict(dict)
-
+ 
     all_queries = []
 
     with open(config["query_metadata"]) as f:
         data = csv.DictReader(f)
         for l in data:
             per_seq_dict = {}
-            per_seq_dict["sequence_name"] = l[name_col]
-            per_seq_dict["latitude"] = l[lat_col]
-            per_seq_dict["longitude"] = l[long_col]
-            
-            all_queries.append(per_seq_dict)
+            if l[lat_col] != "" and l[long_col] != "":
+                per_seq_dict["sequence_name"] = l[name_col]
+                per_seq_dict["latitude"] = l[lat_col]
+                per_seq_dict["longitude"] = l[long_col]
+                start_centre_lat = l[lat_col]
+                start_centre_long = l[long_col]
+                
+                all_queries.append(per_seq_dict)
 
     json_name = os.path.join(config["tempdir"], 'query_map_data.json')
 
     with open(json_name, 'w') as outfile:
         json.dump(all_queries, outfile)
 
+    config["start_centre_lat"] = float(start_centre_lat)
+    config["start_centre_long"] = float(start_centre_long)
+
     return json_name
+
+
 
 # def populate_background_json(overall, geog_col):
 

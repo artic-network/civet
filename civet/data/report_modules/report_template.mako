@@ -830,7 +830,7 @@
               { "name": "ty", "update": "height / 2" },
               {
                 "name": "scale",
-                "value": 100,
+                "value": 1000,
                 "on": [{
                   "events": {"type": "wheel", "consume": true},
                   "update": "clamp(scale * pow(1.0005, -event.deltaY * pow(16, event.deltaMode)), 100, 3000)"
@@ -882,7 +882,7 @@
                 }]
               },
               {
-                "name": "centerY", "value": 0,
+                "name": "centerY", "value": ${config["start_centre_lat"]},
                 "on": [{
                   "events": {"signal": "delta"},
                   "update": "clamp(angles[1] + delta[1], -60, 60)"
@@ -896,7 +896,7 @@
                 "type": "mercator",
                 "scale": {"signal": "scale"},
                 "rotate": [{"signal": "rotateX"}, 0, 0],
-                "center": [0, {"signal": "centerY"}],
+                "center": [${config["start_centre_long"]}, {"signal": "centerY"}],
                 "translate": [{"signal": "tx"}, {"signal": "ty"}]
               }
             ],

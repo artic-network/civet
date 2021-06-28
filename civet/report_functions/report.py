@@ -142,7 +142,7 @@ def get_timeline(catchment, config):
 
 def get_query_map(config):
 
-    query_json = map_functions.make_query_map_json(config)
+    query_json = map_functions.make_query_map_info(config)
 
     with open(query_json, 'r') as f:
         qmap_data = json.load(f)
