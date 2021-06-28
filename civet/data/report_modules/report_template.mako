@@ -753,6 +753,7 @@
                       "encoding": {
                         "x": 
                         {"field": "date", 
+                        "timeUnit":"monthdate",
                         "type": "temporal", 
                         "axis": {"grid": false}},
                         "y": 
