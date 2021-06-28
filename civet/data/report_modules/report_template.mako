@@ -733,7 +733,7 @@
               
               <div id="${catchment}_timeline"></div>
                 <script>
-                  var vlSpec = {
+                  var vlSpec_time = {
                     "$schema": "https://vega.github.io/schema/vega-lite/v5.json",
                     "width": 600,
                     "height": 400,
@@ -797,7 +797,7 @@
                         }
                       ]
                       };          
-                vegaEmbed('#${catchment}_timeline', vlSpec);
+                vegaEmbed('#${catchment}_timeline', vlSpec_time);
 
               </script>
         %endif
@@ -810,10 +810,170 @@
         
         %endif
         %if '7' in config["report_content"]:
+        <h2>Map of queries</h2> 
+        <%qmap_data = data_for_report["query_map_data"] %>
+        <div id="query_map"></div>
+
+        <script>
+			      var vSpec_qmap = {
+
+            "$schema": "https://vega.github.io/schema/vega/v5.json",
+            "autosize": "none",
+            "background": "white",
+            "padding": 5,
+            "width": 500,
+            "height": 500,
+            "style": "cell",
+
+          "signals": [
+              { "name": "tx", "update": "width / 2" },
+              { "name": "ty", "update": "height / 2" },
+              {
+                "name": "scale",
+                "value": 100,
+                "on": [{
+                  "events": {"type": "wheel", "consume": true},
+                  "update": "clamp(scale * pow(1.0005, -event.deltaY * pow(16, event.deltaMode)), 100, 3000)"
+                }]
+              },
+              {
+                "name": "angles",
+                "value": [0, 0],
+                "on": [{
+                  "events": "mousedown",
+                  "update": "[rotateX, centerY]"
+                }]
+              },
+              {
+                "name": "cloned",
+                "value": null,
+                "on": [{
+                  "events": "mousedown",
+                  "update": "copy('projection')"
+                }]
+              },
+              {
+                "name": "start",
+                "value": null,
+                "on": [{
+                  "events": "mousedown",
+                  "update": "invert(cloned, xy())"
+                }]
+              },
+              {
+                "name": "drag", "value": null,
+                "on": [{
+                  "events": "[mousedown, window:mouseup] > window:mousemove",
+                  "update": "invert(cloned, xy())"
+                }]
+              },
+              {
+                "name": "delta", "value": null,
+                "on": [{
+                  "events": {"signal": "drag"},
+                  "update": "[drag[0] - start[0], start[1] - drag[1]]"
+                }]
+              },
+              {
+                "name": "rotateX", "value": 0,
+                "on": [{
+                  "events": {"signal": "delta"},
+                  "update": "angles[0] + delta[0]"
+                }]
+              },
+              {
+                "name": "centerY", "value": 0,
+                "on": [{
+                  "events": {"signal": "delta"},
+                  "update": "clamp(angles[1] + delta[1], -60, 60)"
+                }]
+              }
+            ],
+
+            "projections": [
+              {
+                "name": "projection",
+                "type": "mercator",
+                "scale": {"signal": "scale"},
+                "rotate": [{"signal": "rotateX"}, 0, 0],
+                "center": [0, {"signal": "centerY"}],
+                "translate": [{"signal": "tx"}, {"signal": "ty"}]
+              }
+            ],
+
+            "data": [
+              {
+                "name": "background_data",
+                "url": "${config['query_map_file']}",
+                "format": {"property": "features"}
+              },
+              {
+                "name": "source_0",
+                "values": ${qmap_data}
+              },
+              {
+                "name": "data_0",
+                "source": "background_data",
+              },
+              {
+                "name": "data_1",
+                "source": "source_0",
+                "transform": [
+                  {
+                    "type": "geopoint",
+                    "projection": "projection",
+                    "fields": ["longitude", "latitude"],
+                    "as": ["layer_1_x", "layer_1_y"]
+                  }
+                ]
+              }
+            ],
+            "marks": [
+              {
+                "name": "layer_0_marks",
+                "type": "shape",
+                "clip": true,
+                "style": ["geoshape"],
+                "from": {"data": "data_0"},
+                "encode": {
+                  "update": {
+                    "fill": {"value": null},
+                    "stroke": {"value": "darkgrey"},
+                    "ariaRoleDescription": {"value": "geoshape"}
+                  }
+                },
+                "transform": [{"type": "geoshape", "projection": "projection"}]
+              },
+              {
+                "name": "layer_1_marks",
+                "type": "symbol",
+                "clip": true,
+                "style": ["circle"],
+                "from": {"data": "data_1"},
+                "encode": {
+                  "update": {
+                    "opacity": {"value": 0.7},
+                    "tooltip": {"signal": "datum"},
+                    "fill": {"value": "#A6626F"},
+                    "ariaRoleDescription": {"value": "circle"},
+                    "description": {
+                      "signal": "\"longitude: \" + (format(datum[\"longitude\"], \"\")) + \"; latitude: \" + (format(datum[\"latitude\"], \"\"))"
+                    },
+                    "x": {"field": "layer_1_x"},
+                    "y": {"field": "layer_1_y"},
+                    "size": {"value": 100},
+                    "shape": {"value": "circle"}
+                  }
+                }
+              }
+            ]
+      }
+
+			vegaEmbed('#query_map', vSpec_qmap);
+
+		  </script>
         
-        here is where the queries plotted will go
-        
-        %endif
+      %endif
 
     <script>
         var acc = document.getElementsByClassName("accordion");

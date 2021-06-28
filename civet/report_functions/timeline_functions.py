@@ -98,7 +98,6 @@ def make_timeline_json(catchment,config):
         data = csv.DictReader(f)
         for l in data:
             if l['catchment'] == catchment:
-                
                 for col in date_cols:
                     new_dict = {}
                     new_dict["sequence_name"] = l[config["report_column"]]
