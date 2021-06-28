@@ -762,8 +762,8 @@
                         "axis": {"title": "Sequence name"}},
                         "color": 
                         {"field": "date_type", 
-                        "type": "nominal",
-                        "legend": null}
+                        "type": "nominal"
+                        }
                       },
                       "layer": [
                         {
