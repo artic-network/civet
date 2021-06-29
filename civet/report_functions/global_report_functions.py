@@ -34,6 +34,10 @@ def sequence_name_parsing(report_column, anonymise, config):
                 if config["report_column"] not in reader.fieldnames:
                     sys.stderr.write(cyan(f"Error: {config['report_column']} not found in input metadata file.\n") + "Please provide a column containing alternate sequence names, or use --anonymise if you would like civet to make them for you.\n")
                     sys.exit(-1)
+                for row in reader:
+                    if '|' in row[config["report_column"]]:
+                        sys.stderr.write(cyan(f"Error: {config['report_column']} contains '|' characters.\n") + "Please remove and try again.\n")
+                        sys.exit(-1)
         else:
             config["report_column"] = config["background_column"]
 
