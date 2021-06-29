@@ -160,6 +160,7 @@ def enrich_weights(column,field,factor,metadata):
     return weight_list
 
 def downsample_catchment(catchment_metadata,size,strategy,column,background_column,field=None,factor=None):
+    names = [row[background_column] for row in catchment_metadata]
     if strategy == "random":
         downsample = choice(names,size=size,replace=False)
     else:
@@ -167,8 +168,6 @@ def downsample_catchment(catchment_metadata,size,strategy,column,background_colu
             weights = smooth_weights(column,catchment_metadata)
         elif strategy == "enrich":
             weights = enrich_weights(column,field,factor,catchment_metadata)
-
-        names = [row[background_column] for row in catchment_metadata]
         
         downsample = choice(names,size=size,replace=False,p=weights)
 
@@ -280,4 +279,4 @@ def test_downsampling(configfile):
         write_catchment_fasta(out_csv,fasta,catchment_dir,config_loaded)
         print(datetime.now())
 
-# test_downsampling("/Users/s1680070/repositories/civet3/civet_2021-06-29/catchments/config.yaml")
+test_downsampling("/Users/s1680070/repositories/civet3/civet_2021-06-29/catchments/config.yaml")
