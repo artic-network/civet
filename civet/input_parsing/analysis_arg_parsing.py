@@ -159,28 +159,50 @@ def parse_downsampling_config(config):
         check_for_background_header(config)
 
 
-def analysis_group_parsing(reference_fasta,trim_start,trim_end,catchment_size,downsample,max_queries,max_memory,config):
-    """
-    parses the data group arguments 
-    --datadir (Default $DATADIR)
-    --background-csv (Default False)
-    --background-fasta (Default False)
-    --data-column (Default central_sample_id)
-    """
+def analysis_group_parsing(reference_fasta,trim_start,trim_end,max_queries,max_memory,config):
 
     # if command line arg, overwrite config value
     misc.add_arg_to_config("trim_start",trim_start,config)
     misc.add_arg_to_config("trim_end",trim_end,config)
     misc.add_file_to_config("reference_fasta",reference_fasta,config)
-    misc.add_arg_to_config("catchment_size",catchment_size,config)
-    misc.add_arg_to_config("downsample",downsample,config)
     misc.add_arg_to_config("max_queries",max_queries,config)
     misc.add_arg_to_config("max_memory",max_memory,config)
-    misc.add_arg_to_config("downsample",downsample,config)
 
     check_coords_within_reference_length(config)
-    check_catchment_configuration(config)
     check_query_limit(config)
     check_max_memory(config)
 
+def check_if_int(key,config):
+    if config[key]:
+        try:
+            config[key] = int(config[key])
+        except:
+            sys.stderr.write(cyan(f"`{key}` must be numerical.\n"))
+            sys.exit(-1)
+
+def distance_configuration(config):
+    if config["distance"]:
+        check_if_int("distance",config)
+        print(green("Overwriting SNP radius for catchment with distance: ") + f"{config['distance']}")
+        config["distance_up"] = config["distance"]
+        config["distance_down"] = config["distance"]
+        config["distance_side"] = config["distance"]
+    else:
+        check_if_int("distance_up",config)
+        check_if_int("distance_down",config)
+        check_if_int("distance_side",config)
+        print(green("SNP distance radius for catchment:") + f"\n\t- Up {config['distance_up']}\n\t- Down {config['distance_down']}\n\t- Side {config['distance_side']}")
+
+def catchment_group_parsing(catchment_size,downsample,distance,distance_up,distance_down,distance_side,config):
+
+    misc.add_arg_to_config("catchment_size",catchment_size,config)
+    misc.add_arg_to_config("downsample",downsample,config)
+
+    misc.add_arg_to_config("distance",distance,config)
+    misc.add_arg_to_config("distance_up",distance_up,config)
+    misc.add_arg_to_config("distance_down",distance_down,config)
+    misc.add_arg_to_config("distance_side",distance_side,config)
+
+    check_catchment_configuration(config)
     parse_downsampling_config(config)
+    distance_configuration(config)
