@@ -36,12 +36,6 @@ def get_defaults():
                     "input_column":"name",
                     "background_column":"sequence_name",
                     "fasta_column":False,
-
-                    # Search parameters
-                    "distance":2,
-                    "up_distance":False,
-                    "down_distance":False,
-                    "collapse_threshold":1,
                     
                     # reference coordinates to pad until and from
                     "trim_start":265,   # where to pad to using datafunk
@@ -49,12 +43,17 @@ def get_defaults():
 
                     # catchment config
                     "catchment_size":100,
+                    "distance":False,
+                    "distance_up":2,
+                    "distance_down":2,
+                    "distance_side":2,
+                    "collapse_threshold":1,
+
                     "downsample":["mode=random"],
                     "mode":False,
                     "factor":False,
                     "downsample_field":False,
                     "downsample_column":False,
-
                     "max_memory": 8,
 
                     # QC standards for input fasta file
@@ -160,13 +159,17 @@ def arg_dict(config):
                 "trim_end":"trim_end",
                 "cs":"catchment_size",
                 "catchment_size":"catchment_size",
-                "downsample":"downsample",
                 "max_queries":"max_queries",
                 "mq":"max_queries",
                 "max_memory":"max_memory",
                 "mem":"max_memory",
                 "downsample":"downsample",
                 "ds":"downsample",
+                "distance":"distance",
+                "dSNP":"distance",
+                "distance_up":"distance_up",
+                "distance_down":"distance_down",
+                "distance_side":"distance_side",
 
                 #rgroup args
                 "report_title":"report_title",

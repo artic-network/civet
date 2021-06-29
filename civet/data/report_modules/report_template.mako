@@ -36,6 +36,13 @@
       
       }
       svg {width: 90%; height: auto;}
+      .row {
+          display: flex;
+        }
+        .column {
+          padding: 10px;
+          flex: 50%;
+        }
       .accordion {
           background-color: #eee;
           color: #444;
@@ -186,6 +193,14 @@
       }
       .slidecontainer {
         width: 100%;
+      }
+      .colourSelect {
+        background: #d3d3d3;
+        border-radius: 5px;
+        padding: 4px;
+        stroke: dimgrey;
+        outline: none;
+        opacity: 0.7;
       }
       .slider {
         -webkit-appearance: none;
@@ -549,8 +564,8 @@
           const margins = {top:50,bottom:60,left:100,right:250}
           const svg = d3.select(document.getElementById(svgID))
           svg.selectAll("g").remove();
-          const newickString = myTreeString;
-          const tree = figtree.Tree.parseNewick(newickString);
+          const nexusString = myTreeString;
+          const tree = figtree.Tree.parseNexus(nexusString)[0];
           const fig = new figtree.FigTree(document.getElementById(svgID),margins, tree)
           fig.layout(figtree.rectangularLayout)
                   .nodes(figtree.circle()
@@ -698,23 +713,38 @@
             %endif
 
         %if '3' in config["report_content"]:
-            
-          <div class="slider-block" id="slider_${data_for_report[catchment]["catchmentID"]}">
-            <p>Expansion</p>
-            <input class="slider" type="range" id="rangeinput_${data_for_report[catchment]["catchmentID"]}"  min="0" max="1" style="width: 100px" step="0.01" value="0" />
-            <span class="highlight"></span>
-          </div> 
-
+            <button class="accordion">Tree options</button>
+            <div class="panel">
+              <div class="row">
+                <div class="column">
+                  <div class="slider-block" id="slider_${data_for_report[catchment]['catchmentID']}">
+                    <p>Expansion</p>
+                    <input class="slider" type="range" id="slider_${data_for_report[catchment]['catchmentID']}"  min="0" max="1" style="width: 100px" step="0.01" value="0" />
+                    <span class="highlight"></span>
+                  </div>
+                </div>
+                <div class="column">
+                  <div>
+                  <p>Colour by</p>
+                  <select class="colourSelect" id="colourBy_${data_for_report[catchment]['catchmentID']}">
+                    <option value="country">Country</option>
+                    <option value="epiweek">Epiweek</option>
+                    <option value="status">Status</option>
+                  </select>
+                  </div>
+                </div>
+              </div>
+            </div>
           <div class="row tree-container">
       
             <div class="col-xs-7">
-              <svg class="tree_svg" width="600" height="400" id="tree_${data_for_report[catchment]["catchmentID"]}"></svg>
+              <svg class="tree_svg" width="600" height="400" id="tree_${data_for_report[catchment]['catchmentID']}"></svg>
             </div>
-            <div class="col-xs-4 sticky" id="tooltip_${data_for_report[catchment]["catchmentID"]}">
+            <div class="col-xs-4 sticky" id="tooltip_${data_for_report[catchment]['catchmentID']}">
             </div> 
             <script type="text/javascript">
               buildTree("tree_${data_for_report[catchment]['catchmentID']}", 
-                        "${data_for_report[catchment]['newick']}",
+                        `${data_for_report[catchment]['nexus']}`,
                         "tooltip_${data_for_report[catchment]['catchmentID']}",
                         '${background_data}',
                         "rangeinput_${data_for_report[catchment]['catchmentID']}");
@@ -986,7 +1016,7 @@
                 if (panel.style.maxHeight) {
                   panel.style.maxHeight = null;
                 } else {
-                  panel.style.maxHeight = panel.scrollHeight + "px";
+                  panel.style.maxHeight = panel.scrollHeight*1.2 + "px";
                 } 
               });
             }

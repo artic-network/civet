@@ -6,6 +6,7 @@ import collections
 import sys
 import yaml
 from Bio import SeqIO
+import csv
 
 """
 To do: 
@@ -21,7 +22,7 @@ account for ones that dont map
 
 -qs - *done* are we building a tree?
     - *done* define analysis/ report content
-    if yes - downsample local catchments (by what trait, enrich for things, protect things)
+    if yes - *done* downsample local catchments (by what trait, enrich for things, protect things)
            - *done* add an outgroup
            - *done* build the tree with outgroup 
            - *done* prune out outgroup
@@ -95,6 +96,12 @@ rule seq_brownie:
         config["query_metadata"] = output.csv
         print(green("Query sequences collapsed from ") + f"{records}" +green(" to ") + f"{len(seq_map)}" + green(" unique sequences."))
 
+
+"""
+check_if_int("distance_up",config)
+        check_if_int("distance_down",config)
+        check_if_int("distance_side",config)
+"""
 rule find_catchment:
     input:
         fasta = rules.seq_brownie.output.fasta
@@ -107,16 +114,16 @@ rule find_catchment:
         -t '{config[background_search_file]}' \
         -o {output.catchments:q} \
         --reference '{config[reference_fasta]}' \
-        --size-total {config[catchment_size]}
+        --dist-push \
+        --dist-up {config[distance_up]} \
+        --dist-down {config[distance_down]} \
+        --dist-side {config[distance_side]} \
         """
 
 rule merge_catchments:
     input:
         catchments = rules.find_catchment.output.catchments,
-        csv = rules.seq_brownie.output.csv,
-        fasta  = rules.seq_brownie.output.fasta
-    params:
-        catchment_dir = os.path.join(config["data_outdir"],"catchments")
+        csv = rules.seq_brownie.output.csv
     output:
         yaml = os.path.join(config["tempdir"],"catchments","config.yaml"),
         merged = os.path.join(config["tempdir"],"catchments","catchments_merged.csv"),
@@ -140,44 +147,29 @@ rule merge_catchments:
         with open(output.yaml, 'w') as fw:
             yaml.dump(config, fw) 
         if config["verbose"]:
-            print(red("\n**** CONFIG ****"))
+            print(red("\n**** CONFIG UPDATED ****"))
             for k in sorted(config):
                 print(green(f" - {k}: ") + f"{config[k]}")
 
-        if '3' in config["report_content"] or '4' in config["report_content"]:
-            #so at the moment, every config option gets passed to the report
-            print(green("Writing catchment fasta files."))
-            catchment_parsing.write_catchment_fasta(catchment_dict,input.fasta,params.catchment_dir,config)
-
 rule downsample_catchments:
     input:
+        fasta  = rules.seq_brownie.output.fasta,
         csv= rules.merge_catchments.output.catchment_csv
+    params:
+        catchment_dir = os.path.join(config["data_outdir"],"catchments")
     output:
-        csv = os.path.join(config["data_outdir"],"catchments","downsampled.csv")
+        csv = os.path.join(config["data_outdir"],"catchments","master_metadata.downsample.csv")
     run:
+        catchment_parsing.downsample_if_building_trees(input.csv, output.csv, config)
         if '3' in config["report_content"]:
-            catchment_dict = collections.defaultdict(list)
-            query_counter = collections.Counter()
-            with open(input.csv,"r") as f:
-                reader = csv.DictReader(f)
-                for row in reader:
-                    if row["query_boolean"] == "True":
-                        query_counter[row["catchment"]]+=1
-                    else:
-                        catchment_dict[row["catchment"]].append(row)
-            
-            for catchment in catchment_dict:
-                target = config["catchment_size"] - query_counter[catchment]
-
-                downsample = downsample_catchment(catchment_dict[catchment],target,config["mode"],config["downsample_column"],config["background_column"],config["downsample_field"],config["factor"])
-                print(downsample)
+            print(green("Writing catchment fasta files."))
+            catchment_parsing.write_catchment_fasta(output.csv,input.fasta,params.catchment_dir,config)
 
 rule tree_building:
     input:
         yaml = rules.merge_catchments.output.yaml,
-        csv = rules.merge_catchments.output.csv,
+        csv = rules.downsample_catchments.output.csv,
         snakefile = os.path.join(workflow.current_basedir,"build_catchment_trees.smk")
-    log: 
     output:
         txt = os.path.join(config["tempdir"],"catchments","tree.txt")
     run:

@@ -72,15 +72,21 @@ def main(sysargs = sys.argv[1:]):
     a_group.add_argument('-te','--trim-end', type=int, action="store",dest="trim_end",help="Genome position to trim and pad from when aligning input sequences. Default: 29674")
     a_group.add_argument("-r","--reference-fasta",action="store",dest="reference_fasta",help="Custom reference genome to map and pad against. Must match the reference the background data was generated from.")
     a_group.add_argument('-mq','--max-queries', type=int, action="store",dest="max_queries",help="Max number of queries. Default: 5000")
-    a_group.add_argument('-cs','--catchment-size', type=int, action="store",dest="catchment_size",help="Max number of sequences in a catchment. Default: 300")
-    a_group.add_argument('-ds','--downsample', nargs='*', action="store",dest="downsample",help="""Configuration of catchment downsampling. Indicate mode (random, enrich or normalise. Default: random).
+    a_group.add_argument('-mem','--max-memory', type=float, action="store",dest="max_memory",help="Indicates the maximum amount of RAM (in GB) to use for tree building. Default: 8")
+
+    c_group = parser.add_argument_group("Catchment group")
+    c_group.add_argument('-dSNP','--distance', type=int, action="store",dest="distance",help="Define radius of catchment by number of SNPs from query. Default: 2")
+    c_group.add_argument('--distance-up', type=int, action="store",dest="distance_up",help="Define radius of catchment by number of SNPs from query. Default: 2")
+    c_group.add_argument('--distance-down', type=int, action="store",dest="distance_down",help="Define radius of catchment by number of SNPs from query. Default: 2")
+    c_group.add_argument('--distance-side', type=int, action="store",dest="distance_side",help="Define radius of catchment by number of SNPs from query. Default: 2")
+
+    c_group.add_argument('-cs','--catchment-size', type=int, action="store",dest="catchment_size",help="Max number of sequences in a catchment. Catchments larger than this will be downsampled prior to tree building. Default: 100")
+    c_group.add_argument('-ds','--downsample', nargs='*', action="store",dest="downsample",help="""Configuration of catchment downsampling. Indicate mode (random, enrich or normalise. Default: random).
 If using enrich mode, indicate the factor (Default: 10), and the column name and field to enrich.
 E.g. --downsample mode=enrich factor=10 sample_date=2021-02-04:2021-03-04
 If using normalise mode, indicate the column to normalise across.
 E.g. --downsample mode=normalise country""")
     
-    a_group.add_argument('-mem','--max-memory', type=float, action="store",dest="max_memory",help="Indicates the maximum amount of RAM (in GB) to use for tree building. Default: 8")
-
     r_group = parser.add_argument_group("Report options")
     r_group.add_argument("-rt", "--report-title", action="store", dest="report_title", help="""Title to display in report. Default: civet report""")
     r_group.add_argument("-rc", "--report-content", nargs='*', action="store", dest="report_content", help="""One or more comma separated numeric strings to define the report content. Default: 1,2,3""")
@@ -145,7 +151,9 @@ E.g. --downsample mode=normalise country""")
     data_arg_parsing.data_group_parsing(args.debug,args.datadir,args.background_csv,args.background_SNPs,args.background_fasta,args.background_tree,args.background_column,args.fasta_column,config)
 
     # Analysis options, including ref and trim and pad
-    analysis_arg_parsing.analysis_group_parsing(args.reference_fasta,args.trim_start,args.trim_end,args.catchment_size,args.downsample,args.max_queries,args.max_memory,config)
+    analysis_arg_parsing.analysis_group_parsing(args.reference_fasta,args.trim_start,args.trim_end,args.max_queries,args.max_memory,config)
+
+    analysis_arg_parsing.catchment_group_parsing(args.catchment_size,args.downsample,args.distance,args.distance_up,args.distance_down,args.distance_side,config)
 
     # Sort out where the query info is coming from, csv or id string, optional fasta seqs.
     # Checks if they're real files, of the right format and that QC args sensible values.

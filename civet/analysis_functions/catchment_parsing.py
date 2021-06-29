@@ -3,8 +3,10 @@ import csv
 from Bio import SeqIO
 import hashlib
 from numpy.random import choice
-
+import sys
+from civet.utils.log_colours import green,cyan,red
 import os
+csv.field_size_limit(sys.maxsize)
 
 def add_to_hash(seq_file,seq_map,hash_map,records):
     for record in SeqIO.parse(seq_file, "fasta"):
@@ -55,8 +57,14 @@ def get_merged_catchments(catchment_file,merged_catchment_file,config):
     
     catchment_count = 0
     for i in lists:
+        
+
         catchment_count +=1
         merged_catchments[f"catchment_{catchment_count}"] = i
+
+        if len(i) == 1:
+            sys.stderr.write(cyan(f'catchment_{catchment_count} has only one item, please increase the SNP distance to get larger catchments.\n'))
+            sys.exit(0)
 
         for query in query_dict:
             if query_dict[query][0] in i:
@@ -69,8 +77,6 @@ def get_merged_catchments(catchment_file,merged_catchment_file,config):
 
             for seq in merged_catchments[catchment]:
                 catchment_dict[seq] = catchment
-
-
 
     return catchment_dict, catchment_key, catchment_count
 
@@ -119,25 +125,6 @@ def add_catchments_to_metadata(background_csv,query_metadata,query_metadata_with
         for record in catchment_records:
             writer.writerow(record)
 
-def write_catchment_fasta(catchment_dict,fasta,catchment_dir,config):
-    seq_dict = collections.defaultdict(list)
-    for record in SeqIO.parse(config["background_fasta"],"fasta"):
-        if record.id in catchment_dict:
-            seq_dict[catchment_dict[record.id]].append(record)
-    
-    for record in SeqIO.parse(fasta,"fasta"):
-        if record.id in catchment_dict:
-            seq_dict[catchment_dict[record.id]].append(record)
-
-    for catchment in seq_dict:
-        with open(os.path.join(catchment_dir,f"{catchment}.fasta"),"w") as fw:
-            records = seq_dict[catchment]
-            for record in SeqIO.parse(config["outgroup_fasta"],"fasta"):
-                records.append(record)
-            SeqIO.write(records,fw,"fasta")
-
-
-
 def smooth_weights(column,metadata):
     counter = collections.Counter()
     for row in metadata:
@@ -172,7 +159,7 @@ def enrich_weights(column,field,factor,metadata):
     return weight_list
 
 def downsample_catchment(catchment_metadata,size,strategy,column,background_column,field=None,factor=None):
-
+    names = [row[background_column] for row in catchment_metadata]
     if strategy == "random":
         downsample = choice(names,size=size,replace=False)
     else:
@@ -180,10 +167,97 @@ def downsample_catchment(catchment_metadata,size,strategy,column,background_colu
             weights = smooth_weights(column,catchment_metadata)
         elif strategy == "enrich":
             weights = enrich_weights(column,field,factor,catchment_metadata)
-
-        names = [row[background_column] for row in catchment_metadata]
         
         downsample = choice(names,size=size,replace=False,p=weights)
 
-    return downsample
+    downsample_metadata = []
+    for row in catchment_metadata:
+        new_row = row
+        if row[background_column] in downsample:
+            new_row["in_tree"] = "True"
+        else:
+            new_row["in_tree"] = "False"
+        downsample_metadata.append(new_row)
+
+    return downsample_metadata
+
+def write_catchment_fasta(catchment_metadata,fasta,catchment_dir,config):
+    catchment_dict = {}
+    with open(catchment_metadata,"r") as f:
+        reader = csv.DictReader(f)
+        for row in reader:
+            if row["in_tree"] == "True":
+                if row["query_boolean"] == "True":
+                    catchment_dict[row["hash"]] = row["catchment"]
+                else:
+                    catchment_dict[row[config["fasta_column"]]] = row["catchment"]
+
+
+    seq_dict = collections.defaultdict(list)
+    for record in SeqIO.parse(config["background_fasta"],"fasta"):
+        if record.id in catchment_dict:
+            seq_dict[catchment_dict[record.id]].append(record)
+    
+    for record in SeqIO.parse(fasta,"fasta"):
+        if record.id in catchment_dict:
+            seq_dict[catchment_dict[record.id]].append(record)
+
+    for catchment in seq_dict:
+        with open(os.path.join(catchment_dir,f"{catchment}.fasta"),"w") as fw:
+            records = seq_dict[catchment]
+            for record in SeqIO.parse(config["outgroup_fasta"],"fasta"):
+                records.append(record)
+            SeqIO.write(records,fw,"fasta")
+
+def downsample_if_building_trees(in_csv, out_csv, config):
+    with open(out_csv,"w") as fw:
+        with open(in_csv,"r") as f:
+            reader = csv.DictReader(f)
+            header = reader.fieldnames
+            # in tree to header
+            header.append("in_tree")
+
+            writer = csv.DictWriter(fw, fieldnames=header,lineterminator='\n')
+            writer.writeheader()
+
+            if not '3' in config["report_content"]:
+                # if no tree, don't need to downsample- just write all true
+                for row in reader:
+                    new_row= row
+                    new_row["in_tree"]="True"
+                    writer.writerow(new_row)
+            else:
+                # if going to build tree, see if need to downsample
+                catchment_dict = collections.defaultdict(list)
+                query_counter = collections.Counter()
+                
+                for row in reader:
+                    
+                    if row["query_boolean"] == "True":
+                        # count how many queries per catchment
+                        query_counter[row["catchment"]]+=1
+                        new_row = row
+                        new_row["in_tree"]="True"
+                        # write out the query metadata to file
+                        writer.writerow(new_row)
+                    else:
+                        # categorise the metadata by catchment
+                        catchment_dict[row["catchment"]].append(row)
+                
+                for catchment in catchment_dict:
+                    # figure out how many seqs to downsample to per catchment
+                    target = config["catchment_size"] - query_counter[catchment]
+                    if len(catchment_dict[catchment]) > target:
+                        # need to downsample
+                        downsample_metadata = downsample_catchment(catchment_dict[catchment],target,config["mode"],config["downsample_column"],config["background_column"],config["downsample_field"],config["factor"])
+                    else:
+                        # dont need to downsample
+                        downsample_metadata = []
+                        for row in catchment_dict[catchment]:
+                            new_row = row
+                            new_row["in_tree"] = "True"
+                            downsample_metadata.append(new_row)
+                    #write out the new info for non queries
+                    for new_row in downsample_metadata:
+                        writer.writerow(new_row)
 

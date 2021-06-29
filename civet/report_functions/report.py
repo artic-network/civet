@@ -158,14 +158,14 @@ def get_snipit(catchments,data_for_report,config):
                 snipit_svg+=f"{l}\n"
         data_for_report[catchment]["snipit_svg"] = snipit_svg
 
-def get_newick(catchments,data_for_report,config):
+def get_nexus(catchments,data_for_report,config):
     for catchment in catchments:
-        newick = ""
+        nexus = ""
         with open(os.path.join(config["data_outdir"],"catchments",f"{catchment}.tree"),"r") as f:
             for l in f:
                 l = l.rstrip("\n")
-                newick+=f"{l}\n"
-        data_for_report[catchment]["newick"] = newick.rstrip("\n")
+                nexus+=f"{l}\n"
+        data_for_report[catchment]["nexus"] = nexus.rstrip("\n")
 
 def get_background_data(metadata,config):
     background_data = {}
@@ -221,10 +221,10 @@ def define_report_content(metadata,catchments,config):
             data_for_report[catchment]["catchment_summary_data"] = ""
 
     if '3' in report_content:
-        get_newick(catchments,data_for_report,config)
+        get_nexus(catchments,data_for_report,config)
     else:
         for catchment in catchments:
-            data_for_report[catchment]["newick"] = ""
+            data_for_report[catchment]["nexus"] = ""
     
     if '4' in report_content:
         get_snipit(catchments,data_for_report,config)
