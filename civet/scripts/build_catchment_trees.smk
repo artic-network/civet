@@ -6,7 +6,7 @@ catchments = [f"catchment_{i}" for i in range(1,config["catchment_count"]+1)]
 rule all:
     input:
         # expand(os.path.join(config["data_outdir"],"catchments","{catchment}.tree"), catchment=catchments),
-        expand(os.path.join(config["data_outdir"],"catchments","{catchment}.newick"), catchment=catchments)
+        expand(os.path.join(config["data_outdir"],"catchments","{catchment}_tree.newick"), catchment=catchments)
 
 rule iqtree:
     input:
@@ -87,7 +87,7 @@ rule clump:
         prefix = "{catchment}",
         outdir = os.path.join(config["data_outdir"],"catchments")
     output:
-        tree = os.path.join(config["data_outdir"],"catchments","{catchment}.newick")
+        tree = os.path.join(config["data_outdir"],"catchments","{catchment}_tree.newick")
     shell:
         """
         jclusterfunk sample -c {config[background_column]} \

@@ -163,7 +163,7 @@ rule downsample_catchments:
         catchment_parsing.downsample_if_building_trees(input.csv, output.csv, config)
         if '3' in config["report_content"]:
             print(green("Writing catchment fasta files."))
-            write_catchment_fasta(catchment_metadata,input.fasta,params,catchment_dir,config)
+            catchment_parsing.write_catchment_fasta(output.csv,input.fasta,params.catchment_dir,config)
 
 rule tree_building:
     input:

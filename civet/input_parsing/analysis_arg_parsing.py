@@ -112,11 +112,11 @@ def parse_downsampling_config(config):
         sys.exit(-1)
     
     elif mode=="random":
-        config["mode"]=="random"
+        config["mode"]="random"
         print(green("Downsampling strategy: ") + "random")
 
     elif mode=="normalise":
-        config["mode"]=="normalise"
+        config["mode"]="normalise"
 
         if not col:
             sys.stderr.write(cyan(f"`--ds/--downsample` mode `normalise` specified, but no column indicated. Please indicate which metadata column with `--downsample mode=normalise <column>`, where <column> is the column you want to normalise by.\n"))
@@ -128,7 +128,7 @@ def parse_downsampling_config(config):
         print(green("Normalising over: ") + col)
 
     elif mode=="enrich":
-        config["mode"]=="enrich"
+        config["mode"]="enrich"
         if factor:
             try:
                 factor = float(factor)
