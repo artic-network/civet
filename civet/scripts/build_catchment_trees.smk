@@ -1,10 +1,12 @@
 import os
+import csv
 
 catchments = [f"catchment_{i}" for i in range(1,config["catchment_count"]+1)]
 
 rule all:
     input:
-        expand(os.path.join(config["data_outdir"],"catchments","{catchment}.tree"), catchment=catchments)
+        # expand(os.path.join(config["data_outdir"],"catchments","{catchment}.tree"), catchment=catchments),
+        expand(os.path.join(config["data_outdir"],"catchments","{catchment}.newick"), catchment=catchments)
 
 rule iqtree:
     input:
@@ -22,7 +24,7 @@ rule iqtree:
                 -redo \
                 --fast \
                 -o outgroup \
-                -mem {config[max_memory]} \
+                -mem {config[max_memory]}G \
                 -quiet &> {log:q}
         """
 
@@ -59,18 +61,23 @@ rule expand_hash:
 
 rule prune_hashed_seqs:
     input:
-        tree = rules.prune_outgroup.output.tree,
-        prune = config["csv"]
+        tree = rules.expand_hash.output.tree,
     output:
-        tree = os.path.join(config["tempdir"],"catchments","{catchment}.hash_pruned.tree")
+        tree = os.path.join(config["tempdir"],"catchments","{catchment}.tree")
     run:
-        """
-        jclusterfunk prune  -i {input.tree:q} \
-                            -o {output.tree:q} \
-                            -m {input.prune:q} \
-                            -c hash \
-                            -f newick 
-        """
+        hash_strings = []
+        with open(config["csv"],"r") as f:
+            reader = csv.DictReader(f)
+            for row in reader:
+                hash_strings.append(row["hash"])
+        hash_strings = ' '.join(list(set(hash_strings)))
+
+        shell("jclusterfunk prune  -i {input.tree:q} "
+                           " -o {output.tree:q} "
+                           f" -t '{hash_strings}' "
+                           " --ignore-missing "
+                           " -c hash "
+                           " -f newick ")
 
 rule clump:
     input:
@@ -80,15 +87,16 @@ rule clump:
         prefix = "{catchment}",
         outdir = os.path.join(config["data_outdir"],"catchments")
     output:
-        tree = os.path.join(config["data_outdir"],"catchments","{catchment}.tree")
+        tree = os.path.join(config["data_outdir"],"catchments","{catchment}.newick")
     shell:
         """
         jclusterfunk sample -c {config[background_column]} \
                             --clump-by {config[location_column]} \
-                            --min-clumped 5 \
+                            --min-clumped 4 \
                              -i {input.tree:q} \
                              -m {input.csv:q} \
                              -p {params.prefix:q} \
                              -f newick \
-                             -o {params.outdir:q}
+                             -o {params.outdir:q} \
+                            --ignore-missing
         """
