@@ -6,7 +6,7 @@ catchments = [f"catchment_{i}" for i in range(1,config["catchment_count"]+1)]
 rule all:
     input:
         # expand(os.path.join(config["data_outdir"],"catchments","{catchment}.tree"), catchment=catchments),
-        expand(os.path.join(config["data_outdir"],"catchments","{catchment}_tree.newick"), catchment=catchments)
+        expand(os.path.join(config["data_outdir"],"catchments","{catchment}.tree"), catchment=catchments)
 
 rule iqtree:
     input:
@@ -63,7 +63,7 @@ rule prune_hashed_seqs:
     input:
         tree = rules.expand_hash.output.tree,
     output:
-        tree = os.path.join(config["tempdir"],"catchments","{catchment}.tree")
+        tree = os.path.join(config["tempdir"],"catchments","{catchment}.hashed_prune.tree")
     run:
         hash_strings = []
         with open(config["csv"],"r") as f:
@@ -87,16 +87,33 @@ rule clump:
         prefix = "{catchment}",
         outdir = os.path.join(config["data_outdir"],"catchments")
     output:
-        tree = os.path.join(config["data_outdir"],"catchments","{catchment}_tree.newick")
+        tree = os.path.join(config["data_outdir"],"catchments","{catchment}_tree.nexus")
     shell:
         """
         jclusterfunk sample -c {config[background_column]} \
-                            --clump-by {config[location_column]} \
+                            --collapse-by {config[location_column]} \
                             --min-clumped 4 \
                              -i {input.tree:q} \
                              -m {input.csv:q} \
                              -p {params.prefix:q} \
-                             -f newick \
+                             -f nexus \
                              -o {params.outdir:q} \
+                            --ignore-missing
+        """
+
+rule annotate:
+    input:
+        tree = rules.clump.output.tree,
+        csv = config["csv"]
+    output:
+        tree = os.path.join(config["data_outdir"],"catchments","{catchment}.tree")
+    shell:
+        """
+        jclusterfunk annotate -c {config[report_column]} \
+                             -i {input.tree:q} \
+                             -m {input.csv:q} \
+                             --tip-attributes query_boolean \
+                             -f nexus \
+                             -o {output.tree:q} \
                             --ignore-missing
         """
