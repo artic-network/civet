@@ -194,6 +194,14 @@
       .slidecontainer {
         width: 100%;
       }
+      .colourSelect {
+        background: #d3d3d3;
+        border-radius: 5px;
+        padding: 4px;
+        stroke: dimgrey;
+        outline: none;
+        opacity: 0.7;
+      }
       .slider {
         -webkit-appearance: none;
         width: 100%;
@@ -718,7 +726,7 @@
                 <div class="column">
                   <div>
                   <p>Colour by</p>
-                  <select id="colourBy_${data_for_report[catchment]['catchmentID']}">
+                  <select class="colourSelect" id="colourBy_${data_for_report[catchment]['catchmentID']}">
                     <option value="country">Country</option>
                     <option value="epiweek">Epiweek</option>
                     <option value="status">Status</option>
