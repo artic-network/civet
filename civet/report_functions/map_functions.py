@@ -92,6 +92,57 @@ def parse_query_map(query_map_file, longitude_column, latitude_column, found_in_
             
             config["query_map_file"] = map_file
 
+def make_query_map_info(config): 
+#colour by is dynamic (or will be)
+    lat_col = config["latitude_column"]
+    long_col = config["longitude_column"]
+    name_col = config["background_column"] 
+ 
+    all_queries = []
+
+    with open(config["query_metadata"]) as f:
+        data = csv.DictReader(f)
+        for l in data:
+            per_seq_dict = {}
+            if l[lat_col] != "" and l[long_col] != "":
+                per_seq_dict["sequence_name"] = l[name_col]
+                per_seq_dict["latitude"] = l[lat_col]
+                per_seq_dict["longitude"] = l[long_col]
+                start_centre_lat = l[lat_col]
+                start_centre_long = l[long_col]
+                
+                all_queries.append(per_seq_dict)
+
+    json_name = os.path.join(config["tempdir"], 'query_map_data.json')
+
+    with open(json_name, 'w') as outfile:
+        json.dump(all_queries, outfile)
+
+    config["start_centre_lat"] = float(start_centre_lat)
+    config["start_centre_long"] = float(start_centre_long)
+
+    return json_name
+
+
+def parse_background_map_options(background_map_file, background_map_date_restriction, background_map_column, found_in_background_metadata, config):
+
+    """
+    parses map group arguments:
+    --background-map-date-restriction (default=no restriction)
+    --background-map-location (default=$LOCATION, then adm1 if present, and aggregated_adm2 if civet_mode == CLIMB)
+    # --map-location (default=$LOCATION, then adm1 if present, and aggregated_adm2 if civet_mode==CLIMB)
+    """
+
+    parse_background_map_column(background_map_column, config)
+    parse_date_restriction(background_map_date_restriction, config)    
+
+    if config["background_map_file"]:
+        parse_map_file(background_map_file,"background_map_file", config)
+    
+    map_file = qc_map_file_for_background_map(config)
+
+    config["background_map_file"] = map_file
+
 def parse_background_map_column(background_map_column, config):
 
     misc.add_arg_to_config("background_map_column", background_map_column, config)  
@@ -171,25 +222,6 @@ def parse_date_restriction(background_map_date_restriction, config):
         config["start_date"] = dt.datetime(2019,12,1).date()
         config["end_date"] = dt.datetime.today().date()
 
-def parse_background_map_options(background_map_file, background_map_date_restriction, background_map_column, found_in_background_metadata, config):
-
-    """
-    parses map group arguments:
-    --background-map-date-restriction (default=no restriction)
-    --background-map-location (default=$LOCATION, then adm1 if present, and aggregated_adm2 if civet_mode == CLIMB)
-    # --map-location (default=$LOCATION, then adm1 if present, and aggregated_adm2 if civet_mode==CLIMB)
-    """
-
-    parse_background_map_column(background_map_column, config)
-    parse_date_restriction(background_map_date_restriction, config)    
-
-    if config["background_map_file"]:
-        parse_map_file(background_map_file,"background_map_file", config)
-    
-    map_file = qc_map_file_for_background_map(config)
-
-    config["background_map_file"] = map_file
-
 
 def do_date_window(date_window, found_in_background_metadata, config):
 
@@ -238,7 +270,6 @@ def parse_map_file_arg(map_file_arg, arg_name, config):
         if not config[arg_name].endswith(".json") and not config[arg_name].endswith(".geojson"):
             sys.stderr.write(csyan(f"{config[arg_name]} must be in the format of a geojson. You can use mapshaper.org to convert between file formats.\n"))
             sys.exit(-1)
- 
 
     return map_file
 
@@ -269,7 +300,7 @@ def qc_map_file_for_background_map(config):
             map_file = "https://viralverity.github.io/civet_geo/uk_map.json"
             uk_cols = ["suggested_adm2_grouping", "adm1", "adm2"]
             if config["background_map_column"] not in uk_cols:
-                sys.stderr.write(cyan(f'{config["background_map_column"]} not in default UK map file.\n Options allowed are "suggested_adm2_grouping","adm1" or "adm2".  Alternatively, please provide a custom geojson containing this column to use it using --map-file\n'))
+                sys.stderr.write(cyan(f'{config["background_map_column"]} not in default UK map file.\n Options allowed are "suggested_adm2_grouping","adm1" or "adm2".  Alternatively, please provide a custom geojson containing this column to use it using --background-map-file\n'))
                 sys.exit(-1)
         else: 
             if config["background_map_column"] == "adm1":
@@ -277,7 +308,7 @@ def qc_map_file_for_background_map(config):
             elif config["background_map_column"] == "country" or config["background_map_column"] == "adm0" or config["background_map_column"] == "ISO":
                 map_file = "https://viralverity.github.io/civet_geo/adm0_global.json"
             else:
-                sys.stderr.write(cyan(f"{config['background_map_column']} not in default map file. Please use country/adm0 or adm1 or provide your own shape file using --map-file\n"))
+                sys.stderr.write(cyan(f"{config['background_map_column']} not in default map file. Please use country/adm0 or adm1 or provide your own shape file using --background-map-file\n"))
                 sys.exit(-1)
 
         acceptable_locations = get_acceptable_locations(map_file, config)
@@ -305,7 +336,7 @@ def qc_map_file_for_background_map(config):
                 else:
                     check_set.add(location_value)
 
-    for loc in check_set: #this needs to be different if it's in the UK, only check UK locations
+    for loc in check_set: 
         if loc not in acceptable_locations:
             if config["background_map_file"]:
                 sys.stderr.write(f'{loc} is an invalid location. Please ensure that the metadata values match up to the map file you have provided.\n')
@@ -344,85 +375,57 @@ def get_acceptable_locations(map_file, config):
     return acceptable_locations
                 
 
-def make_query_map_info(config): 
-#colour by is dynamic (or will be)
-    lat_col = config["latitude_column"]
-    long_col = config["longitude_column"]
-    name_col = config["background_column"] 
- 
-    all_queries = []
+def get_top_ten(counter):
 
-    with open(config["query_metadata"]) as f:
+    summary = {}
+    top = counter.most_common(10)
+    total = sum(list(counter.values()))
+    print(top)
+    remainder = total
+    for lin in top:
+        pcent = int(100*(lin[1]/total))
+        if pcent >= 1:
+            remainder-= lin[1]
+            summary[lin[0]] = lin[1]
+    summary["other"] = remainder
+    
+    return summary
+
+def make_background_map_json(config): 
+
+    lin_col = "lineage" #does this need to be flexible?
+    geog_col = config["background_map_column"]
+    wanted_list = config["locations_wanted"]
+
+    locations_all_lins = defaultdict(list)
+    with open(config["background_csv"]) as f: 
         data = csv.DictReader(f)
-        for l in data:
-            per_seq_dict = {}
-            if l[lat_col] != "" and l[long_col] != "":
-                per_seq_dict["sequence_name"] = l[name_col]
-                per_seq_dict["latitude"] = l[lat_col]
-                per_seq_dict["longitude"] = l[long_col]
-                start_centre_lat = l[lat_col]
-                start_centre_long = l[long_col]
-                
-                all_queries.append(per_seq_dict)
-
-    json_name = os.path.join(config["tempdir"], 'query_map_data.json')
-
-    with open(json_name, 'w') as outfile:
-        json.dump(all_queries, outfile)
-
-    config["start_centre_lat"] = float(start_centre_lat)
-    config["start_centre_long"] = float(start_centre_long)
-
-    return json_name
-
-
-
-# def populate_background_json(overall, geog_col):
-
-#     lookup = l[geog_col].upper().replace(" ","_")
-#     if lookup not in overall:
-#         overall[lookup] = []
+        for l in tqdm.tqdm(data):
+            if l[geog_col] != "" and l[lin_col] != "":
+                if l[geog_col] in wanted_list:
+                    date = dt.datetime.strptime(l['sample_date'], '%Y-%m-%d').date()
+                    if date >= config["start_date"] and date <= config["end_date"]:
+                        locations_all_lins[l[geog_col]].append(l[lin_col])
+                        
+                        
+    top_ten = defaultdict(dict)
     
-#     dict_list = overall[lookup]
-    
-#     lin_found = False
-#     for comp_dict in dict_list:
-#         if comp_dict['lineage'] == l[lin_col]:
-#             comp_dict['count'] += 1
-#             lin_found = True
-#             break
-#     if not lin_found:
-#         new_dict = {}
-#         new_dict['lineage'] = l[lin_col]
-#         new_dict['count'] = 1
-#         dict_list.append(new_dict)
+    for location, lin_list in locations_all_lins.items():
+        counts = Counter(lin_list)
+        top_ten[location] = get_top_ten(counts)
         
-#     overall[lookup] = dict_list
+       
+    overall = []
+    
+    for location,lineage_counts in location_top_tens.items():
+        for lin, count in lineage_counts.items():
+            new_dict = {}
+            new_dict["location"] = location
+            new_dict["lineage"] = lin
+            new_dict["count"] = count
+            
+            overall.append(new_dict)
+    
+    with open('background_map_data.json', 'w') as outfile:
+        json.dump(overall, outfile)
 
-#     return overall
-
-# def make_background_map_json(config): 
-
-#     lin_col = "lineage" #does this need to be flexible?
-#     name_col = config["background_column"]
-#     geog_col = config["background_map_column"]
-
-#     start_date, end_date = restrict_by_date(config)
-
-#     overall = defaultdict(list)
-#     with open(config["background_csv"]) as f: #this takes about 30 seconds for 1m sequences in Jupyter with no date restrictions. It may require optimisation at some point
-#         data = csv.DictReader(f)
-#         if config["background_map_date_window"] or config["background_map_date_start"] or config["background_map_date_end"]:
-#             for l in data:
-#                 if l[geog_col] != "" and l[lin_col] != "":
-#                     date = dt.datetime.strptime(l['sample_date'], '%Y-%m-%d').date()
-#                     if date >= start_date and date <= end_date:
-#                         overall = populate_background_json(overall, geog_col)
-#         else:
-#             for l in data:
-#                 if l[geog_col] != "" and l[lin_col] != "":
-#                     overall = populate_background_json(overall, geog_col)
-                
-
-#     with open(os.path.join(config["tempdir"],'background_map_data.json'), 'w') as outfile:
-#         json.dump(overall, outfile)
