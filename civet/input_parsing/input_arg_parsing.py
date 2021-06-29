@@ -28,7 +28,7 @@ def ids_qc(ids):
 
 def check_for_protected_col_names(header):
     for field in header:
-        if field in ["hash","catchment","query_boolean","qc_status","source","seq_N_content","seq_length"]:
+        if field in ["hash","catchment","query_boolean","qc_status","source","seq_N_content","seq_length","in_tree"]:
             sys.stderr.write(cyan(f"Error: `{field}` is a protected column name used internally in civet, please rename this column.\n"))
             sys.exit(-1)
 
