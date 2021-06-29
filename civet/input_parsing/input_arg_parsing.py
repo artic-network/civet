@@ -313,7 +313,7 @@ def from_metadata_parsing(config):
             #     new_row[colum] = row[config["background_column"]]
             # query_rows.append(new_row)
 
-        if count > int(config["query_limit"]):
+        if count > int(config["max_queries"]):
             sys.stderr.write(cyan(f'Error: -fm/--from-metadata found {count} matches, which exceeds the maximum query count.\n') + f"Either provide a more specific query with `-fm/--from-metadata` or overwrite the default maximum query limit with `-ql/--query-limit`.\n")
             sys.exit(-1)
         elif count == 0:
