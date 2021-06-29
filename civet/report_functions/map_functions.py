@@ -1,4 +1,5 @@
 import sys
+import os
 import csv
 from civet.utils.log_colours import green,cyan
 from civet.utils import misc
@@ -85,12 +86,11 @@ def parse_query_map(query_map_file, longitude_column, latitude_column, found_in_
             parse_map_file_arg(query_map_file, "query_map_file", config) #don't need to QC this because it doesn't matter what's in it if only the query map
         else:
             if config["civet_mode"] == "CLIMB":
-                map_file = "uk_map.json"
+                map_file = "https://viralverity.github.io/civet_geo/uk_map.json"
             else:
-                map_file = "adm0_global.json"
+                map_file = "https://viralverity.github.io/civet_geo/adm0_global.json"
             
             config["query_map_file"] = map_file
-
 
 def parse_background_map_column(background_map_column, config):
 
@@ -266,16 +266,16 @@ def qc_map_file_for_background_map(config):
     
     else:
         if config["civet_mode"] == "CLIMB":
-            map_file = "uk_map.json"
+            map_file = "https://viralverity.github.io/civet_geo/uk_map.json"
             uk_cols = ["suggested_adm2_grouping", "adm1", "adm2"]
             if config["background_map_column"] not in uk_cols:
                 sys.stderr.write(cyan(f'{config["background_map_column"]} not in default UK map file.\n Options allowed are "suggested_adm2_grouping","adm1" or "adm2".  Alternatively, please provide a custom geojson containing this column to use it using --map-file\n'))
                 sys.exit(-1)
         else: 
             if config["background_map_column"] == "adm1":
-                map_file = "adm1_global.json"
+                map_file = "https://viralverity.github.io/civet_geo/adm1_global.json"
             elif config["background_map_column"] == "country" or config["background_map_column"] == "adm0" or config["background_map_column"] == "ISO":
-                map_file = "adm0_global.json"
+                map_file = "https://viralverity.github.io/civet_geo/adm0_global.json"
             else:
                 sys.stderr.write(cyan(f"{config['background_map_column']} not in default map file. Please use country/adm0 or adm1 or provide your own shape file using --map-file\n"))
                 sys.exit(-1)
@@ -344,33 +344,38 @@ def get_acceptable_locations(map_file, config):
     return acceptable_locations
                 
 
-# def make_query_map_json(config, metadata): 
-# #plan would be to just plot this on the world map JSON that you can then zoom in on wherever required
-# #Then have interactivity for colour-by. Easy enough to add in here to the JSON and QC checks if that's too complicated to have interactive
-# #Possible extension: can generate long/lat 
+def make_query_map_info(config): 
+#colour by is dynamic (or will be)
+    lat_col = config["latitude_column"]
+    long_col = config["longitude_column"]
+    name_col = config["background_column"] 
+ 
+    all_queries = []
 
-#     lat_col = config["latitude_column"]
-#     long_col = config["longitude_column"]
-#     name_col = config["background_column"] 
-
-#     overall_dict = defaultdict(dict)
-
-#     all_queries = {}
-#     all_queries['queries'] = []
-
-#     with open(metadata) as f:
-#         data = csv.DictReader(f)
-#         for l in data:
-#             if l["query_boolean"] == "TRUE":
-#                 per_seq_dict = {}
-#                 per_seq_dict["sequence_name"] = l[name_col]
-#                 per_seq_dict["latitude"] = l[lat_col]
-#                 per_seq_dict["longitude"] = l[long_col]
+    with open(config["query_metadata"]) as f:
+        data = csv.DictReader(f)
+        for l in data:
+            per_seq_dict = {}
+            if l[lat_col] != "" and l[long_col] != "":
+                per_seq_dict["sequence_name"] = l[name_col]
+                per_seq_dict["latitude"] = l[lat_col]
+                per_seq_dict["longitude"] = l[long_col]
+                start_centre_lat = l[lat_col]
+                start_centre_long = l[long_col]
                 
-#                 all_queries['queries'].append(per_seq_dict)
+                all_queries.append(per_seq_dict)
 
-#     with open(os.path.join(config["tempdir"],'query_map_data.json'), 'w') as outfile:
-#         json.dump(all_queries, outfile)
+    json_name = os.path.join(config["tempdir"], 'query_map_data.json')
+
+    with open(json_name, 'w') as outfile:
+        json.dump(all_queries, outfile)
+
+    config["start_centre_lat"] = float(start_centre_lat)
+    config["start_centre_long"] = float(start_centre_long)
+
+    return json_name
+
+
 
 # def populate_background_json(overall, geog_col):
 

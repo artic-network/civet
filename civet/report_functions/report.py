@@ -7,6 +7,7 @@ from datetime import date
 import collections
 from civet import __version__
 from civet.report_functions import timeline_functions
+from civet.report_functions import map_functions
 
 from mako.template import Template
 from mako.runtime import Context
@@ -139,6 +140,15 @@ def get_timeline(catchment, config):
     
     return timeline_data
 
+def get_query_map(config):
+
+    query_json = map_functions.make_query_map_info(config)
+
+    with open(query_json, 'r') as f:
+        qmap_data = json.load(f)
+
+    return qmap_data
+
 def get_snipit(catchments,data_for_report,config):
     for catchment in catchments:
         snipit_svg = ""
@@ -230,14 +240,14 @@ def define_report_content(metadata,catchments,config):
             data_for_report[catchment]["timeline_data"] = ""
     
     if '6' in report_content:
-        data_for_report[catchment]["map_background"] = ""
+        data_for_report[catchment]["background_map_data"] = ""
     else:
-        data_for_report[catchment]["map_background"] = ""
+        data_for_report[catchment]["background_map_data"] = ""
     
     if '7' in report_content:
-        data_for_report[catchment]["map_queries"] = ""
+        data_for_report["query_map_data"] = get_query_map(config)
     else:
-        data_for_report[catchment]["map_queries"] = ""
+        data_for_report["query_map_data"] = ""
     
     return data_for_report
 
