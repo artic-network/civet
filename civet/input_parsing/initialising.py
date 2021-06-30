@@ -77,9 +77,10 @@ def get_defaults():
                     "longitude_column":"longitude",
                     "query_map_file":False, #if UK, will find the geojson containing aggregated_adm2s, if global will find adm0 or adm1 geojson
                     "background_map_file": False, #Same as above
+                    "centroid_file":False #will select appropriate centroid file for provided jsons as default
                     "background_map_column":False, #default is location_column
                     # "map_column":False,
-                    "background_map_date_restriction":False, #default is no restriction, will do background from 2019-11-01 to today
+                    "background_map_date_range":False, #default is no restriction, will do background from 2019-11-01 to today
 
                     # misc defaults
                     "civet_mode": os.getenv('CIVETMODE'),
@@ -197,14 +198,18 @@ def arg_dict(config):
                 "latitude_column":"latitude_column",
                 "long":"longitude_column",
                 "longitude_column":"longitude_column",
-                "background_map_date_restriction":"background_map_date_restriction",
-                "daterestric":"background_map_date_restriction",
-                "background_map_column":"background_map_column",
-                "mapcol":"background_map_column",
-                "background_map_file":"background_map_file",
                 "query_map_file":"query_map_file",
-                # "maploc":"map_location",
-                # "map_location":"map_location",
+                "qmfile":"query_map_file",
+                
+                "background_map_date_range":"background_map_date_range",
+                "bmrange":"background_map_date_range",
+                "background_map_column":"background_map_column",
+                "bmcol":"background_map_column",
+                "background_map_file":"background_map_file",
+                "background_map_location":"background_map_location",
+                "bmloc":"background_map_location",
+                "bmfile":"background_map_file",
+                "centroid_file":"centroid_file",
 
                 # misc group args
                 "civet_mode":"civet_mode",

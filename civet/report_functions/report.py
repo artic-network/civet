@@ -142,12 +142,21 @@ def get_timeline(catchment, config):
 
 def get_query_map(config):
 
-    query_json = map_functions.make_query_map_info(config)
+    query_json = map_functions.make_query_map_json(config)
 
     with open(query_json, 'r') as f:
         qmap_data = json.load(f)
 
     return qmap_data
+
+def get_background_map(config):
+
+    background_json = map_functions.make_background_map_json(config)
+
+    with open(background_json, 'r') as f:
+        bmap_data = json.load(f)
+    
+    return bmap_data
 
 def get_snipit(catchments,data_for_report,config):
     for catchment in catchments:
@@ -240,9 +249,13 @@ def define_report_content(metadata,catchments,config):
             data_for_report[catchment]["timeline_data"] = ""
     
     if '6' in report_content:
-        data_for_report[catchment]["background_map_data"] = ""
+        data_for_report["background_map_data"] = get_background_map(config)
+        data_for_report["centroids"] = map_functions.get_centroids(config)
+        data_for_report["locations_wanted"] = config["locations_wanted"]
     else:
-        data_for_report[catchment]["background_map_data"] = ""
+        data_for_report["background_map_data"] = ""
+        data_for_report["centroids"] = ""
+        data_for_report["locations_wanted"]  = ""
     
     if '7' in report_content:
         data_for_report["query_map_data"] = get_query_map(config)

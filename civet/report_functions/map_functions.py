@@ -8,6 +8,26 @@ from collections import defaultdict
 import json
 import datetime as dt
 
+
+def parse_map_file_arg(map_file_arg, arg_name, config): 
+#this needs to change because it has to be an online resource
+    """
+    parses map group arguments:
+    --background-map-file (default=UK_map if civet_mode == CLIMB, relevant level of world_map (ie adm0 or adm1) if not)
+    --query-map-file
+    """
+    misc.add_arg_to_config(arg_name, map_file_arg, config)
+
+    if config[arg_name]:
+        if not os.path.exists(config[arg_name]):
+            sys.stderr.write(cyan(f"{config[arg_name]} cannot be found. Please check the path and try again.\n"))
+            sys.exit(-1)
+        if not config[arg_name].endswith(".json") and not config[arg_name].endswith(".geojson"):
+            sys.stderr.write(csyan(f"{config[arg_name]} must be in the format of a geojson. You can use mapshaper.org to convert between file formats.\n"))
+            sys.exit(-1)
+
+    return map_file
+
 def parse_query_map(query_map_file, longitude_column, latitude_column, found_in_background_data, config):
     """
     parses map group arguments:
@@ -92,56 +112,24 @@ def parse_query_map(query_map_file, longitude_column, latitude_column, found_in_
             
             config["query_map_file"] = map_file
 
-def make_query_map_info(config): 
-#colour by is dynamic (or will be)
-    lat_col = config["latitude_column"]
-    long_col = config["longitude_column"]
-    name_col = config["background_column"] 
- 
-    all_queries = []
 
-    with open(config["query_metadata"]) as f:
-        data = csv.DictReader(f)
-        for l in data:
-            per_seq_dict = {}
-            if l[lat_col] != "" and l[long_col] != "":
-                per_seq_dict["sequence_name"] = l[name_col]
-                per_seq_dict["latitude"] = l[lat_col]
-                per_seq_dict["longitude"] = l[long_col]
-                start_centre_lat = l[lat_col]
-                start_centre_long = l[long_col]
-                
-                all_queries.append(per_seq_dict)
-
-    json_name = os.path.join(config["tempdir"], 'query_map_data.json')
-
-    with open(json_name, 'w') as outfile:
-        json.dump(all_queries, outfile)
-
-    config["start_centre_lat"] = float(start_centre_lat)
-    config["start_centre_long"] = float(start_centre_long)
-
-    return json_name
-
-
-def parse_background_map_options(background_map_file, background_map_date_restriction, background_map_column, found_in_background_metadata, config):
+def parse_background_map_options(background_map_file, background_map_date_range, background_map_column, background_map_location, found_in_background_metadata, config):
 
     """
     parses map group arguments:
-    --background-map-date-restriction (default=no restriction)
+    --background-map-date-range (default=no restriction)
     --background-map-location (default=$LOCATION, then adm1 if present, and aggregated_adm2 if civet_mode == CLIMB)
-    # --map-location (default=$LOCATION, then adm1 if present, and aggregated_adm2 if civet_mode==CLIMB)
     """
 
     parse_background_map_column(background_map_column, config)
-    parse_date_restriction(background_map_date_restriction, config)    
-
-    if config["background_map_file"]:
-        parse_map_file(background_map_file,"background_map_file", config)
+    parse_date_range(background_map_date_range, config)    
     
-    map_file = qc_map_file_for_background_map(config)
+    map_file, acceptable_locations = qc_map_file_for_background_map(background_map_file, config)
 
     config["background_map_file"] = map_file
+
+    qc_centroid_file(config, acceptable_locations)
+    qc_background_map_location(background_map_location,acceptable_locations, config)
 
 def parse_background_map_column(background_map_column, config):
 
@@ -167,23 +155,23 @@ def parse_background_map_column(background_map_column, config):
             sys.stderr.write(cyan(f"Error: no field found in background metadata file for mapping background diversity. Please provide one with -mapcol/--background-map-column.\n") + "\n")
             sys.exit(-1)
 
-def parse_date_restriction(background_map_date_restriction, config):
+def parse_date_range(background_map_date_range, config):
 
-    misc.add_arg_to_config("background_map_date_restriction", background_map_date_restriction, config)   
+    misc.add_arg_to_config("background_map_date_range", background_map_date_range, config)   
 
-    if config["background_map_date_restriction"]:
+    if config["background_map_date_range"]:
         if config["background_date_column"]:
-            date_range = config["background_map_date_restriction"].split(":")
+            date_range = config["background_map_date_range"].split(":")
             if len(date_range) > 1:
                 try:
                     start_date = dt.datetime.strptime(date_range[0], "%Y-%m-%d").date()
                 except:
-                    sys.stderr.write(cyan("Start date in background map date restriction in incorrect format. Please use YYYY-MM-DD"))
+                    sys.stderr.write(cyan("Start date in background map date range in incorrect format. Please use YYYY-MM-DD"))
                     sys.exit(-1)
                 try:
                     end_date = dt.datetime.strptime(date_range[1], "%Y-%m-%d").date()
                 except:
-                    sys.stderr.write(cyan("End date in background map date restriction in incorrect format. Please use YYYY-MM-DD"))
+                    sys.stderr.write(cyan("End date in background map date range in incorrect format. Please use YYYY-MM-DD"))
                     sys.exit(-1)
 
             else:
@@ -254,33 +242,19 @@ def do_date_window(date_window, found_in_background_metadata, config):
 
     return start_date, end_date
 
-def parse_map_file_arg(map_file_arg, arg_name, config): 
-
-    """
-    parses map group arguments:
-    --background-map-file (default=UK_map if civet_mode == CLIMB, relevant level of world_map (ie adm0 or adm1) if not)
-    --query-map-file
-    """
-    misc.add_arg_to_config(arg_name, map_file_arg, config)
-
-    if config[arg_name]:
-        if not os.path.exists(config[arg_name]):
-            sys.stderr.write(cyan(f"{config[arg_name]} cannot be found. Please check the path and try again.\n"))
-            sys.exit(-1)
-        if not config[arg_name].endswith(".json") and not config[arg_name].endswith(".geojson"):
-            sys.stderr.write(csyan(f"{config[arg_name]} must be in the format of a geojson. You can use mapshaper.org to convert between file formats.\n"))
-            sys.exit(-1)
-
-    return map_file
-
 def qc_map_file_for_background_map(config):
 
     if config["verbose"]:
         print("Beginning checks for background map")
 
-    #winding in the geojsons
+    parse_map_file_arg(background_map_file, "background_map_file", config)
+    misc.add_arg_to_config("centroid_file", centroid_file, config)  #needs to happen here so we can check it exists if they have provided a custom map file
 
     if config["background_map_file"]:
+
+        if not config["centroid_file"]:
+            sys.stderr.write(cyan("You have provided a custom background map file, but not a csv containing centroids matching this file. Please provide a csv with the column headers location, longitude and latitude.\n"))
+            sys.exit(-1)
 
         with open(config["background_map_file"]) as f:
             geodata = json.load(f)
@@ -339,19 +313,19 @@ def qc_map_file_for_background_map(config):
     for loc in check_set: 
         if loc not in acceptable_locations:
             if config["background_map_file"]:
-                sys.stderr.write(f'{loc} is an invalid location. Please ensure that the metadata values match up to the map file you have provided.\n')
+                sys.stderr.write(cyan(f'{loc} is an invalid location. Please ensure that the metadata values match up to the map file you have provided.\n'))
                 sys.exit(-1)
             elif config['civet_mode'] == "CLIMB":
-                sys.stderr.write(f'{loc} is an invalid location. If you are using the default background metadata, please contact Verity Hill (verity.hill@ed.ac.uk)\n')
+                sys.stderr.write(cyan(f'{loc} is an invalid location. If you are using the default background metadata, please contact Verity Hill (verity.hill@ed.ac.uk)\n'))
                 sys.exit(-1)
             else:
-                sys.stderr.write(f"{loc} isn't in our map file. Please see a list of currently accepted locations here: [link]. If you can't find your country's data on that list, please open a github issue on the civet repo and we will get to it as soon as we can.\n")
+                sys.stderr.write(cyan(f"{loc} isn't in our map file. Please see a list of currently accepted locations here: [link]. If you can't find your country's data on that list, please open a github issue on the civet repo and we will get to it as soon as we can.\n"))
                 sys.exit(-1)
 
     if config["verbose"]:
         print("Finished with checks for background map")
 
-    return map_file
+    return map_file, acceptable_locations
 
 def get_acceptable_locations(map_file, config):
 
@@ -373,6 +347,100 @@ def get_acceptable_locations(map_file, config):
                 acceptable_locations.add(row[config["background_map_column"]])
     
     return acceptable_locations
+
+
+def qc_centroid_file(config, acceptable_locations):
+
+    if config["centroid_file"]:
+        if not os.path.exists(config["centroid_file"]):
+            sys.stderr.write(f"Cannot find centroid file at {config['centroid_file']}.\n")
+            sys.exit(-1)
+        required_headers = ["location", "latitude", "longitude"]
+        with open(config["centroid_file"]) as f:
+            reader = csv.DictReader(f)
+            fieldnames = reader.fieldnames
+            for i in required_headers:
+                if i not in fieldnames:
+                    sys.stderr.write(f"{i} is not in the provided centroid file. Please provide a centroid file as a csv with the headers location, latitude and longitude.\n")
+                    sys.exit(-1)
+            centroid_locs = []
+            for row in reader:
+                centroid_locs.append(row["location"])
+
+        for loc in acceptable_locations:
+            if loc not in centroid_locs:
+                sys.stderr.write(cyan(f"{loc} is in the provided geojson but does not have a centroid associated with it. Please add this centroid to the centroid file.\n"))
+                sys.exit(-1)
+
+    else:
+        if "adm0" in config["background_map_file"]:
+            centroid_file = config["adm0_centroids"]
+        elif "adm1" in config["background_map_file"]:
+            centroid_file = config["adm1_centroids"]
+        else:
+            centroid_file = config["uk_centroids"]
+        
+        config["centroid_file"] = centroid_file
+
+
+def qc_background_map_location(background_map_location,acceptable_locations, config):
+
+    misc.add_arg_to_config(background_map_location, "background_map_location", config)
+
+    if config["background_map_location"]:
+        lst = config["background_map_location"].split(",")
+        for i in lst:
+            if i not in acceptable_locations:
+                sys.stderr.write(cyan(f'{i} not found in list of acceptable locations to map background lineage diversity.\n'))
+                sys.exit(-1)
+        config["background_map_location"] = lst
+    else:
+        config["background_map_location"] = acceptable_locations
+
+### Functions called in report.py ###
+
+def make_query_map_json(config): 
+#colour by is dynamic (or will be)
+    lat_col = config["latitude_column"]
+    long_col = config["longitude_column"]
+    name_col = config["background_column"] 
+ 
+    all_queries = []
+
+    with open(config["query_metadata"]) as f:
+        data = csv.DictReader(f)
+        for l in data:
+            per_seq_dict = {}
+            if l[lat_col] != "" and l[long_col] != "":
+                per_seq_dict["sequence_name"] = l[name_col]
+                per_seq_dict["latitude"] = l[lat_col]
+                per_seq_dict["longitude"] = l[long_col]
+                start_centre_lat = l[lat_col]
+                start_centre_long = l[long_col]
+                
+                all_queries.append(per_seq_dict)
+
+    json_name = os.path.join(config["tempdir"], 'query_map_data.json')
+
+    with open(json_name, 'w') as outfile:
+        json.dump(all_queries, outfile)
+
+    config["start_centre_lat"] = float(start_centre_lat)
+    config["start_centre_long"] = float(start_centre_long)
+
+    return json_name
+
+
+def get_centroids(config):
+
+    centroid_dict = {}
+    with open(config["centroid_file"]) as f:
+        reader = csv.DictReader(f)
+        for row in reader:
+            centroid_dict[row["location"]] = (row["longitude"], row["latitude"])
+
+    return centroid_dict
+
                 
 
 def get_top_ten(counter):
@@ -395,7 +463,7 @@ def make_background_map_json(config):
 
     lin_col = "lineage" #does this need to be flexible?
     geog_col = config["background_map_column"]
-    wanted_list = config["locations_wanted"]
+    wanted_list = set(config["background_map_location"])
 
     locations_all_lins = defaultdict(list)
     with open(config["background_csv"]) as f: 
