@@ -86,10 +86,10 @@ def parse_optional_report_content(table_content, timeline_dates, timeline_colour
         timeline_functions.make_timeline_colours(timeline_colours,config)
 
 
-def parse_map_options(background_map_date_restriction, background_map_column, background_map_file, query_map_file, longitude_column, latitude_column, found_in_background_data, config):
+def parse_map_options(background_map_date_range, background_map_column, background_map_file, centroid_file, background_map_location, query_map_file, longitude_column, latitude_column, found_in_background_data, config):
 
     if 6 in config['report_content']:
-        map_functions.parse_background_map_options(background_map_file, background_map_date_restriction, background_map_column, found_in_background_data, config)
+        map_functions.parse_background_map_options(background_map_file, centroid_file, background_map_date_range, background_map_column, background_map_location, found_in_background_data, config)
 
     if 7 in config['report_content']:
         map_functions.parse_query_map(query_map_file,longitude_column, latitude_column, found_in_background_data, config)

@@ -46,7 +46,16 @@ def check_install(config):
         "filename":"global_acceptable_values.tsv"},
         {"key":"uk_acceptable_values",
         "directory":"data/map_data",
-        "filename":"UK_acceptable_values.tsv"}
+        "filename":"UK_acceptable_values.tsv"},
+        {"key":"adm0_centroids",
+        "directory":"data/map_data",
+        "filename":"adm0_centroids.csv"},
+        {"key":"adm1_centroids",
+        "directory":"data/map_data",
+        "filename":"adm1_centroids.csv"},
+        {"key":"uk_centroids",
+        "directory":"data/map_data",
+        "filename":"uk_centroids.csv"}
     ]
     for resource in resources:
         package_data_check(resource["filename"],resource["directory"],resource["key"],config)
