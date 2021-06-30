@@ -176,7 +176,7 @@ E.g. --downsample mode=normalise country""")
     # stored under config = { "report_content": [1, 2, 3, 4], "reports": [1,2,3,4],[1,2]}
     name_dict = report_arg_parsing.parse_global_report_options(args.report_content, args.report_column, args.anonymise, args.date_column, args.background_date_column, args.location_column, config)
     report_arg_parsing.parse_optional_report_content(args.table_content, args.timeline_dates, args.timeline_colours, config)
-    report_arg_parsing.parse_map_options(args.background_map_date_restriction, args.background_map_column, args.background_map_file, args.query_map_file, args.longitude_column, args.latitude_column, found_in_background_data, config)
+    report_arg_parsing.parse_map_options(args.background_map_date_range, args.background_map_column, args.background_map_file, args.centroid_file, args.background_map_location, args.query_map_file, args.longitude_column, args.latitude_column, found_in_background_data, config)
 
     # sets up the output dir, temp dir, and data output desination
     directory_setup.output_group_parsing(args.outdir, args.output_prefix, args.overwrite,args.datestamp, args.output_data, args.tempdir, args.no_temp, config)
@@ -188,6 +188,7 @@ E.g. --downsample mode=normalise country""")
         global_report_functions.write_anon_names_to_file(config, name_dict)
 
     # ready to run? either verbose snakemake or quiet mode
+    print(config.keys())
 
     if config["verbose"]:
         print(red("\n**** CONFIG ****"))

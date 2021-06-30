@@ -5,11 +5,13 @@ from civet.utils.log_colours import green,cyan
 from civet.utils import misc
 import datetime as dt
 from collections import defaultdict
+from collections import Counter
 import json
 import datetime as dt
 import requests
+import time
 
-def parse_map_file_arg(map_file_arg, arg_name, config): 
+def parse_map_file_arg(arg_name, map_file_arg, config): 
     """
     parses map group arguments:
     --background-map-file (default=UK_map if civet_mode == CLIMB, relevant level of world_map (ie adm0 or adm1) if not)
@@ -18,7 +20,11 @@ def parse_map_file_arg(map_file_arg, arg_name, config):
     misc.add_arg_to_config(arg_name, map_file_arg, config)
 
     if config[arg_name]:
-        response = requests.get(config[arg_name])
+        try:
+            response = requests.get(config[arg_name])
+        except requests.exceptions.MissingSchema:
+            print(cyan(f"{config[arg_name]} is an invalid URL.\n"))
+            sys.exit(-1)
         if response.status_code != 200:
             sys.stderr.write(cyan(f"Unable to access online resource for {config[arg_name]}. Please ensure you are connected to the internet and the path is valid.\n"))
             sys.exit(-1)
@@ -108,7 +114,7 @@ def parse_query_map(query_map_file, longitude_column, latitude_column, found_in_
             sys.exit(-1)
 
         if config["query_map_file"]:
-            parse_map_file_arg(query_map_file, "query_map_file", config) #don't need to QC this because it doesn't matter what's in it if only the query map
+            parse_map_file_arg("query_map_file",query_map_file, config) #don't need to QC this because it doesn't matter what's in it if only the query map
         else:
             if config["civet_mode"] == "CLIMB":
                 map_file = "https://viralverity.github.io/civet_geo/uk_map.json"
@@ -118,7 +124,7 @@ def parse_query_map(query_map_file, longitude_column, latitude_column, found_in_
             config["query_map_file"] = map_file
 
 
-def parse_background_map_options(background_map_file, background_map_date_range, background_map_column, background_map_location, found_in_background_metadata, config):
+def parse_background_map_options(background_map_file, centroid_file, background_map_date_range, background_map_column, background_map_location, found_in_background_metadata, config):
 
     """
     parses map group arguments:
@@ -129,12 +135,13 @@ def parse_background_map_options(background_map_file, background_map_date_range,
     parse_background_map_column(background_map_column, config)
     parse_date_range(background_map_date_range, config)    
     
-    map_file, acceptable_locations = qc_map_file_for_background_map(background_map_file, config)
+    qc_map_file_for_background_map(background_map_file, centroid_file, config)
+    check_locations(background_map_location, config)
 
-    config["background_map_file"] = map_file
+    qc_centroid_file(config)
 
-    qc_centroid_file(config, acceptable_locations)
-    qc_background_map_location(background_map_location,acceptable_locations, config)
+    print(config["background_map_file"])
+    print(config["centroid_file"])
 
 def parse_background_map_column(background_map_column, config):
 
@@ -154,10 +161,12 @@ def parse_background_map_column(background_map_column, config):
             config["background_map_column"] = "suggested_adm2_grouping"
         elif "adm1" in background_fieldnames:
             config["background_map_column"] = "adm1"
+        elif "adm0" in background_fieldnames:
+            config["background_map_column"] = "adm0"
         elif config["location_column"]:
             config["background_map_column"] = config["location_column"]
         else:
-            sys.stderr.write(cyan(f"Error: no field found in background metadata file for mapping background diversity. Please provide one with -mapcol/--background-map-column.\n") + "\n")
+            sys.stderr.write(cyan(f"Error: no field found in background metadata file for mapping background diversity. Please provide one with -bmcol/--background-map-column.\n") + "\n")
             sys.exit(-1)
 
 def parse_date_range(background_map_date_range, config):
@@ -247,12 +256,12 @@ def do_date_window(date_window, found_in_background_metadata, config):
 
     return start_date, end_date
 
-def qc_map_file_for_background_map(config):
+def qc_map_file_for_background_map(background_map_file, centroid_file,config):
 
     if config["verbose"]:
         print("Beginning checks for background map")
 
-    map_string = parse_map_file_arg(background_map_file, "background_map_file", config)
+    map_string = parse_map_file_arg("background_map_file", background_map_file, config)
     misc.add_arg_to_config("centroid_file", centroid_file, config)  #needs to happen here so we can check it exists if they have provided a custom map file
 
     if config["background_map_file"]:
@@ -283,53 +292,71 @@ def qc_map_file_for_background_map(config):
         else: 
             if config["background_map_column"] == "adm1":
                 map_file = "https://viralverity.github.io/civet_geo/adm1_global.json"
-            elif config["background_map_column"] == "country" or config["background_map_column"] == "adm0" or config["background_map_column"] == "ISO":
+            elif config["background_map_column"] == "country" or config["background_map_column"] == "adm0":
                 map_file = "https://viralverity.github.io/civet_geo/adm0_global.json"
             else:
                 sys.stderr.write(cyan(f"{config['background_map_column']} not in default map file. Please use country/adm0 or adm1 or provide your own shape file using --background-map-file\n"))
                 sys.exit(-1)
 
-        acceptable_locations = get_acceptable_locations(map_file, config)
 
-    check_set = set()
-    with open(config["background_csv"]) as f:
-        data = csv.DictReader(f)
-        for line in data:
-            location_value = line[config["background_map_column"]]
-            if config["background_date_column"]:
-                date_value = line[config["background_date_column"]]
-                if date_value != "":
-                    date = dt.datetime.strptime(date_value, "%Y-%m-%d").date()
-                    if date >= config["start_date"] and date <= config["end_date"]:
-                        if location_value != "":
-                            if config["civet_mode"] == "CLIMB": 
-                                if line["country"] == "UK" and location_value != "Needs_manual_curation" and "|" not in location_value:
+    config["background_map_file"] = map_file
+
+
+def check_locations(background_map_location,config):
+
+    acceptable_locations = get_acceptable_locations(config["background_map_file"], config)
+
+    misc.add_arg_to_config("background_map_location", background_map_location,config)
+
+    if config["background_map_location"]:
+        lst = config["background_map_location"].split(",")
+        for i in lst:
+            if i not in acceptable_locations:
+                sys.stderr.write(cyan(f'{i} not found in list of acceptable locations to map background lineage diversity.\n Please ensure it is spelt correctly and contains underscores instead of spaces. If you still cannot find it and are using default map files, please file a github issue and we will get to it as soon as we can.\n'))
+                sys.exit(-1)
+        config["background_map_location"] = lst
+
+    else:
+        print(green(f"No locations specified for background lineages, so all valid locations in {config['background_map_column']} will be summarised."))
+        check_set = set()
+        with open(config["background_csv"]) as f:
+            data = csv.DictReader(f)
+            for line in data:
+                location_value = line[config["background_map_column"]]
+                if config["background_date_column"]:
+                    date_value = line[config["background_date_column"]]
+                    if date_value != "":
+                        date = dt.datetime.strptime(date_value, "%Y-%m-%d").date()
+                        if date >= config["start_date"] and date <= config["end_date"]:
+                            if location_value != "":
+                                if config["civet_mode"] == "CLIMB": 
+                                    if line["country"] == "UK" and location_value != "Needs_manual_curation" and "|" not in location_value:
+                                        check_set.add(location_value)
+                                else:
                                     check_set.add(location_value)
-                            else:
-                                check_set.add(location_value)
-            else:
-                if config["civet_mode"] == "CLIMB": 
-                    if line["country"] == "UK" and location_value != "Needs_manual_curation" and "|" not in location_value:
-                        check_set.add(location_value)
                 else:
-                    check_set.add(location_value)
+                    if config["civet_mode"] == "CLIMB": 
+                        if line["country"] == "UK" and location_value != "Needs_manual_curation" and "|" not in location_value:
+                            check_set.add(location_value)
+                    else:
+                        check_set.add(location_value)
 
-    for loc in check_set: 
-        if loc not in acceptable_locations:
-            if config["background_map_file"]:
-                sys.stderr.write(cyan(f'{loc} is an invalid location. Please ensure that the metadata values match up to the map file you have provided.\n'))
-                sys.exit(-1)
-            elif config['civet_mode'] == "CLIMB":
-                sys.stderr.write(cyan(f'{loc} is an invalid location. If you are using the default background metadata, please contact Verity Hill (verity.hill@ed.ac.uk)\n'))
-                sys.exit(-1)
-            else:
-                sys.stderr.write(cyan(f"{loc} isn't in our map file. Please see a list of currently accepted locations here: [link]. If you can't find your country's data on that list, please open a github issue on the civet repo and we will get to it as soon as we can.\n"))
-                sys.exit(-1)
+        missing_locations = set()
+        for loc in check_set: 
+            if loc not in acceptable_locations:
+                sys.stderr.write(cyan(f'WARNING: {loc} is an invalid location. It will be left out of mapping background diversity\n'))
+                missing_locations.add(loc)
+
+        final_list = []
+        for i in check_set:   
+            if i not in missing_locations:
+                final_list.append(i)
+        
+        config["background_map_location"] = final_list
+
 
     if config["verbose"]:
         print("Finished with checks for background map")
-
-    return map_file, acceptable_locations
 
 def get_acceptable_locations(map_file, config):
 
@@ -353,7 +380,7 @@ def get_acceptable_locations(map_file, config):
     return acceptable_locations
 
 
-def qc_centroid_file(config, acceptable_locations):
+def qc_centroid_file(config):
 
     if config["centroid_file"]:
         if not os.path.exists(config["centroid_file"]):
@@ -371,9 +398,9 @@ def qc_centroid_file(config, acceptable_locations):
             for row in reader:
                 centroid_locs.append(row["location"])
 
-        for loc in acceptable_locations:
+        for loc in config["background_map_location"]:
             if loc not in centroid_locs:
-                sys.stderr.write(cyan(f"{loc} is in the provided geojson but does not have a centroid associated with it. Please add this centroid to the centroid file.\n"))
+                sys.stderr.write(cyan(f"{loc}  does not have a centroid associated with it for mapping background diversity. Please add this centroid to the centroid file.\n"))
                 sys.exit(-1)
 
     else:
@@ -387,19 +414,6 @@ def qc_centroid_file(config, acceptable_locations):
         config["centroid_file"] = centroid_file
 
 
-def qc_background_map_location(background_map_location,acceptable_locations, config):
-
-    misc.add_arg_to_config(background_map_location, "background_map_location", config)
-
-    if config["background_map_location"]:
-        lst = config["background_map_location"].split(",")
-        for i in lst:
-            if i not in acceptable_locations:
-                sys.stderr.write(cyan(f'{i} not found in list of acceptable locations to map background lineage diversity.\n'))
-                sys.exit(-1)
-        config["background_map_location"] = lst
-    else:
-        config["background_map_location"] = acceptable_locations
 
 ### Functions called in report.py ###
 
@@ -452,7 +466,6 @@ def get_top_ten(counter):
     summary = {}
     top = counter.most_common(10)
     total = sum(list(counter.values()))
-    print(top)
     remainder = total
     for lin in top:
         pcent = int(100*(lin[1]/total))
@@ -468,28 +481,28 @@ def make_background_map_json(config):
     lin_col = "lineage" #does this need to be flexible?
     geog_col = config["background_map_column"]
     wanted_list = set(config["background_map_location"])
+    start_date = dt.datetime.strptime(config["start_date"],'%Y-%m-%d').date()
+    end_date = dt.datetime.strptime(config["end_date"],'%Y-%m-%d').date()
 
     locations_all_lins = defaultdict(list)
     with open(config["background_csv"]) as f: 
-        data = csv.DictReader(f)
-        for l in tqdm.tqdm(data):
-            if l[geog_col] != "" and l[lin_col] != "":
-                if l[geog_col] in wanted_list:
-                    date = dt.datetime.strptime(l['sample_date'], '%Y-%m-%d').date()
-                    if date >= config["start_date"] and date <= config["end_date"]:
-                        locations_all_lins[l[geog_col]].append(l[lin_col])
-                        
-                        
+        reader = csv.DictReader(f)
+        for row in reader:
+            if row[geog_col] != "" and row[lin_col] != "":
+                if row[geog_col] in wanted_list:
+                    date = dt.datetime.strptime(row['sample_date'], '%Y-%m-%d').date()
+                    if date >= start_date and date <= end_date:
+                        locations_all_lins[row[geog_col]].append(row[lin_col])
+                          
     top_ten = defaultdict(dict)
     
     for location, lin_list in locations_all_lins.items():
         counts = Counter(lin_list)
         top_ten[location] = get_top_ten(counts)
-        
        
     overall = []
     
-    for location,lineage_counts in location_top_tens.items():
+    for location,lineage_counts in top_ten.items():
         for lin, count in lineage_counts.items():
             new_dict = {}
             new_dict["location"] = location
@@ -497,7 +510,11 @@ def make_background_map_json(config):
             new_dict["count"] = count
             
             overall.append(new_dict)
+
+    json_name = os.path.join(config["tempdir"], 'background_map_data.json')
     
-    with open('background_map_data.json', 'w') as outfile:
+    with open(json_name, 'w') as outfile:
         json.dump(overall, outfile)
+
+    return json_name
 

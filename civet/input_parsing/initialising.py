@@ -77,8 +77,9 @@ def get_defaults():
                     "longitude_column":"longitude",
                     "query_map_file":False, #if UK, will find the geojson containing aggregated_adm2s, if global will find adm0 or adm1 geojson
                     "background_map_file": False, #Same as above
-                    "centroid_file":False #will select appropriate centroid file for provided jsons as default
+                    "centroid_file":False, #will select appropriate centroid file for provided jsons as default
                     "background_map_column":False, #default is location_column
+                    "background_map_location":False, #default is all valid locations in background metadata
                     # "map_column":False,
                     "background_map_date_range":False, #default is no restriction, will do background from 2019-11-01 to today
 

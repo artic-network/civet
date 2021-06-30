@@ -836,10 +836,341 @@
         
         
         %if '6' in config["report_content"]:
+        <div id="background_map"></div>
+        <script>
+        var vSpec_bmap = {
+          "$schema": "https://vega.github.io/schema/vega/v5.json",
+          "autosize": "none",
+          "background": "white",
+          "padding": 5,
+          "width": 500,
+          "height": 500,
+          "style": "cell",
+          "signals": [
+                      { "name": "tx", "update": "width / 2" },
+                      { "name": "ty", "update": "height / 2" },
+                      {
+                        "name": "scale",
+                        "value": 150,
+                        "on": [{
+                          "events": {"type": "wheel", "consume": true},
+                          "update": "clamp(scale * pow(1.0005, -event.deltaY * pow(16, event.deltaMode)), 100, 4000)"
+                        }]
+                      },
+                      {
+                        "name": "angles",
+                        "value": [0, 0],
+                        "on": [{
+                          "events": "mousedown",
+                          "update": "[rotateX, centerY]"
+                        }]
+                      },
+                      {
+                        "name": "cloned",
+                        "value": null,
+                        "on": [{
+                          "events": "mousedown",
+                          "update": "copy('projection')"
+                        }]
+                      },
+                      {
+                        "name": "start",
+                        "value": null,
+                        "on": [{
+                          "events": "mousedown",
+                          "update": "invert(cloned, xy())"
+                        }]
+                      },
+                      {
+                        "name": "drag", "value": null,
+                        "on": [{
+                          "events": "[mousedown, window:mouseup] > window:mousemove",
+                          "update": "invert(cloned, xy())"
+                        }]
+                      },
+                      {
+                        "name": "delta", "value": null,
+                        "on": [{
+                          "events": {"signal": "drag"},
+                          "update": "[drag[0] - start[0], start[1] - drag[1]]"
+                        }]
+                      },
+                      {
+                        "name": "rotateX", "value": 0,
+                        "on": [{
+                          "events": {"signal": "delta"},
+                          "update": "angles[0] + delta[0]"
+                        }]
+                      },
+                      {
+                        "name": "centerY", "value": 0,
+                        "on": [{
+                          "events": {"signal": "delta"},
+                          "update": "clamp(angles[1] + delta[1], -60, 60)"
+                        }]
+                      },{
+                        "name": "arc_zoom",
+                        "value": 15,
+                        "on": [{
+                          "events": {"type": "wheel", "consume": true},
+                          "update": "clamp(arc_zoom * pow(1.0005, -event.deltaY * pow(16, event.deltaMode)), 1, 150)"
+                        }]
+                        },{
+                        "name":"inner_arc_zoom",
+                        "value":"5",
+                        "on": [{
+                          "events": {"type": "wheel", "consume": true},
+                          "update": "clamp(inner_arc_zoom * pow(1.0005, -event.deltaY * pow(16, event.deltaMode)), 1, 30)"}
+                    ]},{
+                      "name":"text_zoom",
+                      "value":"3",
+                      "on": [{
+                          "events": {"type": "wheel", "consume": true},
+                          "update": "clamp(text_zoom * pow(1.0005, -event.deltaY * pow(16, event.deltaMode)), 1, 15)"}]
+                    }
+                    ],
+          "data": [
+            {
+              "name": "background_data",
+              "url": "${config['background_map_file']}",
+              "format": {"property": "features", "type": "json"}
+            },
+            {
+              "name": "lineage_data",
+              "values": 
+                ${data_for_report["background_map_data"]}
+              ,
+              "format": {}
+            }
+%for location in data_for_report['locations_wanted']:
+<%latitude = data_for_report["centroids"][location][1]
+longitude = data_for_report["centroids"][location][0]%>
+            ,{
+              "name": "data_${location}_1",
+              "source": "lineage_data",
+              "transform": [{"type": "filter", "expr": "datum.location == '${location}'"}]
+            },
+            {
+              "name": "data_${location}_2",
+              "source": "data_${location}_1",
+              "transform": [
+                {
+                  "type": "geopoint",
+                  "projection": "projection",
+                  "fields": [{"expr": "${longitude}"}, {"expr": "${latitude}"}],
+                  "as": ["layer_${location}_layer_0_x", "layer_${location}_layer_0_y"]
+                },
+                {
+                  "type": "stack",
+                  "groupby": [],
+                  "field": "count",
+                  "sort": {"field": ["count"], "order": ["ascending"]},
+                  "as": ["count_start", "count_end"],
+                  "offset": "zero"
+                },
+                {
+                  "type": "filter",
+                  "expr": "isValid(datum[\"count\"]) && isFinite(+datum[\"count\"])"
+                }
+              ]
+            },
+            {
+              "name": "data_${location}_3",
+              "source": "data_${location}_1",
+              "transform": [
+                {
+                  "type": "geopoint",
+                  "projection": "projection",
+                  "fields": [{"expr": "${longitude}"}, {"expr": "${latitude}"}],
+                  "as": ["layer_${location}_layer_1_x", "layer_${location}_layer_1_y"]
+                },
+                {
+                  "type": "stack",
+                  "groupby": [],
+                  "field": "count",
+                  "sort": {
+                    "field": ["count", "count"],
+                    "order": ["ascending", "ascending"]
+                  },
+                  "as": ["count_start", "count_end"],
+                  "offset": "zero"
+                },
+                {
+                  "type": "filter",
+                  "expr": "isValid(datum[\"count\"]) && isFinite(+datum[\"count\"])"
+                }
+              ]
+            }
+%endfor
+          ],
+
+          "projections": [
+            {
+            "name": "projection",
+            "type": "mercator",
+            "scale": {"signal": "scale"},
+            "rotate": [{"signal": "rotateX"}, 0, 0],
+            "center": [0, {"signal": "centerY"}],
+            "translate": [{"signal": "tx"}, {"signal": "ty"}]
+            }
+          ],
+          "marks": [
+            {
+              "name": "layer_0_marks",
+              "type": "shape",
+              "clip": true,
+              "style": ["geoshape"],
+              "from": {"data": "background_data"},
+              "encode": {
+                "update": {
+                  "fill": {"value": null},
+                  "stroke": {"value": "black"},
+                  "ariaRoleDescription": {"value": "geoshape"}
+                }
+              },
+              "transform": [{"type": "geoshape", "projection": "projection"}]
+            }
+%for location in data_for_report['locations_wanted']:
+            ,{
+              "name": "layer_${location}_layer_0_marks",
+              "type": "arc",
+              "clip": true,
+              "style": ["arc"],
+              "from": {"data": "data_${location}_2"},
+              "encode": {
+                "update": {
+                  "stroke": {"value": "white"},
+                  "strokeWidth": {"value": 0.5},
+                  "padAngle": {"value": 0.05},
+                  "innerRadius": {"signal": "inner_arc_zoom"},
+                  "tooltip": {
+                    "signal": "{\"count\": format(datum[\"count\"], \"\"), \"lineage\": isValid(datum[\"lineage\"]) ? datum[\"lineage\"] : \"\"+datum[\"lineage\"]}"
+                  },
+                  "cornerRadius": {"value": 5},
+                  "fill": {"scale": "color", "field": "lineage"},
+                  "description": {
+                    "signal": "\"count: \" + (format(datum[\"count\"], \"\")) + \"; lineage: \" + (isValid(datum[\"lineage\"]) ? datum[\"lineage\"] : \"\"+datum[\"lineage\"])"
+                  },
+                  "x": {"field": "layer_${location}_layer_0_x"},
+                  "y": {"field": "layer_${location}_layer_0_y"},
+                  "outerRadius": {"scale": "radius", "field": "count"},
+                  "startAngle": {
+                    "scale": "theta_${location}",
+                    "field": "count_end",
+                    "offset": -1.5
+                  },
+                  "endAngle": {"scale": "theta_${location}", "field": "count_start", "offset": -1.5}
+                }
+              }
+            },
+            {
+              "name": "layer_${location}_layer_1_marks",
+              "type": "text",
+              "clip": true,
+              "style": ["text"],
+              "from": {"data": "data_${location}_3"},
+              "encode": {
+                "update": {
+                  "fill": {"value": "black"},
+                  "stroke": {"value": "white"},
+                  "strokeWidth": {"value": 0.1},
+                  "align": {"value": "center"},
+                  "radius": {"scale": "radius", "field": "count","offset":10},
+                  "font": {"value": "Helvetica Neue"},
+                  "fontSize": {"signal": "text_zoom"},
+                  "description": {
+                    "signal":  "\"data: \" + (format(datum[\"data\"], \"\"))"},
+                  "x": {"field": "layer_${location}_layer_1_x"},
+                  "y": {"field": "layer_${location}_layer_1_y"},
+                  "text": {
+                    "signal": "isValid(datum[\"lineage\"]) ? datum[\"lineage\"] : \"\"+datum[\"lineage\"]"
+                  },
+                  "baseline": {"value": "middle"},
+                  "theta": {
+                    "signal": "scale(\"theta_${location}\", 0.5 * datum[\"count_start\"] + 0.5 * datum[\"count_end\"])",
+                    "offset": -1.5
+                  }
+                }
+              },
+              "transform": [
+                {"type": "label", "size": [800, 500]}
+            }
+%endfor
+          ],
+          "scales": [
+%for location in data_for_report['locations_wanted']:
+            {
+              "name": "theta_${location}",
+              "type": "linear",
+              "domain": {
+                "fields": [
+                  {"data": "data_${location}_2", "field": "count_start"},
+                  {"data": "data_${location}_2", "field": "count_end"},
+                  {"data": "data_${location}_3", "field": "count_start"},
+                  {"data": "data_${location}_3", "field": "count_end"}
+                ]
+              },
+              "range": [0, 6.283185307179586],
+              "reverse": true,
+              "zero": true
+            },
+%endfor
+            {
+              "name": "radius",
+              "type": "sqrt",
+              "domain": {
+                "fields": [
+%for count,location in enumerate(data_for_report['locations_wanted']):
+                  {"data": "data_${location}_2", "field": "count"},
+                  {"data": "data_${location}_3", "field": "count"}
+%if count < len(data_for_report['locations_wanted'])-1:
+,
+%endif
+%endfor
+                ]
+              },
+              "range": [{"signal":"inner_arc_zoom"},{"signal":"arc_zoom"}],
+              "zero": true
+            },
+            {
+              "name": "color",
+              "type": "ordinal",
+              "domain": {
+                "fields": [
+%for count,location in enumerate(data_for_report['locations_wanted']):
+                  {"data": "data_${location}_2", "field": "lineage"},
+                  {"data": "data_${location}_3", "field": "lineage"}
+%if count < len(data_for_report['locations_wanted'])-1:
+,
+%endif
+%endfor
+                ],
+                "sort": true
+              },
+              "range": [
+                "#B6B8C8",
+                "#D4B489",
+                "#A6626F",
+                "#733646",
+                "#A47E3E",
+                "#DC9598",
+                "#83818F",
+                "#B3ABD0",
+                "#B8B2C4",
+                "#A07E62",
+                "#F9C0C7"
+              ]
+            }
+          ]
+        }
+
+      vegaEmbed('#background_map', vSpec_bmap);
+
+      </script>
         
-        here is where the local lineages will go
         
         %endif
+        
         %if '7' in config["report_content"]:
         <h2>Map of queries</h2> 
         <%qmap_data = data_for_report["query_map_data"] %>
