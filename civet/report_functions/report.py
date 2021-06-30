@@ -79,15 +79,18 @@ def make_catchment_summary_data(metadata,catchments,config):
 
     for catchment in catchments:
         catchment_summary_dict[catchment] = {
-            'total':0
+            'total':0,
+            'query_count':0
         }
 
     with open(metadata,"r") as f:
         reader = csv.DictReader(f)
 
         for row in reader:
-            
-            if row["query_boolean"] == "False":
+            catchment = row["catchment"]
+            if row['query_boolean'] == "True":
+                catchment_summary_dict[catchment]['query_count'] +=1
+            elif row["query_boolean"] == "False":
                 catchment = row["catchment"]
 
                 catchment_summary_dict[catchment]['total'] +=1
