@@ -109,10 +109,10 @@ rule annotate:
         tree = os.path.join(config["data_outdir"],"catchments","{catchment}.tree")
     shell:
         """
-        jclusterfunk annotate -c {config[report_column]} \
+        jclusterfunk annotate -c {config[background_column]} \
                              -i {input.tree:q} \
                              -m {input.csv:q} \
-                             --tip-attributes query_boolean \
+                             --tip-attributes query_boolean epi_week country lineage \
                              -f nexus \
                              -o {output.tree:q} \
                             --ignore-missing

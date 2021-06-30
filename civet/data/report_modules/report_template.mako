@@ -13,7 +13,7 @@
     <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/3.4.1/css/bootstrap.min.css" integrity="sha384-HSMxcRTRxnN+Bdg0JdbxYKrThecOKuH5zCYotlSAcp1+c8xmyTe9GYg1l9a69psu" crossorigin="anonymous">
     <script src="https://code.jquery.com/jquery-1.12.4.min.js" integrity="sha384-nvAa0+6Qg9clwYCGGPpDQLVpLNn0fRaROjHqs13t4Ggj3Ez50XnGQqc/r8MhnRDZ" crossorigin="anonymous"></script>
     <script src="https://stackpath.bootstrapcdn.com/bootstrap/3.4.1/js/bootstrap.min.js" integrity="sha384-aJ21OjlMXNL5UyIl/XNwTMqvzeRMZH2w8c5cRVpzpU8Y5bApTppSuUkhZXN0VxHd" crossorigin="anonymous"></script>
-    <script src="https://cdn.jsdelivr.net/gh/rambaut/figtree.js@db798529/dist/figtree.umd.js"></script>
+    <script src="https://cdn.jsdelivr.net/gh/rambaut/figtree.js@ccb433b/dist/figtree.umd.js"></script>
     <script src="https://d3js.org/d3.v6.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/vega@5.15.0"></script>
   <script src="https://cdn.jsdelivr.net/npm/vega-lite@4.15.0"></script>
@@ -91,18 +91,33 @@
       .node circle{
         stroke-width:0;
         cursor:pointer;
-        fill:#86b0a6;
+        /* fill:#006666; */
         stroke:dimgrey;
         }
       .node circle.selected{
         stroke-width:0;
         cursor:pointer;
-        fill:#b08686;
+        fill:fuchsia;
         stroke:dimgrey;
         }
+      .node-background.query_boolean-True{
+          stroke:fuchsia;
+      }
+      .node.query_boolean-True circle{
+        stroke:fuchsia;
+      }
+      .node.query_boolean-True circle.selected{
+        stroke:fuchsia;
+      }
+      .node-background.query_boolean-True circle.selected{
+          stroke:fuchsia;
+      }
+      .node.query_boolean-True.hovered circle{
+          stroke:fuchsia;
+      }
       .node rect{
         stroke-width:2;
-        fill:#b08686;
+        fill:fuchsia;
         stroke:dimgrey;
       }
       .svg-tooltip {
@@ -161,7 +176,7 @@
       right: 39px;
       z-index: 98;
       padding: 21px;
-      background-color: #86b0a6
+      background-color: #006666
       }
       .js .cd-top--fade-out {
           opacity: .5
@@ -188,7 +203,7 @@
           width: var(--cd-back-to-top-size);
           box-shadow: 0 0 10px rgba(0, 0, 0, .05) !important;
           background: url(https://res.cloudinary.com/dxfq3iotg/image/upload/v1571057658/cd-top-arrow.svg) no-repeat center 50%;
-          background-color:#86b0a6;
+          background-color:#006666;
           background-color: hsla(var(--cd-color-3-h), var(--cd-color-3-s), var(--cd-color-3-l), 0.8)
       }
       .slidecontainer {
@@ -223,7 +238,7 @@
         width: 25px;
         height: 25px;
         border-radius: 50%; 
-        background: #86b0a6;
+        background: #006666;
         stroke: dimgrey;
         cursor: pointer;
       }
@@ -232,7 +247,7 @@
         height: 25px;
         border-radius: 50%;
         stroke: dimgrey;
-        background: #86b0a6;
+        background: #006666;
         cursor: pointer;
       } 
       .tree-container{
@@ -527,8 +542,19 @@
               }
       }
       <%text>
-      
-      function addSliderEventHandler(sliderID,fig){
+      function addColourEventHandler(circleNodes,legend,colourSelectID,fig){
+        d3.select(`#${colourSelectID}`).on("change", function(d){
+            const selectedGroup = this.value 
+            const colorScale = d3.scaleOrdinal(d3.schemeTableau10).domain(fig.tree().annotations[selectedGroup].values)
+            circleNodes.attr("fill",n=>colorScale(n.annotations[selectedGroup]))
+
+            legend.scale(colorScale)
+            fig.update();
+            console.log(selectedGroup);
+          })
+        }
+
+        function addSliderEventHandler(sliderID,fig){
         const svg = fig.svgSelection.select(function() { return this.parentNode; })
         const initialHeight = svg.attr("height");
         const maxHeight = fig.tree().externalNodes.length*50; // 50 pixels for each tip plus a little for margins;
@@ -558,7 +584,7 @@
         })
       }
       </%text>
-      function buildTree(svgID, myTreeString,tooltipID,backgroundDataString,sliderID) {
+      function buildTree(svgID, myTreeString,tooltipID,backgroundDataString,sliderID,colourSelectID) {
           const backgroundData = JSON.parse(backgroundDataString);
           const updateTable = updateTableFactory(tooltipID, backgroundData);
           const margins = {top:50,bottom:60,left:100,right:250}
@@ -567,16 +593,23 @@
           const nexusString = myTreeString;
           const tree = figtree.Tree.parseNexus(nexusString)[0];
           const fig = new figtree.FigTree(document.getElementById(svgID),margins, tree)
-          fig.layout(figtree.rectangularLayout)
-                  .nodes(figtree.circle()
+          const colorScale = d3.scaleOrdinal(d3.schemeTableau10).domain(fig.tree().annotations["query_boolean"].values)
+          const circleNodes = figtree.circle()
                                   .filter(n=>!n.children)
                                   .attr("r",8)
+                                  .attr("fill",n=>colorScale(n.annotations["query_boolean"]))
                                   .hilightOnHover(20)
                                   .onClick((node,i,n)=>{
                                     updateTable(node.name);
                                     fig.svgSelection.selectAll(".selected").classed("selected",false);
                                     d3.select(n[i]).classed("selected",true);
-                                  }),
+                                  });
+          const legend = figtree.legend()
+                                .scale(colorScale)
+                                .x(-100)
+                                .y(40)
+          fig.layout(figtree.rectangularLayout)
+                  .nodes(circleNodes,
                           figtree.tipLabel(v=>v.name).attr("dx",10),
                           figtree.rectangle()
                                   .filter(n=>n[fig.id].collapsed)
@@ -611,7 +644,9 @@
                                       .title({text:"~1 SNP",
                                       yPadding:10})
                                         )
+                            .feature(legend)
         addSliderEventHandler(sliderID,fig);
+        addColourEventHandler(circleNodes,legend,colourSelectID,fig);
       }
     </script>
 
@@ -649,7 +684,8 @@
                   </tr>
               % endfor
               </table>
-
+          
+        %if 'fasta' in config:
     
           <h3><strong>Table 2 </strong> | Queries provided in fasta file</h3>
           <button class="accordion">Passed QC</button>
@@ -686,7 +722,7 @@
                 % endfor
             </table>
           </div>
-
+        %endif
   %endif
 
     %for catchment in catchments:
@@ -694,8 +730,12 @@
         <h2>${catchment.replace("_"," ").title()}</h2> 
         
         %if '2' in config["report_content"]:
+          %if 'fasta' in config:
             <h3><strong>Table ${2+int(data_for_report[catchment]["catchmentID"].split("_")[1])}</strong> | Summary of catchment ${data_for_report[catchment]["catchmentID"]}</h3>
-              <table class="table table-striped" id='${data_for_report[catchment]["catchmentID"]}'>
+          %else:
+            <h3><strong>Table ${1+int(data_for_report[catchment]["catchmentID"].split("_")[1])}</strong> | Summary of catchment ${data_for_report[catchment]["catchmentID"]}</h3>
+          %endif
+            <table class="table table-striped" id='${data_for_report[catchment]["catchmentID"]}'>
                   <tr class="header">
                   </tr>
                   <table class="table table-striped">
@@ -719,17 +759,18 @@
                 <div class="column">
                   <div class="slider-block" id="slider_${data_for_report[catchment]['catchmentID']}">
                     <p>Expansion</p>
-                    <input class="slider" type="range" id="slider_${data_for_report[catchment]['catchmentID']}"  min="0" max="1" style="width: 100px" step="0.01" value="0" />
+                    <input class="slider" type="range" id="rangeinput_${data_for_report[catchment]['catchmentID']}"  min="0" max="1" style="width: 100px" step="0.01" value="0" />
                     <span class="highlight"></span>
                   </div>
                 </div>
                 <div class="column">
                   <div>
                   <p>Colour by</p>
-                  <select class="colourSelect" id="colourBy_${data_for_report[catchment]['catchmentID']}">
+                  <select class="colourSelect" id="colourSelect_${data_for_report[catchment]['catchmentID']}">
+                    <option value="query_boolean">Query</option>
                     <option value="country">Country</option>
-                    <option value="epiweek">Epiweek</option>
-                    <option value="status">Status</option>
+                    <option value="epi_week">Epiweek</option>
+                    <option value="lineage">Lineage</option>
                   </select>
                   </div>
                 </div>
@@ -747,7 +788,8 @@
                         `${data_for_report[catchment]['nexus']}`,
                         "tooltip_${data_for_report[catchment]['catchmentID']}",
                         '${background_data}',
-                        "rangeinput_${data_for_report[catchment]['catchmentID']}");
+                        "rangeinput_${data_for_report[catchment]['catchmentID']}",
+                        "colourSelect_${data_for_report[catchment]['catchmentID']}");
             </script> 
           </div> 
             
