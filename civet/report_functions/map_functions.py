@@ -7,10 +7,9 @@ import datetime as dt
 from collections import defaultdict
 import json
 import datetime as dt
-
+import requests
 
 def parse_map_file_arg(map_file_arg, arg_name, config): 
-#this needs to change because it has to be an online resource
     """
     parses map group arguments:
     --background-map-file (default=UK_map if civet_mode == CLIMB, relevant level of world_map (ie adm0 or adm1) if not)
@@ -19,14 +18,20 @@ def parse_map_file_arg(map_file_arg, arg_name, config):
     misc.add_arg_to_config(arg_name, map_file_arg, config)
 
     if config[arg_name]:
-        if not os.path.exists(config[arg_name]):
-            sys.stderr.write(cyan(f"{config[arg_name]} cannot be found. Please check the path and try again.\n"))
+        response = requests.get(config[arg_name])
+        if response.status_code != 200:
+            sys.stderr.write(cyan(f"Unable to access online resource for {config[arg_name]}. Please ensure you are connected to the internet and the path is valid.\n"))
             sys.exit(-1)
-        if not config[arg_name].endswith(".json") and not config[arg_name].endswith(".geojson"):
-            sys.stderr.write(csyan(f"{config[arg_name]} must be in the format of a geojson. You can use mapshaper.org to convert between file formats.\n"))
-            sys.exit(-1)
+        else:
+            map_string = response.text 
 
-    return map_file
+        if not config[arg_name].endswith(".json") and not config[arg_name].endswith(".geojson"):
+            sys.stderr.write(cyan(f"{config[arg_name]} must be in the format of a geojson. You can use mapshaper.org to convert between file formats.\n"))
+            sys.exit(-1)
+    else:
+        map_string = None
+
+    return map_string
 
 def parse_query_map(query_map_file, longitude_column, latitude_column, found_in_background_data, config):
     """
@@ -247,7 +252,7 @@ def qc_map_file_for_background_map(config):
     if config["verbose"]:
         print("Beginning checks for background map")
 
-    parse_map_file_arg(background_map_file, "background_map_file", config)
+    map_string = parse_map_file_arg(background_map_file, "background_map_file", config)
     misc.add_arg_to_config("centroid_file", centroid_file, config)  #needs to happen here so we can check it exists if they have provided a custom map file
 
     if config["background_map_file"]:
@@ -256,8 +261,7 @@ def qc_map_file_for_background_map(config):
             sys.stderr.write(cyan("You have provided a custom background map file, but not a csv containing centroids matching this file. Please provide a csv with the column headers location, longitude and latitude.\n"))
             sys.exit(-1)
 
-        with open(config["background_map_file"]) as f:
-            geodata = json.load(f)
+        geodata = json.loads(map_string)
         
         headers = geodata["features"][0]["properties"].keys()
         
