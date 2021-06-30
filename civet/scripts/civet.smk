@@ -106,10 +106,13 @@ rule find_catchment:
     input:
         fasta = rules.seq_brownie.output.fasta
     output:
+        txt = os.path.join(config["tempdir"],"updown_ignore.txt"),
         catchments = os.path.join(config["tempdir"],"catchments.csv")
-    shell:
-        """
-        gofasta updown topranking \
+    run:
+        with open(output.txt,"w") as fw:
+            for i in config["ids"]:
+                fw.write(f"{i}\n")
+        shell("""gofasta updown topranking \
         -q {input.fasta:q} \
         -t '{config[background_search_file]}' \
         -o {output.catchments:q} \
@@ -118,7 +121,8 @@ rule find_catchment:
         --dist-up {config[distance_up]} \
         --dist-down {config[distance_down]} \
         --dist-side {config[distance_side]} \
-        """
+        --ignore {output.txt:q}
+        """)
 
 rule merge_catchments:
     input:
