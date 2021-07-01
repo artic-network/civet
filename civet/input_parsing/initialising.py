@@ -13,7 +13,6 @@ def get_defaults():
     default_dict = {
                     "date": today,# date investigation was opened
                     "authors": "", # List of authors, affiliations and contact details
-                    "theme_colour": "#557b86",
                     "max_queries":5000,
                     # Initialising data variables
                     "num_seqs":0,
@@ -62,6 +61,8 @@ def get_defaults():
                     "min_length":20000,
 
                     #Report options
+                    "colour_theme": "#7178bc",
+                    "colour_map": "#86b0a6,#565b7b,#e9c46a,#e1998a,#d19c2c,#264653,#4888a3,#c77939,#b56576,#eb7e83,#F46D43,#9e2a2b,#84a98c",
                     "report_content":["1,2,3"],
                     "report_title":f"civet report",
                     "anonymise":False,
@@ -175,6 +176,10 @@ def arg_dict(config):
                 "distance_side":"distance_side",
 
                 #rgroup args
+                "colour_theme":"colour_theme",
+                "ct":"colour_theme",
+                "colour_map":"colour_map",
+                "cmap":"colour_map",
                 "report_title":"report_title",
                 "rt":"report_title",
                 "report_content":"report_content",

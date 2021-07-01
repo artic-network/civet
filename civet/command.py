@@ -88,6 +88,8 @@ If using normalise mode, indicate the column to normalise across.
 E.g. --downsample mode=normalise country""")
     
     r_group = parser.add_argument_group("Report options")
+    r_group.add_argument("-tc", "--theme-colour", action="store", dest="colour_theme", help="""Report theme colour. Default: #7178bc""")
+    r_group.add_argument("-cmap", "--colour-map", action="store", dest="colour_map", help="""Comma separated string of hex codes or names of HTML compatible colours to colour factors in report by.""")
     r_group.add_argument("-rt", "--report-title", action="store", dest="report_title", help="""Title to display in report. Default: civet report""")
     r_group.add_argument("-rc", "--report-content", nargs='*', action="store", dest="report_content", help="""One or more comma separated numeric strings to define the report content. Default: 1,2,3""")
     r_group.add_argument("--anonymise", action="store_true", dest="anonymise",help="Generates arbitrary labels for sequences for dissemination")

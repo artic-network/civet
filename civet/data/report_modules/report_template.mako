@@ -21,8 +21,8 @@
     <meta charset="utf-8">
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
     <meta name="viewport" content="width=device-width, initial-scale=1">
-    <% colorCodes = ["#86b0a6", "#565b7b","#e9c46a", "#e1998a", "#d19c2c","#264653", "#4888a3", "#c77939", "#b56576", "#eb7e83", "#F46D43", "#9e2a2b", "#84a98c"] %>
-    <% themeColor = config["theme_colour"] %>
+    <% colorCodes = config["colour_map"] %>
+    <% themeColor = config["colour_theme"] %>
     <style>
       body {
         padding-top: 50px;
@@ -205,7 +205,7 @@
           width: var(--cd-back-to-top-size);
           box-shadow: 0 0 10px rgba(0, 0, 0, .05) !important;
           background: url(https://res.cloudinary.com/dxfq3iotg/image/upload/v1571057658/cd-top-arrow.svg) no-repeat center 50%;
-          background-color:${themeColor};
+          background-color: ${themeColor};
           background-color: hsla(var(--cd-color-3-h), var(--cd-color-3-s), var(--cd-color-3-l), 0.8)
       }
       .slidecontainer {
