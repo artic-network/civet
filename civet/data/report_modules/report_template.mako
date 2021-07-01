@@ -822,20 +822,47 @@
                         }
                       ],
                       "encoding": {
-                        "x": 
-                        {"field": "date", 
-                        "timeUnit":"monthdate",
-                        "type": "temporal", 
-                        "axis": {"grid": false}},
+                        "x": {
+                          "field": "date", 
+                          "timeUnit":"monthdate",
+                          "type": "temporal",
+                          "title": "Date",
+                          "axis": {
+                            "grid": false,
+                            "labelFont":"Helvetica Neue",
+                            "labelFontSize":18,
+                            "tickCount": {"interval": "day", "step": 2}, // put in num days/
+                            "titleFontSize":18,
+                            "titleFont":"Helvetica Neue"
+                          },
+                        },
                         "y": 
                         {"field": "sequence_name", 
                         "type": "nominal",
-                        "axis": {"title": "Sequence name"}},
-                        "color": 
-                        {"field": "date_type", 
-                        "type": "nominal"
+                        "axis": {
+                          "title": "",
+                          "font": "Helvetica Neue",
+                          "labelFontSize":15,
+                          "labelLimit": 0,
+                          "labelPadding":20
                         }
                       },
+                       "color": {
+                          "field": "date_type", 
+                          "type": "nominal",
+                          "legend": {
+                            "labelFont":"Helvetica Neue",
+                            "labelFontSize":18,
+                            "orient": "bottom", 
+                            "symbolSize": 500,
+                            "title": null}
+                        }
+                      },
+                        "config": {
+                          "view": {"stroke": null},
+                          "axis": {"grid": false},
+                          "text": {"font":"Helvetica Neue"}
+                        },
                       "layer": [
                         {
                         "mark": "line",
@@ -863,13 +890,15 @@
                           },
                           "title": "Date"
                           },
-                          "size": {"value": 100},
+                          "size": {"value": 500},
                           "opacity": {"value": 1}
                         }
                         }
                       ]
                       };          
-                vegaEmbed('#${catchment}_timeline', vlSpec_time);
+                vegaEmbed('#${catchment}_timeline', vlSpec_time, {renderer: "svg"})
+                      .then(result => console.log(result))
+                      .catch(console.warn);
 
               </script>
         %endif
