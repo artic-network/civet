@@ -13,6 +13,7 @@ def get_defaults():
     default_dict = {
                     "date": today,# date investigation was opened
                     "authors": "", # List of authors, affiliations and contact details
+                    "theme_colour": "#557b86",
                     "max_queries":5000,
                     # Initialising data variables
                     "num_seqs":0,

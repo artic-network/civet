@@ -21,8 +21,8 @@
     <meta charset="utf-8">
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
     <meta name="viewport" content="width=device-width, initial-scale=1">
-    <% colorCodes = ["#86b0a6", "#565b7b", "#e1998a", "#d19c2c", "#4888a3", "#c77939", "#FEE08B", "#eb7e83", "#F46D43", "#D53E4F", "#9E0142"] %>
-    <% themeColor = "#557b86" %>
+    <% colorCodes = ["#86b0a6", "#565b7b","#e9c46a", "#e1998a", "#d19c2c","#264653", "#4888a3", "#c77939", "#b56576", "#eb7e83", "#F46D43", "#9e2a2b", "#84a98c"] %>
+    <% themeColor = config["theme_colour"] %>
     <style>
       body {
         padding-top: 50px;
@@ -495,7 +495,30 @@
         });
         });
     </script>
-            
+    <!-- <script>
+      var colorWell;
+      var defaultColor = "#557b86";
+      window.addEventListener("load", startup, false);
+      function startup() {
+        colorWell = document.querySelector("#colorWell");
+        colorWell.value = defaultColor;
+        colorWell.addEventListener("input", updateFirst, false);
+        colorWell.addEventListener("change", updateAll, false);
+        colorWell.select();
+      }
+      function updateFirst(event) {
+        var p = document.querySelector("accordion active");
+        // var toTopButton = document.getElementById("toTopBtn");
+        if (p) {
+          p.style.color = event.target.value;
+        }
+      }
+      function updateAll(event) {
+        document.querySelectorAll("accordion active").forEach(function(p) {
+          p.style.color = event.target.value;
+        });
+      }
+    </script> -->
     <script>
           function myFunction(myInput, myTable) {
             var input, filter, table, tr, td, i, txtValue;
@@ -666,8 +689,20 @@
         </h1> 
         <br>
         </div>
-    
     <br>
+<!--     
+    </div>
+    <button class="accordion">Report options</button>
+    <div class="panel">
+      <div class="row">
+        <div class="column">
+            <input type="color" value="#557b86" id="colorWell">
+            <label for="colorWell">Theme Colour</label>
+          </div>
+        <div class="column">
+          </div>
+      </div>
+    </div> -->
    %if '1' in config["report_content"]:
       
           <h3><strong>Table 1</strong> | Summary of queries  <input class="searchbar" type="text" id="myInput" onkeyup="myFunction('myInput','myTable')" placeholder="Search for sequence..." title="searchbar"></h3>
