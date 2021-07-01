@@ -21,7 +21,8 @@
     <meta charset="utf-8">
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
     <meta name="viewport" content="width=device-width, initial-scale=1">
-    
+    <% colorCodes = ["#86b0a6", "#565b7b", "#e1998a", "#d19c2c", "#4888a3", "#c77939", "#FEE08B", "#eb7e83", "#F46D43", "#D53E4F", "#9E0142"] %>
+    <% themeColor = "#557b86" %>
     <style>
       body {
         padding-top: 50px;
@@ -56,7 +57,7 @@
         }
 
         .active, .accordion:hover {
-          background-color: #7178bc;
+          background-color: ${themeColor};
           color: white;
         }
 
@@ -98,27 +99,27 @@
       .node circle.selected{
         stroke-width:0;
         cursor:pointer;
-        fill:#7178bc;
+        fill:${themeColor};
         stroke:dimgrey;
         }
       .node-background.query_boolean-True{
-          stroke:#7178bc;
+          stroke:${themeColor};
       }
       .node.query_boolean-True circle{
-        stroke:#7178bc;
+        stroke:${themeColor};
       }
       .node.query_boolean-True circle.selected{
-        stroke:#7178bc;
+        stroke:${themeColor};
       }
       .node-background.query_boolean-True circle.selected{
-          stroke:#7178bc;
+          stroke:${themeColor};
       }
       .node.query_boolean-True.hovered circle{
-          stroke:#7178bc;
+          stroke:${themeColor};
       }
       .node rect{
         stroke-width:2;
-        fill:#7178bc;
+        fill:${themeColor};
         stroke:dimgrey;
       }
       .svg-tooltip {
@@ -177,7 +178,7 @@
       right: 39px;
       z-index: 98;
       padding: 21px;
-      background-color: #7178bc
+      background-color: ${themeColor}
       }
       .js .cd-top--fade-out {
           opacity: .5
@@ -204,14 +205,14 @@
           width: var(--cd-back-to-top-size);
           box-shadow: 0 0 10px rgba(0, 0, 0, .05) !important;
           background: url(https://res.cloudinary.com/dxfq3iotg/image/upload/v1571057658/cd-top-arrow.svg) no-repeat center 50%;
-          background-color:#7178bc;
+          background-color:${themeColor};
           background-color: hsla(var(--cd-color-3-h), var(--cd-color-3-s), var(--cd-color-3-l), 0.8)
       }
       .slidecontainer {
         width: 100%;
       }
       .colourSelect {
-        background: #d3d3d3;
+        background: #eee;
         border-radius: 5px;
         padding: 4px;
         stroke: dimgrey;
@@ -239,7 +240,7 @@
         width: 25px;
         height: 25px;
         border-radius: 50%; 
-        background: #7178bc;
+        background: ${themeColor};
         stroke: dimgrey;
         cursor: pointer;
       }
@@ -248,7 +249,7 @@
         height: 25px;
         border-radius: 50%;
         stroke: dimgrey;
-        background: #7178bc;
+        background: ${themeColor};
         cursor: pointer;
       } 
       .tree-container{
@@ -543,10 +544,10 @@
               }
       }
       <%text>
-      function addColourEventHandler(circleNodes,legend,colourSelectID,fig){
+      function addColourEventHandler(circleNodes,legend,colourSelectID,colorCodes,fig){
         d3.select(`#${colourSelectID}`).on("change", function(d){
             const selectedGroup = this.value 
-            const colorScale = d3.scaleOrdinal(d3.schemeTableau10).domain(fig.tree().annotations[selectedGroup].values)
+            const colorScale = d3.scaleOrdinal(colorCodes).domain(fig.tree().annotations[selectedGroup].values)
             circleNodes.attr("fill",n=>colorScale(n.annotations[selectedGroup]))
 
             legend.scale(colorScale)
@@ -585,7 +586,7 @@
         })
       }
       </%text>
-      function buildTree(svgID, myTreeString,tooltipID,backgroundDataString,sliderID,colourSelectID) {
+      function buildTree(svgID, myTreeString,tooltipID,backgroundDataString,sliderID,colourSelectID,colorCodes) {
           const backgroundData = JSON.parse(backgroundDataString);
           const updateTable = updateTableFactory(tooltipID, backgroundData);
           const margins = {top:50,bottom:60,left:100,right:250}
@@ -594,7 +595,7 @@
           const nexusString = myTreeString;
           const tree = figtree.Tree.parseNexus(nexusString)[0];
           const fig = new figtree.FigTree(document.getElementById(svgID),margins, tree)
-          const colorScale = d3.scaleOrdinal(d3.schemeTableau10).domain(fig.tree().annotations["query_boolean"].values)
+          const colorScale = d3.scaleOrdinal(colorCodes).domain(fig.tree().annotations["query_boolean"].values)
           const circleNodes = figtree.circle()
                                   .filter(n=>!n.children)
                                   .attr("r",8)
@@ -647,7 +648,7 @@
                                         )
                             .feature(legend)
         addSliderEventHandler(sliderID,fig);
-        addColourEventHandler(circleNodes,legend,colourSelectID,fig);
+        addColourEventHandler(circleNodes,legend,colourSelectID,colorCodes,fig);
       }
     </script>
 
@@ -661,13 +662,12 @@
         </header>
         
         <h1>${config["report_title"]}
-            <small class="text-muted">${date}</small>
+            <small class="text-muted" style="color:${themeColor}">${date}</small>
         </h1> 
         <br>
         </div>
     
     <br>
-  
    %if '1' in config["report_content"]:
       
           <h3><strong>Table 1</strong> | Summary of queries  <input class="searchbar" type="text" id="myInput" onkeyup="myFunction('myInput','myTable')" placeholder="Search for sequence..." title="searchbar"></h3>
@@ -680,7 +680,11 @@
               % for row in query_summary_data:
                   <tr>
                     %for col in config["table_content"]:
-                    <td>${row[col]}</td>
+                      %if col=="catchment":
+                      <td><a href="#header_${row[col]}" style="color:${themeColor}">${row[col]}</a></td>
+                      %else:
+                      <td>${row[col]}</td>
+                      %endif
                     %endfor
                   </tr>
               % endfor
@@ -728,7 +732,7 @@
     <% figure_count = 0 %>
     %for catchment in catchments:
         <% catchment_name = catchment.replace("_"," ").title() %>
-        <h2>${catchment_name}</h2> 
+        <h2><a id = "header_${catchment}"></a>${catchment_name}</h2> 
         
         %if '2' in config["report_content"]:
           %if 'fasta' in config:
@@ -787,13 +791,14 @@
             </div>
             <div class="col-xs-4 sticky" id="tooltip_${data_for_report[catchment]['catchmentID']}">
             </div> 
+            
             <script type="text/javascript">
               buildTree("tree_${data_for_report[catchment]['catchmentID']}", 
                         `${data_for_report[catchment]['nexus']}`,
                         "tooltip_${data_for_report[catchment]['catchmentID']}",
                         '${background_data}',
                         "rangeinput_${data_for_report[catchment]['catchmentID']}",
-                        "colourSelect_${data_for_report[catchment]['catchmentID']}");
+                        "colourSelect_${data_for_report[catchment]['catchmentID']}",${colorCodes});
             </script> 
           </div> 
           <h3><strong>Figure ${figure_count}</strong> | ${catchment_name} phylogeny</h3>
@@ -902,7 +907,7 @@
                           "type": "nominal",
                           "scale": {
                             "domain": ${config["timeline_dates"]},
-                            "range": ${config["timeline_colours"]}
+                            "range": ${colorCodes}
                           },
                           "title": "Date"
                           },
