@@ -803,11 +803,11 @@
         %if '5' in config["report_content"]:
         <%timeline_data = data_for_report[catchment]["timeline_data"] %>
         <% timeline_height = 50+(30 * data_for_report[catchment]['catchment_summary_data']["query_count"]) %>
-              <div id="${catchment}_timeline"></div>
+              <div id="${catchment}_timeline" style="width:90%"></div>
                 <script>
                   var vlSpec_time = {
                     "$schema": "https://vega.github.io/schema/vega-lite/v5.json",
-                    "width": 700,
+                    "width": "container",
                     "height": ${timeline_height},
                     "datasets": ${timeline_data},
                     "data": {
