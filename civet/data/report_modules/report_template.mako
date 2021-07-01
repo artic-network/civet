@@ -7,7 +7,7 @@
 
     <meta name="description" content="">
     <meta name="author" content="">
-    <link rel="icon" href="https://raw.githubusercontent.com/COG-UK/civet/master/docs/doc_figures/civet_logo.svg">
+    <link rel="icon" href="https://raw.githubusercontent.com/COG-UK/civet/master/docs/doc_figures/virus.svg">
 
     <title>${config["report_title"]}</title>
     <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/3.4.1/css/bootstrap.min.css" integrity="sha384-HSMxcRTRxnN+Bdg0JdbxYKrThecOKuH5zCYotlSAcp1+c8xmyTe9GYg1l9a69psu" crossorigin="anonymous">
@@ -56,12 +56,13 @@
         }
 
         .active, .accordion:hover {
-          background-color: #ccc;
+          background-color: #7178bc;
+          color: white;
         }
 
         .accordion:after {
           content: '\002B';
-          color: #777;
+          color: white;
           font-weight: bold;
           float: right;
           margin-left: 5px;
@@ -91,33 +92,33 @@
       .node circle{
         stroke-width:0;
         cursor:pointer;
-        /* fill:#006666; */
+        /* fill:#7178bc; */
         stroke:dimgrey;
         }
       .node circle.selected{
         stroke-width:0;
         cursor:pointer;
-        fill:fuchsia;
+        fill:#7178bc;
         stroke:dimgrey;
         }
       .node-background.query_boolean-True{
-          stroke:fuchsia;
+          stroke:#7178bc;
       }
       .node.query_boolean-True circle{
-        stroke:fuchsia;
+        stroke:#7178bc;
       }
       .node.query_boolean-True circle.selected{
-        stroke:fuchsia;
+        stroke:#7178bc;
       }
       .node-background.query_boolean-True circle.selected{
-          stroke:fuchsia;
+          stroke:#7178bc;
       }
       .node.query_boolean-True.hovered circle{
-          stroke:fuchsia;
+          stroke:#7178bc;
       }
       .node rect{
         stroke-width:2;
-        fill:fuchsia;
+        fill:#7178bc;
         stroke:dimgrey;
       }
       .svg-tooltip {
@@ -176,7 +177,7 @@
       right: 39px;
       z-index: 98;
       padding: 21px;
-      background-color: #006666
+      background-color: #7178bc
       }
       .js .cd-top--fade-out {
           opacity: .5
@@ -203,7 +204,7 @@
           width: var(--cd-back-to-top-size);
           box-shadow: 0 0 10px rgba(0, 0, 0, .05) !important;
           background: url(https://res.cloudinary.com/dxfq3iotg/image/upload/v1571057658/cd-top-arrow.svg) no-repeat center 50%;
-          background-color:#006666;
+          background-color:#7178bc;
           background-color: hsla(var(--cd-color-3-h), var(--cd-color-3-s), var(--cd-color-3-l), 0.8)
       }
       .slidecontainer {
@@ -238,7 +239,7 @@
         width: 25px;
         height: 25px;
         border-radius: 50%; 
-        background: #006666;
+        background: #7178bc;
         stroke: dimgrey;
         cursor: pointer;
       }
@@ -247,7 +248,7 @@
         height: 25px;
         border-radius: 50%;
         stroke: dimgrey;
-        background: #006666;
+        background: #7178bc;
         cursor: pointer;
       } 
       .tree-container{
@@ -724,16 +725,16 @@
           </div>
         %endif
   %endif
-
+    <% figure_count = 0 %>
     %for catchment in catchments:
-        
-        <h2>${catchment.replace("_"," ").title()}</h2> 
+        <% catchment_name = catchment.replace("_"," ").title() %>
+        <h2>${catchment_name}</h2> 
         
         %if '2' in config["report_content"]:
           %if 'fasta' in config:
-            <h3><strong>Table ${2+int(data_for_report[catchment]["catchmentID"].split("_")[1])}</strong> | Summary of catchment ${data_for_report[catchment]["catchmentID"]}</h3>
+            <h3><strong>Table ${2+int(catchment_name.split(" ")[1])}</strong> | Summary of ${catchment_name}</h3>
           %else:
-            <h3><strong>Table ${1+int(data_for_report[catchment]["catchmentID"].split("_")[1])}</strong> | Summary of catchment ${data_for_report[catchment]["catchmentID"]}</h3>
+            <h3><strong>Table ${1+int(catchment_name.split(" ")[1])}</strong> | Summary of ${catchment_name}</h3>
           %endif
             <table class="table table-striped" id='${data_for_report[catchment]["catchmentID"]}'>
                   <tr class="header">
@@ -753,6 +754,7 @@
             %endif
 
         %if '3' in config["report_content"]:
+         <% figure_count +=1 %>
             <button class="accordion">Tree options</button>
             <div class="panel">
               <div class="row">
@@ -776,8 +778,10 @@
                 </div>
               </div>
             </div>
-          <div class="row tree-container">
       
+        
+          <div class="row tree-container">
+
             <div class="col-xs-7">
               <svg class="tree_svg" width="600" height="400" id="tree_${data_for_report[catchment]['catchmentID']}"></svg>
             </div>
@@ -792,17 +796,26 @@
                         "colourSelect_${data_for_report[catchment]['catchmentID']}");
             </script> 
           </div> 
-            
+          <h3><strong>Figure ${figure_count}</strong> | ${catchment_name} phylogeny</h3>
+          <hr>
+        
         %endif
         %if '4' in config["report_content"]:
+        <% figure_count +=1 %>
+        <br>
             <div id="${catchment}_snipit">
             ${data_for_report[catchment]["snipit_svg"]}
             </div>
+            <h3><strong>Figure ${figure_count}</strong> | snipit plot for queries in ${catchment_name}</h3>
+            <hr>
             
         %endif
         %if '5' in config["report_content"]:
         <%timeline_data = data_for_report[catchment]["timeline_data"] %>
         <% timeline_height = 50+(30 * data_for_report[catchment]['catchment_summary_data']["query_count"]) %>
+        
+        <% figure_count +=1 %>
+        <br>
               <div id="${catchment}_timeline" style="width:90%"></div>
                 <script>
                   var vlSpec_time = {
@@ -881,6 +894,9 @@
                           "tooltip":true
                         },
                         "encoding": {
+                          "tooltip":[
+                            {"field":"date","type":"temporal","title":"Date"}
+                        ],
                           "color": {
                           "field": "date_type",
                           "type": "nominal",
@@ -899,22 +915,23 @@
                 vegaEmbed('#${catchment}_timeline', vlSpec_time, {renderer: "svg"})
                       .then(result => console.log(result))
                       .catch(console.warn);
-
               </script>
+        <h3><strong>Figure ${figure_count}</strong> | Timeline plot for queries in ${catchment_name}</h3>
+        <hr>
         %endif
         %endfor
-        
-        
         %if '6' in config["report_content"]:
-        <div id="background_map"></div>
+          <% figure_count +=1 %>
+          <br>
+        <div id="background_map" style="width:90%"></div>
         <script>
         var vSpec_bmap = {
           "$schema": "https://vega.github.io/schema/vega/v5.json",
           "autosize": "none",
           "background": "white",
           "padding": 5,
-          "width": 500,
-          "height": 500,
+          "width": "container",
+          "height": "container",
           "style": "cell",
           "signals": [
                       { "name": "tx", "update": "width / 2" },
@@ -1234,18 +1251,18 @@ longitude = data_for_report["centroids"][location][0]%>
           ]
         }
 
-      vegaEmbed('#background_map', vSpec_bmap);
+      vegaEmbed('#background_map', vSpec_bmap, {renderer: "svg"})
+                      .then(result => console.log(result))
+                      .catch(console.warn);
 
       </script>
-        
-        
+      <h3><strong>Figure ${figure_count}</strong> | Background diversity map</h3>
+      <hr>
         %endif
         
         %if '7' in config["report_content"]:
-        <h2>Map of queries</h2> 
         <%qmap_data = data_for_report["query_map_data"] %>
-        <div id="query_map"></div>
-
+        <div id="query_map" style="width:90%"></div>
         <script>
 			      var vSpec_qmap = {
 
@@ -1253,8 +1270,8 @@ longitude = data_for_report["centroids"][location][0]%>
             "autosize": "none",
             "background": "white",
             "padding": 5,
-            "width": 500,
-            "height": 500,
+            "width": "container",
+            "height": "container",
             "style": "cell",
 
           "signals": [
@@ -1400,11 +1417,12 @@ longitude = data_for_report["centroids"][location][0]%>
               }
             ]
       }
-
-			vegaEmbed('#query_map', vSpec_qmap);
-
-		  </script>
-        
+      vegaEmbed('#query_map', vSpec_qmap, {renderer: "svg"})
+                      .then(result => console.log(result))
+                      .catch(console.warn);
+        </script>
+      <h3><strong>Figure ${figure_count}</strong> | Query map</h3>
+      <hr>
       %endif
 
     <script>
@@ -1429,7 +1447,7 @@ longitude = data_for_report["centroids"][location][0]%>
         <div class="row">
           <!--<div class="col-sm-1">
             <p>
-            <img class="civet-logo" src="https://raw.githubusercontent.com/COG-UK/civet/master/docs/doc_figures/civet_logo.svg" vertical-align="left" width="50" height="50"></img>
+            <img class="civet-logo" src="https://raw.githubusercontent.com/COG-UK/civet/master/docs/doc_figures/virus.svg" vertical-align="left" width="50" height="50"></img>
             <p> -->
         </div>
 
