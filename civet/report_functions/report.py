@@ -272,7 +272,6 @@ def make_report(metadata,report_to_generate,config):
     #need to call this multiple times if there are multiple reports wanted
 
     catchments = [f"catchment_{i}" for i in range(1,config["catchment_count"]+1)]
-    config["colour_map"] = config["colour_map"].split(",")
     data_for_report = define_report_content(metadata,catchments,config)
     background_data = get_background_data(metadata,config)
     # for i in data_for_report:
