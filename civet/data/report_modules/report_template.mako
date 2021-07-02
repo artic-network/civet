@@ -579,34 +579,42 @@
           })
         }
 
-        function addSliderEventHandler(sliderID,fig){
-        const svg = fig.svgSelection.select(function() { return this.parentNode; })
-        const initialHeight = svg.attr("height");
-        const maxHeight = fig.tree().externalNodes.length*50; // 50 pixels for each tip plus a little for margins;
-        if(maxHeight<=initialHeight){
-          d3.select(`#${sliderID}`).remove();// don't need  a slider
-          return;
-        }
-        const heightScale = d3.scaleLinear()
-                .range([initialHeight,maxHeight])
-                .domain([0,1])
-            if(initialHeight/fig.tree().externalNodes.length>12){
+      function addSliderEventHandler(sliderID, fig) {
+          const svg = fig.svgSelection.select(function () {
+              return this.parentNode;
+          })
+          const initialHeight = svg.attr("height");
+          const maxHeight = fig.tree().externalNodes.length * 50; // 50 pixels for each tip plus a little for margins;
+          if (maxHeight <= initialHeight) {
+              console.log(sliderID);
+              d3.select(`#${sliderID}`).select(function () {
+                  return this.parentNode;
+              })
+                  .remove();// don't need  a slider add names
               fig.svgSelection.selectAll(".label")
-              .classed("show",true)
-            }
-        d3.select(`#${sliderID}`).on("input",function(){
+                  .classed("show", true)
+              return;
+          }
+          const heightScale = d3.scaleLinear()
+              .range([initialHeight, maxHeight])
+              .domain([0, 1])
+          if (initialHeight / fig.tree().externalNodes.length > 12) {
+              fig.svgSelection.selectAll(".label")
+                  .classed("show", true)
+          }
+          d3.select(`#${sliderID}`).on("input", function () {
               const svgHeight = heightScale(this.value);
               //magic number!!
               svg.attr("height", svgHeight);
-            fig.update();
-            if(svgHeight/fig.tree().externalNodes.filter(node=>!node[fig.id].ignore).length>12){
-              fig.svgSelection.selectAll(".label")
-              .classed("show",true)
-            }else{
-              fig.svgSelection.selectAll(".label")
-              .classed("show",false)
-            }
-        })
+              fig.update();
+              if (svgHeight / fig.tree().externalNodes.filter(node => !node[fig.id].ignore).length > 12) {
+                  fig.svgSelection.selectAll(".label")
+                      .classed("show", true)
+              } else {
+                  fig.svgSelection.selectAll(".label")
+                      .classed("show", false)
+              }
+          })
       }
       </%text>
       function buildTree(svgID, myTreeString,tooltipID,backgroundDataString,sliderID,colourSelectID,colorCodes) {
@@ -620,15 +628,21 @@
           const fig = new figtree.FigTree(document.getElementById(svgID),margins, tree)
           const colorScale = d3.scaleOrdinal(colorCodes).domain(fig.tree().annotations["query_boolean"].values)
           const circleNodes = figtree.circle()
-                                  .filter(n=>!n.children)
-                                  .attr("r",8)
-                                  .attr("fill",n=>colorScale(n.annotations["query_boolean"]))
-                                  .hilightOnHover(20)
-                                  .onClick((node,i,n)=>{
-                                    updateTable(node.name);
-                                    fig.svgSelection.selectAll(".selected").classed("selected",false);
-                                    d3.select(n[i]).classed("selected",true);
-                                  });
+                              .filter(n => !n.children)
+                              .attr("r", 8)
+                              .attr("fill", n => colorScale(n.annotations["query_boolean"]))
+                              .hilightOnHover(20)
+                              .onClick((node, i, n) => {
+                                  const isSelected = d3.select(n[i]).classed("selected");
+                                  fig.svgSelection.selectAll(".selected").classed("selected", false);
+                                  if(isSelected){
+                                      d3.select(n[i]).classed("selected", false);
+                                      updateTable(null);
+                                  }else{
+                                      d3.select(n[i]).classed("selected", true);
+                                      updateTable(node.name);
+                                  }
+                              });
           const legend = figtree.legend()
                                 .scale(colorScale)
                                 .x(-100)
