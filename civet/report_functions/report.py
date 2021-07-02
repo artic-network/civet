@@ -136,29 +136,20 @@ def make_catchment_summary_data(metadata,catchments,config):
 
 def get_timeline(catchment, config):
 
-    timeline_json = timeline_functions.make_timeline_json(catchment, config)
-
-    with open(timeline_json,'r') as f:
-        timeline_data = json.load(f)
+    timeline_data = timeline_functions.make_timeline_json(catchment, config)
     
     return timeline_data
 
 def get_query_map(config):
 
-    query_json = map_functions.make_query_map_json(config)
-
-    with open(query_json, 'r') as f:
-        qmap_data = json.load(f)
+    qmap_data = map_functions.make_query_map_json(config)
 
     return qmap_data
 
 def get_background_map(config):
 
-    background_json = map_functions.make_background_map_json(config)
+    bmap_data = map_functions.make_background_map_json(config)
 
-    with open(background_json, 'r') as f:
-        bmap_data = json.load(f)
-    
     return bmap_data
 
 def get_snipit(catchments,data_for_report,config):

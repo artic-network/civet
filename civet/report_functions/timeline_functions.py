@@ -107,9 +107,4 @@ def make_timeline_json(catchment,config):
                 
     overall[catchment_string] = dict_list  
 
-    timeline_json = os.path.join(config["tempdir"],f'timeline_data_{catchment}.json')
-
-    with open(timeline_json, 'w') as outfile:
-        json.dump(overall, outfile)
-
-    return timeline_json
+    return json.dumps(overall)
