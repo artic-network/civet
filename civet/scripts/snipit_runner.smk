@@ -49,7 +49,6 @@ rule make_snipit_alignments:
                 records = [reference]
 
                 for query in catchment_dict[catchment]:
-                    print(query)
                     record = sequences[query[1]]
                     record.id = query[0]
                     records.append(record)
