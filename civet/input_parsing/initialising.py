@@ -14,9 +14,10 @@ def get_defaults():
                     "date": today,# date investigation was opened
                     "authors": "", # List of authors, affiliations and contact details
                     "max_queries":5000,
+
                     # Initialising data variables
                     "num_seqs":0,
-                    "datadir": os.getenv('DATADIR'),
+                    "datadir": os.getenv('CIVET_DATADIR'),
                     "background_csv":False,
                     "background_fasta":False,
                     "background_SNPs":False,
@@ -59,6 +60,9 @@ def get_defaults():
                     # QC standards for input fasta file
                     "max_ambiguity":0.5,
                     "min_length":20000,
+
+                    #Tree options
+                    "tree_annotations": "lineage,country",
 
                     #Report options
                     "colour_theme": "#7178bc",
@@ -187,21 +191,28 @@ def arg_dict(config):
                 "rc":"report_content",
                 "report_preset":"report_preset",
                 "rp":"report_preset",
+
                 "alt":"report_column",
                 "report_column":"report_column",
+
                 "anonymise":"anonymise",
                 "anonymize":"anonymise",
+
                 "td":"timeline_dates",
                 "timeline_dates":"timeline_dates",
                 "timeline_colours":"timeline_colours",
                 "timeline_colors":"timeline_colours",
                 "table_content":"table_content",
+
                 "background_date_column":"background_date_column",
                 "bdate":"background_date_column",
                 "date_column":"date_column",
                 "date":"date_column",
+
                 "location_column":"location_column",
                 "lcol":"location_column",
+
+                "tree_annotations":"tree_annotations",
 
                 #mgroup args
                 "lat":"latitude_column",

@@ -127,7 +127,7 @@ def check_background_fasta(background_fasta):
     return c
 
 def check_background_snps(config):
-    
+    records = 0
     if config["background_SNPs"]:
         fields = ['query',"SNPs","ambiguities","SNPcount","ambcount"]
         missing = []
@@ -137,12 +137,19 @@ def check_background_snps(config):
             for field in fields:
                 if field not in header:
                     missing.append(field)
-        if len(missing) > 1:
-            sys.stderr.write(cyan(f"Error: some required fields missing from background SNPs file:\n") + "\n - ".join(missing) + "\n")
-            sys.exit(-1)
-        elif len(missing) == 1:
-            sys.stderr.write(cyan(f"Error: background SNPs file missing field: ") + missing[0] + "\n")
-            sys.exit(-1)
+            
+                if len(missing) > 1:
+                    sys.stderr.write(cyan(f"Error: some required fields missing from background SNPs file:\n") + "\n - ".join(missing) + "\n")
+                    sys.exit(-1)
+                elif len(missing) == 1:
+                    sys.stderr.write(cyan(f"Error: background SNPs file missing field: ") + missing[0] + "\n")
+                    sys.exit(-1)
+
+                for row in reader:
+                    records+=1
+    
+    return records
+        
 
 
 def data_group_parsing(debug,datadir,background_csv,background_SNPs,background_fasta,background_tree,background_column,fasta_column,config):
@@ -153,7 +160,9 @@ def data_group_parsing(debug,datadir,background_csv,background_SNPs,background_f
     --background-fasta (Default False)
     --data-column (Default central_sample_id)
     """
+    print(config['datadir'])
     if datadir:
+        
         datadir = os.path.abspath(datadir)
 
     # if command line arg, overwrite config value
@@ -192,7 +201,7 @@ def data_group_parsing(debug,datadir,background_csv,background_SNPs,background_f
     else:
         config["background_search_file"] = config["background_fasta"]
 
-    if not debug:
+    if debug:
         csv_record_count = check_csv_file("-bc/--background-csv","background csv",config["background_csv"],config["background_column"],config["fasta_column"])
         fasta_record_count = check_background_fasta(config["background_fasta"])
         
@@ -201,8 +210,7 @@ def data_group_parsing(debug,datadir,background_csv,background_SNPs,background_f
             sys.exit(-1)
 
         if config["background_SNPs"]:
-            SNP_record_count = check_csv_file("-bSNP/--background-SNPs","background SNPs",config["background_SNPs"],config["background_column"],config["fasta_column"])
+            SNP_record_count = check_background_snps(config)
             if csv_record_count != SNP_record_count:
                 sys.stderr.write(cyan(f"Error: different number of background csv and background SNP records.\n")+"Please provide a SNP record for each row in the background metadata file.\n")
                 sys.exit(-1)
-

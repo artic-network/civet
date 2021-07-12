@@ -104,6 +104,8 @@ Preset options: the_usual (1,2,3,4,5), the_works (1,2,3,4,5,7), the_whole_sheban
     r_group.add_argument("-bdate", "--background-date-column", action="store", dest="background_date_column", help="Column in input data with date data in. Default=sample_date")
     r_group.add_argument("-lcol","--location-column", dest="location_column", action="store", help="Column in the background csv that contains geographical data. Default=country")
 
+    t_group = parser.add_argument_group("Tree options")
+    t_group.add_argument("-ta","--tree-annotations", action="store", dest="tree_annotations", help="Comma separated string of metadata columns to annotate catchment trees with, can then be displayed in the report.")
 
     m_group = parser.add_argument_group("Map options")
     m_group.add_argument("-qmfile","--query-map-file", action="store", dest="query_map_file", help="JSON or GeoJSON containing polygons to plot queries on. Must be an online resource eg on a Github pages website.")
@@ -181,6 +183,8 @@ Preset options: the_usual (1,2,3,4,5), the_works (1,2,3,4,5,7), the_whole_sheban
     name_dict = report_arg_parsing.parse_global_report_options(args.report_content,args.report_preset, args.report_column, args.anonymise, args.date_column, args.background_date_column, args.location_column, config)
     report_arg_parsing.parse_optional_report_content(args.table_content, args.timeline_dates, args.colour_theme, args.colour_map, config)
     report_arg_parsing.parse_map_options(args.background_map_date_range, args.background_map_column, args.background_map_file, args.centroid_file, args.background_map_location, args.query_map_file, args.longitude_column, args.latitude_column, found_in_background_data, config)
+    report_arg_parsing.parse_tree_annotations(args.tree_annotations, config)
+
 
     # sets up the output dir, temp dir, and data output desination
     directory_setup.output_group_parsing(args.outdir, args.output_prefix, args.overwrite,args.datestamp, args.output_data, args.tempdir, args.no_temp, config)

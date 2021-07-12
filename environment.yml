@@ -12,7 +12,7 @@ dependencies:
   - cov-ert::jclusterfunk
   - gofasta>=0.0.4
 variables:
-  DATADIR: '/cephfs/covid/bham/results/phylogenetics/latest/civet/cog'
+  CIVET_DATADIR: '/cephfs/covid/bham/results/phylogenetics/latest/civet/cog'
   CIVETMODE: 'CLIMB'
 
 # civet now requires conda version 4.9 or later

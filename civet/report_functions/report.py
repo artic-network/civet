@@ -23,7 +23,7 @@ def make_query_summary_data(metadata, config):
             if row["query_boolean"] == "True":
                 table_row = {}
                 for col in config["table_content"]:
-                    ## should there be a 'query_boolean' == 'True' statement here?
+
                     table_row[col] = row[col]
                     
                 query_summary_data.append(table_row)
