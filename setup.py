@@ -18,13 +18,12 @@ setup(name='civet',
       package_data={"civet":["data/*","data/report_modules/*","data/map_data/*"]},
       install_requires=[
             "biopython>=1.70",
-            "baltic",
             "mako>=1.1",
             "snipit"
         ],
       description='Cluster Investivation & Virus Epidemiology Tool',
       url='https://github.com/artic-network/civet',
-      author='Aine OToole, Verity Hill, Rachel Colquhoun',
+      author='Aine OToole, Verity Hill & Rambaut Group',
       author_email='aine.otoole@ed.ac.uk',
       entry_points="""
       [console_scripts]

@@ -140,6 +140,10 @@ Preset options: the_usual (1,2,3,4,5), the_works (1,2,3,4,5,7), the_whole_sheban
             parser.print_help()
             sys.exit(0)
 
+    if args.art:
+        misc.be_arty()
+        sys.exit(0)
+
     dependency_checks.check_dependencies()
     
     # Initialise config dict
