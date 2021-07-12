@@ -192,7 +192,6 @@ Preset options: the_usual (1,2,3,4,5), the_works (1,2,3,4,5,7), the_whole_sheban
         global_report_functions.write_anon_names_to_file(config, name_dict)
 
     # ready to run? either verbose snakemake or quiet mode
-    print(config.keys())
 
     if config["verbose"]:
         print(red("\n**** CONFIG ****"))
