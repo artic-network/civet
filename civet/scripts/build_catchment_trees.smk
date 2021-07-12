@@ -111,7 +111,7 @@ rule annotate:
         jclusterfunk annotate -c {config[background_column]} \
                              -i {input.tree:q} \
                              -m {input.csv:q} \
-                             --tip-attributes query_boolean epi_week country lineage \
+                             --tip-attributes query_boolean {config[tree_annotations]} \
                              -f nexus \
                              -o {output.tree:q} \
                             --ignore-missing
