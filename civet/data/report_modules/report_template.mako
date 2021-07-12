@@ -13,7 +13,7 @@
     <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/3.4.1/css/bootstrap.min.css" integrity="sha384-HSMxcRTRxnN+Bdg0JdbxYKrThecOKuH5zCYotlSAcp1+c8xmyTe9GYg1l9a69psu" crossorigin="anonymous">
     <script src="https://code.jquery.com/jquery-1.12.4.min.js" integrity="sha384-nvAa0+6Qg9clwYCGGPpDQLVpLNn0fRaROjHqs13t4Ggj3Ez50XnGQqc/r8MhnRDZ" crossorigin="anonymous"></script>
     <script src="https://stackpath.bootstrapcdn.com/bootstrap/3.4.1/js/bootstrap.min.js" integrity="sha384-aJ21OjlMXNL5UyIl/XNwTMqvzeRMZH2w8c5cRVpzpU8Y5bApTppSuUkhZXN0VxHd" crossorigin="anonymous"></script>
-    <script src="https://cdn.jsdelivr.net/gh/rambaut/figtree.js@ccb433b/dist/figtree.umd.js"></script>
+    <script src="https://cdn.jsdelivr.net/gh/rambaut/figtree.js@9880/dist/figtree.umd.js"></script>
     <script src="https://d3js.org/d3.v6.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/vega@5.15.0"></script>
   <script src="https://cdn.jsdelivr.net/npm/vega-lite@4.15.0"></script>
@@ -579,6 +579,19 @@
           })
         }
 
+      function addTraitColorEventHandler(traits,traitLegend,barSelectID,colorCodes,fig){
+        
+        d3.select(`#${barSelectID}`).on("change", function(d){
+            const selectedGroup = this.value 
+            const traitColorScale = d3.scaleOrdinal(colorCodes).domain(fig.tree().annotations[selectedGroup].values)
+            traits.attr("fill",n => traitColorScale(n.annotations[selectedGroup]))
+            traitLegend.scale(traitColorScale)
+            fig.update();
+            console.log(selectedGroup);
+          })
+        }
+
+
       function addSliderEventHandler(sliderID, fig) {
           const svg = fig.svgSelection.select(function () {
               return this.parentNode;
@@ -617,7 +630,8 @@
           })
       }
       </%text>
-      function buildTree(svgID, myTreeString,tooltipID,backgroundDataString,sliderID,colourSelectID,colorCodes) {
+      
+      function buildTree(svgID, myTreeString,tooltipID,backgroundDataString,sliderID,colourSelectID,barSelectID,colorCodes) {
           const backgroundData = JSON.parse(backgroundDataString);
           const updateTable = updateTableFactory(tooltipID, backgroundData);
           const margins = {top:50,bottom:60,left:100,right:250}
@@ -627,6 +641,7 @@
           const tree = figtree.Tree.parseNexus(nexusString)[0];
           const fig = new figtree.FigTree(document.getElementById(svgID),margins, tree)
           const colorScale = d3.scaleOrdinal(colorCodes).domain(fig.tree().annotations["query_boolean"].values)
+          const traitColorScale = d3.scaleOrdinal(colorCodes).domain(fig.tree().annotations["query_boolean"].values)
           const circleNodes = figtree.circle()
                               .filter(n => !n.children)
                               .attr("r", 8)
@@ -647,6 +662,14 @@
                                 .scale(colorScale)
                                 .x(-100)
                                 .y(40)
+          const traitLegend = figtree.legend()
+                                .scale(traitColorScale)
+                                .x(-150)
+                                .y(40)
+          const traits = figtree.traitBar()
+                                .x(svg.style("width")+230)
+                                .width(10)
+                                .attr("fill",n => traitColorScale(n.annotations["query_boolean"]));
           fig.layout(figtree.rectangularLayout)
                   .nodes(circleNodes,
                           figtree.tipLabel(v=>v.name).attr("dx",10),
@@ -684,8 +707,10 @@
                                       yPadding:10})
                                         )
                             .feature(legend)
+                            // .feature(traits)
         addSliderEventHandler(sliderID,fig);
         addColourEventHandler(circleNodes,legend,colourSelectID,colorCodes,fig);
+        // addTraitColorEventHandler(traits,traitLegend,barSelectID,colorCodes,fig)
       }
     </script>
 
@@ -824,7 +849,16 @@
                   <select class="colourSelect" id="colourSelect_${data_for_report[catchment]['catchmentID']}">
                     <option value="query_boolean">Query</option>
                     <option value="country">Country</option>
-                    <option value="epi_week">Epiweek</option>
+                    <option value="lineage">Lineage</option>
+                  </select>
+                  </div>
+                </div>
+                <div class="column">
+                  <div>
+                  <p>Colour by</p>
+                  <select class="colourSelect" id="barSelect_${data_for_report[catchment]['catchmentID']}">
+                    <option value="query_boolean">Query</option>
+                    <option value="country">Country</option>
                     <option value="lineage">Lineage</option>
                   </select>
                   </div>
@@ -836,7 +870,7 @@
           <div class="row tree-container">
 
             <div class="col-xs-7">
-              <svg class="tree_svg" width="600" height="400" id="tree_${data_for_report[catchment]['catchmentID']}"></svg>
+              <svg class="tree_svg" width="700" height="400" id="tree_${data_for_report[catchment]['catchmentID']}"></svg>
             </div>
             <div class="col-xs-4 sticky" id="tooltip_${data_for_report[catchment]['catchmentID']}">
             </div> 
@@ -847,7 +881,9 @@
                         "tooltip_${data_for_report[catchment]['catchmentID']}",
                         '${background_data}',
                         "rangeinput_${data_for_report[catchment]['catchmentID']}",
-                        "colourSelect_${data_for_report[catchment]['catchmentID']}",${colorCodes});
+                        "colourSelect_${data_for_report[catchment]['catchmentID']}",
+                        "barSelect_${data_for_report[catchment]['catchmentID']}",
+                        ${colorCodes});
             </script> 
           </div> 
           <h3><strong>Figure ${figure_count}</strong> | ${catchment_name} phylogeny</h3>
