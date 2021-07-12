@@ -469,7 +469,7 @@ def get_top_ten(counter):
     remainder = total
     for lin in top:
         pcent = int(100*(lin[1]/total))
-        if pcent >= 1:
+        if pcent >= 5: #otherwise it doesn't get a nice slice of the pie
             remainder-= lin[1]
             summary[lin[0]] = lin[1]
     summary["other"] = remainder
