@@ -155,7 +155,7 @@ def get_background_map(config):
 def get_snipit(catchments,data_for_report,config):
     for catchment in catchments:
         snipit_svg = ""
-        with open(os.path.join(config["data_outdir"],"snipit",f"{catchment}.snipit.svg"),"r") as f:
+        with open(os.path.join(config["tempdir"],"snipit",f"{catchment}.snipit.svg"),"r") as f:
             for l in f:
                 l = l.rstrip("\n")
                 snipit_svg+=f"{l}\n"
@@ -164,7 +164,7 @@ def get_snipit(catchments,data_for_report,config):
 def get_nexus(catchments,data_for_report,config):
     for catchment in catchments:
         nexus = ""
-        with open(os.path.join(config["data_outdir"],"catchments",f"{catchment}.tree"),"r") as f:
+        with open(os.path.join(config["outdir"],"catchments",f"{catchment}.tree"),"r") as f:
             for l in f:
                 l = l.rstrip("\n")
                 nexus+=f"{l}\n"
@@ -264,9 +264,8 @@ def make_report(metadata,report_to_generate,config):
 
     catchments = [f"catchment_{i}" for i in range(1,config["catchment_count"]+1)]
     data_for_report = define_report_content(metadata,catchments,config)
+
     background_data = get_background_data(metadata,config)
-    # for i in data_for_report:
-    #     print(i, data_for_report[i])
     
     template_dir = os.path.abspath(os.path.dirname(config["report_template"]))
     mylookup = TemplateLookup(directories=[template_dir]) #absolute or relative works
@@ -295,5 +294,6 @@ def make_report(metadata,report_to_generate,config):
         print("%s: %s" % (str(traceback.error.__class__.__name__), traceback.error))
 
     with open(report_to_generate, 'w') as fw:
+        print(report_to_generate)
         fw.write(buf.getvalue())
     
