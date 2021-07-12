@@ -2,53 +2,40 @@
 
 
 ## Mapping options
+ 
+There are two types of mapping in civet:
+1. Plot background diversity of lineages in the area of interest (report option 6)
+2. Plot where your queries are (report option 7) 
+ 
+Both maps will show a default first view, but it is possible to alter that view by using the mouse wheel to zoom in and out, and by clicking and dragging on the map itself.
+ 
+### Mapping queries (report option 6)
+ 
+This option allows you to plot queries on a map using their coordinates.
+ 
+Arguments:
+--query-map-file/-qmfile : the underlying map file that the dots will be plotted on. Default: world map
+--latitude-column/-lat : column in the metadata that contains latitude information for queries. Default: latitude
+--longitude-column/-long : column in the metadata that contains longitude information for queries. Default: longitude
+ 
+### Mapping background diversity (report option 7)
+ 
+This option summarises the PANGO lineages as radial charts during a set time period at a specific geographical level. Only lineages that make up more than 5% of the overall sequence count are shown, with others shown under “other”.
+ 
+For more information on PANGO lineages, see https://www.pango.network/
+ 
+Arguments:
+--background-map-file/-bmfile : the underlying map file that the radial charts will be displayed on. 
+Default: world map
+--centroid-file : file containing centroids of locations that lineages are summarised by, used to place radial plots on the map. Only necessary if a custom background map file is provided.
+--background-map-date-range/-bmrange : Date range to restrict summary to. This can either be in terms of two dates (inclusive) in the format YYYY-MM-DD separated by a “:” (eg) or a single integer specifying the number of days either side of the date range of the queries. Eg --background-map-date-range 2020-09-10:2020-09-30 or --background-map-date-range 10 
+Default: 2019-11-01 to present day
+--background-map-column/-bmcol : column in the background dataset containing geographical information to summarise PANGO lineages by. Must correspond to locations in the centroid file and background map file. 
+Default: --location-column (country by default)
+--background-map-location/-bmloc : comma separated list of locations to show background lineage diversity for. Must be valid locations matching the map file and the centroid file. 
+Default: all valid locations in the background metadata file in the appropriate column.
+ 
+NB if the environment variable civet_mode is set to CLIMB, the default for the background-map-column is “suggested_adm2_grouping” instead, with the corresponding map and centroid files. This is an output of the COG-UK data processing pipeline, and is a version of the administrative level 2 (roughly county) of where the sequence was sampled. See https://github.com/COG-UK/docs/blob/master/geography_cleaning.md for more information.
 
-How to visualise the geographical data in sequences using civet
-
-> Note: All of these options require some geographical information, either in the background data or the input query information. See [here](./geographic_data.md) for a list of accepted adm2 regions.
-
-### --local-lineages and associated options
-
-The local lineages option runs an analysis to show the composition of background lineages. It shows the distribution of UK lineages in the Adm2 regions that the query sequences are in, as well as the neighbouring adm2 regions. This can be used to see whether the distribution of UK lineages found in the query dataset is representative of the nearby region or not.
-
-It requires Adm2 information for the query sequences and for sequences in the background metadata. It can therefore only be run on CLIMB.
-
-By default this background information will be provided for the whole timeframe present in the background metadata. However there are a number of options to restrict this dataset.
-
-First, use the flag **--date-restriction**  or specify **date_restriction: True** in the config.
-
-**--date-window** followed by a number restricts the date to the number of days before and after the date range in the query dataset.
-
-**--date-range-start** and **--date-range-end** can be used to restrict the analysis to specific dates given in YYYY-MM-DD format. If only the former is specified, then the analysis will be restricted from then to the present.
-
-If only **--date-restriction** is specified, then the analysis will be restricted to 7 days before and after the date range of the query.
-
-Example is shown below:
-
-![](doc_figures/local_central.png)
-![](doc_figures/local_neighbouring.png)
-
-
-### --map-sequences and associated options
-
-To plot the sequences in the query, use the **--map-sequences** option.
-
-There are three options for input: adm2, outer postcode and sequence coordinates. Use **--map-info** to specify which columns contain the geographical data. For adm2, it will show one dot per adm2, sized by the number of sequences in that adm2 region. If it is outer postcode or coordinates, one dot will be shown by sequence.
-
-If using adm2, this column should contain the word "adm2", and if using coordinates there should be separate columns containing the x axis data and the y axis data, provided as a comma separated string in that order. Outer postcode should be a single column, but can be named anything.
-
-If providing cooordinates, the coordinate reference system (CRS) they are in must also be specified using the **--input-crs** option. Some common CRSs are EPSG:3395 and EPSG:4326 (eg Manchester in the former is 7038432.30, -248267.47 and in the latter is 53.5,-2.28). If the map that is produced looks odd (for example, the dots showing the sequences are very far away from the map of the UK), it is worth checking the CRS.
-
-If using coordinates or outer postcodes, the dots showing where the sequences are may be coloured by their metadata. Provide the column containing the data by using the **--colour-map-by** option. 
-
-Examples:
-
-#### Adm2 map
-
-![](doc_figures/adm2_map.png)
-
-#### Outer postocde or coordinate map with a trait coloured
-
-![](doc_figures/outer_postcode_or_coords_map.png)
 
 ### [Next: Acknowledgements](./acknowledgements.md)
