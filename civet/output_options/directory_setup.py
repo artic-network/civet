@@ -54,8 +54,8 @@ def clear_old_files(config):
     if config["overwrite"] and os.path.exists(config["outdir"]):
         print(green("Overwriting previous output in ") + config["outdir"] + ".")
         old_files = glob.glob(f'{config["outdir"]}/*.*', recursive=True)
-        catchment_files = glob.glob(f'{config["outdir"]}/catchments/*.*', recursive=True)
-        snipit_files = glob.glob(f'{config["outdir"]}/snipit/*.*', recursive=True)
+        catchment_files = glob.glob(f'{config["outdir"]}/catchments/catchment*.*', recursive=True)
+        snipit_files = glob.glob(f'{config["outdir"]}/snipit/catchment*.*', recursive=True)
 
         for d in [old_files,catchment_files,snipit_files]:
             for f in d:

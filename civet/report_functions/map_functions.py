@@ -438,15 +438,12 @@ def make_query_map_json(config):
                 
                 all_queries.append(per_seq_dict)
 
-    json_name = os.path.join(config["tempdir"], 'query_map_data.json')
-
-    with open(json_name, 'w') as outfile:
-        json.dump(all_queries, outfile)
+    json_data = json.dumps(all_queries)
 
     config["start_centre_lat"] = float(start_centre_lat)
     config["start_centre_long"] = float(start_centre_long)
 
-    return json_name
+    return json_data
 
 
 def get_centroids(config):
@@ -510,11 +507,8 @@ def make_background_map_json(config):
             new_dict["count"] = count
             
             overall.append(new_dict)
-
-    json_name = os.path.join(config["tempdir"], 'background_map_data.json')
     
-    with open(json_name, 'w') as outfile:
-        json.dump(overall, outfile)
+    json_data = json.dumps(overall)
 
-    return json_name
+    return json_data
 

@@ -156,15 +156,3 @@ def parse_location(location_column, config):
         else:
             if "country" in headers:
                 config["location_column"] = "country"
-
-def get_acceptable_colours(config):
-
-    acceptable_colours = []
-
-    with open(config["html_colours"]) as f:
-        reader = csv.DictReader(f)
-        for row in reader:
-            acceptable_colours.append(row["name"].lower())
-            # acceptable_colours.append(row["hex"].lower())
-
-    return acceptable_colours

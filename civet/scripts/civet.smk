@@ -32,9 +32,8 @@ account for ones that dont map
 """
 rule all:
     input:
-        os.path.join(config["data_outdir"],"catchments","query_metadata.catchments.csv"),
-        os.path.join(config["tempdir"],"catchments","tree.txt"),
-        html = os.path.join(config["outdir"],config["output_reports"][0])
+        os.path.join(config["outdir"],"master_metadata.csv"),
+        os.path.join(config["outdir"],config["output_reports"][0])
 
 rule align_to_reference:
     input:
@@ -129,10 +128,10 @@ rule merge_catchments:
         catchments = rules.find_catchment.output.catchments,
         csv = rules.seq_brownie.output.csv
     output:
-        yaml = os.path.join(config["tempdir"],"catchments","config.yaml"),
+        yaml = os.path.join(config["outdir"],"config.yaml"),
         merged = os.path.join(config["tempdir"],"catchments","catchments_merged.csv"),
         csv = os.path.join(config["tempdir"],"query_metadata.key.csv"),
-        catchment_csv = os.path.join(config["data_outdir"],"catchments","query_metadata.catchments.csv")
+        catchment_csv = os.path.join(config["tempdir"],"catchments","query_metadata.catchments.csv")
     run:
         catchment_dict, catchment_key, catchment_count = catchment_parsing.get_merged_catchments(input.catchments,output.merged,config)
         config["catchment_count"] = catchment_count
@@ -162,20 +161,22 @@ rule downsample_catchments:
     params:
         catchment_dir = os.path.join(config["data_outdir"],"catchments")
     output:
-        csv = os.path.join(config["data_outdir"],"catchments","master_metadata.downsample.csv")
+        csv = os.path.join(config["outdir"],"master_metadata.csv")
     run:
         catchment_parsing.downsample_if_building_trees(input.csv, output.csv, config)
         if '3' in config["report_content"]:
             print(green("Writing catchment fasta files."))
+            if not os.path.exists(params.catchment_dir):
+                os.mkdir(params.catchment_dir)
             catchment_parsing.write_catchment_fasta(output.csv,input.fasta,params.catchment_dir,config)
-
+        
 rule tree_building:
     input:
         yaml = rules.merge_catchments.output.yaml,
         csv = rules.downsample_catchments.output.csv,
         snakefile = os.path.join(workflow.current_basedir,"build_catchment_trees.smk")
     output:
-        txt = os.path.join(config["tempdir"],"catchments","tree.txt")
+        txt = os.path.join(config["tempdir"],"catchments","prompt.txt")
     run:
         if '3' in config["report_content"]:
             print(green("Running tree building pipeline."))
@@ -226,5 +227,6 @@ rule render_report:
             config_loaded = yaml.safe_load(f)
 
         for report_to_generate in config["output_reports"]:
-            report.make_report(input.csv,report_to_generate,config_loaded)
+            report_path = os.path.join(config["outdir"],report_to_generate)
+            report.make_report(input.csv,report_path,config_loaded)
         

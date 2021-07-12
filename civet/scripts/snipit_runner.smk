@@ -7,7 +7,7 @@ catchments = [f"catchment_{i}" for i in range(1,config["catchment_count"]+1)]
 
 rule all:
     input:
-        expand(os.path.join(config["data_outdir"],"snipit","{catchment}.snipit.svg"), catchment=catchments),
+        expand(os.path.join(config["tempdir"],"snipit","{catchment}.snipit.svg"), catchment=catchments),
         os.path.join(config["tempdir"],"snipit","prompt.txt")
 
 rule make_snipit_alignments:
@@ -15,7 +15,7 @@ rule make_snipit_alignments:
         fasta = config["fasta"],
         csv = config["csv"]
     output:
-        expand(os.path.join(config["data_outdir"],"snipit","{catchment}.aln.fasta"), catchment=catchments)
+        expand(os.path.join(config["tempdir"],"snipit","{catchment}.aln.fasta"), catchment=catchments)
     run:
         catchment_dict = collections.defaultdict(list)
         with open(input.csv,"r") as f:
@@ -45,11 +45,10 @@ rule make_snipit_alignments:
             reference = record
         
         for catchment in catchment_dict:
-            with open(os.path.join(config["data_outdir"],"snipit",f"{catchment}.aln.fasta"),"w") as fw:
+            with open(os.path.join(config["tempdir"],"snipit",f"{catchment}.aln.fasta"),"w") as fw:
                 records = [reference]
 
                 for query in catchment_dict[catchment]:
-                    print(query)
                     record = sequences[query[1]]
                     record.id = query[0]
                     records.append(record)
@@ -58,11 +57,11 @@ rule make_snipit_alignments:
 
 rule run_snipit:
     input:
-        aln = os.path.join(config["data_outdir"],"snipit","{catchment}.aln.fasta")
+        aln = os.path.join(config["tempdir"],"snipit","{catchment}.aln.fasta")
     params:
-        out_stem =os.path.join(config["data_outdir"],"snipit","{catchment}.snipit")
+        out_stem =os.path.join(config["tempdir"],"snipit","{catchment}.snipit")
     output:
-        os.path.join(config["data_outdir"],"snipit","{catchment}.snipit.svg")
+        os.path.join(config["tempdir"],"snipit","{catchment}.snipit.svg")
     shell:
         """
         snipit {input.aln:q} -r "outgroup" -o {params.out_stem} -f svg
@@ -70,7 +69,7 @@ rule run_snipit:
 
 rule gather_graphs:
     input:
-        expand(os.path.join(config["data_outdir"],"snipit","{catchment}.snipit.svg"), catchment=catchments)
+        expand(os.path.join(config["tempdir"],"snipit","{catchment}.snipit.svg"), catchment=catchments)
     output:
         os.path.join(config["tempdir"],"snipit","prompt.txt")
     shell:

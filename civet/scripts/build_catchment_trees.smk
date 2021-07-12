@@ -5,8 +5,7 @@ catchments = [f"catchment_{i}" for i in range(1,config["catchment_count"]+1)]
 
 rule all:
     input:
-        # expand(os.path.join(config["data_outdir"],"catchments","{catchment}.tree"), catchment=catchments),
-        expand(os.path.join(config["data_outdir"],"catchments","{catchment}.tree"), catchment=catchments)
+        expand(os.path.join(config["outdir"],"catchments","{catchment}.tree"), catchment=catchments)
 
 rule iqtree:
     input:
@@ -106,7 +105,7 @@ rule annotate:
         tree = rules.clump.output.tree,
         csv = config["csv"]
     output:
-        tree = os.path.join(config["data_outdir"],"catchments","{catchment}.tree")
+        tree = os.path.join(config["outdir"],"catchments","{catchment}.tree")
     shell:
         """
         jclusterfunk annotate -c {config[background_column]} \

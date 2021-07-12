@@ -7,13 +7,13 @@
 
     <meta name="description" content="">
     <meta name="author" content="">
-    <link rel="icon" href="https://raw.githubusercontent.com/COG-UK/civet/master/docs/doc_figures/civet_logo.svg">
+    <link rel="icon" href="https://raw.githubusercontent.com/COG-UK/civet/master/docs/doc_figures/virus.svg">
 
     <title>${config["report_title"]}</title>
     <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/3.4.1/css/bootstrap.min.css" integrity="sha384-HSMxcRTRxnN+Bdg0JdbxYKrThecOKuH5zCYotlSAcp1+c8xmyTe9GYg1l9a69psu" crossorigin="anonymous">
     <script src="https://code.jquery.com/jquery-1.12.4.min.js" integrity="sha384-nvAa0+6Qg9clwYCGGPpDQLVpLNn0fRaROjHqs13t4Ggj3Ez50XnGQqc/r8MhnRDZ" crossorigin="anonymous"></script>
     <script src="https://stackpath.bootstrapcdn.com/bootstrap/3.4.1/js/bootstrap.min.js" integrity="sha384-aJ21OjlMXNL5UyIl/XNwTMqvzeRMZH2w8c5cRVpzpU8Y5bApTppSuUkhZXN0VxHd" crossorigin="anonymous"></script>
-    <script src="https://cdn.jsdelivr.net/gh/rambaut/figtree.js@ccb433b/dist/figtree.umd.js"></script>
+    <script src="https://cdn.jsdelivr.net/gh/rambaut/figtree.js@9880/dist/figtree.umd.js"></script>
     <script src="https://d3js.org/d3.v6.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/vega@5.15.0"></script>
   <script src="https://cdn.jsdelivr.net/npm/vega-lite@4.15.0"></script>
@@ -21,7 +21,8 @@
     <meta charset="utf-8">
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
     <meta name="viewport" content="width=device-width, initial-scale=1">
-    
+    <% colorCodes = config["colour_map"] %>
+    <% themeColor = config["colour_theme"] %>
     <style>
       body {
         padding-top: 50px;
@@ -56,12 +57,13 @@
         }
 
         .active, .accordion:hover {
-          background-color: #ccc;
+          background-color: ${themeColor};
+          color: white;
         }
 
         .accordion:after {
           content: '\002B';
-          color: #777;
+          color: white;
           font-weight: bold;
           float: right;
           margin-left: 5px;
@@ -91,33 +93,33 @@
       .node circle{
         stroke-width:0;
         cursor:pointer;
-        /* fill:#006666; */
+        /* fill:#7178bc; */
         stroke:dimgrey;
         }
       .node circle.selected{
         stroke-width:0;
         cursor:pointer;
-        fill:fuchsia;
+        fill:${themeColor};
         stroke:dimgrey;
         }
       .node-background.query_boolean-True{
-          stroke:fuchsia;
+          stroke:${themeColor};
       }
       .node.query_boolean-True circle{
-        stroke:fuchsia;
+        stroke:${themeColor};
       }
       .node.query_boolean-True circle.selected{
-        stroke:fuchsia;
+        stroke:${themeColor};
       }
       .node-background.query_boolean-True circle.selected{
-          stroke:fuchsia;
+          stroke:${themeColor};
       }
       .node.query_boolean-True.hovered circle{
-          stroke:fuchsia;
+          stroke:${themeColor};
       }
       .node rect{
         stroke-width:2;
-        fill:fuchsia;
+        fill:${themeColor};
         stroke:dimgrey;
       }
       .svg-tooltip {
@@ -176,7 +178,7 @@
       right: 39px;
       z-index: 98;
       padding: 21px;
-      background-color: #006666
+      background-color: ${themeColor}
       }
       .js .cd-top--fade-out {
           opacity: .5
@@ -203,14 +205,14 @@
           width: var(--cd-back-to-top-size);
           box-shadow: 0 0 10px rgba(0, 0, 0, .05) !important;
           background: url(https://res.cloudinary.com/dxfq3iotg/image/upload/v1571057658/cd-top-arrow.svg) no-repeat center 50%;
-          background-color:#006666;
+          background-color: ${themeColor};
           background-color: hsla(var(--cd-color-3-h), var(--cd-color-3-s), var(--cd-color-3-l), 0.8)
       }
       .slidecontainer {
         width: 100%;
       }
       .colourSelect {
-        background: #d3d3d3;
+        background: #eee;
         border-radius: 5px;
         padding: 4px;
         stroke: dimgrey;
@@ -238,7 +240,7 @@
         width: 25px;
         height: 25px;
         border-radius: 50%; 
-        background: #006666;
+        background: ${themeColor};
         stroke: dimgrey;
         cursor: pointer;
       }
@@ -247,7 +249,7 @@
         height: 25px;
         border-radius: 50%;
         stroke: dimgrey;
-        background: #006666;
+        background: ${themeColor};
         cursor: pointer;
       } 
       .tree-container{
@@ -493,7 +495,30 @@
         });
         });
     </script>
-            
+    <!-- <script>
+      var colorWell;
+      var defaultColor = "#557b86";
+      window.addEventListener("load", startup, false);
+      function startup() {
+        colorWell = document.querySelector("#colorWell");
+        colorWell.value = defaultColor;
+        colorWell.addEventListener("input", updateFirst, false);
+        colorWell.addEventListener("change", updateAll, false);
+        colorWell.select();
+      }
+      function updateFirst(event) {
+        var p = document.querySelector("accordion active");
+        // var toTopButton = document.getElementById("toTopBtn");
+        if (p) {
+          p.style.color = event.target.value;
+        }
+      }
+      function updateAll(event) {
+        document.querySelectorAll("accordion active").forEach(function(p) {
+          p.style.color = event.target.value;
+        });
+      }
+    </script> -->
     <script>
           function myFunction(myInput, myTable) {
             var input, filter, table, tr, td, i, txtValue;
@@ -542,10 +567,10 @@
               }
       }
       <%text>
-      function addColourEventHandler(circleNodes,legend,colourSelectID,fig){
+      function addColourEventHandler(circleNodes,legend,colourSelectID,colorCodes,fig){
         d3.select(`#${colourSelectID}`).on("change", function(d){
             const selectedGroup = this.value 
-            const colorScale = d3.scaleOrdinal(d3.schemeTableau10).domain(fig.tree().annotations[selectedGroup].values)
+            const colorScale = d3.scaleOrdinal(colorCodes).domain(fig.tree().annotations[selectedGroup].values)
             circleNodes.attr("fill",n=>colorScale(n.annotations[selectedGroup]))
 
             legend.scale(colorScale)
@@ -554,37 +579,59 @@
           })
         }
 
-        function addSliderEventHandler(sliderID,fig){
-        const svg = fig.svgSelection.select(function() { return this.parentNode; })
-        const initialHeight = svg.attr("height");
-        const maxHeight = fig.tree().externalNodes.length*50; // 50 pixels for each tip plus a little for margins;
-        if(maxHeight<=initialHeight){
-          d3.select(`#${sliderID}`).remove();// don't need  a slider
-          return;
+      function addTraitColorEventHandler(traits,traitLegend,barSelectID,colorCodes,fig){
+        
+        d3.select(`#${barSelectID}`).on("change", function(d){
+            const selectedGroup = this.value 
+            const traitColorScale = d3.scaleOrdinal(colorCodes).domain(fig.tree().annotations[selectedGroup].values)
+            traits.attr("fill",n => traitColorScale(n.annotations[selectedGroup]))
+            traitLegend.scale(traitColorScale)
+            fig.update();
+            console.log(selectedGroup);
+          })
         }
-        const heightScale = d3.scaleLinear()
-                .range([initialHeight,maxHeight])
-                .domain([0,1])
-            if(initialHeight/fig.tree().externalNodes.length>12){
+
+
+      function addSliderEventHandler(sliderID, fig) {
+          const svg = fig.svgSelection.select(function () {
+              return this.parentNode;
+          })
+          const initialHeight = svg.attr("height");
+          const maxHeight = fig.tree().externalNodes.length * 50; // 50 pixels for each tip plus a little for margins;
+          if (maxHeight <= initialHeight) {
+              console.log(sliderID);
+              d3.select(`#${sliderID}`).select(function () {
+                  return this.parentNode;
+              })
+                  .remove();// don't need  a slider add names
               fig.svgSelection.selectAll(".label")
-              .classed("show",true)
-            }
-        d3.select(`#${sliderID}`).on("input",function(){
+                  .classed("show", true)
+              return;
+          }
+          const heightScale = d3.scaleLinear()
+              .range([initialHeight, maxHeight])
+              .domain([0, 1])
+          if (initialHeight / fig.tree().externalNodes.length > 12) {
+              fig.svgSelection.selectAll(".label")
+                  .classed("show", true)
+          }
+          d3.select(`#${sliderID}`).on("input", function () {
               const svgHeight = heightScale(this.value);
               //magic number!!
               svg.attr("height", svgHeight);
-            fig.update();
-            if(svgHeight/fig.tree().externalNodes.filter(node=>!node[fig.id].ignore).length>12){
-              fig.svgSelection.selectAll(".label")
-              .classed("show",true)
-            }else{
-              fig.svgSelection.selectAll(".label")
-              .classed("show",false)
-            }
-        })
+              fig.update();
+              if (svgHeight / fig.tree().externalNodes.filter(node => !node[fig.id].ignore).length > 12) {
+                  fig.svgSelection.selectAll(".label")
+                      .classed("show", true)
+              } else {
+                  fig.svgSelection.selectAll(".label")
+                      .classed("show", false)
+              }
+          })
       }
       </%text>
-      function buildTree(svgID, myTreeString,tooltipID,backgroundDataString,sliderID,colourSelectID) {
+      
+      function buildTree(svgID, myTreeString,tooltipID,backgroundDataString,sliderID,colourSelectID,barSelectID,colorCodes) {
           const backgroundData = JSON.parse(backgroundDataString);
           const updateTable = updateTableFactory(tooltipID, backgroundData);
           const margins = {top:50,bottom:60,left:100,right:250}
@@ -593,21 +640,36 @@
           const nexusString = myTreeString;
           const tree = figtree.Tree.parseNexus(nexusString)[0];
           const fig = new figtree.FigTree(document.getElementById(svgID),margins, tree)
-          const colorScale = d3.scaleOrdinal(d3.schemeTableau10).domain(fig.tree().annotations["query_boolean"].values)
+          const colorScale = d3.scaleOrdinal(colorCodes).domain(fig.tree().annotations["query_boolean"].values)
+          const traitColorScale = d3.scaleOrdinal(colorCodes).domain(fig.tree().annotations["query_boolean"].values)
           const circleNodes = figtree.circle()
-                                  .filter(n=>!n.children)
-                                  .attr("r",8)
-                                  .attr("fill",n=>colorScale(n.annotations["query_boolean"]))
-                                  .hilightOnHover(20)
-                                  .onClick((node,i,n)=>{
-                                    updateTable(node.name);
-                                    fig.svgSelection.selectAll(".selected").classed("selected",false);
-                                    d3.select(n[i]).classed("selected",true);
-                                  });
+                              .filter(n => !n.children)
+                              .attr("r", 8)
+                              .attr("fill", n => colorScale(n.annotations["query_boolean"]))
+                              .hilightOnHover(20)
+                              .onClick((node, i, n) => {
+                                  const isSelected = d3.select(n[i]).classed("selected");
+                                  fig.svgSelection.selectAll(".selected").classed("selected", false);
+                                  if(isSelected){
+                                      d3.select(n[i]).classed("selected", false);
+                                      updateTable(null);
+                                  }else{
+                                      d3.select(n[i]).classed("selected", true);
+                                      updateTable(node.name);
+                                  }
+                              });
           const legend = figtree.legend()
                                 .scale(colorScale)
                                 .x(-100)
                                 .y(40)
+          const traitLegend = figtree.legend()
+                                .scale(traitColorScale)
+                                .x(-150)
+                                .y(40)
+          const traits = figtree.traitBar()
+                                .x(svg.style("width")+230)
+                                .width(10)
+                                .attr("fill",n => traitColorScale(n.annotations["query_boolean"]));
           fig.layout(figtree.rectangularLayout)
                   .nodes(circleNodes,
                           figtree.tipLabel(v=>v.name).attr("dx",10),
@@ -645,8 +707,10 @@
                                       yPadding:10})
                                         )
                             .feature(legend)
+                            // .feature(traits)
         addSliderEventHandler(sliderID,fig);
-        addColourEventHandler(circleNodes,legend,colourSelectID,fig);
+        addColourEventHandler(circleNodes,legend,colourSelectID,colorCodes,fig);
+        // addTraitColorEventHandler(traits,traitLegend,barSelectID,colorCodes,fig)
       }
     </script>
 
@@ -660,13 +724,24 @@
         </header>
         
         <h1>${config["report_title"]}
-            <small class="text-muted">${date}</small>
+            <small class="text-muted" style="color:${themeColor}">${date}</small>
         </h1> 
         <br>
         </div>
-    
     <br>
-  
+<!--     
+    </div>
+    <button class="accordion">Report options</button>
+    <div class="panel">
+      <div class="row">
+        <div class="column">
+            <input type="color" value="#557b86" id="colorWell">
+            <label for="colorWell">Theme Colour</label>
+          </div>
+        <div class="column">
+          </div>
+      </div>
+    </div> -->
    %if '1' in config["report_content"]:
       
           <h3><strong>Table 1</strong> | Summary of queries  <input class="searchbar" type="text" id="myInput" onkeyup="myFunction('myInput','myTable')" placeholder="Search for sequence..." title="searchbar"></h3>
@@ -679,7 +754,11 @@
               % for row in query_summary_data:
                   <tr>
                     %for col in config["table_content"]:
-                    <td>${row[col]}</td>
+                      %if col=="catchment":
+                      <td><a href="#header_${row[col]}" style="color:${themeColor}">${row[col]}</a></td>
+                      %else:
+                      <td>${row[col]}</td>
+                      %endif
                     %endfor
                   </tr>
               % endfor
@@ -724,16 +803,16 @@
           </div>
         %endif
   %endif
-
+    <% figure_count = 0 %>
     %for catchment in catchments:
-        
-        <h2>${catchment.replace("_"," ").title()}</h2> 
+        <% catchment_name = catchment.replace("_"," ").title() %>
+        <h2><a id = "header_${catchment}"></a>${catchment_name}</h2> 
         
         %if '2' in config["report_content"]:
           %if 'fasta' in config:
-            <h3><strong>Table ${2+int(data_for_report[catchment]["catchmentID"].split("_")[1])}</strong> | Summary of catchment ${data_for_report[catchment]["catchmentID"]}</h3>
+            <h3><strong>Table ${2+int(catchment_name.split(" ")[1])}</strong> | Summary of ${catchment_name}</h3>
           %else:
-            <h3><strong>Table ${1+int(data_for_report[catchment]["catchmentID"].split("_")[1])}</strong> | Summary of catchment ${data_for_report[catchment]["catchmentID"]}</h3>
+            <h3><strong>Table ${1+int(catchment_name.split(" ")[1])}</strong> | Summary of ${catchment_name}</h3>
           %endif
             <table class="table table-striped" id='${data_for_report[catchment]["catchmentID"]}'>
                   <tr class="header">
@@ -753,6 +832,7 @@
             %endif
 
         %if '3' in config["report_content"]:
+         <% figure_count +=1 %>
             <button class="accordion">Tree options</button>
             <div class="panel">
               <div class="row">
@@ -769,45 +849,68 @@
                   <select class="colourSelect" id="colourSelect_${data_for_report[catchment]['catchmentID']}">
                     <option value="query_boolean">Query</option>
                     <option value="country">Country</option>
-                    <option value="epi_week">Epiweek</option>
+                    <option value="lineage">Lineage</option>
+                  </select>
+                  </div>
+                </div>
+                <div class="column">
+                  <div>
+                  <p>Colour by</p>
+                  <select class="colourSelect" id="barSelect_${data_for_report[catchment]['catchmentID']}">
+                    <option value="query_boolean">Query</option>
+                    <option value="country">Country</option>
                     <option value="lineage">Lineage</option>
                   </select>
                   </div>
                 </div>
               </div>
             </div>
-          <div class="row tree-container">
       
+        
+          <div class="row tree-container">
+
             <div class="col-xs-7">
-              <svg class="tree_svg" width="600" height="400" id="tree_${data_for_report[catchment]['catchmentID']}"></svg>
+              <svg class="tree_svg" width="700" height="400" id="tree_${data_for_report[catchment]['catchmentID']}"></svg>
             </div>
             <div class="col-xs-4 sticky" id="tooltip_${data_for_report[catchment]['catchmentID']}">
             </div> 
+            
             <script type="text/javascript">
               buildTree("tree_${data_for_report[catchment]['catchmentID']}", 
                         `${data_for_report[catchment]['nexus']}`,
                         "tooltip_${data_for_report[catchment]['catchmentID']}",
                         '${background_data}',
                         "rangeinput_${data_for_report[catchment]['catchmentID']}",
-                        "colourSelect_${data_for_report[catchment]['catchmentID']}");
+                        "colourSelect_${data_for_report[catchment]['catchmentID']}",
+                        "barSelect_${data_for_report[catchment]['catchmentID']}",
+                        ${colorCodes});
             </script> 
           </div> 
-            
+          <h3><strong>Figure ${figure_count}</strong> | ${catchment_name} phylogeny</h3>
+          <hr>
+        
         %endif
         %if '4' in config["report_content"]:
+        <% figure_count +=1 %>
+        <br>
             <div id="${catchment}_snipit">
             ${data_for_report[catchment]["snipit_svg"]}
             </div>
+            <h3><strong>Figure ${figure_count}</strong> | snipit plot for queries in ${catchment_name}</h3>
+            <hr>
             
         %endif
         %if '5' in config["report_content"]:
         <%timeline_data = data_for_report[catchment]["timeline_data"] %>
         <% timeline_height = 50+(30 * data_for_report[catchment]['catchment_summary_data']["query_count"]) %>
-              <div id="${catchment}_timeline"></div>
+        
+        <% figure_count +=1 %>
+        <br>
+              <div id="${catchment}_timeline" style="width:90%"></div>
                 <script>
                   var vlSpec_time = {
                     "$schema": "https://vega.github.io/schema/vega-lite/v5.json",
-                    "width": 700,
+                    "width": "container",
                     "height": ${timeline_height},
                     "datasets": ${timeline_data},
                     "data": {
@@ -822,20 +925,47 @@
                         }
                       ],
                       "encoding": {
-                        "x": 
-                        {"field": "date", 
-                        "timeUnit":"monthdate",
-                        "type": "temporal", 
-                        "axis": {"grid": false}},
+                        "x": {
+                          "field": "date", 
+                          "timeUnit":"monthdate",
+                          "type": "temporal",
+                          "title": "Date",
+                          "axis": {
+                            "grid": false,
+                            "labelFont":"Helvetica Neue",
+                            "labelFontSize":18,
+                            "tickCount": {"interval": "day", "step": 2}, // put in num days/
+                            "titleFontSize":18,
+                            "titleFont":"Helvetica Neue"
+                          },
+                        },
                         "y": 
                         {"field": "sequence_name", 
                         "type": "nominal",
-                        "axis": {"title": "Sequence name"}},
-                        "color": 
-                        {"field": "date_type", 
-                        "type": "nominal"
+                        "axis": {
+                          "title": "",
+                          "font": "Helvetica Neue",
+                          "labelFontSize":15,
+                          "labelLimit": 0,
+                          "labelPadding":20
                         }
                       },
+                       "color": {
+                          "field": "date_type", 
+                          "type": "nominal",
+                          "legend": {
+                            "labelFont":"Helvetica Neue",
+                            "labelFontSize":18,
+                            "orient": "bottom", 
+                            "symbolSize": 500,
+                            "title": null}
+                        }
+                      },
+                        "config": {
+                          "view": {"stroke": null},
+                          "axis": {"grid": false},
+                          "text": {"font":"Helvetica Neue"}
+                        },
                       "layer": [
                         {
                         "mark": "line",
@@ -854,38 +984,44 @@
                           "tooltip":true
                         },
                         "encoding": {
+                          "tooltip":[
+                            {"field":"date","type":"temporal","title":"Date"}
+                        ],
                           "color": {
                           "field": "date_type",
                           "type": "nominal",
                           "scale": {
                             "domain": ${config["timeline_dates"]},
-                            "range": ${config["timeline_colours"]}
+                            "range": ${colorCodes}
                           },
                           "title": "Date"
                           },
-                          "size": {"value": 100},
+                          "size": {"value": 500},
                           "opacity": {"value": 1}
                         }
                         }
                       ]
                       };          
-                vegaEmbed('#${catchment}_timeline', vlSpec_time);
-
+                vegaEmbed('#${catchment}_timeline', vlSpec_time, {renderer: "svg"})
+                      .then(result => console.log(result))
+                      .catch(console.warn);
               </script>
+        <h3><strong>Figure ${figure_count}</strong> | Timeline plot for queries in ${catchment_name}</h3>
+        <hr>
         %endif
         %endfor
-        
-        
         %if '6' in config["report_content"]:
-        <div id="background_map"></div>
+          <% figure_count +=1 %>
+          <br>
+        <div id="background_map" style="width:90%"></div>
         <script>
         var vSpec_bmap = {
           "$schema": "https://vega.github.io/schema/vega/v5.json",
           "autosize": "none",
           "background": "white",
           "padding": 5,
-          "width": 500,
-          "height": 500,
+          "width": "container",
+          "height": "container",
           "style": "cell",
           "signals": [
                       { "name": "tx", "update": "width / 2" },
@@ -1205,18 +1341,18 @@ longitude = data_for_report["centroids"][location][0]%>
           ]
         }
 
-      vegaEmbed('#background_map', vSpec_bmap);
+      vegaEmbed('#background_map', vSpec_bmap, {renderer: "svg"})
+                      .then(result => console.log(result))
+                      .catch(console.warn);
 
       </script>
-        
-        
+      <h3><strong>Figure ${figure_count}</strong> | Background diversity map</h3>
+      <hr>
         %endif
         
         %if '7' in config["report_content"]:
-        <h2>Map of queries</h2> 
         <%qmap_data = data_for_report["query_map_data"] %>
-        <div id="query_map"></div>
-
+        <div id="query_map" style="width:90%"></div>
         <script>
 			      var vSpec_qmap = {
 
@@ -1224,8 +1360,8 @@ longitude = data_for_report["centroids"][location][0]%>
             "autosize": "none",
             "background": "white",
             "padding": 5,
-            "width": 500,
-            "height": 500,
+            "width": "container",
+            "height": "container",
             "style": "cell",
 
           "signals": [
@@ -1371,11 +1507,12 @@ longitude = data_for_report["centroids"][location][0]%>
               }
             ]
       }
-
-			vegaEmbed('#query_map', vSpec_qmap);
-
-		  </script>
-        
+      vegaEmbed('#query_map', vSpec_qmap, {renderer: "svg"})
+                      .then(result => console.log(result))
+                      .catch(console.warn);
+        </script>
+      <h3><strong>Figure ${figure_count}</strong> | Query map</h3>
+      <hr>
       %endif
 
     <script>
@@ -1400,7 +1537,7 @@ longitude = data_for_report["centroids"][location][0]%>
         <div class="row">
           <!--<div class="col-sm-1">
             <p>
-            <img class="civet-logo" src="https://raw.githubusercontent.com/COG-UK/civet/master/docs/doc_figures/civet_logo.svg" vertical-align="left" width="50" height="50"></img>
+            <img class="civet-logo" src="https://raw.githubusercontent.com/COG-UK/civet/master/docs/doc_figures/virus.svg" vertical-align="left" width="50" height="50"></img>
             <p> -->
         </div>
 

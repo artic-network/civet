@@ -88,8 +88,12 @@ If using normalise mode, indicate the column to normalise across.
 E.g. --downsample mode=normalise country""")
     
     r_group = parser.add_argument_group("Report options")
+    r_group.add_argument("-rp", "--report-preset", nargs='*', action="store", dest="report_preset", help="""Specify one or more preset options to configure report content, full configuration available using `-rc/--report-content`. 
+Preset options: the_usual (1,2,3,4,5), the_works (1,2,3,4,5,7), the_whole_shebang (1,2,3,4,5,6,7), hold_the_sauce (1,2)""")
+    r_group.add_argument("-rc", "--report-content", nargs='*', action="store", dest="report_content", help="""One or more comma separated numeric strings to define the report content. Default: 1,2,3,4,5""")
+    r_group.add_argument("-ct", "--colour-theme", action="store", dest="colour_theme", help="""Report theme colour. Default: #7178bc""")
+    r_group.add_argument("-cmap", "--colour-map", action="store", dest="colour_map", help="""Comma separated string of hex codes or names of HTML compatible colours to colour factors in report by.""")
     r_group.add_argument("-rt", "--report-title", action="store", dest="report_title", help="""Title to display in report. Default: civet report""")
-    r_group.add_argument("-rc", "--report-content", nargs='*', action="store", dest="report_content", help="""One or more comma separated numeric strings to define the report content. Default: 1,2,3""")
     r_group.add_argument("--anonymise", action="store_true", dest="anonymise",help="Generates arbitrary labels for sequences for dissemination")
     r_group.add_argument("-rcol", "--report-column", action="store", dest="report_column", help="Column containing alternative sequence names, for example patient IDs")
     r_group.add_argument("--table-content", action='store', dest="table_content", help="Columns to include in the table for queries. Default:--background_column,--background_date_column,source,lineage,country,catchment")
@@ -174,8 +178,8 @@ E.g. --downsample mode=normalise country""")
 
     # Define what's going to go in the report and sort global report options 
     # stored under config = { "report_content": [1, 2, 3, 4], "reports": [1,2,3,4],[1,2]}
-    name_dict = report_arg_parsing.parse_global_report_options(args.report_content, args.report_column, args.anonymise, args.date_column, args.background_date_column, args.location_column, config)
-    report_arg_parsing.parse_optional_report_content(args.table_content, args.timeline_dates, args.timeline_colours, config)
+    name_dict = report_arg_parsing.parse_global_report_options(args.report_content,args.report_preset, args.report_column, args.anonymise, args.date_column, args.background_date_column, args.location_column, config)
+    report_arg_parsing.parse_optional_report_content(args.table_content, args.timeline_dates, args.colour_theme, args.colour_map, config)
     report_arg_parsing.parse_map_options(args.background_map_date_range, args.background_map_column, args.background_map_file, args.centroid_file, args.background_map_location, args.query_map_file, args.longitude_column, args.latitude_column, found_in_background_data, config)
 
     # sets up the output dir, temp dir, and data output desination
@@ -188,7 +192,6 @@ E.g. --downsample mode=normalise country""")
         global_report_functions.write_anon_names_to_file(config, name_dict)
 
     # ready to run? either verbose snakemake or quiet mode
-    print(config.keys())
 
     if config["verbose"]:
         print(red("\n**** CONFIG ****"))
