@@ -17,7 +17,7 @@ def get_defaults():
 
                     # Initialising data variables
                     "num_seqs":0,
-                    "datadir": os.getenv('DATADIR'),
+                    "datadir": os.getenv('CIVET_DATADIR'),
                     "background_csv":False,
                     "background_fasta":False,
                     "background_SNPs":False,
