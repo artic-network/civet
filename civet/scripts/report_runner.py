@@ -16,7 +16,7 @@ def parse_args():
     parser.add_argument("--csv", action="store",help="Metadata file to generate report with.", type=str, dest="csv")
     parser.add_argument("--report", action="store", help="Name of report to generate.",dest="report")
     parser.add_argument("--configfile", action="store", type=str,help="Yaml file to generate report with.", dest="configfile")
-    parser.add_argument("--config", action="store", nargs='*',help="Overwrite any options in the config yaml file.",,dest="config")
+    parser.add_argument("--config", action="store", nargs='*',help="Overwrite any options in the config yaml file.",dest="config")
     return parser.parse_args()
 
 def render_report():
