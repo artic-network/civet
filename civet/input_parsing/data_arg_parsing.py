@@ -160,7 +160,9 @@ def data_group_parsing(debug,datadir,background_csv,background_SNPs,background_f
     --background-fasta (Default False)
     --data-column (Default central_sample_id)
     """
+    print(config['datadir'])
     if datadir:
+        
         datadir = os.path.abspath(datadir)
 
     # if command line arg, overwrite config value
