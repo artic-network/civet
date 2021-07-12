@@ -150,6 +150,20 @@ def colour_checking(config):
         sys.stderr(cyan(f"Invalid HEX colour code: ") + f"{config['colour_theme']}\nPlease provide a valid HEX code or see htmlcolorcodes.com/color-names for `-ct/--colour-theme`.\n")
         sys.exit(-1)
 
+def parse_tree_annotations(tree_annotations, config):
+    misc.add_arg_to_config("tree_annotations",tree_annotations, config)
+
+    if not type(config["tree_annotations"])==list:
+        config["tree_annotations"] = config["tree_annotations"].split(',')
+
+    for col in config["tree_annotations"]:
+        if col not in config["query_csv_header"]:
+            sys.stderr(cyan(f"Error: Tree annotation column not provided: ") + f"{col}\n")
+            sys.exit(-1)
+    
+    config["tree_annotations"] = " ".join(config["tree_annotations"])
+
+            
 
 def parse_optional_report_content(table_content, timeline_dates, colour_theme, colour_map, config):
     #parse optional parts of report
