@@ -90,16 +90,16 @@ rule seq_brownie:
                 for seq in hash_map[key]:
                     hash_map_for_metadata[seq] = key
         
-        misc.add_col_to_metadata("hash", hash_map_for_metadata, config["query_metadata"], output.csv, config["fasta_column"], config)
+        misc.add_col_to_metadata("hash", hash_map_for_metadata, config["query_metadata"], output.csv, config["sequence_id_column"], config)
 
         config["query_metadata"] = output.csv
         print(green("Query sequences collapsed from ") + f"{records}" +green(" to ") + f"{len(seq_map)}" + green(" unique sequences."))
 
 
 """
-check_if_int("distance_up",config)
-        check_if_int("distance_down",config)
-        check_if_int("distance_side",config)
+check_if_int("snp_distance_up",config)
+        check_if_int("snp_distance_down",config)
+        check_if_int("snp_distance_side",config)
 """
 rule find_catchment:
     input:
@@ -146,7 +146,7 @@ rule merge_catchments:
 
         print(green("Merged into ")+f'{catchment_count}' + green(" catchments."))
 
-        catchment_parsing.add_catchments_to_metadata(config["background_csv"],output.csv,output.catchment_csv,catchment_dict,config)
+        catchment_parsing.add_catchments_to_metadata(config["background_metadata"],output.csv,output.catchment_csv,catchment_dict,config)
         with open(output.yaml, 'w') as fw:
             yaml.dump(config, fw) 
         if config["verbose"]:

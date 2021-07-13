@@ -21,14 +21,14 @@ def timeline_checking(timeline_dates, config):
 
         date_header_list = config["timeline_dates"].split(",")
 
-        if "input_csv" in config:
-            with open(config["input_csv"]) as f:
+        if "input_metadata" in config:
+            with open(config["input_metadata"]) as f:
                 data = csv.DictReader(f)
                 input_headers = data.fieldnames
         else:    
             input_headers = []
 
-        with open(config["background_csv"]) as f:
+        with open(config["background_metadata"]) as f:
             data = csv.DictReader(f)
             background_headers = data.fieldnames
 
@@ -46,8 +46,8 @@ def timeline_checking(timeline_dates, config):
                 background_cols_to_check.append(header)
 
         count = 0
-        if "input_csv" in config:
-            with open(config["input_csv"]) as f:
+        if "input_metadata" in config:
+            with open(config["input_metadata"]) as f:
                 data = csv.DictReader(f)
                 for l in data:
                     for header in input_cols_to_check:
@@ -56,7 +56,7 @@ def timeline_checking(timeline_dates, config):
                             misc.check_date_format(l[header], count, header)
         
         count = 0
-        with open(config["background_csv"]) as f:
+        with open(config["background_metadata"]) as f:
             data = csv.DictReader(f)
             for l in data:
                 for header in background_cols_to_check:
@@ -65,14 +65,14 @@ def timeline_checking(timeline_dates, config):
                         misc.check_date_format(l[header], count, header)
 
 
-    elif config["date_column"] and config["background_date_column"]:
-        if config["date_column"] != config["background_date_column"]:
-            config["timeline_dates"] = f'{config["date_column"]},{config["background_date_column"]}'
+    elif config["input_date_column"] and config["background_date_column"]:
+        if config["input_date_column"] != config["background_date_column"]:
+            config["timeline_dates"] = f'{config["input_date_column"]},{config["background_date_column"]}'
         else:
-            config["timeline_dates"] = config["date_column"]
-    elif not config["background_date_column"] and config["date_column"]:
-        config["timeline_dates"] = config["date_column"]
-    elif config["background_date_column"] and not config["date_column"]:
+            config["timeline_dates"] = config["input_date_column"]
+    elif not config["background_date_column"] and config["input_date_column"]:
+        config["timeline_dates"] = config["input_date_column"]
+    elif config["background_date_column"] and not config["input_date_column"]:
         config["timeline_dates"] = config["background_date_column"]
     
     else:
@@ -100,7 +100,7 @@ def make_timeline_json(catchment,config):
             if l['catchment'] == catchment:
                 for col in date_cols:
                     new_dict = {}
-                    new_dict["sequence_name"] = l[config["report_column"]]
+                    new_dict["sequence_name"] = l[config["input_display_column"]]
                     new_dict["date"] = l[col]
                     new_dict["date_type"] = col
                     dict_list.append(new_dict)

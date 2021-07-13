@@ -1,6 +1,0 @@
-name,display,HCW_status,care_home,sample_date,date_2,date_3,adm2,adm2_blah,adm2_test,test,
-EDB129_closestb,seq_2,Patient,A,2020-03-30,04/04/2020,11/04/2020,,Edinburgh,Edinburgh,yes,yes,EH9,-3.189,55.953,Scotland
-20144000304_closest,seq_3,Patient,B,2020-02-28,04/03/2020,11/03/2020,,Fife,Fife,no,yes,KY11,-3.413978022,56.04856886,England
-This_seq_is_too_short,seq_4,HCW,A,2020-02-27,03/03/2020,10/03/2020,,Aberdeen,Aberdeen,no,yes,AB10,-2.120426772,57.13518628,England
-This_seq_has_lots_of_Ns,seq_10,HCW,A,2020-05-15,20/05/2020,27/05/2020,,Edinburgh,Edinburgh,NA,NA,EH10,-3.189,55.91982309,England
-This_seq_is_literally_just_N,seq_11,HCW,D,2020-04-30,05/05/2020,12/05/2020,,Edinburgh,Edinburgh,NA,NA,EH11,-3.189,55.953,England

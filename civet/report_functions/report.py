@@ -22,7 +22,7 @@ def make_query_summary_data(metadata, config):
         for row in reader:
             if row["query_boolean"] == "True":
                 table_row = {}
-                for col in config["table_content"]:
+                for col in config["query_table_content"]:
 
                     table_row[col] = row[col]
                     
@@ -95,16 +95,16 @@ def make_catchment_summary_data(metadata,catchments,config):
 
                 catchment_summary_dict[catchment]['total'] +=1
 
-                if config["date_column"] in reader.fieldnames:
+                if config["input_date_column"] in reader.fieldnames:
                     for i in ['earliest_date','latest_date']:
                         if i not in catchment_summary_dict[catchment]:
                             catchment_summary_dict[catchment][i] = ''
 
-                    d = date.fromisoformat(row[config["date_column"]])
+                    d = date.fromisoformat(row[config["input_date_column"]])
                     check_earliest_latest_dates(d,catchment_summary_dict,catchment)
 
-                if config["location_column"] in reader.fieldnames:
-                    location_column = config["location_column"]
+                if config["background_location_column"] in reader.fieldnames:
+                    location_column = config["background_location_column"]
                     if location_column not in catchment_summary_dict[catchment]:
                         catchment_summary_dict[catchment][location_column] = collections.Counter()
                     if row[location_column] == "":
@@ -125,7 +125,7 @@ def make_catchment_summary_data(metadata,catchments,config):
 
     for catchment in catchment_summary_dict:
         total = catchment_summary_dict[catchment]["total"]
-        location_column = config["location_column"]
+        location_column = config["background_location_column"]
         if location_column in catchment_summary_dict[catchment]:
             catchment_summary_dict[catchment][location_column] = get_top_10_str(total,catchment_summary_dict[catchment][location_column])
         if "lineage" in catchment_summary_dict[catchment]:
@@ -176,7 +176,7 @@ def get_background_data(metadata,config):
     with open(metadata,"r") as f:
         reader = csv.DictReader(f)
         background_columns = []
-        for i in [config["report_column"],"lineage",config["location_column"],config["date_column"]]:
+        for i in [config["input_display_column"],"lineage",config["background_location_column"],config["input_date_column"]]:
             if i in reader.fieldnames:
                 background_columns.append(i)
         for row in reader:
@@ -185,10 +185,10 @@ def get_background_data(metadata,config):
                 data[i] = row[i]
             if row["query_boolean"] == "True":
                 data["Query"] = "True"
-                background_data[row[config["report_column"]]] = data
+                background_data[row[config["input_display_column"]]] = data
             else:
                 data["Query"] = "False"
-                background_data[row[config["background_column"]]] = data
+                background_data[row[config["background_id_column"]]] = data
     data = json.dumps(background_data) 
     return data
 

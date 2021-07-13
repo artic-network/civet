@@ -13,18 +13,18 @@ check supplied ref length and background data are the same
 
 def account_for_all_ids(config):
     found_in_background_data = {}
-    with open(config["background_csv"],"r") as f:
+    with open(config["background_metadata"],"r") as f:
         reader = csv.DictReader(f)
         header = reader.fieldnames
         for row in reader:
-            if row[config["background_column"]] in config["ids"]:
-                found_in_background_data[row[config["background_column"]]] = row
+            if row[config["background_id_column"]] in config["ids"]:
+                found_in_background_data[row[config["background_id_column"]]] = row
     
     print(green(f"Number of queries matched in background data:") + f" {len(found_in_background_data)}")
     
     found_in_input_fasta = {}
-    if "fasta" in config:
-        for record in SeqIO.parse(config["fasta"],"fasta"):
+    if "input_sequences" in config:
+        for record in SeqIO.parse(config["input_sequences"],"fasta"):
             if record.id in config["ids"]:
                 found_in_input_fasta[record.id] = record
     print(green(f"Number of queries matched in supplied fasta:") + f" {len(found_in_input_fasta)}")
@@ -46,15 +46,15 @@ def merge_metadata_records(found_in_background_data,header,config):
 
     for record in found_in_background_data:
         record_info[record] = found_in_background_data[record]
-        if not config["input_column"] in record_info[record]:
-            record_info[record][config["input_column"]] = record_info[record][config["background_column"]]
+        if not config["input_id_column"] in record_info[record]:
+            record_info[record][config["input_id_column"]] = record_info[record][config["background_id_column"]]
 
-    if "input_csv" in config:
-        with open(config["input_csv"],"r") as f:
+    if "input_metadata" in config:
+        with open(config["input_metadata"],"r") as f:
             reader = csv.DictReader(f)
             for row in reader:
-                name = row[config["input_column"]]
-                for col in [config["background_column"],config["fasta_column"]]:
+                name = row[config["input_id_column"]]
+                for col in [config["background_id_column"],config["sequence_id_column"]]:
                     if not col in row:
                         record_info[name][col] = name
 
@@ -65,7 +65,7 @@ def merge_metadata_records(found_in_background_data,header,config):
                     record_info[name][key] = row[key]
     else:
         for record in config["ids"]:
-            for col in [config["input_column"],config["background_column"],config["fasta_column"]]: 
+            for col in [config["input_id_column"],config["background_id_column"],config["sequence_id_column"]]: 
                 if col not in header:
                     header.append(col)
                 record_info[record][col] = record
@@ -217,11 +217,11 @@ def write_matched_fasta(found_in_background_data, config):
 
     num_found_in_background_data = len(found_in_background_data)
 
-    sequence_names_to_match = [found_in_background_data[i][config["fasta_column"]] for i in found_in_background_data]
+    sequence_names_to_match = [found_in_background_data[i][config["sequence_id_column"]] for i in found_in_background_data]
     config["matched_fasta"] = False
     if num_found_in_background_data != 0:
         matched_records = []
-        for record in SeqIO.parse(config["background_fasta"],"fasta"):
+        for record in SeqIO.parse(config["background_sequences"],"fasta"):
             if record.id in sequence_names_to_match:
                 matched_records.append(record)
 
@@ -237,7 +237,7 @@ def write_matched_fasta(found_in_background_data, config):
                     if record not in matched_ids:
                         not_found.append(record)
                 not_found_str = "\n- ".join(not_found)
-                sys.stderr.write(cyan(f"Some records in background metadata file not found in background fasta file.\n") + f"- {not_found_str}\n" + cyan("Please check sequence ids match against the data in `-dcol/--data-column`.\n"))
+                sys.stderr.write(cyan(f"Some records in background metadata file not found in background fasta file.\n") + f"- {not_found_str}\n" + cyan("Please check sequence ids match against the data in `-bcol/--background-column`.\n"))
                 sys.exit(-1)
 
 def write_parsed_query_files(query_metadata,passed_qc,found_in_background_data, config):
