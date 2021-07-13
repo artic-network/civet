@@ -244,11 +244,10 @@ def define_report_content(metadata,catchments,config):
     
     if '6' in report_content:
         data_for_report["background_map_data"] = get_background_map(config)
-        data_for_report["centroids"] = map_functions.get_centroids(config)
         data_for_report["locations_wanted"] = config["background_map_location"]
+        data_for_report = map_functions.get_location_information(config, data_for_report)
     else:
         data_for_report["background_map_data"] = ""
-        data_for_report["centroids"] = ""
         data_for_report["locations_wanted"]  = ""
     
     if '7' in report_content:
