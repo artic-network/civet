@@ -15,7 +15,7 @@
     <script src="https://stackpath.bootstrapcdn.com/bootstrap/3.4.1/js/bootstrap.min.js" integrity="sha384-aJ21OjlMXNL5UyIl/XNwTMqvzeRMZH2w8c5cRVpzpU8Y5bApTppSuUkhZXN0VxHd" crossorigin="anonymous"></script>
     <script src="https://cdn.jsdelivr.net/gh/rambaut/figtree.js@9880/dist/figtree.umd.js"></script>
     <script src="https://d3js.org/d3.v6.min.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/vega@5.15.0"></script>
+    <script src="https://cdn.jsdelivr.net/npm/vega@5.16.0"></script>
   <script src="https://cdn.jsdelivr.net/npm/vega-lite@4.15.0"></script>
   <script src="https://cdn.jsdelivr.net/npm/vega-embed@6.11.1"></script>
     <meta charset="utf-8">
@@ -1017,11 +1017,11 @@
         <script>
         var vSpec_bmap = {
           "$schema": "https://vega.github.io/schema/vega/v5.json",
-          "autosize": "none",
+          "autosize": {"type":"fit", "contains":"padding"},
           "background": "white",
           "padding": 5,
-          "width": "container",
-          "height": "container",
+          "width": 500,
+          "height": 500,
           "style": "cell",
           "signals": [
                       { "name": "tx", "update": "width / 2" },
@@ -1271,9 +1271,11 @@ longitude = data_for_report["centroids"][location][0]%>
               },
               "transform": [
                 {"type": "label", "size": [800, 500]}
-            }
+              ]
+              }
 %endfor
-          ],
+          ]
+          ,
           "scales": [
 %for location in data_for_report['locations_wanted']:
             {

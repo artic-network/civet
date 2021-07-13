@@ -140,8 +140,10 @@ def parse_background_map_options(background_map_file, centroid_file, background_
 
     qc_centroid_file(config)
 
-    print(config["background_map_file"])
-    print(config["centroid_file"])
+    if config["verbose"]:
+        print(green("Using the following for mapping background:\n"))
+        print(config["background_map_file"])
+        print(config["centroid_file"])
 
 def parse_background_map_column(background_map_column, config):
 
