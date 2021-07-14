@@ -29,7 +29,7 @@ def check_dependencies():
     missing = []
 
     dependency_list = ["gofasta","minimap2","snakemake","iqtree","jclusterfunk"]
-    module_list = ["baltic","mako","Bio"]
+    module_list = ["mako","Bio"]
 
     for dependency in dependency_list:
         check_this_dependency(dependency, missing)
