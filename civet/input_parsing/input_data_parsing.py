@@ -5,11 +5,10 @@ import os
 import csv
 import collections
 from Bio import SeqIO
+from datetime import datetime
+from datetime import date
+from datetime import time
 
-"""
-To do: 
-check supplied ref length and background data are the same
-"""
 
 def account_for_all_ids(config):
     found_in_background_data = {}
@@ -217,10 +216,12 @@ def write_matched_fasta(found_in_background_data, config):
 
     num_found_in_background_data = len(found_in_background_data)
     sequence_names_to_match = [found_in_background_data[i][config["sequence_id_column"]] for i in found_in_background_data]
+    sequence_names_to_match = set(sequence_names_to_match)
     config["matched_fasta"] = False
     if num_found_in_background_data != 0:
         matched_records = []
-        
+
+        start = datetime.now()
         for record in SeqIO.parse(config["background_sequences"],"fasta"):
             if len(matched_records)!= num_found_in_background_data:
                 if record.id in sequence_names_to_match:
@@ -228,9 +229,21 @@ def write_matched_fasta(found_in_background_data, config):
             else:
                 break
 
+        end = datetime.now()
+        print("Start:",start,"End:",end)
+
+        # with open(config["background_sequences"],"r") as f:
+        #     for l in f:
+        #         if len(matched_records)!= num_found_in_background_data:
+        #             if l[0]=='>':
+        #                 if record.id in sequence_names_to_match:
+        #                     matched_records.append(record)
+        #     else:
+        #         break
+
         if not matched_records:
-            sys.stderr.write(cyan(f"""Error: No sequence records matched.\nPlease check the `-sicol/--sequence-index-column` is matching the sequence ids.\n
-Currently searching the {config['sequence_index_column']} column.\n"""))
+            sys.stderr.write(cyan(f"""Error: No sequence records matched.\nPlease check the `-sicol/--sequence-id-column` is matching the sequence ids.\n
+Currently searching the `{config['sequence_id_column']}` column.\n"""))
             sys.exit(-1)
         else:
             if len(matched_records) == num_found_in_background_data:

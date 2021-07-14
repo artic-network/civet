@@ -195,12 +195,12 @@ def write_catchment_fasta(catchment_metadata,fasta,catchment_dir,config):
 
     seq_dict = collections.defaultdict(list)
     seq_count = 0
-    for record in SeqIO.index(fasta,"fasta"):
+    for record in SeqIO.parse(fasta,"fasta"):
         if record.id in catchment_dict:
             seq_count+=1
             seq_dict[catchment_dict[record.id]].append(record)
 
-    for record in SeqIO.index(config["background_sequences"],"fasta"):
+    for record in SeqIO.parse(config["background_sequences"],"fasta"):
         if seq_count != len(catchment_dict):
             if record.id in catchment_dict:
                 seq_dict[catchment_dict[record.id]].append(record)
@@ -211,11 +211,11 @@ def write_catchment_fasta(catchment_metadata,fasta,catchment_dir,config):
     if seq_count == 0:
         sys.stderr.write(cyan(f"Error: No sequence records matched.\nPlease check the `-sicol/--sequence-index-column` is matching the sequence ids.\n"))
         sys.exit(-1)
-        
+
     for catchment in seq_dict:
         with open(os.path.join(catchment_dir,f"{catchment}.fasta"),"w") as fw:
             records = seq_dict[catchment]
-            for record in SeqIO.index(config["outgroup_fasta"],"fasta"):
+            for record in SeqIO.parse(config["outgroup_fasta"],"fasta"):
                 records.append(record)
             SeqIO.write(records,fw,"fasta")
 
