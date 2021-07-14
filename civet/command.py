@@ -115,7 +115,6 @@ E.g. --downsample mode=normalise country""")
 
     tl_group = parser.add_argument_group("Timeline options (report option 5)")
     tl_group.add_argument("-tdate", "--timeline-dates", action='store', dest="timeline_dates", help="Data to generate a timeline as a comma separated string")
-    tl_group.add_argument("--timeline-colours", action='store', dest="timeline_colours",help="Comma separated string of hex codes or names of HTML compatible colours to colour dots by in the timeline.")
 
     bm_group = parser.add_argument_group("Background map options (report option 6)")
     bm_group.add_argument("-bmfile","--background-map-file", action="store", dest="background_map_file", help="JSON or GeoJSON containing polygons to plot background diversity on. Must be an online resource eg on a Github pages website.")
