@@ -14,7 +14,7 @@ def parse_preset_options(config):
 
     valid_preset = {
         "the_usual":"1,2,3,4,5", 
-        "the_works":"1,2,3,4,5,6", 
+        "the_works":"1,2,3,4,5,7", 
         "the_whole_shebang":"1,2,3,4,5,6,7", 
         "hold_the_sauce":"1,2"
         }
@@ -30,7 +30,7 @@ def parse_preset_options(config):
             sys.stderr.write(cyan(f'Error: valid `-rp/--report-preset` options are\n')+
             """
 - the_usual (1,2,3,4,5)
-- the_works (1,2,3,4,5,6) 
+- the_works (1,2,3,4,5,7) 
 - the_whole_shebang (1,2,3,4,5,6,7)
 - hold_the_sauce (1,2)  
             """)
