@@ -31,6 +31,10 @@ def background_data_load(config):
             file_list.append(os.path.join(r,fn))
     if not config["background_metadata"]:
         check_dir_for_file(file_list, "metadata.csv","-bm/--background-metadata","background_metadata",config,True)
+    
+    if not config["background_sequences"]:
+        check_dir_for_file(file_list, "fa","-bseq/--background-sequences","background_sequences",config,False)
+        
     if not config["background_sequences"]:
         check_dir_for_file(file_list, "fasta","-bseq/--background-sequences","background_sequences",config,True)
 

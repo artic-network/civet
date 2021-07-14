@@ -205,7 +205,6 @@ def write_catchment_fasta(catchment_metadata,fasta,catchment_dir,config):
             if record.id in catchment_dict:
                 seq_dict[catchment_dict[record.id]].append(record)
                 seq_count +=1
-                print(seq_count, len(catchment_dict))
         else:
             break
             
