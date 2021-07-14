@@ -853,7 +853,7 @@
                   </select>
                   </div>
                 </div>
-                <div class="column">
+                <!-- <div class="column">
                   <div>
                   <p>Colour by</p>
                   <select class="colourSelect" id="barSelect_${data_for_report[catchment]['catchmentID']}">
@@ -862,7 +862,7 @@
                     <option value="lineage">Lineage</option>
                   </select>
                   </div>
-                </div>
+                </div> -->
               </div>
             </div>
       
