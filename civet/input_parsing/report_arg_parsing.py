@@ -176,7 +176,7 @@ def parse_optional_report_content(table_content, timeline_dates, colour_theme, c
     if 1 in config['report_content']:
         table_functions.parse_and_qc_table_cols(table_content, config)
         printable_cols = ",".join(config["query_table_content"])
-        print(green("Metadata table will contain the following columns: ") + f"{printable_cols}\n")
+        print(green("Metadata table will contain the following columns: ") + f"{printable_cols}")
 
     if 5 in config['report_content']:
         timeline_functions.timeline_checking(timeline_dates, config)

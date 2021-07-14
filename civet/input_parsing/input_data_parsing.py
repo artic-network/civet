@@ -5,9 +5,9 @@ import os
 import csv
 import collections
 from Bio import SeqIO
-from datetime import datetime
-from datetime import date
-from datetime import time
+from time import time
+from Bio.SeqRecord import SeqRecord
+from Bio.Seq import Seq
 
 
 def account_for_all_ids(config):
@@ -221,7 +221,7 @@ def write_matched_fasta(found_in_background_data, config):
     if num_found_in_background_data != 0:
         matched_records = []
 
-        start = datetime.now()
+        start = time()
         for record in SeqIO.parse(config["background_sequences"],"fasta"):
             if len(matched_records)!= num_found_in_background_data:
                 if record.id in sequence_names_to_match:
@@ -229,20 +229,42 @@ def write_matched_fasta(found_in_background_data, config):
             else:
                 break
 
-        end = datetime.now()
-        print("Start:",start,"End:",end)
-
+        end = time()
+        # print("Biopython")
+        # print("Start:",start,"End:",end, "Diff:",end-start)
+        # start = time()
+        # matched_records = []
         # with open(config["background_sequences"],"r") as f:
+        #     record_id = ""
+        #     record_seq = ""
+        #     new_id = ""
         #     for l in f:
+        #         l=l.rstrip("\n")
         #         if len(matched_records)!= num_found_in_background_data:
         #             if l[0]=='>':
-        #                 if record.id in sequence_names_to_match:
-        #                     matched_records.append(record)
-        #     else:
-        #         break
+        #                 name=l.lstrip(">")
+        #                 if name in sequence_names_to_match:
+        #                     record_id = new_id
+        #                     new_id =f"{name}"
+        #                     record_seq = ""
+        #                     continue
+        #                 else:
+        #                     continue
+
+        #             if not l[0]=='>':
+        #                 record_seq+=l
+                    
+        #             record = SeqRecord(Seq(record_seq), id=record_id)
+        #             matched_records.append(record)
+        #         else:
+        #             break
+                
+        # end = time()
+        # print("Base")
+        # print("Start:",start,"End:",end, "Diff:",end-start)
 
         if not matched_records:
-            sys.stderr.write(cyan(f"""Error: No sequence records matched.\nPlease check the `-sicol/--sequence-id-column` is matching the sequence ids.\n
+            sys.stderr.write(cyan(f"""Error: No sequence records matched.\nPlease check the `-sicol/--sequence-id-column` is matching the sequence ids.
 Currently searching the `{config['sequence_id_column']}` column.\n"""))
             sys.exit(-1)
         else:
