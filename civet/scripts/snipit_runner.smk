@@ -12,7 +12,7 @@ rule all:
 
 rule make_snipit_alignments:
     input:
-        fasta = config["input_sequences"],
+        fasta = config["fasta"],
         csv = config["csv"]
     output:
         expand(os.path.join(config["tempdir"],"snipit","{catchment}.aln.fasta"), catchment=catchments)

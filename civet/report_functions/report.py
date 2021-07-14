@@ -8,6 +8,7 @@ import collections
 from civet import __version__
 from civet.report_functions import timeline_functions
 from civet.report_functions import map_functions
+from civet.utils.log_colours import green,cyan
 
 from mako.template import Template
 from mako.runtime import Context
@@ -293,6 +294,6 @@ def make_report(metadata,report_to_generate,config):
         print("%s: %s" % (str(traceback.error.__class__.__name__), traceback.error))
 
     with open(report_to_generate, 'w') as fw:
-        print(report_to_generate)
+        print(green("Generating: ") + f"{report_to_generate}")
         fw.write(buf.getvalue())
     

@@ -23,7 +23,7 @@ def get_snakefile(thisdir):
 
 def check_install(config):
     resources = [
-        {"key":"reference_fasta",
+        {"key":"reference_sequence",
         "directory":"data",
         "filename":"reference.fasta"},
         {"key":"outgroup_fasta",

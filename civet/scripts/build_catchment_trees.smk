@@ -50,7 +50,7 @@ rule expand_hash:
     shell:
         """
         jclusterfunk insert --destination-column hash \
-                            -c {config[report_column]} \
+                            -c {config[input_display_column]} \
                             -i {input.tree:q} \
                             -m {input.csv:q} \
                             --ignore-missing \
@@ -89,8 +89,8 @@ rule clump:
         tree = os.path.join(config["data_outdir"],"catchments","{catchment}_tree.nexus")
     shell:
         """
-        jclusterfunk sample -c {config[background_column]} \
-                            --collapse-by {config[location_column]} \
+        jclusterfunk sample -c {config[background_id_column]} \
+                            --collapse-by {config[background_location_column]} \
                             --min-clumped 4 \
                              -i {input.tree:q} \
                              -m {input.csv:q} \
@@ -108,7 +108,7 @@ rule annotate:
         tree = os.path.join(config["outdir"],"catchments","{catchment}.tree")
     shell:
         """
-        jclusterfunk annotate -c {config[background_column]} \
+        jclusterfunk annotate -c {config[background_id_column]} \
                              -i {input.tree:q} \
                              -m {input.csv:q} \
                              --tip-attributes query_boolean {config[tree_annotations]} \

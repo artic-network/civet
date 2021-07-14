@@ -269,7 +269,7 @@ def load_yaml(f):
     return input_config
 
 def return_path_keys():
-    return ["input_metadata","fasta","background_metadata","background_sequences","background_tree","background_snps","datadir","outdir","tempdir"]
+    return ["input_metadata","input_sequences","background_metadata","background_sequences","background_tree","background_snps","datadir","outdir","tempdir"]
 
 def setup_absolute_paths(path_to_file,value):
     return os.path.join(path_to_file,value)

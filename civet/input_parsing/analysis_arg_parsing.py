@@ -8,7 +8,7 @@ from Bio import SeqIO
 
 def check_coords_within_reference_length(config):
     
-    reference_fasta = config["reference_fasta"]
+    reference_sequence = config["reference_sequence"]
     ref_length = 0
     num_records = 0
 
@@ -30,17 +30,17 @@ def check_coords_within_reference_length(config):
         sys.exit(-1)
 
     try:
-        for record in SeqIO.parse(reference_fasta,"fasta"):
+        for record in SeqIO.parse(reference_sequence,"fasta"):
             num_records +=1
             ref_length = len(record)
         if num_records > 1:
-            sys.stderr.write(cyan(f"Please provide one sequence in reference fasta file: ") + f"{reference_fasta}\n")
+            sys.stderr.write(cyan(f"Please provide one sequence in reference fasta file: ") + f"{reference_sequence}\n")
             sys.exit(-1)
         if num_records == 0:
-            sys.stderr.write(cyan(f"No sequences found in reference fasta file: ") + f"{reference_fasta}\n")
+            sys.stderr.write(cyan(f"No sequences found in reference fasta file: ") + f"{reference_sequence}\n")
             sys.exit(-1)
     except:
-        sys.stderr.write(cyan(f"Cannot read reference fasta file:\n") + f"{reference_fasta}\n" + cyan("Please check file is in correct format.\n"))
+        sys.stderr.write(cyan(f"Cannot read reference fasta file:\n") + f"{reference_sequence}\n" + cyan("Please check file is in correct format.\n"))
         sys.exit(-1)
     
     if int(te) < int(ts):
@@ -50,7 +50,7 @@ def check_coords_within_reference_length(config):
     if int(te) <= ref_length and int(ts) <= ref_length:
         pass
     else:
-        sys.stderr.write(cyan(f"`-te/--trim-end` and `-ts/--trim-start` must be within the length of the reference genome:\n") + f"Genome: {reference_fasta}\nTrim-start: {te}\nTrim-end: {ts}\n" + cyan("Please check file is in correct format.\n"))
+        sys.stderr.write(cyan(f"`-te/--trim-end` and `-ts/--trim-start` must be within the length of the reference genome:\n") + f"Genome: {reference_sequence}\nTrim-start: {te}\nTrim-end: {ts}\n" + cyan("Please check file is in correct format.\n"))
         sys.exit(-1)
 
 def check_catchment_configuration(config):
@@ -159,12 +159,12 @@ def parse_downsampling_config(config):
         check_for_background_header(config)
 
 
-def analysis_group_parsing(reference_fasta,trim_start,trim_end,max_queries,max_memory,config):
+def analysis_group_parsing(reference_sequence,trim_start,trim_end,max_queries,max_memory,config):
 
     # if command line arg, overwrite config value
     misc.add_arg_to_config("trim_start",trim_start,config)
     misc.add_arg_to_config("trim_end",trim_end,config)
-    misc.add_file_to_config("reference_fasta",reference_fasta,config)
+    misc.add_file_to_config("reference_sequence",reference_sequence,config)
     misc.add_arg_to_config("max_queries",max_queries,config)
     misc.add_arg_to_config("max_memory",max_memory,config)
 

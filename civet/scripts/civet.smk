@@ -37,7 +37,7 @@ rule all:
 
 rule align_to_reference:
     input:
-        reference = config["reference_fasta"]
+        reference = config["reference_sequence"]
     params:
         trim_start = config["trim_start"],
         trim_end = config["trim_end"],
@@ -48,7 +48,7 @@ rule align_to_reference:
         os.path.join(config["tempdir"], "logs/minimap2_sam.log")
     run:
         if config["query_fasta"]:
-            print(green("Aligning supplied fasta to reference."))
+            print(green("Aligning supplied sequences to reference."))
             shell("""
                     minimap2 -a -x asm5 --sam-hit-only --secondary=no -t  {workflow.cores} {input.reference:q} '{config[query_fasta]}' -o {params.sam:q} &> {log:q} 
                     gofasta sam toMultiAlign \
@@ -104,6 +104,7 @@ check_if_int("snp_distance_up",config)
 rule find_catchment:
     input:
         fasta = rules.seq_brownie.output.fasta
+    log: os.path.join(config["tempdir"],"logs","updown_top_ranking.txt")
     output:
         txt = os.path.join(config["tempdir"],"updown_ignore.txt"),
         catchments = os.path.join(config["tempdir"],"catchments.csv")
@@ -115,12 +116,12 @@ rule find_catchment:
         -q {input.fasta:q} \
         -t '{config[background_search_file]}' \
         -o {output.catchments:q} \
-        --reference '{config[reference_fasta]}' \
+        --reference '{config[reference_sequence]}' \
         --dist-push \
-        --dist-up {config[distance_up]} \
-        --dist-down {config[distance_down]} \
-        --dist-side {config[distance_side]} \
-        --ignore {output.txt:q}
+        --dist-up {config[snp_distance_up]} \
+        --dist-down {config[snp_distance_down]} \
+        --dist-side {config[snp_distance_side]} \
+        --ignore {output.txt:q} &> {log:q}
         """)
 
 rule merge_catchments:

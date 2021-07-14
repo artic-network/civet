@@ -153,11 +153,11 @@ def fasta_ids_list(fasta):
 
 def input_fasta_parsing(input_fasta,maxambig,minlen,config):
     
-    misc.add_file_to_config("fasta",input_fasta,config)
+    misc.add_file_to_config("input_sequences",input_fasta,config)
     misc.add_arg_to_config("max_ambiguity",maxambig,config)
     misc.add_arg_to_config("min_length",minlen,config)
     
-    if "fasta" in config:
+    if "input_sequences" in config:
         if config["from_metadata"]:
             sys.stderr.write(cyan('Error: civet accepts either -fm/--from-metadata (which generates a query from the background data) or an input query (supplied via `-ids/--id-string`, `-i/--input-metadata` or `-f/--input-sequences`).\n'))
             sys.exit(-1)

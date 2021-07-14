@@ -69,7 +69,7 @@ def header(v):
                                         {v}""")+green("""
                         ****************************************
                                                                 
-                      Aine O'Toole & Verity Hill & Rachel Colquhoun       
+                            Aine O'Toole & Verity Hill        
                                     Rambaut Group              
                                 Edinburgh University          
 \n"""))
@@ -102,11 +102,23 @@ def acknowledgements():
                     Code contributors:           
                                                             
                         Ben Jackson         gofasta       
+                        Rachel Colquhoun    background data
                         JT McCrone          clusterfunk     
                         Stefan Rooke        local map 
                         Andrew Rambaut      jclusterfunk    
                                                             
+                """))
+def full_acknowledgements():
+    print(green("""
                     Acknowledgements:            
+
+                    Code contributors:           
+                                                            
+                        Ben Jackson         gofasta       
+                        Rachel Colquhoun    background data
+                        JT McCrone          figtree.js     
+                        Stefan Rooke        local map 
+                        Andrew Rambaut      jclusterfunk   
                                                             
                     We thank the following for helpful suggestions, 
                     comments, beta-testing, feature requests and
