@@ -53,7 +53,7 @@ def merge_metadata_records(found_in_background_data,header,config):
             reader = csv.DictReader(f)
             for row in reader:
                 name = row[config["input_id_column"]]
-                for col in [config["background_id_column"],config["sequence_id_column"]]:
+                for col in [config["background_id_column"]]:
                     if not col in row:
                         record_info[name][col] = name
 
