@@ -27,7 +27,7 @@ def account_for_all_ids(config):
         for record in SeqIO.parse(config["input_sequences"],"fasta"):
             if record.id in config["ids"]:
                 found_in_input_fasta[record.id] = record
-    print(green(f"Number of queries matched in supplied fasta:") + f" {len(found_in_input_fasta)}")
+        print(green(f"Number of queries matched in supplied fasta:") + f" {len(found_in_input_fasta)}")
     
     not_found = []
     for i in config["ids"]:
@@ -65,7 +65,7 @@ def merge_metadata_records(found_in_background_data,header,config):
                     record_info[name][key] = row[key]
     else:
         for record in config["ids"]:
-            for col in [config["input_id_column"],config["background_id_column"],config["sequence_id_column"]]: 
+            for col in [config["input_id_column"],config["background_id_column"]]: 
                 if col not in header:
                     header.append(col)
                 record_info[record][col] = record
@@ -216,15 +216,18 @@ def write_passed_qc_fasta(passed_qc, config):
 def write_matched_fasta(found_in_background_data, config):
 
     num_found_in_background_data = len(found_in_background_data)
-
     sequence_names_to_match = [found_in_background_data[i][config["sequence_id_column"]] for i in found_in_background_data]
     config["matched_fasta"] = False
     if num_found_in_background_data != 0:
         matched_records = []
+        
         for record in SeqIO.parse(config["background_sequences"],"fasta"):
-            if record.id in sequence_names_to_match:
-                matched_records.append(record)
-
+            if len(matched_records)!= num_found_in_background_data:
+                if record.id in sequence_names_to_match:
+                    matched_records.append(record)
+            else:
+                break
+            
         if matched_records:
             if len(matched_records) == num_found_in_background_data:
                 config["matched_fasta"] = os.path.join(config["tempdir"],"query.matched_background.fasta")

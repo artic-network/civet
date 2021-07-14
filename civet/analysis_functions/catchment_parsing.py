@@ -100,10 +100,11 @@ def add_catchments_to_metadata(background_csv,query_metadata,query_metadata_with
                     new_row = row
 
                     # query seqs excluded above
-                    new_row["query_boolean"] = False
+                    new_row["query_boolean"] = "False"
 
                     # add what catchment the sequence is in
                     new_row["catchment"] = catchment_dict[new_row[config["sequence_id_column"]]]
+                    new_row[config["input_display_name"]] = new_row[config["sequence_id_column"]]
 
                     # check if it's got the headers from header in config, if not add them
                     for field in config["query_csv_header"]:
@@ -119,7 +120,7 @@ def add_catchments_to_metadata(background_csv,query_metadata,query_metadata_with
             reader = csv.DictReader(f)
             for row in reader:
                 new_row = row
-                new_row["query_boolean"] = True
+                new_row["query_boolean"] = "True"
                 writer.writerow(new_row)
 
         for record in catchment_records:

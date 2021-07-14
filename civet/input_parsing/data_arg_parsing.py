@@ -152,7 +152,7 @@ def check_background_snps(config):
         
 
 
-def data_group_parsing(debug,datadir,background_csv,background_SNPs,background_fasta,background_tree,background_column,fasta_column,config):
+def data_group_parsing(debug,datadir,background_metadata,background_snps,background_sequences,background_tree,background_id_column,sequence_id_column,config):
     """
     parses the data group arguments 
     --datadir (Default $DATADIR)
@@ -166,17 +166,17 @@ def data_group_parsing(debug,datadir,background_csv,background_SNPs,background_f
 
     # if command line arg, overwrite config value
     misc.add_arg_to_config("datadir",datadir,config)
-    misc.add_file_to_config("background_metadata",background_csv,config)
-    misc.add_file_to_config("background_snps",background_SNPs,config)
-    misc.add_file_to_config("background_sequences",background_fasta,config)
+    misc.add_file_to_config("background_metadata",background_metadata,config)
+    misc.add_file_to_config("background_snps",background_snps,config)
+    misc.add_file_to_config("background_sequences",background_sequences,config)
     misc.add_file_to_config("background_tree",background_tree,config)
-    misc.add_arg_to_config("background_id_column",background_column,config)
-    misc.add_arg_to_config("sequence_id_column",fasta_column,config)
+    misc.add_arg_to_config("background_id_column",background_id_column,config)
+    misc.add_arg_to_config("sequence_id_column",sequence_id_column,config)
 
     # needs either datadir specified or both the files specified
     if not config["datadir"]:
         if not config["background_metadata"] and not config["background_sequences"]:
-            sys.stderr.write(cyan(f"Error: insufficient background data supplied, please provide a background csv and fasta file.\n"))
+            sys.stderr.write(cyan(f"Error: insufficient background data supplied, please provide a background csv and sequence alignment file.\n"))
             sys.exit(-1)
         
     if config["datadir"]:

@@ -97,7 +97,7 @@ rule seq_brownie:
 
 
 """
-check_if_int("snp_distance_up",config)
+check_if_int("snp_distance_up",config) 
         check_if_int("snp_distance_down",config)
         check_if_int("snp_distance_side",config)
 """
