@@ -227,8 +227,12 @@ def write_matched_fasta(found_in_background_data, config):
                     matched_records.append(record)
             else:
                 break
-            
-        if matched_records:
+
+        if not matched_records:
+            sys.stderr.write(cyan(f"""Error: No sequence records matched.\nPlease check the `-sicol/--sequence-index-column` is matching the sequence ids.\n
+Currently searching the {config['sequence_index_column']} column.\n"""))
+            sys.exit(-1)
+        else:
             if len(matched_records) == num_found_in_background_data:
                 config["matched_fasta"] = os.path.join(config["tempdir"],"query.matched_background.fasta")
                 with open(os.path.join(config["matched_fasta"]),"w") as fw:

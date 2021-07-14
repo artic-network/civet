@@ -207,9 +207,11 @@ def write_catchment_fasta(catchment_metadata,fasta,catchment_dir,config):
                 seq_count +=1
         else:
             break
+
     if seq_count == 0:
         sys.stderr.write(cyan(f"Error: No sequence records matched.\nPlease check the `-sicol/--sequence-index-column` is matching the sequence ids.\n"))
         sys.exit(-1)
+        
     for catchment in seq_dict:
         with open(os.path.join(catchment_dir,f"{catchment}.fasta"),"w") as fw:
             records = seq_dict[catchment]
