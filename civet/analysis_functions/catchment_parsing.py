@@ -58,7 +58,6 @@ def get_merged_catchments(catchment_file,merged_catchment_file,config):
     catchment_count = 0
     for i in lists:
         
-
         catchment_count +=1
         merged_catchments[f"catchment_{catchment_count}"] = i
 
@@ -104,7 +103,7 @@ def add_catchments_to_metadata(background_csv,query_metadata,query_metadata_with
 
                     # add what catchment the sequence is in
                     new_row["catchment"] = catchment_dict[new_row[config["sequence_id_column"]]]
-                    new_row[config["input_display_name"]] = new_row[config["sequence_id_column"]]
+                    new_row[config["input_display_column"]] = new_row[config["sequence_id_column"]]
 
                     # check if it's got the headers from header in config, if not add them
                     for field in config["query_csv_header"]:
@@ -195,14 +194,21 @@ def write_catchment_fasta(catchment_metadata,fasta,catchment_dir,config):
 
 
     seq_dict = collections.defaultdict(list)
-    for record in SeqIO.parse(config["background_sequences"],"fasta"):
-        if record.id in catchment_dict:
-            seq_dict[catchment_dict[record.id]].append(record)
-    
+    seq_count = 0
     for record in SeqIO.parse(fasta,"fasta"):
         if record.id in catchment_dict:
+            seq_count+=1
             seq_dict[catchment_dict[record.id]].append(record)
 
+    for record in SeqIO.parse(config["background_sequences"],"fasta"):
+        if seq_count != len(catchment_dict):
+            if record.id in catchment_dict:
+                seq_dict[catchment_dict[record.id]].append(record)
+                seq_count +=1
+                print(seq_count, len(catchment_dict))
+        else:
+            break
+            
     for catchment in seq_dict:
         with open(os.path.join(catchment_dir,f"{catchment}.fasta"),"w") as fw:
             records = seq_dict[catchment]

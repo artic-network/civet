@@ -69,15 +69,15 @@ def header(v):
                                         {v}""")+green("""
                         ****************************************
                                                                 
-                            Aine O'Toole & Verity Hill        
+                             Aine O'Toole & Verity Hill        
                                     Rambaut Group              
                                 Edinburgh University          
 \n"""))
 
 def preamble(v):
     header(v)
-    funding()
     acknowledgements()
+    funding()
 
 def funding():
     print(green("""
@@ -103,7 +103,7 @@ def acknowledgements():
                                                             
                         Ben Jackson         gofasta       
                         Rachel Colquhoun    background data
-                        JT McCrone          clusterfunk     
+                        JT McCrone          figtree.js     
                         Stefan Rooke        local map 
                         Andrew Rambaut      jclusterfunk    
                                                             

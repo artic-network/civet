@@ -177,7 +177,7 @@ def get_background_data(metadata,config):
     with open(metadata,"r") as f:
         reader = csv.DictReader(f)
         background_columns = []
-        for i in [config["input_display_column"],"lineage",config["background_location_column"],config["input_date_column"]]:
+        for i in [config["input_display_column"],config["sequence_id_column"],"lineage",config["background_location_column"],config["background_date_column"],config["input_date_column"]]:
             if i in reader.fieldnames:
                 background_columns.append(i)
         for row in reader:
@@ -189,7 +189,7 @@ def get_background_data(metadata,config):
                 background_data[row[config["input_display_column"]]] = data
             else:
                 data["Query"] = "False"
-                background_data[row[config["background_id_column"]]] = data
+                background_data[row[config["input_display_column"]]] = data
     data = json.dumps(background_data) 
     return data
 
