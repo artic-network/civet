@@ -77,7 +77,7 @@ def header(v):
 def preamble(v):
     header(v)
     acknowledgements()
-    funding()
+    
 
 def funding():
     print(green("""
@@ -109,6 +109,7 @@ def acknowledgements():
                                                             
                 """))
 def full_acknowledgements():
+    funding()
     print(green("""
                     Acknowledgements:            
 
