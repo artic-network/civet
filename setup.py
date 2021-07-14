@@ -45,7 +45,8 @@ setup(name='civet',
             "adjustText>=0.7.3",
             "grip>=4.5.2",
             "tabulate>=0.8.7",
-            "snipit>=1.0.3"
+            "snipit>=1.0.3",
+	    "traitlets>=5.0"
         ],
       cmdclass={
         'npm_install': NPMInstall
