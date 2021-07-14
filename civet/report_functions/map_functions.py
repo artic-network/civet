@@ -49,14 +49,14 @@ def parse_query_map(query_map_file, longitude_column, latitude_column, found_in_
     misc.add_arg_to_config("longitude_column",longitude_column,config)
     misc.add_arg_to_config("latitude_column",latitude_column, config)
 
-    if "input_csv" in config:
-        with open(config["input_csv"]) as f:
+    if "input_metadata" in config:
+        with open(config["input_metadata"]) as f:
             reader = csv.DictReader(f)
             input_fieldnames = reader.fieldnames
     else:
         input_fieldnames = []
 
-    with open(config["background_csv"]) as f:
+    with open(config["background_metadata"]) as f:
         reader = csv.DictReader(f)
         background_fieldnames = reader.fieldnames
 
@@ -92,17 +92,17 @@ def parse_query_map(query_map_file, longitude_column, latitude_column, found_in_
                     seq_to_longlat_check[query][1] = 1
         
         if long_input or lat_input:
-            with open(config["input_csv"]) as f:
+            with open(config["input_metadata"]) as f:
                 data = csv.DictReader(f)
                 for line in data:
-                    if line[config["input_column"]] not in seq_to_longlat_check:
-                        seq_to_longlat_check[line[config["input_column"]]] = [0,0]
+                    if line[config["input_id_column"]] not in seq_to_longlat_check:
+                        seq_to_longlat_check[line[config["input_id_column"]]] = [0,0]
                     if long_input:
                         if line[config['longitude_column']] != "":
-                            seq_to_longlat_check[line[config["input_column"]]][0] = 1
+                            seq_to_longlat_check[line[config["input_id_column"]]][0] = 1
                     if lat_input:
                         if line[config["latitude_column"]] != "":
-                            seq_to_longlat_check[line[config["input_column"]]][1] = 1
+                            seq_to_longlat_check[line[config["input_id_column"]]][1] = 1
 
         data_present = False
         for seq, data in seq_to_longlat_check.items():
@@ -149,7 +149,7 @@ def parse_background_map_column(background_map_column, config):
 
     misc.add_arg_to_config("background_map_column", background_map_column, config)  
 
-    with open(config["background_csv"]) as f:
+    with open(config["background_metadata"]) as f:
         reader = csv.DictReader(f)
         background_fieldnames = reader.fieldnames
         
@@ -165,8 +165,8 @@ def parse_background_map_column(background_map_column, config):
             config["background_map_column"] = "adm1"
         elif "adm0" in background_fieldnames:
             config["background_map_column"] = "adm0"
-        elif config["location_column"]:
-            config["background_map_column"] = config["location_column"]
+        elif config["background_location_column"]:
+            config["background_map_column"] = config["background_location_column"]
         else:
             sys.stderr.write(cyan(f"Error: no field found in background metadata file for mapping background diversity. Please provide one with -bmcol/--background-map-column.\n") + "\n")
             sys.exit(-1)
@@ -203,7 +203,7 @@ def parse_date_range(background_map_date_range, config):
 
             print(green(f"Restricting background map analysis between the dates {start_date} and {end_date}"))
 
-            with open(config["background_csv"]) as f:
+            with open(config["background_metadata"]) as f:
                 data = csv.DictReader(f)
                 data_count = 0
                 enough_data = False
@@ -235,12 +235,12 @@ def do_date_window(date_window, found_in_background_metadata, config):
     date_diff = dt.timedelta(int(date_window))
         
     dates = set()
-    if "input_csv" in config and config['date_column']:
-        with open(config["input_csv"]) as f:
+    if "input_metadata" in config and config["input_date_column"]:
+        with open(config["input_metadata"]) as f:
             data = csv.DictReader(f)
             for l in data:
-                if l[config['date_column']] != "": 
-                    dates.add(dt.datetime.strptime(l[config['date_column']], '%Y-%m-%d').date())
+                if l[config["input_date_column"]] != "": 
+                    dates.add(dt.datetime.strptime(l[config["input_date_column"]], '%Y-%m-%d').date())
 
     for seq, metadata in found_in_background_metadata.items(): 
         if metadata[config["background_date_column"]] != "":
@@ -321,7 +321,7 @@ def check_locations(background_map_location,config):
     else:
         print(green(f"No locations specified for background lineages, so all valid locations in {config['background_map_column']} will be summarised."))
         check_set = set()
-        with open(config["background_csv"]) as f:
+        with open(config["background_metadata"]) as f:
             data = csv.DictReader(f)
             for line in data:
                 location_value = line[config["background_map_column"]]
@@ -423,7 +423,7 @@ def make_query_map_json(config):
 #colour by is dynamic (or will be)
     lat_col = config["latitude_column"]
     long_col = config["longitude_column"]
-    name_col = config["background_column"] 
+    name_col = config["background_id_column"] 
  
     all_queries = []
 
@@ -512,7 +512,7 @@ def make_background_map_json(config):
     end_date = dt.datetime.strptime(config["end_date"],'%Y-%m-%d').date()
 
     locations_all_lins = defaultdict(list)
-    with open(config["background_csv"]) as f: 
+    with open(config["background_metadata"]) as f: 
         reader = csv.DictReader(f)
         for row in reader:
             if row[geog_col] != "" and row[lin_col] != "":

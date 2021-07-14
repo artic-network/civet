@@ -71,7 +71,7 @@ def check_query_limit(config):
         sys.exit(-1)
 
 def check_for_background_header(config):
-    with open(config["background_csv"],"r") as f:
+    with open(config["background_metadata"],"r") as f:
         reader = csv.DictReader(f)
         header = reader.fieldnames
         if not config["downsample_column"] in header:
@@ -181,27 +181,27 @@ def check_if_int(key,config):
             sys.exit(-1)
 
 def distance_configuration(config):
-    if config["distance"]:
-        check_if_int("distance",config)
-        print(green("Overwriting SNP radius for catchment with distance: ") + f"{config['distance']}")
-        config["distance_up"] = config["distance"]
-        config["distance_down"] = config["distance"]
-        config["distance_side"] = config["distance"]
+    if config["snp_distance"]:
+        check_if_int("snp_distance",config)
+        print(green("Overwriting SNP radius for catchment with distance: ") + f"{config['snp_distance']}")
+        config["snp_distance_up"] = config["snp_distance"]
+        config["snp_distance_down"] = config["snp_distance"]
+        config["snp_distance_side"] = config["snp_distance"]
     else:
-        check_if_int("distance_up",config)
-        check_if_int("distance_down",config)
-        check_if_int("distance_side",config)
-        print(green("SNP distance radius for catchment:") + f"\n\t- Up {config['distance_up']}\n\t- Down {config['distance_down']}\n\t- Side {config['distance_side']}")
+        check_if_int("snp_distance_up",config)
+        check_if_int("snp_distance_down",config)
+        check_if_int("snp_distance_side",config)
+        print(green("SNP distance radius for catchment:") + f"\n\t- Up {config['snp_distance_up']}\n\t- Down {config['snp_distance_down']}\n\t- Side {config['snp_distance_side']}")
 
 def catchment_group_parsing(catchment_size,downsample,distance,distance_up,distance_down,distance_side,config):
 
     misc.add_arg_to_config("catchment_size",catchment_size,config)
     misc.add_arg_to_config("downsample",downsample,config)
 
-    misc.add_arg_to_config("distance",distance,config)
-    misc.add_arg_to_config("distance_up",distance_up,config)
-    misc.add_arg_to_config("distance_down",distance_down,config)
-    misc.add_arg_to_config("distance_side",distance_side,config)
+    misc.add_arg_to_config("snp_distance",distance,config)
+    misc.add_arg_to_config("snp_distance_up",distance_up,config)
+    misc.add_arg_to_config("snp_distance_down",distance_down,config)
+    misc.add_arg_to_config("snp_distance_side",distance_side,config)
 
     check_catchment_configuration(config)
     parse_downsampling_config(config)

@@ -92,18 +92,18 @@ def add_catchments_to_metadata(background_csv,query_metadata,query_metadata_with
         for row in reader:
             
             # exclude querys as they're already in the metadata
-            if row[config["background_column"]] in config["ids"]:
+            if row[config["background_id_column"]] in config["ids"]:
                 pass
             else:
                 # the column used for sequence matching
-                if row[config["fasta_column"]] in catchment_dict:
+                if row[config["sequence_id_column"]] in catchment_dict:
                     new_row = row
 
                     # query seqs excluded above
                     new_row["query_boolean"] = False
 
                     # add what catchment the sequence is in
-                    new_row["catchment"] = catchment_dict[new_row[config["fasta_column"]]]
+                    new_row["catchment"] = catchment_dict[new_row[config["sequence_id_column"]]]
 
                     # check if it's got the headers from header in config, if not add them
                     for field in config["query_csv_header"]:
@@ -190,11 +190,11 @@ def write_catchment_fasta(catchment_metadata,fasta,catchment_dir,config):
                 if row["query_boolean"] == "True":
                     catchment_dict[row["hash"]] = row["catchment"]
                 else:
-                    catchment_dict[row[config["fasta_column"]]] = row["catchment"]
+                    catchment_dict[row[config["sequence_id_column"]]] = row["catchment"]
 
 
     seq_dict = collections.defaultdict(list)
-    for record in SeqIO.parse(config["background_fasta"],"fasta"):
+    for record in SeqIO.parse(config["background_sequences"],"fasta"):
         if record.id in catchment_dict:
             seq_dict[catchment_dict[record.id]].append(record)
     
@@ -249,7 +249,7 @@ def downsample_if_building_trees(in_csv, out_csv, config):
                     target = config["catchment_size"] - query_counter[catchment]
                     if len(catchment_dict[catchment]) > target:
                         # need to downsample
-                        downsample_metadata = downsample_catchment(catchment_dict[catchment],target,config["mode"],config["downsample_column"],config["background_column"],config["downsample_field"],config["factor"])
+                        downsample_metadata = downsample_catchment(catchment_dict[catchment],target,config["mode"],config["downsample_column"],config["background_id_column"],config["downsample_field"],config["factor"])
                     else:
                         # dont need to downsample
                         downsample_metadata = []

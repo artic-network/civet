@@ -12,7 +12,7 @@ rule all:
 
 rule make_snipit_alignments:
     input:
-        fasta = config["fasta"],
+        fasta = config["input_sequences"],
         csv = config["csv"]
     output:
         expand(os.path.join(config["tempdir"],"snipit","{catchment}.aln.fasta"), catchment=catchments)
@@ -21,10 +21,10 @@ rule make_snipit_alignments:
         with open(input.csv,"r") as f:
             reader = csv.DictReader(f)
             
-            if config["report_column"] in reader.fieldnames:
-                column = config["report_column"]
+            if config["input_display_column"] in reader.fieldnames:
+                column = config["input_display_column"]
             else:
-                column = config["input_column"]
+                column = config["input_id_column"]
 
             for row in reader:
                 if "query_boolean" in reader.fieldnames:

@@ -11,58 +11,58 @@ from civet.utils import misc
 def get_defaults():
     today = date.today()
     default_dict = {
-                    "date": today,# date investigation was opened
-                    "authors": "", # List of authors, affiliations and contact details
+                    
+                    #input options
+                    "from_metadata":False,
                     "max_queries":5000,
 
-                    # Initialising data variables
+                    #input cols
+                    "input_id_column":"name",
+                    "input_date_column":False, #default is sample_date if present in the input csv
+                    "input_display_column": False,
+
+                    # input seq options 
                     "num_seqs":0,
+                    "max_ambiguity":0.5,
+                    "min_length":20000,
+                    "trim_start":265,   # where to pad to using datafunk
+                    "trim_end":29674,
+
+                    # background variables
+                    
                     "datadir": os.getenv('CIVET_DATADIR'),
-                    "background_csv":False,
-                    "background_fasta":False,
-                    "background_SNPs":False,
+                    "background_metadata":False,
+                    "background_sequences":False,
+                    "background_snps":False,
                     "background_tree":False,
 
-                    # Output defaults
+                    # background columns
+                    
+                    "background_id_column":"sequence_name",
+                    "sequence_id_column":False,
+                    "background_date_column":False, #default is sample_date if present in the background csv, then date_column if present
+                    "background_location_column":False, #default is country if present in the background csv
+
+                    # Output options
                     "output_prefix":"civet",
                     "output_data":False,
                     "datestamp":False,
                     "no_temp":False,
                     "overwrite":False,
 
-                    # Search defined by metadata column
-                    "from_metadata":False,
-
-                    # Columns to match
-                    "input_column":"name",
-                    "background_column":"sequence_name",
-                    "fasta_column":False,
-                    
-                    # reference coordinates to pad until and from
-                    "trim_start":265,   # where to pad to using datafunk
-                    "trim_end":29674,
-
                     # catchment config
                     "catchment_size":100,
-                    "distance":False,
-                    "distance_up":2,
-                    "distance_down":2,
-                    "distance_side":2,
+                    "snp_distance":False,
+                    "snp_distance_up":2,
+                    "snp_distance_down":2,
+                    "snp_distance_side":2,
                     "collapse_threshold":1,
 
                     "downsample":["mode=random"],
                     "mode":False,
                     "factor":False,
                     "downsample_field":False,
-                    "downsample_column":False,
-                    "max_memory": 8,
-
-                    # QC standards for input fasta file
-                    "max_ambiguity":0.5,
-                    "min_length":20000,
-
-                    #Tree options
-                    "tree_annotations": "lineage,country",
+                    "downsample_column":False,                    
 
                     #Report options
                     "colour_theme": "#7178bc",
@@ -71,29 +71,39 @@ def get_defaults():
                     "report_preset":False,
                     "report_title":f"civet report",
                     "anonymise":False,
-                    "report_column": False,
+                    
+                    #Table options
+                    "query_table_content":False,
+
+                    #Tree options
+                    "tree_annotations": "lineage,country",
+
+                    #Timeline options
                     "timeline_dates":False, #default is date_column or background_date_column if they are present
                     "timeline_colours":False,
-                    "table_content":False,
-                    "background_date_column":False, #default is sample_date if present in the background csv, then date_column if present
-                    "date_column":False, #default is sample_date if present in the input csv
-                    "location_column":False, #default is country if present in the background csv
 
-                    #Map options
-                    "latitude_column":"latitude",
-                    "longitude_column":"longitude",
-                    "query_map_file":False, #if UK, will find the geojson containing aggregated_adm2s, if global will find adm0 or adm1 geojson
-                    "background_map_file": False, #Same as above
-                    "centroid_file":False, #will select appropriate centroid file for provided jsons as default
+                    #Background map options
                     "background_map_column":False, #default is location_column
                     "background_map_location":False, #default is all valid locations in background metadata
+                    "background_map_file": False, #Same as above
+                    "centroid_file":False, #will select appropriate centroid file for provided jsons as default
+
+                    #Query map options
+                    "query_map_file":False, #if UK, will find the geojson containing aggregated_adm2s, if global will find adm0 or adm1 geojson
+                    "latitude_column":"latitude",
+                    "longitude_column":"longitude",
+                    
                     # "map_column":False,
                     "background_map_date_range":False, #default is no restriction, will do background from 2019-11-01 to today
 
                     # misc defaults
                     "civet_mode": os.getenv('CIVETMODE'),
                     "threads":1,
-                    "verbose":False
+                    "verbose":False,
+                    "max_memory": 8,
+                    "date": today,# date investigation was opened
+                    "authors": "" # List of authors, affiliations and contact details
+                    
                     }
     return default_dict
 
@@ -116,38 +126,57 @@ def check_configfile(cwd,config_arg):
 def arg_dict(config):
     arguments = {
                 # igroup args
-                "i":"input_csv",
-                "input_csv":"input_csv",
-                "icol":"input_column",
-                "input_column":"input_column",
                 "ids":"id_string",
                 "id_string":"id_string",
+                "i":"input_metadata",
+                "input_metadata":"input_metadata",
+                "f":"input_sequences",
+                "input_sequences":"input_sequences",
                 "fm":"from_metadata",
                 "from_metadata":"from_metadata",
+                "max_queries":"max_queries",
+                "mq":"max_queries",
 
-                "f":"fasta",
-                "fasta":"fasta",
+                # ic group args
+                "icol":"input_id_column",
+                "input_id_column":"input_id_column",
+                "input_date_column":"input_date_column",
+                "idate":"input_date_column",
+                "idisp":"input_display_column",
+                "input_display_column":"input_display_column",
+
+                # is group args
                 "n":"max_ambiguity",
                 "max_ambiguity":"max_ambiguity",
                 "l":"min_length",
                 "min_length":"min_length",
+                "ts":"trim_start",
+                "te":"trim_end",
+                "trim_start":"trim_start",
+                "trim_end":"trim_end",
 
                 # dgroup args
                 "datadir":"datadir",
                 "DATADIR":"datadir",
                 "d":"datadir",
-                "background_csv":"background_csv",
-                "bc":"background_csv",
-                "background_fasta":"background_fasta",
-                "bf":"background_fasta",
-                "background_SNPs":"background_SNPs",
-                "bSNP":"background_SNPs",
+                "background_metadata":"background_metadata",
+                "bm":"background_metadata",
+                "background_sequences":"background_sequences",
+                "bseq":"background_sequences",
+                "background_snps":"background_snps",
+                "bsnp":"background_snps",
                 "background_tree":"background_tree",
                 "bt":"background_tree",
-                "bcol":"background_column",
-                "background_column":"background_column",
-                "fcol":"fasta_column",
-                "fasta_column":"fasta_column",
+
+                #bc group args
+                "bicol":"background_id_column",
+                "background_id_column":"background_id_column",
+                "sicol":"sequence_id_column",
+                "sequence_id_column":"sequence_id_column",
+                "background_date_column":"background_date_column",
+                "bdate":"background_date_column",
+                "background_location_column":"background_location_column",
+                "bloc":"background_location_column",
 
                 # ogroup args
                 "o":"outdir",
@@ -161,69 +190,50 @@ def arg_dict(config):
                 "tempdir":"tempdir",
                 "temp":"tempdir",
 
-                # agroup args
-                "ts":"trim_start",
-                "te":"trim_end",
-                "trim_start":"trim_start",
-                "trim_end":"trim_end",
+                # cgroup args
+                
                 "cs":"catchment_size",
                 "catchment_size":"catchment_size",
-                "max_queries":"max_queries",
-                "mq":"max_queries",
-                "max_memory":"max_memory",
-                "mem":"max_memory",
                 "downsample":"downsample",
                 "ds":"downsample",
-                "distance":"distance",
-                "dSNP":"distance",
-                "distance_up":"distance_up",
-                "distance_down":"distance_down",
-                "distance_side":"distance_side",
+                "snp_distance":"snp_distance",
+                "snpd":"snp_distance",
+                "snp_distance_up":"snp_distance_up",
+                "snp_distance_down":"snp_distance_down",
+                "snp_distance_side":"snp_distance_side",
 
                 #rgroup args
-                "colour_theme":"colour_theme",
-                "ct":"colour_theme",
-                "colour_map":"colour_map",
-                "cmap":"colour_map",
-                "report_title":"report_title",
-                "rt":"report_title",
                 "report_content":"report_content",
                 "rc":"report_content",
                 "report_preset":"report_preset",
                 "rp":"report_preset",
-
-                "alt":"report_column",
-                "report_column":"report_column",
-
+                "report_title":"report_title",
+                "rt":"report_title",
+                "colour_theme":"colour_theme",
+                "ct":"colour_theme",
+                "colour_map":"colour_map",
+                "cmap":"colour_map",
+                
                 "anonymise":"anonymise",
                 "anonymize":"anonymise",
 
+                #tb group args
+                "query_table_content":"query_table_content",
+                "catchment_table_content":"catchment_table_content",
+
+                #t group args
+                "tree_annotations":"tree_annotations",
+                "ta":"tree_annotations",
+
+                #tl group args
                 "td":"timeline_dates",
                 "timeline_dates":"timeline_dates",
                 "timeline_colours":"timeline_colours",
                 "timeline_colors":"timeline_colours",
-                "table_content":"table_content",
-
-                "background_date_column":"background_date_column",
-                "bdate":"background_date_column",
-                "date_column":"date_column",
-                "date":"date_column",
-
-                "location_column":"location_column",
-                "lcol":"location_column",
-
-                "tree_annotations":"tree_annotations",
-
-                #mgroup args
-                "lat":"latitude_column",
-                "latitude_column":"latitude_column",
-                "long":"longitude_column",
-                "longitude_column":"longitude_column",
-                "query_map_file":"query_map_file",
-                "qmfile":"query_map_file",
                 
+                #bm group args
                 "background_map_date_range":"background_map_date_range",
-                "bmrange":"background_map_date_range",
+                "bmdr":"background_map_date_range",
                 "background_map_column":"background_map_column",
                 "bmcol":"background_map_column",
                 "background_map_file":"background_map_file",
@@ -232,8 +242,18 @@ def arg_dict(config):
                 "bmfile":"background_map_file",
                 "centroid_file":"centroid_file",
 
+                #qm group args
+                "lat":"latitude_column",
+                "latitude_column":"latitude_column",
+                "long":"longitude_column",
+                "longitude_column":"longitude_column",
+                "query_map_file":"query_map_file",
+                "qmfile":"query_map_file",
+                
                 # misc group args
                 "civet_mode":"civet_mode",
+                "max_memory":"max_memory",
+                "mem":"max_memory",
                 "t":"threads",
                 "threads":"threads",
                 "v":"verbose",
@@ -252,7 +272,7 @@ def load_yaml(f):
     return input_config
 
 def return_path_keys():
-    return ["input_csv","fasta","background_csv","background_fasta","background_tree","background_SNPs","datadir","outdir","tempdir"]
+    return ["input_metadata","fasta","background_metadata","background_sequences","background_tree","background_snps","datadir","outdir","tempdir"]
 
 def setup_absolute_paths(path_to_file,value):
     return os.path.join(path_to_file,value)

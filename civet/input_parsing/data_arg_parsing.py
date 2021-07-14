@@ -29,13 +29,13 @@ def background_data_load(config):
     for r,d,f in os.walk(config["datadir"]):
         for fn in f:
             file_list.append(os.path.join(r,fn))
-    if not config["background_csv"]:
-        check_dir_for_file(file_list, "metadata.csv","-bc/--background-csv","background_csv",config,True)
-    if not config["background_fasta"]:
-        check_dir_for_file(file_list, "fasta","-bf/--background-fasta","background_fasta",config,True)
+    if not config["background_metadata"]:
+        check_dir_for_file(file_list, "metadata.csv","-bc/--background-csv","background_metadata",config,True)
+    if not config["background_sequences"]:
+        check_dir_for_file(file_list, "fasta","-bf/--background-fasta","background_sequences",config,True)
 
-    if not config["background_SNPs"]:
-        check_dir_for_file(file_list, "mutations.csv","-bSNP/--background-SNPs","background_SNPs",config,False)
+    if not config["background_snps"]:
+        check_dir_for_file(file_list, "mutations.csv","-bSNP/--background-SNPs","background_snps",config,False)
 
     if not config["background_tree"]:
         check_dir_for_file(file_list, "newick","-bt/--background-tree","background_tree",config,False)
@@ -43,7 +43,7 @@ def background_data_load(config):
 def check_datadir(config):
     datadir = config["datadir"]
     if not os.path.exists(datadir):
-        if not config["background_csv"] or not config["background_fasta"]:
+        if not config["background_metadata"] or not config["background_sequences"]:
             print(cyan(f"Error: data directory not found: {datadir}.\n")+"Please check the datadir path (-d/ --datadir) provided exists or supply files with -bc/ --background-csv and -bf/ --background-fasta.\n")
             sys.exit(-1)
 
@@ -128,10 +128,10 @@ def check_background_fasta(background_fasta):
 
 def check_background_snps(config):
     records = 0
-    if config["background_SNPs"]:
+    if config["background_snps"]:
         fields = ['query',"SNPs","ambiguities","SNPcount","ambcount"]
         missing = []
-        with open(config["background_SNPs"], "r") as f:
+        with open(config["background_snps"], "r") as f:
             reader = csv.DictReader(f)
             header = reader.fieldnames
             for field in fields:
@@ -167,16 +167,16 @@ def data_group_parsing(debug,datadir,background_csv,background_SNPs,background_f
 
     # if command line arg, overwrite config value
     misc.add_arg_to_config("datadir",datadir,config)
-    misc.add_file_to_config("background_csv",background_csv,config)
-    misc.add_file_to_config("background_SNPs",background_SNPs,config)
-    misc.add_file_to_config("background_fasta",background_fasta,config)
+    misc.add_file_to_config("background_metadata",background_csv,config)
+    misc.add_file_to_config("background_snps",background_SNPs,config)
+    misc.add_file_to_config("background_sequences",background_fasta,config)
     misc.add_file_to_config("background_tree",background_tree,config)
-    misc.add_arg_to_config("background_column",background_column,config)
-    misc.add_arg_to_config("fasta_column",fasta_column,config)
+    misc.add_arg_to_config("background_id_column",background_column,config)
+    misc.add_arg_to_config("sequence_id_column",fasta_column,config)
 
     # needs either datadir specified or both the files specified
     if not config["datadir"]:
-        if not config["background_csv"] and not config["background_fasta"]:
+        if not config["background_metadata"] and not config["background_sequences"]:
             sys.stderr.write(cyan(f"Error: insufficient background data supplied, please provide a background csv and fasta file.\n"))
             sys.exit(-1)
         
@@ -192,24 +192,24 @@ def data_group_parsing(debug,datadir,background_csv,background_SNPs,background_f
     # check if background_column in csv header, 
     # count the number of records
 
-    if not config["fasta_column"]:
-        config["fasta_column"] = config["background_column"]
+    if not config["sequence_id_column"]:
+        config["sequence_id_column"] = config["background_id_column"]
     
-    if config["background_SNPs"]:
-        config["background_search_file"] = config["background_SNPs"]
+    if config["background_snps"]:
+        config["background_search_file"] = config["background_snps"]
         check_background_snps(config)
     else:
-        config["background_search_file"] = config["background_fasta"]
+        config["background_search_file"] = config["background_sequences"]
 
     if debug:
-        csv_record_count = check_csv_file("-bc/--background-csv","background csv",config["background_csv"],config["background_column"],config["fasta_column"])
-        fasta_record_count = check_background_fasta(config["background_fasta"])
+        csv_record_count = check_csv_file("-bc/--background-csv","background csv",config["background_metadata"],config["background_id_column"],config["sequence_id_column"])
+        fasta_record_count = check_background_fasta(config["background_sequences"])
         
         if csv_record_count != fasta_record_count:
             sys.stderr.write(cyan(f"Error: different number of background csv and background fasta records.\n")+"Please provide a fasta record for each row in the background metadata file.\n")
             sys.exit(-1)
 
-        if config["background_SNPs"]:
+        if config["background_snps"]:
             SNP_record_count = check_background_snps(config)
             if csv_record_count != SNP_record_count:
                 sys.stderr.write(cyan(f"Error: different number of background csv and background SNP records.\n")+"Please provide a SNP record for each row in the background metadata file.\n")

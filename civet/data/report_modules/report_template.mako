@@ -548,7 +548,7 @@
               //Remove table
           tableDiv.html("")
               if (data !== undefined) {
-                  const visibleData = Object.keys(data).filter(d=>d!=='${config["report_column"]}');
+                  const visibleData = Object.keys(data).filter(d=>d!=='${config["input_display_column"]}');
                   tableDiv.append("h3")
                       .attr("class",'tooltip-header')
                       .text(tipId)
@@ -747,13 +747,13 @@
           <h3><strong>Table 1</strong> | Summary of queries  <input class="searchbar" type="text" id="myInput" onkeyup="myFunction('myInput','myTable')" placeholder="Search for sequence..." title="searchbar"></h3>
           <table class="table table-striped" id="myTable">
               <tr class="header">
-              %for col in config["table_content"]:
+              %for col in config["query_table_content"]:
               <th style="width:10%;">${col.title().replace("_"," ")}</th>
               %endfor
               </tr>
               % for row in query_summary_data:
                   <tr>
-                    %for col in config["table_content"]:
+                    %for col in config["query_table_content"]:
                       %if col=="catchment":
                       <td><a href="#header_${row[col]}" style="color:${themeColor}">${row[col]}</a></td>
                       %else:

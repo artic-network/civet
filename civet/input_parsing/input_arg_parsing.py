@@ -32,9 +32,9 @@ def check_for_protected_col_names(header):
             sys.stderr.write(cyan(f"Error: `{field}` is a protected column name used internally in civet, please rename this column.\n"))
             sys.exit(-1)
 
-def csv_qc(input_csv,input_column):
+def csv_qc(input_metadata,input_id_column):
 
-    ending = input_csv.split(".")[-1]
+    ending = input_metadata.split(".")[-1]
 
     if ending in ["yaml","yml","json"]:
         sys.stderr.write(cyan(f"Error: -i,--input-csv accepts a csv file. As of civet 3.0 please use -c/ --config to input a config file or -ids/ --id-string to input a comma-separated string of IDs.\n"))
@@ -48,10 +48,10 @@ def csv_qc(input_csv,input_column):
         sys.stderr.write(cyan(f"Error: -i,--input-csv accepts a csv file. As of civet 3.0 please use -c/ --config to input a config file or -ids/ --id-string to input a comma-separated string of IDs.\n"))
         sys.exit(-1)
     
-    if os.path.isfile(input_csv):
+    if os.path.isfile(input_metadata):
         try:
             c = 0
-            with open(input_csv,"r") as f:
+            with open(input_metadata,"r") as f:
                 reader = csv.DictReader(f)
                 for row in reader:
                     c +=1
@@ -60,16 +60,16 @@ def csv_qc(input_csv,input_column):
             sys.stderr.write(cyan(f"Unable to read csv file, please check your input csv is in the correct format with a header.\n"))
             sys.exit(-1)
     else:
-        sys.stderr.write(cyan(f"Cannot find csv file: ")+f"{input_csv}\n")
+        sys.stderr.write(cyan(f"Cannot find csv file: ")+f"{input_metadata}\n")
         sys.exit(-1)
-    print(green(f"Input csv file:") + f" {input_csv}.")
+    print(green(f"Input csv file:") + f" {input_metadata}.")
 
     input_ids = []
-    with open(input_csv,"r") as f:
+    with open(input_metadata,"r") as f:
         reader = csv.DictReader(f)
-        if input_column in reader.fieldnames:
+        if input_id_column in reader.fieldnames:
             for row in reader:
-                input_ids.append(row[input_column])
+                input_ids.append(row[input_id_column])
         else:
             encode = False
             for i in reader.fieldnames:
@@ -77,27 +77,27 @@ def csv_qc(input_csv,input_column):
                     sys.stderr.write(cyan(f"Error: it appears your csv file may have been edited in Excel and now contains hidden characters.\n") + "Please remove said characters in a text editor and try again.")
                     sys.exit(-1)
             else:
-                sys.stderr.write(cyan(f"Error: {input_column} column not found in input csv file.\n"))
+                sys.stderr.write(cyan(f"Error: {input_id_column} column not found in input csv file.\n"))
                 sys.exit(-1)
     return input_ids
 
-def input_query_parsing(input_csv,input_column,ids,from_metadata,config):
+def input_query_parsing(input_metadata,input_id_column,ids,from_metadata,config):
 
     misc.add_arg_to_config("ids",ids,config)
 
-    misc.add_file_to_config("input_csv",input_csv,config)
-    misc.add_arg_to_config("input_column",input_column,config)
+    misc.add_file_to_config("input_metadata",input_metadata,config)
+    misc.add_arg_to_config("input_id_column",input_id_column,config)
 
     misc.add_arg_to_config("from_metadata",from_metadata,config)
 
-    if "ids" in config and "input_csv" in config:
+    if "ids" in config and "input_metadata" in config:
         sys.stderr.write(cyan(f"Error: it looks like you've provided a csv file and an ID string, please provide one or the other.\n"))
         sys.exit(-1)
     elif "ids" in config:
         config["ids"] = ids_qc(config["ids"])
         
-    elif "input_csv" in config:
-        config["ids"] = csv_qc(config["input_csv"],config["input_column"])
+    elif "input_metadata" in config:
+        config["ids"] = csv_qc(config["input_metadata"],config["input_id_column"])
 
     if config["from_metadata"] and 'ids' in config:
         sys.stderr.write(cyan('Error: civet accepts either -fm/--from-metadata (which generates a query from the background data) or an input query (supplied via `-ids/--id-string`, `-i/--input-csv` or `-f/--fasta`).\n'))
@@ -161,11 +161,11 @@ def input_fasta_parsing(input_fasta,maxambig,minlen,config):
         if config["from_metadata"]:
             sys.stderr.write(cyan('Error: civet accepts either -fm/--from-metadata (which generates a query from the background data) or an input query (supplied via `-ids/--id-string`, `-i/--input-csv` or `-f/--fasta`).\n'))
             sys.exit(-1)
-        input_fasta_check(config["fasta"])
+        input_fasta_check(config["input_sequences"])
         fasta_qc_level(config["max_ambiguity"],config["min_length"])
 
-        if not "input_csv" in config and not "ids" in config:
-            config["ids"] = fasta_ids_list(config["fasta"])
+        if not "input_metadata" in config and not "ids" in config:
+            config["ids"] = fasta_ids_list(config["input_sequences"])
 
 def parse_from_metadata(to_parse,background_csv):
     filters = {}
@@ -296,21 +296,21 @@ def from_metadata_parsing(config):
         sys.exit(-1)
 
     if config["from_metadata"]:
-        filters = parse_from_metadata(config["from_metadata"],config["background_csv"])
-        # for column in [config["fasta_column"],config["input_column"],config["report_column"]]:
+        filters = parse_from_metadata(config["from_metadata"],config["background_metadata"])
+        # for column in [config["sequence_id_column"],config["input_id_column"],config["input_display_column"]]:
         #     column_names.append(column)
 
-        rows_to_search = filter_down_metadata(filters,config["background_csv"])
+        rows_to_search = filter_down_metadata(filters,config["background_metadata"])
         
         query_ids = []
         # query_rows = []
         count = 0
         for row,c in rows_to_search:
             count +=1
-            query_ids.append(row[config["background_column"]])
+            query_ids.append(row[config["background_id_column"]])
             # new_row = row
-            # for column in [config["fasta_column"],config["input_column"],config["report_column"]]:
-            #     new_row[colum] = row[config["background_column"]]
+            # for column in [config["sequence_id_column"],config["input_id_column"],config["input_display_column"]]:
+            #     new_row[colum] = row[config["background_id_column"]]
             # query_rows.append(new_row)
 
         if count > int(config["max_queries"]):
