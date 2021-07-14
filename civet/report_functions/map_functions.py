@@ -141,7 +141,7 @@ def parse_background_map_options(background_map_file, centroid_file, background_
     qc_centroid_file(config)
 
     if config["verbose"]:
-        print(green("Using the following for mapping background:\n"))
+        print(green("Using the following for mapping background:"))
         print(config["background_map_file"])
         print(config["centroid_file"])
 
@@ -448,15 +448,43 @@ def make_query_map_json(config):
     return json_data
 
 
-def get_centroids(config):
+def get_location_information(config, data_for_report):
 
-    centroid_dict = {}
+
     with open(config["centroid_file"]) as f:
         reader = csv.DictReader(f)
-        for row in reader:
-            centroid_dict[row["location"]] = (row["longitude"], row["latitude"])
+        fieldnames = reader.fieldnames
+        
+        if "arc_max" in fieldnames:
+            get_other_data = True 
+        else:
+            get_other_data = False
+        
+        for location in config["background_map_location"]:
+            data_for_report[location] = {}
 
-    return centroid_dict
+        for row in reader:
+            for location in config["background_map_location"]:
+                if row['location'] == location:
+                    data_for_report[location]["centroids"] = (row["longitude"], row["latitude"])
+                    if get_other_data:
+                        data_for_report[location]["arc_max"] = float(row["arc_max"])
+                        data_for_report[location]["inner_arc_max"] = float(row["inner_arc_max"])
+                        data_for_report[location]["text_max"] = float(row["text_max"])
+                        data_for_report[location]["start_arc"] = float(row["start_arc"])
+                        data_for_report[location]["start_inner_arc"] = float(row["start_inner_arc"])
+                        data_for_report[location]["start_text"] = float(row["start_text"])
+                    else:
+                        data_for_report[location]["arc_max"] = 150
+                        data_for_report[location]["inner_arc_max"] = 30
+                        data_for_report[location]["text_max"] = 3
+                        data_for_report[location]["start_arc"] = 15
+                        data_for_report[location]["start_inner_arc"] = 5
+                        data_for_report[location]["start_text"] = 15
+
+                    break
+
+    return data_for_report
 
                 
 

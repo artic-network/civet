@@ -1023,15 +1023,28 @@
           "width": 500,
           "height": 500,
           "style": "cell",
+
+% if config["civet_mode"] == "CLIMB":
+    <%start_scale = 750%>
+    <%max_scale = 10000%>
+    <%start_x = 4%>
+    <%start_y = 55%>
+% else:
+    <%start_scale = 150%>
+    <%max_scale = 4000%>
+    <%start_x = 0%>
+    <%start_y = 0%>
+% endif
+
           "signals": [
                       { "name": "tx", "update": "width / 2" },
                       { "name": "ty", "update": "height / 2" },
                       {
                         "name": "scale",
-                        "value": 150,
+                        "value": ${start_scale},
                         "on": [{
                           "events": {"type": "wheel", "consume": true},
-                          "update": "clamp(scale * pow(1.0005, -event.deltaY * pow(16, event.deltaMode)), 100, 4000)"
+                          "update": "clamp(scale * pow(1.0005, -event.deltaY * pow(16, event.deltaMode)), 100, ${max_scale})"
                         }]
                       },
                       {
@@ -1073,38 +1086,49 @@
                         }]
                       },
                       {
-                        "name": "rotateX", "value": 0,
+                        "name": "rotateX", "value": ${start_x},
                         "on": [{
                           "events": {"signal": "delta"},
                           "update": "angles[0] + delta[0]"
                         }]
                       },
                       {
-                        "name": "centerY", "value": 0,
+                        "name": "centerY", "value": ${start_y},
                         "on": [{
                           "events": {"signal": "delta"},
                           "update": "clamp(angles[1] + delta[1], -60, 60)"
                         }]
-                      },{
-                        "name": "arc_zoom",
-                        "value": 15,
+                      }
+%for location in data_for_report['locations_wanted']:
+<%arc_max = data_for_report[location]["arc_max"]
+inner_arc_max = data_for_report[location]["inner_arc_max"]
+text_max = data_for_report[location]["text_max"]
+start_arc = data_for_report[location]["start_arc"]
+start_inner_arc = data_for_report[location]["start_inner_arc"]
+start_text = data_for_report[location]["start_text"]%>
+                      ,{
+                        "name": "arc_zoom_${location}",
+                        "value": ${start_arc},
                         "on": [{
                           "events": {"type": "wheel", "consume": true},
-                          "update": "clamp(arc_zoom * pow(1.0005, -event.deltaY * pow(16, event.deltaMode)), 1, 150)"
+                          "update": "clamp(arc_zoom_${location} * pow(1.0005, -event.deltaY * pow(16, event.deltaMode)), 1, ${arc_max})"
                         }]
                         },{
-                        "name":"inner_arc_zoom",
-                        "value":"5",
+                        "name":"inner_arc_zoom_${location}",
+                        "value":${start_inner_arc},
                         "on": [{
                           "events": {"type": "wheel", "consume": true},
-                          "update": "clamp(inner_arc_zoom * pow(1.0005, -event.deltaY * pow(16, event.deltaMode)), 1, 30)"}
-                    ]},{
-                      "name":"text_zoom",
-                      "value":"3",
+                          "update": "clamp(inner_arc_zoom_${location} * pow(1.0005, -event.deltaY * pow(16, event.deltaMode)), 0.1, ${inner_arc_max})"
+                          }]
+                    },{
+                      "name":"text_zoom_${location}",
+                      "value":${start_text},
                       "on": [{
                           "events": {"type": "wheel", "consume": true},
-                          "update": "clamp(text_zoom * pow(1.0005, -event.deltaY * pow(16, event.deltaMode)), 1, 15)"}]
+                          "update": "clamp(text_zoom_${location} * pow(1.0005, -event.deltaY * pow(16, event.deltaMode)), 1, ${text_max})"
+                          }]
                     }
+  %endfor
                     ],
           "data": [
             {
@@ -1120,8 +1144,8 @@
               "format": {}
             }
 %for location in data_for_report['locations_wanted']:
-<%latitude = data_for_report["centroids"][location][1]
-longitude = data_for_report["centroids"][location][0]%>
+<%latitude = data_for_report[location]["centroids"][1]
+longitude = data_for_report[location]["centroids"][0]%>
             ,{
               "name": "data_${location}_1",
               "source": "lineage_data",
@@ -1219,7 +1243,7 @@ longitude = data_for_report["centroids"][location][0]%>
                   "stroke": {"value": "white"},
                   "strokeWidth": {"value": 0.5},
                   "padAngle": {"value": 0.05},
-                  "innerRadius": {"signal": "inner_arc_zoom"},
+                  "innerRadius": {"signal": "inner_arc_zoom_${location}"},
                   "tooltip": {
                     "signal": "{\"count\": format(datum[\"count\"], \"\"), \"lineage\": isValid(datum[\"lineage\"]) ? datum[\"lineage\"] : \"\"+datum[\"lineage\"]}"
                   },
@@ -1230,7 +1254,7 @@ longitude = data_for_report["centroids"][location][0]%>
                   },
                   "x": {"field": "layer_${location}_layer_0_x"},
                   "y": {"field": "layer_${location}_layer_0_y"},
-                  "outerRadius": {"scale": "radius", "field": "count"},
+                  "outerRadius": {"scale": "radius_${location}", "field": "count"},
                   "startAngle": {
                     "scale": "theta_${location}",
                     "field": "count_end",
@@ -1252,9 +1276,9 @@ longitude = data_for_report["centroids"][location][0]%>
                   "stroke": {"value": "white"},
                   "strokeWidth": {"value": 0.1},
                   "align": {"value": "center"},
-                  "radius": {"scale": "radius", "field": "count","offset":10},
+                  "radius": {"scale": "radius_${location}", "field": "count","offset":10},
                   "font": {"value": "Helvetica Neue"},
-                  "fontSize": {"signal": "text_zoom"},
+                  "fontSize": {"signal": "text_zoom_${location}"},
                   "description": {
                     "signal":  "\"data: \" + (format(datum[\"data\"], \"\"))"},
                   "x": {"field": "layer_${location}_layer_1_x"},
@@ -1293,24 +1317,19 @@ longitude = data_for_report["centroids"][location][0]%>
               "reverse": true,
               "zero": true
             },
-%endfor
             {
-              "name": "radius",
+              "name": "radius_${location}",
               "type": "sqrt",
               "domain": {
                 "fields": [
-%for count,location in enumerate(data_for_report['locations_wanted']):
                   {"data": "data_${location}_2", "field": "count"},
                   {"data": "data_${location}_3", "field": "count"}
-%if count < len(data_for_report['locations_wanted'])-1:
-,
-%endif
-%endfor
                 ]
               },
-              "range": [{"signal":"inner_arc_zoom"},{"signal":"arc_zoom"}],
+              "range": [{"signal":"inner_arc_zoom_${location}"},{"signal":"arc_zoom_${location}"}],
               "zero": true
             },
+%endfor
             {
               "name": "color",
               "type": "ordinal",

@@ -80,7 +80,6 @@ def get_defaults():
 
                     #Timeline options
                     "timeline_dates":False, #default is date_column or background_date_column if they are present
-                    "timeline_colours":False,
 
                     #Background map options
                     "background_map_column":False, #default is location_column
@@ -228,8 +227,6 @@ def arg_dict(config):
                 #tl group args
                 "td":"timeline_dates",
                 "timeline_dates":"timeline_dates",
-                "timeline_colours":"timeline_colours",
-                "timeline_colors":"timeline_colours",
                 
                 #bm group args
                 "background_map_date_range":"background_map_date_range",
