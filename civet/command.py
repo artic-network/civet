@@ -38,62 +38,63 @@ def main(sysargs = sys.argv[1:]):
 
     i_group = parser.add_argument_group('Input options')
     i_group.add_argument('-c',"--config", action="store",help="Input config file in yaml format, all command line arguments can be passed via the config file.", dest="config")
-    i_group.add_argument('-ids',"--id-string", action="store",help="Comma-separated id string with one or more query ids. Example: `EDB3588,EDB3589`.", dest="id_string")
-    i_group.add_argument('-i',"--input-metadata", action="store",help="Input csv file (with minimally an input_id_column header, Default=`name`)", dest="input_metadata")
-    i_group.add_argument('-f','--input-sequences', action="store",help="Optional fasta file. Sequence IDs must match to a query ID specified either in the input csv or ID string.", dest="input_sequences")
-    i_group.add_argument('-fm','--from-metadata',nargs='*', dest="from_metadata",help="Generate a query from the metadata file supplied. Define a search that will be used to pull out sequences of interest from the background data. E.g. -fm country=Ireland sample_date=2020-03-01:2020-04-01")
-    i_group.add_argument('-mq','--max-queries', type=int, action="store",dest="max_queries",help="Max number of queries. Default: 5000")
+    i_group.add_argument('-ids',"--id-string", action="store",help="Comma-separated id string with one or more query ids. Example: `EDB3588,EDB3589`", dest="id_string")
+    i_group.add_argument('-i',"--input-metadata", action="store",help="Input csv file with minimally an <input_id_column> header. Default=`name`", dest="input_metadata")
+    i_group.add_argument('-f','--input-sequences', action="store",help="Optional fasta file. Sequence IDs must match to a query ID specified either in the input csv or ID string", dest="input_sequences")
+    i_group.add_argument('-fm','--from-metadata',nargs='*', dest="from_metadata",help="Generate a query from the metadata file supplied. Define a search that will be used to pull out sequences of interest from the background data. Example: -fm country=Ireland sample_date=2020-03-01:2020-04-01")
+    i_group.add_argument('-mq','--max-queries', type=int, action="store",dest="max_queries",help="Max number of queries. Default: `5000`")
 
     ic_group = parser.add_argument_group('Input column configuration')
     ic_group.add_argument('-icol',"--input-id-column", action="store", dest="input_id_column",help="Column in input csv file to match with database. Default: `name`")
-    ic_group.add_argument("-idisp", "--input-display-column", action="store", dest="input_display_column", help="Column containing alternative sequence names, for example patient IDs")
+    ic_group.add_argument("-idisp", "--input-display-column", action="store", dest="input_display_column", help="Column containing alternative names to display in the report. Example: `patient_IDs`")
     ic_group.add_argument("-idate","--input-date-column", action="store", dest="input_date_column", help="Column in input query with date data in. Default: `sample_date`")
 
     is_group = parser.add_argument_group("Input sequences options")
-    is_group.add_argument('-n','--max-ambiguity', action="store", type=float,help="Maximum proportion of Ns allowed to attempt analysis. Default: 0.5",dest="max_ambiguity")
-    is_group.add_argument('-l','--min-length', action="store", type=int,help="Minimum query length allowed to attempt analysis. Default: 20000",dest="min_length")
-    is_group.add_argument('-ts','--trim-start',action="store", type=int, dest="trim_start",help="Genome position to trim and pad to when aligning input sequences. Default: 265")
-    is_group.add_argument('-te','--trim-end', action="store",type=int, dest="trim_end",help="Genome position to trim and pad from when aligning input sequences. Default: 29674")
+    is_group.add_argument('-n','--max-ambiguity', action="store", type=float,help="Maximum proportion of Ns allowed to attempt analysis. Default: `0.5`",dest="max_ambiguity")
+    is_group.add_argument('-l','--min-length', action="store", type=int,help="Minimum query length allowed to attempt analysis. Default: `20000`",dest="min_length")
+    is_group.add_argument('-ts','--trim-start',action="store", type=int, dest="trim_start",help="Genome position to trim and pad to when aligning input sequences. Default: `265`")
+    is_group.add_argument('-te','--trim-end', action="store",type=int, dest="trim_end",help="Genome position to trim and pad from when aligning input sequences. Default: `29674`")
 
     d_group = parser.add_argument_group('Background data options')
     d_group.add_argument('-d','--datadir', action="store",help="Directory containing the background data files.")
-    d_group.add_argument("-bm","--background-metadata",action="store",dest="background_metadata",help="Custom metadata file for all background data. Should have a column matching `-bicol/--background-id-column`.")
-    d_group.add_argument("-bsnp","--background-snps",action="store",dest="background_snps",help="Optional SNP file for all background data. Civet will calculate this file if not supplied, which may take some time.")
-    d_group.add_argument("-bseq","--background-sequences", action="store", dest="background_sequences", help="Custom background sequence file for all background data. Sequence IDs should match the background metadata id column, or specify another column using `-biseq/--background-sequence-id.`")
-    d_group.add_argument("-bt","--background-tree", action="store", dest="background_tree", help="Custom background tree file for all background data. Tip names should match the background metadata background_column. *Feature in development*")
-    d_group.add_argument("--background-data-checks",dest="debug",action="store_true",help="Run checks on custom background data files, not run by default.")
+    d_group.add_argument("-bm","--background-metadata",action="store",dest="background_metadata",help="Custom metadata file for all background data. Should have a column matching <-bicol/--background-id-column>")
+    d_group.add_argument("-bsnp","--background-snps",action="store",dest="background_snps",help="Optional SNP file for all background data. Civet will calculate this file if not supplied, which may take some time")
+    d_group.add_argument("-bseq","--background-sequences", action="store", dest="background_sequences", help="Custom background sequence file for all background data. Sequence IDs should match the background metadata id column, or specify another column using <-biseq/--background-sequence-id>")
+    d_group.add_argument("-bt","--background-tree", action="store", dest="background_tree", help="Custom background tree file for all background data. Tip names should match the background metadata background_column. *Coming soon*")
+    d_group.add_argument("--background-data-checks",dest="debug",action="store_true",help="Run checks on custom background data files, not run by default")
 
     bc_group = parser.add_argument_group('Background column configuration')
-    bc_group.add_argument("-bicol",'--background-id-column', action="store", dest="background_id_column",help="Column in background metadata to match with input IDs. Default: sequence_name")
-    bc_group.add_argument("-sicol",'--sequence-id-column', action="store", dest="sequence_id_column",help="Column in background data to match with sequence IDs. Default: `-bicol/--background-id-column`.")
-    bc_group.add_argument("-bdate", "--background-date-column", action="store", dest="background_date_column", help="Column with date information in background metadata. Default=sample_date")
-    bc_group.add_argument("-bloc","--background-location-column", action="store",dest="background_location_column", help="Column containing geographical data in the background metadata. Default=country")
+    bc_group.add_argument("-bicol",'--background-id-column', action="store", dest="background_id_column",help="Column in background metadata to match with input IDs. Default: `sequence_name`")
+    bc_group.add_argument("-sicol",'--sequence-id-column', action="store", dest="sequence_id_column",help="Column in background data to match with sequence IDs. Default: <-bicol/--background-id-column>")
+    bc_group.add_argument("-bdate", "--background-date-column", action="store", dest="background_date_column", help="Column with date information in background metadata. Default: `sample_date`")
+    bc_group.add_argument("-bloc","--background-location-column", action="store",dest="background_location_column", help="Column containing geographical data in the background metadata. Default: `country`")
 
     o_group = parser.add_argument_group('Output options')
-    o_group.add_argument('-o','--outdir', action="store",help="Output directory. Default: civet-2021-XX-YY")
-    o_group.add_argument('-p','--output-prefix',action="store",help="Prefix of output directory & report name: Default: civet",dest="output_prefix")
-    o_group.add_argument('--datestamp', action="store",help="Append datestamp to directory name when using `-o/--outdir`. Default: `-o/--outdir` without a datestamp.")
-    o_group.add_argument('--overwrite', action="store_true",help="Overwrite output directory. Default: append an incrementing number if `-o/--outdir` already exists.")
+    o_group.add_argument('-o','--outdir', action="store",help="Output directory. Default: `civet-2021-XX-YY`")
+    o_group.add_argument('-p','--output-prefix',action="store",help="Prefix of output directory & report name: Default: `civet`",dest="output_prefix")
+    o_group.add_argument('--datestamp', action="store",help="Append datestamp to directory name when using <-o/--outdir>. Default: <-o/--outdir> without a datestamp")
+    o_group.add_argument('--overwrite', action="store_true",help="Overwrite output directory. Default: append an incrementing number if <-o/--outdir> already exists")
     o_group.add_argument('--output-data',action="store_true",help="Output intermediate data files to the output directory",dest="output_data")
-    o_group.add_argument('-temp','--tempdir',action="store",help="Specify where you want the temp stuff to go. Default: $TMPDIR")
-    o_group.add_argument("--no-temp",action="store_true",help="Output all intermediate files. For development/ debugging purposes.",dest="no_temp")
+    o_group.add_argument('-temp','--tempdir',action="store",help="Specify where you want the temp stuff to go. Default: `$TMPDIR`")
+    o_group.add_argument("--no-temp",action="store_true",help="Output all intermediate files. For development/ debugging purposes",dest="no_temp")
 
     c_group = parser.add_argument_group("Catchment options")
-    c_group.add_argument('-snpd','--snp-distance', type=int, action="store",dest="snp_distance",help="Define radius of catchment by number of SNPs from query. Default: 2")
-    c_group.add_argument('--snp-distance-up', type=int, action="store",dest="snp_distance_up",help="Define radius of catchment by number of SNPs from query. Default: `-snpd/ --snp-distance`")
-    c_group.add_argument('--snp-distance-down', type=int, action="store",dest="snp_distance_down",help="Define radius of catchment by number of SNPs from query. Default: `-snpd/ --snp-distance`")
-    c_group.add_argument('--snp-distance-side', type=int, action="store",dest="snp_distance_side",help="Define radius of catchment by number of SNPs from query. Default: `-snpd/ --snp-distance`")
-    c_group.add_argument('-cs','--catchment-size', type=int, action="store",dest="catchment_size",help="Max number of sequences in a catchment. Catchments larger than this will be downsampled prior to tree building. Default: 100")
-    c_group.add_argument('-ds','--downsample', nargs='*', action="store",dest="downsample",help="""Configuration of catchment downsampling. Indicate mode (random, enrich or normalise. Default: random).
-If using enrich mode, indicate the factor (Default: 10), and the column name and field to enrich.
-E.g. --downsample mode=enrich factor=10 sample_date=2021-02-04:2021-03-04
-If using normalise mode, indicate the column to normalise across.
-E.g. --downsample mode=normalise country""")
+    c_group.add_argument('-snpd','--snp-distance', type=int, action="store",dest="snp_distance",help="Define radius of catchment by number of SNPs from query. Default: `2`")
+    c_group.add_argument('--snp-distance-up', type=int, action="store",dest="snp_distance_up",help="Define radius of catchment by number of SNPs from query. Default: <-snpd/--snp-distance>")
+    c_group.add_argument('--snp-distance-down', type=int, action="store",dest="snp_distance_down",help="Define radius of catchment by number of SNPs from query. Default: <-snpd/--snp-distance>")
+    c_group.add_argument('--snp-distance-side', type=int, action="store",dest="snp_distance_side",help="Define radius of catchment by number of SNPs from query. Default: <-snpd/--snp-distance>")
+    c_group.add_argument('-cs','--catchment-size', type=int, action="store",dest="catchment_size",help="Max number of sequences in a catchment. Catchments larger than this will be downsampled prior to tree building. Default: `100`")
+    c_group.add_argument('-ds','--downsample', nargs='*', action="store",dest="downsample",help="""Configuration of catchment downsampling. Options: `random`, `enrich` or `normalise`. Default: `random`).
+If using enrich mode, indicate the factor (Default: `10`), the column name and the field to enrich for.   
+Example: --downsample mode=enrich factor=10 sample_date=2021-02-04:2021-03-04   
+If using normalise mode, indicate the column to normalise across.   
+Example: --downsample mode=normalise country""")
 
     r_group = parser.add_argument_group("Report configuration options")
-    r_group.add_argument("-rp", "--report-preset", nargs='*', action="store", dest="report_preset", help="""Specify one or more preset options to configure report content, full configuration available using `-rc/--report-content`.
-    Preset options: the_usual (1,2,3,4,5), the_works (1,2,3,4,5,7), the_whole_shebang (1,2,3,4,5,6,7), hold_the_sauce (1,2)""")
-    r_group.add_argument("-rc", "--report-content", nargs='*', action="store", dest="report_content", help="""One or more comma separated numeric strings to define the report content. Default: 1,2,3,4,5
+    r_group.add_argument("-rp", "--report-preset", nargs='*', action="store", dest="report_preset", help="""Specify one or more preset options to configure report content, full report configuration options available using <-rc/--report-content>   
+Preset options: `the_usual` (1,2,3,4,5), `the_works` (1,2,3,4,5,7), `the_whole_shebang` (1,2,3,4,5,6,7), `hold_the_sauce` (1,2)   
+Default: `the_usual`""")
+    r_group.add_argument("-rc", "--report-content", nargs='*', action="store", dest="report_content", help="""One or more comma separated numeric strings to define the report content. Default: `1,2,3,4,5`    
 1: Query summary tables, 
 2: Catchment summary tables, 
 3: Catchment trees, 
@@ -101,20 +102,20 @@ E.g. --downsample mode=normalise country""")
 5: Timeline, 
 6: Background map, 
 7: Query map""")
-    r_group.add_argument("-rt", "--report-title", action="store", dest="report_title", help="""Title to display in report. Default: civet report""")
+    r_group.add_argument("-rt", "--report-title", action="store", dest="report_title", help="""Title to display in report. Default: `civet report`""")
     r_group.add_argument("--anonymise", action="store_true", dest="anonymise",help="Generates arbitrary labels for sequences for dissemination")
-    r_group.add_argument("-ct", "--colour-theme", action="store", dest="colour_theme", help="""Report theme colour. Default: #7178bc""")
-    r_group.add_argument("-cmap", "--colour-map", action="store", dest="colour_map", help="""Comma separated string of hex codes or names of HTML compatible colours to colour factors in report by.""")   
+    r_group.add_argument("-ct", "--colour-theme", action="store", dest="colour_theme", help="""Report theme colour. Default: `#7178bc`""")
+    r_group.add_argument("-cmap", "--colour-map", action="store", dest="colour_map", help="""Comma separated string of hex codes or names of HTML compatible colours to colour factors in report by. Default: `"#86b0a6,#565b7b,#e9c46a,#e1998a,#d19c2c,#264653,#4888a3,#c77939,#b56576,#eb7e83,#F46D43,#9e2a2b,#84a98c"`""")   
 
     tb_group = parser.add_argument_group("Table options (report options 1 and 2)")
-    tb_group.add_argument("--query-table-content", action='store', dest="query_table_content", help="Columns to include in the table for queries. Default:--background_column,--background_date_column,source,lineage,country,catchment")
-    tb_group.add_argument("--catchment-table-content", action='store', dest="catchment_table_content", help="Columns to include in the summary table for catchments. Default: count,country,lineage")
+    tb_group.add_argument("--query-table-content", action='store', dest="query_table_content", help="Columns to include in the table for queries. Default: `<-bicol/--background-id_column>,<-bdate/--background_date_column>,source,lineage,country,catchment`")
+    tb_group.add_argument("--catchment-table-content", action='store', dest="catchment_table_content", help="Columns to include in the summary table for catchments. Default: `count,country,lineage`")
     
     t_group = parser.add_argument_group("Tree options (report option 3)")
     t_group.add_argument("-ta","--tree-annotations", action="store", dest="tree_annotations", help="Comma separated string of metadata columns to annotate catchment trees with, can then be displayed in the report.")
 
     tl_group = parser.add_argument_group("Timeline options (report option 5)")
-    tl_group.add_argument("-tdate", "--timeline-dates", action='store', dest="timeline_dates", help="Data to generate a timeline as a comma separated string")
+    tl_group.add_argument("-tdate", "--timeline-dates", action='store', dest="timeline_dates", help="Data to generate a timeline as a comma separated string. Default: <-idate/--input-date-column>")
 
     bm_group = parser.add_argument_group("Background map options (report option 6)")
     bm_group.add_argument("-bmfile","--background-map-file", action="store", dest="background_map_file", help="JSON or GeoJSON containing polygons to plot background diversity on. Must be an online resource eg on a Github pages website.")
@@ -129,10 +130,11 @@ E.g. --downsample mode=normalise country""")
     qm_group.add_argument("-long","--longitude-column", dest="longitude_column", action="store", help="Column containing longitude coordinate information to plot queries on a map")
 
     misc_group = parser.add_argument_group('Misc options')
-    misc_group.add_argument("--civet-mode", action="store", dest='civet_mode', help="if CLIMB then import UK specific modules. Default=GLOBAL")
+    misc_group.add_argument("--civet-mode", action="store", dest='civet_mode', help="If CLIMB then import UK specific modules. Default=`GLOBAL`")
     misc_group.add_argument("-r","--reference-sequence",action="store",dest="reference_sequence",help="Custom reference genome to map and pad against. Must match the reference the background sequence alignment was generated from.")
     misc_group.add_argument('-mem','--max-memory', type=float, action="store",dest="max_memory",help="Indicates the maximum amount of RAM (in GB) to use for tree building. Default: 8")
     misc_group.add_argument("--art",action="store_true",help="Print art")
+    misc_group.add_argument("--acknowledgements",action="store_true",help="Print thanks")
     misc_group.add_argument('-t', '--threads', action='store',dest="threads",type=int,help="Number of threads")
     misc_group.add_argument("--verbose",action="store_true",help="Print lots of stuff to screen")
     misc_group.add_argument("-v","--version", action='version', version=f"civet {__version__}")
@@ -153,6 +155,10 @@ E.g. --downsample mode=normalise country""")
 
     if args.art:
         misc.be_arty()
+        sys.exit(0)
+
+    if args.acknowledgements:
+        misc.full_acknowledgements()
         sys.exit(0)
 
     dependency_checks.check_dependencies()
@@ -196,7 +202,7 @@ E.g. --downsample mode=normalise country""")
     # Define what's going to go in the report and sort global report options 
     # stored under config = { "report_content": [1, 2, 3, 4], "reports": [1,2,3,4],[1,2]}
     name_dict = report_arg_parsing.parse_global_report_options(args.report_content,args.report_preset, args.input_display_column, args.anonymise, args.input_date_column, args.background_date_column, args.background_location_column, config)
-    report_arg_parsing.parse_optional_report_content(args.table_content, args.timeline_dates, args.colour_theme, args.colour_map, config)
+    report_arg_parsing.parse_optional_report_content(args.query_table_content, args.timeline_dates, args.colour_theme, args.colour_map, config)
     report_arg_parsing.parse_map_options(args.background_map_date_range, args.background_map_column, args.background_map_file, args.centroid_file, args.background_map_location, args.query_map_file, args.longitude_column, args.latitude_column, found_in_background_data, config)
     report_arg_parsing.parse_tree_annotations(args.tree_annotations, config)
 
