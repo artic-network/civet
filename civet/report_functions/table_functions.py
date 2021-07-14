@@ -9,7 +9,7 @@ def parse_and_qc_table_cols(table_content, config):
 
     """ 
     parses the report group argument:
-    --table-content (default --background_column,--background_date_column,source,lineage,country,catchment)
+    --query-table-content (default --background_column,--background_date_column,source,lineage,country,catchment)
     """
 
     processed_columns = ["source","qc_status",config["input_display_column"],"catchment"]

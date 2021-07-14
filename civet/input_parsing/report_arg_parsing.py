@@ -84,9 +84,9 @@ def parse_global_report_options(report_content,report_preset,report_column, anon
     """
     parses the report group arguments 
     --report-content (Default 1,2,3)
-    --report-column (Default $SEQ_NAME)
+    --input-display-column (Default $SEQ_NAME)
     --anonymise (Default False)
-    --date-column (default: sample_date if present, False if not)
+    --input-date-column (default: sample_date if present, False if not)
     --background-date-column (default: sample_date if present, False if not)
     --timeline-dates
     """

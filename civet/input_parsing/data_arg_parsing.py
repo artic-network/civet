@@ -30,12 +30,12 @@ def background_data_load(config):
         for fn in f:
             file_list.append(os.path.join(r,fn))
     if not config["background_metadata"]:
-        check_dir_for_file(file_list, "metadata.csv","-bc/--background-csv","background_metadata",config,True)
+        check_dir_for_file(file_list, "metadata.csv","-bm/--background-metadata","background_metadata",config,True)
     if not config["background_sequences"]:
-        check_dir_for_file(file_list, "fasta","-bf/--background-fasta","background_sequences",config,True)
+        check_dir_for_file(file_list, "fasta","-bseq/--background-sequences","background_sequences",config,True)
 
     if not config["background_snps"]:
-        check_dir_for_file(file_list, "mutations.csv","-bSNP/--background-SNPs","background_snps",config,False)
+        check_dir_for_file(file_list, "mutations.csv","-bsnp/--background-snps","background_snps",config,False)
 
     if not config["background_tree"]:
         check_dir_for_file(file_list, "newick","-bt/--background-tree","background_tree",config,False)
@@ -44,7 +44,7 @@ def check_datadir(config):
     datadir = config["datadir"]
     if not os.path.exists(datadir):
         if not config["background_metadata"] or not config["background_sequences"]:
-            print(cyan(f"Error: data directory not found: {datadir}.\n")+"Please check the datadir path (-d/ --datadir) provided exists or supply files with -bc/ --background-csv and -bf/ --background-fasta.\n")
+            print(cyan(f"Error: data directory not found: {datadir}.\n")+"Please check the datadir path (-d/ --datadir) provided exists or supply files with -bm/--background-metadata and -bseq/--background-sequences.\n")
             sys.exit(-1)
 
 def check_csv_file(argument,description,csv_file,background_column,fasta_column):
@@ -88,10 +88,10 @@ def check_csv_file(argument,description,csv_file,background_column,fasta_column)
                     sys.exit(-1)
             else:
                 if background_column not in reader.fieldnames:
-                    sys.stderr.write(cyan(f"Error: {background_column} column not found in {description} file. Please specifiy which column to match with `-dcol/ --data-column.`\n"))
+                    sys.stderr.write(cyan(f"Error: {background_column} column not found in {description} file. Please specifiy which column to match with `-bicol/--background-id-column.`\n"))
                     sys.exit(-1)
                 elif fasta_column not in reader.fieldnames:
-                    sys.stderr.write(cyan(f"Error: {fasta_column} column not found in {description} file. Please specifiy which column to match with `-fcol/ --fasta-column.`\n"))
+                    sys.stderr.write(cyan(f"Error: {fasta_column} column not found in {description} file. Please specifiy which column to match with `-sicol/--sequence-id-column.`\n"))
                     sys.exit(-1)
     return c
 
@@ -158,7 +158,7 @@ def data_group_parsing(debug,datadir,background_csv,background_SNPs,background_f
     --datadir (Default $DATADIR)
     --background-csv (Default False)
     --background-fasta (Default False)
-    --data-column (Default central_sample_id)
+    --background-id-column (Default central_sample_id)
     """
     print(config['datadir'])
     if datadir:
@@ -202,7 +202,7 @@ def data_group_parsing(debug,datadir,background_csv,background_SNPs,background_f
         config["background_search_file"] = config["background_sequences"]
 
     if debug:
-        csv_record_count = check_csv_file("-bc/--background-csv","background csv",config["background_metadata"],config["background_id_column"],config["sequence_id_column"])
+        csv_record_count = check_csv_file("-bm/--background-metadata","background csv",config["background_metadata"],config["background_id_column"],config["sequence_id_column"])
         fasta_record_count = check_background_fasta(config["background_sequences"])
         
         if csv_record_count != fasta_record_count:

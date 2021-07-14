@@ -216,7 +216,7 @@ def parse_date_range(background_map_date_range, config):
                             enough_data = True
                             break
                 if not enough_data:
-                    sys.stderr.write(cyan(f"Error: fewer than 50 sequences in column {config['background_map_column']} between dates {start_date} and {end_date}. If you want to map background diversity, consider using a different geographical scale using '-maploc/--background-map-location' or a larger time period.\n"))
+                    sys.stderr.write(cyan(f"Error: fewer than 50 sequences in column {config['background_map_column']} between dates {start_date} and {end_date}. If you want to map background diversity, consider using a different geographical scale using '-bmloc/--background-map-location' or a larger time period.\n"))
                     sys.exit(-1)
         else:
             sys.stderr.write(cyan(f"Error: Date restriction defined for background lineage diversity mapping, but no date column provided. Please use '-bdate/--background-date-column' to specify this column. \n") + "\n")
@@ -289,7 +289,7 @@ def qc_map_file_for_background_map(background_map_file, centroid_file,config):
             map_file = "https://viralverity.github.io/civet_geo/uk_map.json"
             uk_cols = ["suggested_adm2_grouping", "adm1", "adm2"]
             if config["background_map_column"] not in uk_cols:
-                sys.stderr.write(cyan(f'{config["background_map_column"]} not in default UK map file.\n Options allowed are "suggested_adm2_grouping","adm1" or "adm2".  Alternatively, please provide a custom geojson containing this column to use it using --background-map-file\n'))
+                sys.stderr.write(cyan(f'{config["background_map_column"]} not in default UK map file.\n Options allowed are "suggested_adm2_grouping","adm1" or "adm2".  Alternatively, please provide a custom geojson containing this column to use it using -bmfile/--background-map-file\n'))
                 sys.exit(-1)
         else: 
             if config["background_map_column"] == "adm1":
@@ -297,7 +297,7 @@ def qc_map_file_for_background_map(background_map_file, centroid_file,config):
             elif config["background_map_column"] == "country" or config["background_map_column"] == "adm0":
                 map_file = "https://viralverity.github.io/civet_geo/adm0_global.json"
             else:
-                sys.stderr.write(cyan(f"{config['background_map_column']} not in default map file. Please use country/adm0 or adm1 or provide your own shape file using --background-map-file\n"))
+                sys.stderr.write(cyan(f"{config['background_map_column']} not in default map file. Please use country/adm0 or adm1 or provide your own shape file using -bmfile/--background-map-file\n"))
                 sys.exit(-1)
 
 

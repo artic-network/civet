@@ -9,7 +9,7 @@ from civet.utils.log_colours import green,cyan,red
 def sequence_name_parsing(report_column, anonymise, config):
     """
     parses the report group arguments 
-    --report-column (Default $SEQ_NAME)
+    --input-display-column (Default $SEQ_NAME)
     --anonymise (Default False)
     """
     # if command line arg, overwrite config value
@@ -108,7 +108,7 @@ def parse_date_args(date_column, background_date_column, config):
 
     """
     parses the report group arguments:
-    --date-column (default: sample_date) 
+    --input-date-column (default: sample_date) 
     --background-date-column (default: False, and then the same as date_column if none provided)
     """
 
@@ -123,7 +123,7 @@ def parse_date_args(date_column, background_date_column, config):
                     config["input_date_column"] = "sample_date"
         
     if "input_metadata" in config and config["input_date_column"]: #so this will also scoop in "sample_date" assigned above
-        qc_date_col("input_date_column", config, config["input_metadata"], "input", "-date/--date-column")
+        qc_date_col("input_date_column", config, config["input_metadata"], "input", "-idate/--input-date-column")
 
     if not config["background_date_column"]:
         with open(config["background_metadata"]) as f:

@@ -10,9 +10,9 @@ dependencies:
   - python=3.9
   - snakemake-minimal
   - cov-ert::jclusterfunk
-  - gofasta>=0.0.4
-variables:
-  CIVET_DATADIR: '/cephfs/covid/bham/results/phylogenetics/latest/civet/cog'
-  CIVETMODE: 'CLIMB'
-
+  - gofasta>=0.0.5
+# variables:
+#   TEMPDIR:
+#   CIVET_DATADIR: 
+#   CIVETMODE: 
 # civet now requires conda version 4.9 or later

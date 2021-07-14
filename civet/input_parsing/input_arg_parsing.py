@@ -37,15 +37,15 @@ def csv_qc(input_metadata,input_id_column):
     ending = input_metadata.split(".")[-1]
 
     if ending in ["yaml","yml","json"]:
-        sys.stderr.write(cyan(f"Error: -i,--input-csv accepts a csv file. As of civet 3.0 please use -c/ --config to input a config file or -ids/ --id-string to input a comma-separated string of IDs.\n"))
+        sys.stderr.write(cyan(f"Error: -i,--input-metadata accepts a csv file. As of civet 3.0 please use -c/ --config to input a config file or -ids/ --id-string to input a comma-separated string of IDs.\n"))
         sys.exit(-1)
     elif ending in ["xls","xlsx"]:
-        sys.stderr.write(cyan(f"Error: it looks like you've provided an excel file as input.\n-i,--input-csv accepts a csv file\n"))
+        sys.stderr.write(cyan(f"Error: it looks like you've provided an excel file as input.\n-i,--input-metadata accepts a csv file\n"))
         sys.exit(-1)
     elif ending == "csv":
         pass
     else:
-        sys.stderr.write(cyan(f"Error: -i,--input-csv accepts a csv file. As of civet 3.0 please use -c/ --config to input a config file or -ids/ --id-string to input a comma-separated string of IDs.\n"))
+        sys.stderr.write(cyan(f"Error: -i,--input-metadata accepts a csv file. As of civet 3.0 please use -c/ --config to input a config file or -ids/ --id-string to input a comma-separated string of IDs.\n"))
         sys.exit(-1)
     
     if os.path.isfile(input_metadata):
@@ -100,7 +100,7 @@ def input_query_parsing(input_metadata,input_id_column,ids,from_metadata,config)
         config["ids"] = csv_qc(config["input_metadata"],config["input_id_column"])
 
     if config["from_metadata"] and 'ids' in config:
-        sys.stderr.write(cyan('Error: civet accepts either -fm/--from-metadata (which generates a query from the background data) or an input query (supplied via `-ids/--id-string`, `-i/--input-csv` or `-f/--fasta`).\n'))
+        sys.stderr.write(cyan('Error: civet accepts either -fm/--from-metadata (which generates a query from the background data) or an input query (supplied via `-ids/--id-string`, `-i/--input-metadata` or `-f/--input-sequences`).\n'))
         sys.exit(-1)
     
 def input_fasta_check(input_file):
@@ -159,7 +159,7 @@ def input_fasta_parsing(input_fasta,maxambig,minlen,config):
     
     if "fasta" in config:
         if config["from_metadata"]:
-            sys.stderr.write(cyan('Error: civet accepts either -fm/--from-metadata (which generates a query from the background data) or an input query (supplied via `-ids/--id-string`, `-i/--input-csv` or `-f/--fasta`).\n'))
+            sys.stderr.write(cyan('Error: civet accepts either -fm/--from-metadata (which generates a query from the background data) or an input query (supplied via `-ids/--id-string`, `-i/--input-metadata` or `-f/--input-sequences`).\n'))
             sys.exit(-1)
         input_fasta_check(config["input_sequences"])
         fasta_qc_level(config["max_ambiguity"],config["min_length"])

@@ -36,7 +36,7 @@ def account_for_all_ids(config):
 
     if not_found:
         not_found_str = '\n - '.join(not_found)
-        sys.stderr.write(cyan(f"Query records not matched:\n") + f"- {not_found_str}\n" + cyan("Please check input names match against records. Configure which columns to match using `-icol/--input-column` and `-dcol/--data-column`.\n"))
+        sys.stderr.write(cyan(f"Query records not matched:\n") + f"- {not_found_str}\n" + cyan("Please check input names match against records. Configure which columns to match using `-icol/--input-id-column` and `-bicol/--background-id-column`.\n"))
         sys.exit(-1)
     
     return found_in_background_data,header,found_in_input_fasta
@@ -237,7 +237,7 @@ def write_matched_fasta(found_in_background_data, config):
                     if record not in matched_ids:
                         not_found.append(record)
                 not_found_str = "\n- ".join(not_found)
-                sys.stderr.write(cyan(f"Some records in background metadata file not found in background fasta file.\n") + f"- {not_found_str}\n" + cyan("Please check sequence ids match against the data in `-bcol/--background-column`.\n"))
+                sys.stderr.write(cyan(f"Some records in background metadata file not found in background fasta file.\n") + f"- {not_found_str}\n" + cyan("Please check sequence ids match against the data in `-bicol/--background-id-column`.\n"))
                 sys.exit(-1)
 
 def write_parsed_query_files(query_metadata,passed_qc,found_in_background_data, config):
