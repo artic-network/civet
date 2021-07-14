@@ -313,20 +313,22 @@ def check_locations(background_map_location,config):
 
     if config["background_map_location"]:
         lst = config["background_map_location"].split(",")
-        new_lst = []
+        new_set = set()
         for i in lst:
             if config["civet_mode"] == "CLIMB":
                 if i.upper() not in acceptable_locations:
                     sys.stderr.write(cyan(f'{i} not found in list of acceptable locations to map background lineage diversity.\n Please ensure it is spelt correctly and contains underscores instead of spaces. Please also ensure you are using the correct level of geography by using "--background-map-column". If you still cannot find it and are using default map files, please file a github issue and we will get to it as soon as we can.\n'))
                     sys.exit(-1)
                 else:
-                    new_lst.append(i.upper())
+                    new_set.add(i.upper())
             else:
                 if i.title() not in acceptable_locations:
                     sys.stderr.write(cyan(f'{i} not found in list of acceptable locations to map background lineage diversity.\n Please ensure it is spelt correctly and contains underscores instead of spaces. Please also ensure you are using the correct level of geography by using "--background-map-column". If you still cannot find it and are using default map files, please file a github issue and we will get to it as soon as we can.\n'))
                     sys.exit(-1)
                 else:
-                    new_lst.append(i.title())
+                    new_set.add(i.title())
+
+        new_lst = list(new_set)
 
         config["background_map_location"] = new_lst
 
@@ -357,23 +359,17 @@ def check_locations(background_map_location,config):
 
         missing_locations = set()
         for loc in check_set: 
-            if config["civet_mode"] == "CLIMB":
-                if loc.upper() not in acceptable_locations:
-                    sys.stderr.write(cyan(f'WARNING: {loc} is an invalid location. It will be left out of mapping background diversity\n'))
-                    missing_locations.add(loc)
-            else:
-                if loc.title() not in acceptable_locations:
-                    sys.stderr.write(cyan(f'WARNING: {loc} is an invalid location. It will be left out of mapping background diversity\n'))
-                    missing_locations.add(loc)
+            if loc not in acceptable_locations:
+                sys.stderr.write(cyan(f'WARNING: {loc} is an invalid location. It will be left out of mapping background diversity\n'))
+                missing_locations.add(loc)
+            
 
-        final_list = []
+        final_set = set()
         for i in check_set:   
             if i not in missing_locations:
-                if config["civet_mode"] == "CLIMB":
-                    final_list.append(i.upper())
-                else:
-                    final_list.append(i.title())
-        
+                final_set.add(i)
+                
+        final_list = list(final_set)
         config["background_map_location"] = final_list
 
 
