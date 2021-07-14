@@ -1381,8 +1381,8 @@ longitude = data_for_report[location]["centroids"][0]%>
             "autosize": "none",
             "background": "white",
             "padding": 5,
-            "width": "container",
-            "height": "container",
+            "width": 100,
+            "height": 100,
             "style": "cell",
 
           "signals": [
@@ -1498,7 +1498,7 @@ longitude = data_for_report[location]["centroids"][0]%>
                 "encode": {
                   "update": {
                     "fill": {"value": null},
-                    "stroke": {"value": "darkgrey"},
+                    "stroke": {"value": "black"},
                     "ariaRoleDescription": {"value": "geoshape"}
                   }
                 },
@@ -1521,7 +1521,7 @@ longitude = data_for_report[location]["centroids"][0]%>
                     },
                     "x": {"field": "layer_1_x"},
                     "y": {"field": "layer_1_y"},
-                    "size": {"value": 100},
+                    "size": {"value": 10},
                     "shape": {"value": "circle"}
                   }
                 }

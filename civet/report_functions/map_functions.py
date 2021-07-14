@@ -305,6 +305,7 @@ def qc_map_file_for_background_map(background_map_file, centroid_file,config):
 
 
 def check_locations(background_map_location,config):
+    #the background files need tidying so that they're all upper case and then we can just check upper case and make them upper case
 
     acceptable_locations = get_acceptable_locations(config["background_map_file"], config)
 
@@ -312,11 +313,22 @@ def check_locations(background_map_location,config):
 
     if config["background_map_location"]:
         lst = config["background_map_location"].split(",")
+        new_lst = []
         for i in lst:
-            if i not in acceptable_locations:
-                sys.stderr.write(cyan(f'{i} not found in list of acceptable locations to map background lineage diversity.\n Please ensure it is spelt correctly and contains underscores instead of spaces. If you still cannot find it and are using default map files, please file a github issue and we will get to it as soon as we can.\n'))
-                sys.exit(-1)
-        config["background_map_location"] = lst
+            if config["civet_mode"] == "CLIMB":
+                if i.upper() not in acceptable_locations:
+                    sys.stderr.write(cyan(f'{i} not found in list of acceptable locations to map background lineage diversity.\n Please ensure it is spelt correctly and contains underscores instead of spaces. Please also ensure you are using the correct level of geography by using "--background-map-column". If you still cannot find it and are using default map files, please file a github issue and we will get to it as soon as we can.\n'))
+                    sys.exit(-1)
+                else:
+                    new_lst.append(i.upper())
+            else:
+                if i.title() not in acceptable_locations:
+                    sys.stderr.write(cyan(f'{i} not found in list of acceptable locations to map background lineage diversity.\n Please ensure it is spelt correctly and contains underscores instead of spaces. Please also ensure you are using the correct level of geography by using "--background-map-column". If you still cannot find it and are using default map files, please file a github issue and we will get to it as soon as we can.\n'))
+                    sys.exit(-1)
+                else:
+                    new_lst.append(i.title())
+
+        config["background_map_location"] = new_lst
 
     else:
         print(green(f"No locations specified for background lineages, so all valid locations in {config['background_map_column']} will be summarised."))
@@ -345,14 +357,22 @@ def check_locations(background_map_location,config):
 
         missing_locations = set()
         for loc in check_set: 
-            if loc not in acceptable_locations:
-                sys.stderr.write(cyan(f'WARNING: {loc} is an invalid location. It will be left out of mapping background diversity\n'))
-                missing_locations.add(loc)
+            if config["civet_mode"] == "CLIMB":
+                if loc.upper() not in acceptable_locations:
+                    sys.stderr.write(cyan(f'WARNING: {loc} is an invalid location. It will be left out of mapping background diversity\n'))
+                    missing_locations.add(loc)
+            else:
+                if loc.title() not in acceptable_locations:
+                    sys.stderr.write(cyan(f'WARNING: {loc} is an invalid location. It will be left out of mapping background diversity\n'))
+                    missing_locations.add(loc)
 
         final_list = []
         for i in check_set:   
             if i not in missing_locations:
-                final_list.append(i)
+                if config["civet_mode"] == "CLIMB":
+                    final_list.append(i.upper())
+                else:
+                    final_list.append(i.title())
         
         config["background_map_location"] = final_list
 
@@ -477,10 +497,10 @@ def get_location_information(config, data_for_report):
                     else:
                         data_for_report[location]["arc_max"] = 150
                         data_for_report[location]["inner_arc_max"] = 30
-                        data_for_report[location]["text_max"] = 3
+                        data_for_report[location]["text_max"] = 10
                         data_for_report[location]["start_arc"] = 15
                         data_for_report[location]["start_inner_arc"] = 5
-                        data_for_report[location]["start_text"] = 15
+                        data_for_report[location]["start_text"] = 5
 
                     break
 
