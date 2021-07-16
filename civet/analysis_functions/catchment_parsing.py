@@ -192,7 +192,6 @@ def write_catchment_fasta(catchment_metadata,fasta,catchment_dir,config):
                 else:
                     catchment_dict[row[config["sequence_id_column"]]] = row["catchment"]
 
-
     seq_dict = collections.defaultdict(list)
     seq_count = 0
     for record in SeqIO.parse(fasta,"fasta"):
@@ -255,11 +254,20 @@ def downsample_if_building_trees(in_csv, out_csv, config):
                         catchment_dict[row["catchment"]].append(row)
                 
                 for catchment in catchment_dict:
+
+                    downsample = False
                     # figure out how many seqs to downsample to per catchment
-                    target = config["catchment_size"] - query_counter[catchment]
-                    if len(catchment_dict[catchment]) > target:
+                    target = config["catchment_size"]
+
+                    if query_counter[catchment]>config["catchment_size"]:
+                        print(cyan(f'Warning: number of queries in {catchment} (n={query_counter[catchment]}) exceeds the maximum catchment size of {config["catchment_size"]}.\nPlease be aware tree building may take longer than expected.'))
+                        
+                    elif len(catchment_dict[catchment]) > target:
+                        downsample = True
+
+                    if downsample == True:
                         # need to downsample
-                        downsample_metadata = downsample_catchment(catchment_dict[catchment],target,config["mode"],config["downsample_column"],config["background_id_column"],config["downsample_field"],config["factor"])
+                        downsample_metadata = downsample_catchment(catchment_dict[catchment],target,config["mode"],config["downsample_column"],config["sequence_id_column"],config["downsample_field"],config["factor"])
                     else:
                         # dont need to downsample
                         downsample_metadata = []
@@ -267,7 +275,9 @@ def downsample_if_building_trees(in_csv, out_csv, config):
                             new_row = row
                             new_row["in_tree"] = "True"
                             downsample_metadata.append(new_row)
-                    #write out the new info for non queries
+                            #write out the new info for non queries
+                            
                     for new_row in downsample_metadata:
                         writer.writerow(new_row)
+
 

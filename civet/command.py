@@ -83,12 +83,16 @@ def main(sysargs = sys.argv[1:]):
     c_group.add_argument('--snp-distance-up', type=int, action="store",dest="snp_distance_up",help="Define radius of catchment by number of SNPs from query. Default: <-snpd/--snp-distance>")
     c_group.add_argument('--snp-distance-down', type=int, action="store",dest="snp_distance_down",help="Define radius of catchment by number of SNPs from query. Default: <-snpd/--snp-distance>")
     c_group.add_argument('--snp-distance-side', type=int, action="store",dest="snp_distance_side",help="Define radius of catchment by number of SNPs from query. Default: <-snpd/--snp-distance>")
-    c_group.add_argument('-cs','--catchment-size', type=int, action="store",dest="catchment_size",help="Max number of sequences in a catchment. Catchments larger than this will be downsampled prior to tree building. Default: `100`")
+    c_group.add_argument('-cs','--catchment-background-size', type=int, action="store",dest="catchment_background_size",help="Max number of background sequences in a catchment. Catchments with more background sequences than this will be downsampled prior to tree building. Default: `100`")
     c_group.add_argument('-ds','--downsample', nargs='*', action="store",dest="downsample",help="""Configuration of catchment downsampling. Options: `random`, `enrich` or `normalise`. Default: `random`).
 If using enrich mode, indicate the factor (Default: `10`), the column name and the field to enrich for.   
 Example: --downsample mode=enrich factor=10 sample_date=2021-02-04:2021-03-04   
 If using normalise mode, indicate the column to normalise across.   
 Example: --downsample mode=normalise country""")
+
+    t_group = parser.add_argument_group("Tree options")
+    t_group.add_argument("-ta","--tree-annotations", action="store", dest="tree_annotations", help="Comma separated string of metadata columns to annotate catchment trees with, can then be displayed in the report.")
+    t_group.add_argument("-mt","--max-tree-size", action="store", dest="max_tree_size", help="Maximum number of sequences allowed in a given catchment tree. Catchments with more than this will be summarised in a table rather than a tree. Default: 500")
 
     r_group = parser.add_argument_group("Report configuration options")
     r_group.add_argument("-rp", "--report-preset", nargs='*', action="store", dest="report_preset", help="""Specify one or more preset options to configure report content, full report configuration options available using <-rc/--report-content>   
@@ -111,9 +115,6 @@ Default: `the_usual`""")
     tb_group.add_argument("--query-table-content", action='store', dest="query_table_content", help="Columns to include in the table for queries. Default: `<-bicol/--background-id_column>,<-bdate/--background_date_column>,source,lineage,country,catchment`")
     tb_group.add_argument("--catchment-table-content", action='store', dest="catchment_table_content", help="Columns to include in the summary table for catchments. Default: `count,country,lineage`")
     
-    t_group = parser.add_argument_group("Tree options (report option 3)")
-    t_group.add_argument("-ta","--tree-annotations", action="store", dest="tree_annotations", help="Comma separated string of metadata columns to annotate catchment trees with, can then be displayed in the report.")
-
     tl_group = parser.add_argument_group("Timeline options (report option 5)")
     tl_group.add_argument("-tdate", "--timeline-dates", action='store', dest="timeline_dates", help="Data to generate a timeline as a comma separated string. Default: <-idate/--input-date-column>")
 
@@ -132,7 +133,6 @@ Default: `the_usual`""")
     misc_group = parser.add_argument_group('Misc options')
     misc_group.add_argument("--civet-mode", action="store", dest='civet_mode', help="If CLIMB then import UK specific modules. Default=`GLOBAL`")
     misc_group.add_argument("-r","--reference-sequence",action="store",dest="reference_sequence",help="Custom reference genome to map and pad against. Must match the reference the background sequence alignment was generated from.")
-    misc_group.add_argument('-mem','--max-memory', type=float, action="store",dest="max_memory",help="Indicates the maximum amount of RAM (in GB) to use for tree building. Default: 8")
     misc_group.add_argument("--art",action="store_true",help="Print art")
     misc_group.add_argument("--acknowledgements",action="store_true",help="Print thanks")
     misc_group.add_argument('-t', '--threads', action='store',dest="threads",type=int,help="Number of threads")
@@ -179,9 +179,9 @@ Default: `the_usual`""")
     data_arg_parsing.data_group_parsing(args.debug,args.datadir,args.background_metadata,args.background_snps,args.background_sequences,args.background_tree,args.background_id_column,args.sequence_id_column,config)
 
     # Analysis options, including ref and trim and pad
-    analysis_arg_parsing.analysis_group_parsing(args.reference_sequence,args.trim_start,args.trim_end,args.max_queries,args.max_memory,config)
+    analysis_arg_parsing.analysis_group_parsing(args.reference_sequence,args.trim_start,args.trim_end,args.max_queries,config)
 
-    analysis_arg_parsing.catchment_group_parsing(args.catchment_size,args.downsample,args.snp_distance,args.snp_distance_up,args.snp_distance_down,args.snp_distance_side,config)
+    analysis_arg_parsing.catchment_group_parsing(args.catchment_background_size,args.downsample,args.snp_distance,args.snp_distance_up,args.snp_distance_down,args.snp_distance_side,config)
 
     # Sort out where the query info is coming from, csv or id string, optional fasta seqs.
     # Checks if they're real files, of the right format and that QC args sensible values.
@@ -204,7 +204,7 @@ Default: `the_usual`""")
     name_dict = report_arg_parsing.parse_global_report_options(args.report_content,args.report_preset, args.input_display_column, args.anonymise, args.input_date_column, args.background_date_column, args.background_location_column, config)
     report_arg_parsing.parse_optional_report_content(args.query_table_content, args.timeline_dates, args.colour_theme, args.colour_map, config)
     report_arg_parsing.parse_map_options(args.background_map_date_range, args.background_map_column, args.background_map_file, args.centroid_file, args.background_map_location, args.query_map_file, args.longitude_column, args.latitude_column, found_in_background_data, config)
-    report_arg_parsing.parse_tree_annotations(args.tree_annotations, config)
+    report_arg_parsing.parse_tree_options(args.tree_annotations,args.max_tree_size, config)
 
 
     # sets up the output dir, temp dir, and data output desination

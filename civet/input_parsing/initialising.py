@@ -77,6 +77,7 @@ def get_defaults():
 
                     #Tree options
                     "tree_annotations": "lineage,country",
+                    "max_tree_size":500,
 
                     #Timeline options
                     "timeline_dates":False, #default is date_column or background_date_column if they are present
@@ -99,7 +100,6 @@ def get_defaults():
                     "civet_mode": os.getenv('CIVETMODE'),
                     "threads":1,
                     "verbose":False,
-                    "max_memory": 8,
                     "date": today,# date investigation was opened
                     "authors": "" # List of authors, affiliations and contact details
                     
@@ -223,6 +223,8 @@ def arg_dict(config):
                 #t group args
                 "tree_annotations":"tree_annotations",
                 "ta":"tree_annotations",
+                "max_tree_size":"max_tree_size",
+                "mt":"max_tree_size",
 
                 #tl group args
                 "td":"timeline_dates",
@@ -249,8 +251,6 @@ def arg_dict(config):
                 
                 # misc group args
                 "civet_mode":"civet_mode",
-                "max_memory":"max_memory",
-                "mem":"max_memory",
                 "t":"threads",
                 "threads":"threads",
                 "v":"verbose",
