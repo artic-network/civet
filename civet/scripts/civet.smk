@@ -181,13 +181,14 @@ rule tree_building:
     run:
         if '3' in config["report_content"]:
             print(green("Running tree building pipeline."))
+            to_run = catchment_parsing.which_trees_to_run(input.csv)
             # spawn off a side snakemake with catchment wildcard that builds an iqtree for each one
             shell("snakemake --nolock --snakefile {input.snakefile:q} "
                     "--forceall "
                     "{config[log_string]} "
                     "--directory {config[tempdir]:q} "
                     "--configfile {input.yaml:q} "
-                    "--config csv={input.csv:q} "
+                    f"--config csv={input.csv:q} catchments={to_run}"
                     "--cores {workflow.cores} && touch {output.txt:q}")
         else:
             shell("touch {output.txt:q}")

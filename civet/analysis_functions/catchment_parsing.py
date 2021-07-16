@@ -254,30 +254,52 @@ def downsample_if_building_trees(in_csv, out_csv, config):
                         catchment_dict[row["catchment"]].append(row)
                 
                 for catchment in catchment_dict:
+                    num_seqs = len(catchment_dict[catchment]) + query_counter[catchment]
 
-                    downsample = False
-                    # figure out how many seqs to downsample to per catchment
-                    target = config["catchment_size"]
-
-                    if query_counter[catchment]>config["catchment_size"]:
-                        print(cyan(f'Warning: number of queries in {catchment} (n={query_counter[catchment]}) exceeds the maximum catchment size of {config["catchment_size"]}.\nPlease be aware tree building may take longer than expected.'))
-                        
-                    elif len(catchment_dict[catchment]) > target:
-                        downsample = True
-
-                    if downsample == True:
-                        # need to downsample
-                        downsample_metadata = downsample_catchment(catchment_dict[catchment],target,config["mode"],config["downsample_column"],config["sequence_id_column"],config["downsample_field"],config["factor"])
-                    else:
-                        # dont need to downsample
+                    if num_seqs > config["max_tree_size"]:
+                        # dont build tree
                         downsample_metadata = []
                         for row in catchment_dict[catchment]:
                             new_row = row
-                            new_row["in_tree"] = "True"
+                            new_row["in_tree"] = "False"
                             downsample_metadata.append(new_row)
                             #write out the new info for non queries
+                    else:
+                        downsample = False
+                        # figure out how many seqs to downsample to per catchment
+                        target = config["catchment_background_size"]
+
+                        if query_counter[catchment]>config["catchment_background_size"]:
+                            print(cyan(f'Warning: number of queries in {catchment} (n={query_counter[catchment]}) exceeds the maximum catchment size of {config["catchment_background_size"]}.\nPlease be aware tree building may take longer than expected.'))
                             
+                        elif len(catchment_dict[catchment]) > target:
+                            downsample = True
+
+                        if downsample == True:
+                            # need to downsample
+                            downsample_metadata = downsample_catchment(catchment_dict[catchment],target,config["mode"],config["downsample_column"],config["sequence_id_column"],config["downsample_field"],config["factor"])
+                        else:
+                            # dont need to downsample
+                            downsample_metadata = []
+                            for row in catchment_dict[catchment]:
+                                new_row = row
+                                new_row["in_tree"] = "True"
+                                downsample_metadata.append(new_row)
+                                #write out the new info for non queries
+
                     for new_row in downsample_metadata:
                         writer.writerow(new_row)
 
 
+def which_trees_to_run(csv):
+    catchment_counter= collections.Counter()
+    with open(csv, "r") as f:
+        reader = csv.DictReader(f)
+        for row in reader:
+            if row["in_tree"] == "True":
+                catchment_counter[row["catchment"]] +=1
+    to_run = []
+    for catchment in catchment_counter:
+        if catchment_counter[catchment] != 0:
+            to_run.append(catchment)
+    return ','.join(to_run)

@@ -1,7 +1,7 @@
 import os
 import csv
 
-catchments = [f"catchment_{i}" for i in range(1,config["catchment_count"]+1)]
+catchments = config['catchments'].split(",")
 
 rule all:
     input:
