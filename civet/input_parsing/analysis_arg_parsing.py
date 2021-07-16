@@ -56,10 +56,10 @@ def check_coords_within_reference_length(config):
 def check_catchment_configuration(config):
 
     try:
-        cs = int(config["catchment_size"])
-        config["catchment_size"] = cs
+        cs = int(config["catchment_background_size"])
+        config["catchment_background_size"] = cs
     except:
-        sys.stderr.write(cyan(f"`-cs/--catchment-size` must be an integer.\n"))
+        sys.stderr.write(cyan(f"`-cs/--catchment-background-size` must be an integer.\n"))
         sys.exit(-1)
 
 def check_query_limit(config):
@@ -183,9 +183,9 @@ def distance_configuration(config):
         check_if_int("snp_distance_side",config)
         print(green("SNP distance radius for catchment:") + f"\n\t- Up {config['snp_distance_up']}\n\t- Down {config['snp_distance_down']}\n\t- Side {config['snp_distance_side']}")
 
-def catchment_group_parsing(catchment_size,downsample,distance,distance_up,distance_down,distance_side,config):
+def catchment_group_parsing(catchment_background_size,downsample,distance,distance_up,distance_down,distance_side,config):
 
-    misc.add_arg_to_config("catchment_size",catchment_size,config)
+    misc.add_arg_to_config("catchment_background_size",catchment_background_size,config)
     misc.add_arg_to_config("downsample",downsample,config)
 
     misc.add_arg_to_config("snp_distance",distance,config)
