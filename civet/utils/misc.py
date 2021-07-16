@@ -69,14 +69,14 @@ def header(v):
                                         {v}""")+green("""
                         ****************************************
                                                                 
-                             Aine O'Toole & Verity Hill        
-                                    Rambaut Group              
-                                Edinburgh University          
+                         Aine O'Toole, Verity Hill, Ben Jackson, 
+                       JT McCrone, Rachel Colquhoun, Stefan Rooke, 
+                                    Andrew Rambaut        
+                                 Edinburgh University          
 \n"""))
 
 def preamble(v):
     header(v)
-    acknowledgements()
     
 
 def funding():
