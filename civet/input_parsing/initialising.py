@@ -51,7 +51,7 @@ def get_defaults():
                     "overwrite":False,
 
                     # catchment config
-                    "catchment_size":100,
+                    "catchment_background_size":100,
                     "snp_distance":False,
                     "snp_distance_up":2,
                     "snp_distance_down":2,
@@ -191,8 +191,8 @@ def arg_dict(config):
 
                 # cgroup args
                 
-                "cs":"catchment_size",
-                "catchment_size":"catchment_size",
+                "cs":"catchment_background_size",
+                "catchment_background_size":"catchment_background_size",
                 "downsample":"downsample",
                 "ds":"downsample",
                 "snp_distance":"snp_distance",
