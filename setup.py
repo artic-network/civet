@@ -46,7 +46,8 @@ setup(name='civet',
             "grip>=4.5.2",
             "tabulate>=0.8.7",
             "snipit>=1.0.3",
-	    "traitlets>=5.0"
+	    "traitlets>=5.0",
+	    "jupyter-client<7.0"
         ],
       cmdclass={
         'npm_install': NPMInstall
