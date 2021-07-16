@@ -23,7 +23,6 @@ rule iqtree:
                 -redo \
                 --fast \
                 -o outgroup \
-                -mem {config[max_memory]}G \
                 -quiet &> {log:q}
         """
 
@@ -78,31 +77,31 @@ rule prune_hashed_seqs:
                            " -c hash "
                            " -f newick ")
 
-rule clump:
-    input:
-        tree = rules.prune_hashed_seqs.output.tree,
-        csv = config["csv"]
-    params:
-        prefix = "{catchment}",
-        outdir = os.path.join(config["data_outdir"],"catchments")
-    output:
-        tree = os.path.join(config["data_outdir"],"catchments","{catchment}_tree.nexus")
-    shell:
-        """
-        jclusterfunk sample -c {config[sequence_id_column]} \
-                            --collapse-by {config[background_location_column]} \
-                            --min-clumped 4 \
-                             -i {input.tree:q} \
-                             -m {input.csv:q} \
-                             -p {params.prefix:q} \
-                             -f nexus \
-                             -o {params.outdir:q} \
-                            --ignore-missing
-        """
+# rule clump:
+#     input:
+#         tree = rules.prune_hashed_seqs.output.tree,
+#         csv = config["csv"]
+#     params:
+#         prefix = "{catchment}",
+#         outdir = os.path.join(config["data_outdir"],"catchments")
+#     output:
+#         tree = os.path.join(config["data_outdir"],"catchments","{catchment}_tree.nexus")
+#     shell:
+#         """
+#         jclusterfunk sample -c {config[input_display_column]} \
+#                             --collapse-by {config[background_location_column]} \
+#                             --min-clumped 4 \
+#                              -i {input.tree:q} \
+#                              -m {input.csv:q} \
+#                              -p {params.prefix:q} \
+#                              -f nexus \
+#                              -o {params.outdir:q} \
+#                             --ignore-missing
+#         """
 
 rule annotate:
     input:
-        tree = rules.clump.output.tree,
+        tree = rules.prune_hashed_seqs.output.tree,
         csv = config["csv"]
     output:
         tree = os.path.join(config["outdir"],"catchments","{catchment}.tree")
