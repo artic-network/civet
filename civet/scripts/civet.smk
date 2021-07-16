@@ -162,7 +162,7 @@ rule downsample_catchments:
     params:
         catchment_dir = os.path.join(config["data_outdir"],"catchments")
     output:
-        csv = os.path.join(config["outdir"],"master_metadata.csv")
+        csv = os.path.join(config["tempdir"],"catchments.downsample.csv")
     run:
         catchment_parsing.downsample_if_building_trees(input.csv, output.csv, config)
         if '3' in config["report_content"]:
@@ -177,7 +177,7 @@ rule tree_building:
         csv = rules.downsample_catchments.output.csv,
         snakefile = os.path.join(workflow.current_basedir,"build_catchment_trees.smk")
     output:
-        txt = os.path.join(config["tempdir"],"catchments","prompt.txt")
+        csv = os.path.join(config["outdir"],"master_metadata.csv")
     run:
         if '3' in config["report_content"]:
             print(green("Running tree building pipeline."))
@@ -192,11 +192,28 @@ rule tree_building:
                     "--cores {workflow.cores} && touch {output.txt:q}")
         else:
             shell("touch {output.txt:q}")
+            to_run = ""
+
+        to_run = to_run.split(",")
+        with open(output.csv, "w") as fw:
+            with open(input.csv, "r") as f:
+                reader = csv.DictReader(f)
+                header = reader.fieldnames
+
+                header.append("civet_build_tree")
+                writer = csv.DictWriter(fw, fieldnames=header, lineterminator="\n")
+                for row in reader:
+                    new_row = row
+                    if row["catchment"] in to_run:
+                        new_row["civet_build_tree"] = "True"
+                    else:
+                        new_row["civet_build_tree"] = "False"
+                    writer.writerow(new_row)
 
 rule snipit:
     input:
         yaml = rules.merge_catchments.output.yaml,
-        csv = rules.merge_catchments.output.catchment_csv,
+        csv = rules.tree_building.output.csv,
         fasta = rules.seq_brownie.output.fasta,
         snakefile = os.path.join(workflow.current_basedir,"snipit_runner.smk")
     output:
@@ -218,10 +235,10 @@ rule snipit:
 
 rule render_report:
     input:
-        csv = rules.merge_catchments.output.catchment_csv,
+        csv = rules.tree_building.output.csv,
         yaml = rules.merge_catchments.output.yaml,
         snipit = rules.snipit.output.txt,
-        trees = rules.tree_building.output.txt
+        trees = rules.tree_building.output.csv
     output:
         html = os.path.join(config["outdir"],config["output_reports"][0])
     run:
