@@ -22,7 +22,7 @@ jobs:
       - name: Install civet3
         run: pip install -e .
       - name: Check civet3 version
-        run: civet3 --version
+        run: civet --version
       - name: Test with example data
         run: civet --input-metadata civet/tests/outbreak_test.csv    --input-sequences civet/tests/outbreak_test.fasta    --timeline-dates symptom_onset,collection_date,upload_date --datadir civet/tests/action_test_data/ &> test1.log
       - name: Test gisad_id based example
