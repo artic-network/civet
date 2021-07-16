@@ -78,14 +78,6 @@ def check_for_background_header(config):
             sys.stderr.write(cyan(f"`--ds/--downsample` column specified ({config['downsample_column']}), but is not found in background metadata file. Please indicate a valid metadata column.\n"))
             sys.exit(-1)
 
-def check_max_memory(config):
-    try:
-        mm = int(config["max_memory"])
-        config["max_memory"] = mm
-    except:
-        sys.stderr.write(cyan(f"`-mem/--max-memory` must be an integer.\n"))
-        sys.exit(-1)
-
 def parse_downsampling_config(config):
     downsample = config["downsample"]
 
@@ -159,18 +151,16 @@ def parse_downsampling_config(config):
         check_for_background_header(config)
 
 
-def analysis_group_parsing(reference_sequence,trim_start,trim_end,max_queries,max_memory,config):
+def analysis_group_parsing(reference_sequence,trim_start,trim_end,max_queries,config):
 
     # if command line arg, overwrite config value
     misc.add_arg_to_config("trim_start",trim_start,config)
     misc.add_arg_to_config("trim_end",trim_end,config)
     misc.add_file_to_config("reference_sequence",reference_sequence,config)
     misc.add_arg_to_config("max_queries",max_queries,config)
-    misc.add_arg_to_config("max_memory",max_memory,config)
 
     check_coords_within_reference_length(config)
     check_query_limit(config)
-    check_max_memory(config)
 
 def check_if_int(key,config):
     if config[key]:
