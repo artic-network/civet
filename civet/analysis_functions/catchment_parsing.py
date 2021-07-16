@@ -291,9 +291,9 @@ def downsample_if_building_trees(in_csv, out_csv, config):
                         writer.writerow(new_row)
 
 
-def which_trees_to_run(csv):
+def which_trees_to_run(in_csv):
     catchment_counter= collections.Counter()
-    with open(csv, "r") as f:
+    with open(in_csv, "r") as f:
         reader = csv.DictReader(f)
         for row in reader:
             if row["in_tree"] == "True":
