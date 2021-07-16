@@ -848,8 +848,9 @@
                   <p>Colour by</p>
                   <select class="colourSelect" id="colourSelect_${data_for_report[catchment]['catchmentID']}">
                     <option value="query_boolean">Query</option>
-                    <option value="country">Country</option>
-                    <option value="lineage">Lineage</option>
+                    % for annotation in config['tree_annotations'].split(" "):
+                      <option value="${annotation}">${annotation.title()}</option>
+                    % endfor
                   </select>
                   </div>
                 </div>
