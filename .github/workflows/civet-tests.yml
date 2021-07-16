@@ -1,0 +1,32 @@
+name: civet3
+on: [push, pull_request]
+defaults:
+  run:
+    shell: bash -l {0}
+
+jobs:
+  run_civet3_test:
+    name: Civet3 test on ${{ matrix.os }}
+    runs-on: ${{ matrix.os }}
+    strategy:
+      matrix:
+        os: ["ubuntu-latest", "macos-latest"]
+    steps:
+      - uses: actions/checkout@v2
+      - uses: conda-incubator/setup-miniconda@v2
+        with:
+          environment-file: environment.yml
+          activate-environment: civet3
+          channels: conda-forge,bioconda,defaults
+          mamba-version: "*"
+      - name: Install civet3
+        run: pip install -e .
+      - name: Check civet3 version
+        run: civet3 --version
+      - name: Test with example data
+        run: civet --input-metadata civet/tests/outbreak_test.csv    --input-sequences civet/tests/outbreak_test.fasta    --timeline-dates symptom_onset,collection_date,upload_date --datadir civet/tests/action_test_data/ &> test1.log
+      - name: Test gisad_id based example
+        run: civet -ids EPI_ISL_000001,EPI_ISL_000022,EPI_ISL_000033    --background-id-column gisaid_id --sequence-id-column sequence_name --datadir civet/tests/action_test_data/ &> test2.log
+      - name: Test adm2 and date range example
+        run: civet --from-metadata adm2=EDINBURGH sample_date=2020-03-01:2021-07-14 --datadir civet/tests/action_test_data/ --no-temp &> test3.log
+# add more tests here
