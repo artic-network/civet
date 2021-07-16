@@ -188,7 +188,7 @@ rule tree_building:
                     "{config[log_string]} "
                     "--directory {config[tempdir]:q} "
                     "--configfile {input.yaml:q} "
-                    f"--config csv={input.csv:q} catchments={to_run}"
+                    f"--config csv='{input.csv}' catchments={to_run}"
                     "--cores {workflow.cores} && touch {output.txt:q}")
         else:
             shell("touch {output.txt:q}")
