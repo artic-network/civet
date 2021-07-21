@@ -39,7 +39,7 @@ def parse_preset_options(config):
             report_config.append(valid_preset[preset_option])
     config["report_content"] = report_config
 
-def qc_report_content(config): #doesn't work with default
+def qc_report_content(config):
     reports = config["report_content"]
     to_generate = []
     to_run = []
@@ -62,17 +62,18 @@ def qc_report_content(config): #doesn't work with default
         to_generate.append(report_options)
         
     to_run = sorted(list(set(to_run)))    
+    pretty_options = find_pretty_report_options()
 
     if len(to_generate)>1:
         print(green("Reports to generate:"))
         c = 0
         for i in to_generate:
             c+=1
-            content_str = ",".join([str(x) for x in i])
+            content_str = ",".join([pretty_options[str(x)] for x in i])
             print(f"{c}. {content_str}")
     else:
         print(green("Report to generate:"))
-        content_str = ",".join([str(x) for x in to_generate[0]])
+        content_str = ",".join([pretty_options[str(x)] for x in to_generate[0]])
         print(f"{content_str}")
         
     config["report_content"] = to_run
@@ -194,3 +195,16 @@ def parse_map_options(background_map_date_range, background_map_column, backgrou
 
     if 7 in config['report_content']:
         map_functions.parse_query_map(query_map_file,longitude_column, latitude_column, found_in_background_data, config)
+
+
+def find_pretty_report_options():
+    option_dict = {}
+    option_dict["1"] = "Query tables"
+    option_dict["2"] = "Catchment tables"
+    option_dict["3"] = "Trees"
+    option_dict["4"] = "snpit"
+    option_dict["5"] = "Timelines"
+    option_dict["6"] = "Background diversity maps"
+    option_dict["7"] = "Query maps"
+
+    return option_dict
