@@ -90,13 +90,7 @@ def check_csv_file(argument,description,csv_file,background_column,fasta_column)
                 if "ufeff" in i:
                     sys.stderr.write(cyan(f"Error: it appears your {description} file may have been edited in Excel and now contains hidden characters.\n") + "Please remove said characters in a text editor and try again.")
                     sys.exit(-1)
-            else:
-                if background_column not in reader.fieldnames:
-                    sys.stderr.write(cyan(f"Error: {background_column} column not found in {description} file. Please specifiy which column to match with `-bicol/--background-id-column.`\n"))
-                    sys.exit(-1)
-                elif fasta_column not in reader.fieldnames:
-                    sys.stderr.write(cyan(f"Error: {fasta_column} column not found in {description} file. Please specifiy which column to match with `-sicol/--sequence-id-column.`\n"))
-                    sys.exit(-1)
+            
     return c
 
 def check_background_fasta(background_fasta):
@@ -203,6 +197,15 @@ def data_group_parsing(debug,datadir,background_metadata,background_snps,backgro
         check_background_snps(config)
     else:
         config["background_search_file"] = config["background_sequences"]
+
+    with open(config["background_metadata"],"r") as f:
+        reader = csv.DictReader(f)
+        if config["background_id_column"] not in reader.fieldnames:
+            sys.stderr.write(cyan(f"Error: {config['background_id_column']} column not found in background metadata file. Please specify which column to match with `-bicol/--background-id-column.`\n"))
+            sys.exit(-1)
+        elif config["sequence_id_column"] not in reader.fieldnames:
+            sys.stderr.write(cyan(f"Error: {config['sequence_id_column']} column not found in background metadata file. Please specify which column to match with `-sicol/--sequence-id-column.`\n"))
+            sys.exit(-1)
 
     if debug:
         csv_record_count = check_csv_file("-bm/--background-metadata","background csv",config["background_metadata"],config["background_id_column"],config["sequence_id_column"])
