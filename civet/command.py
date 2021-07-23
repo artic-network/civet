@@ -117,6 +117,7 @@ Default: `the_usual`""")
     
     tl_group = parser.add_argument_group("Timeline options (report option 5)")
     tl_group.add_argument("-tdate", "--timeline-dates", action='store', dest="timeline_dates", help="Data to generate a timeline as a comma separated string. Default: <-idate/--input-date-column>")
+    tl_group.add_argument("-tgc", "--timeline-group-column", action='store', dest="timeline_group_column", help="Column to group sequences by to show as single lines on the timeline figures. Default: input_display_column")
 
     bm_group = parser.add_argument_group("Background map options (report option 6)")
     bm_group.add_argument("-bmfile","--background-map-file", action="store", dest="background_map_file", help="JSON or GeoJSON containing polygons to plot background diversity on. Must be an online resource eg on a Github pages website.")
@@ -202,7 +203,7 @@ Default: `the_usual`""")
     # Define what's going to go in the report and sort global report options 
     # stored under config = { "report_content": [1, 2, 3, 4], "reports": [1,2,3,4],[1,2]}
     name_dict = report_arg_parsing.parse_global_report_options(args.report_content,args.report_preset, args.input_display_column, args.anonymise, args.input_date_column, args.background_date_column, args.background_location_column, config)
-    report_arg_parsing.parse_optional_report_content(args.query_table_content, args.timeline_dates, args.colour_theme, args.colour_map, config)
+    report_arg_parsing.parse_optional_report_content(args.query_table_content, args.timeline_dates, args.timeline_group_column, args.colour_theme, args.colour_map, config)
     report_arg_parsing.parse_map_options(args.background_map_date_range, args.background_map_column, args.background_map_file, args.centroid_file, args.background_map_location, args.query_map_file, args.longitude_column, args.latitude_column, found_in_background_data, config)
     report_arg_parsing.parse_tree_options(args.tree_annotations,args.max_tree_size, config)
 

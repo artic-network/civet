@@ -171,7 +171,7 @@ def parse_tree_options(tree_annotations,max_tree_size, config):
     
     config["tree_annotations"] = " ".join(config["tree_annotations"])
 
-def parse_optional_report_content(table_content, timeline_dates, colour_theme, colour_map, config):
+def parse_optional_report_content(table_content, timeline_dates, timeline_group_column, colour_theme, colour_map, config):
     #parse optional parts of report
     
     misc.add_arg_to_config("colour_theme",colour_theme,config)
@@ -185,7 +185,7 @@ def parse_optional_report_content(table_content, timeline_dates, colour_theme, c
         print(green("Metadata table will contain the following columns: ") + f"{printable_cols}")
 
     if 5 in config['report_content']:
-        timeline_functions.timeline_checking(timeline_dates, config)
+        timeline_functions.timeline_checking(timeline_dates, timeline_group_column, config)
 
 
 def parse_map_options(background_map_date_range, background_map_column, background_map_file, centroid_file, background_map_location, query_map_file, longitude_column, latitude_column, found_in_background_data, config):
