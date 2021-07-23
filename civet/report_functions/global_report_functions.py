@@ -44,6 +44,16 @@ def sequence_name_parsing(report_column, anonymise, config):
     else:
         config["input_display_column"] = config["input_id_column"]
 
+    test_duplicates = []
+    if "input_metadata" in config:
+        with open(config["input_metadata"]) as f:
+            reader = csv.DictReader(f)
+            for row in reader:
+                if row[config["input_display_column"]] not in test_duplicates:
+                    test_duplicates.append(row[config["input_display_column"]])
+                else:
+                    sys.stderr.write(cyan(f"Error: {row[config['input_display_column']]} in input metadata twice. Please ensure unique IDs are used. To present these sequences together on the timeline, use the -tgc/--timeline-group-column argument\n"))
+                    sys.exit(-1)
     return
 
 
