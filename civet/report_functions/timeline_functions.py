@@ -8,18 +8,18 @@ from civet.utils import misc
 
 from civet.report_functions import global_report_functions
 
-def timeline_checking(timeline_dates, config):  
+def timeline_checking(timeline_dates, timeline_group_column, config):  
 
     """
     parses the report group argument
     --timeline-dates
+    --timeline_group_column
     """
 
     misc.add_arg_to_config("timeline_dates",timeline_dates,config) #default is None
+    misc.add_arg_to_config("timeline_group_column", timeline_group_column, config)
 
-    if config["timeline_dates"]:
-
-        date_header_list = config["timeline_dates"].split(",")
+    if config["timeline_dates"] or config["timeline_group_column"]:
 
         if "input_metadata" in config:
             with open(config["input_metadata"]) as f:
@@ -31,6 +31,17 @@ def timeline_checking(timeline_dates, config):
         with open(config["background_metadata"]) as f:
             data = csv.DictReader(f)
             background_headers = data.fieldnames
+
+    if config["timeline_group_column"]:
+        if config["timeline_group_column"] not in input_headers and config["timeline_group_column"] not in background_headers:
+            sys.stderr.write(cyan(f"Error: {config['timeline_group_column']} (specified for use for grouping the timeline plot) not found in either metadata file.\n"))
+            sys.exit(-1)
+    else:
+        config["timeline_group_column"] = config["input_display_column"]
+
+    if config["timeline_dates"]:
+
+        date_header_list = config["timeline_dates"].split(",")
 
         input_cols_to_check = []
         background_cols_to_check = []
@@ -100,7 +111,7 @@ def make_timeline_json(catchment,config):
             if l['catchment'] == catchment:
                 for col in date_cols:
                     new_dict = {}
-                    new_dict["sequence_name"] = l[config["input_display_column"]]
+                    new_dict["sequence_name"] = l[config["timeline_group_column"]]
                     new_dict["date"] = l[col]
                     new_dict["date_type"] = col
                     dict_list.append(new_dict)
