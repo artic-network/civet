@@ -69,11 +69,11 @@ def qc_report_content(config):
         c = 0
         for i in to_generate:
             c+=1
-            content_str = ",".join([pretty_options[str(x)] for x in i])
+            content_str = ", ".join([pretty_options[str(x)] for x in i])
             print(f"{c}. {content_str}")
     else:
         print(green("Report to generate:"))
-        content_str = ",".join([pretty_options[str(x)] for x in to_generate[0]])
+        content_str = ", ".join([pretty_options[str(x)] for x in to_generate[0]])
         print(f"{content_str}")
         
     config["report_content"] = to_run
@@ -200,11 +200,11 @@ def parse_map_options(background_map_date_range, background_map_column, backgrou
 def find_pretty_report_options():
     option_dict = {}
     option_dict["1"] = "Query tables"
-    option_dict["2"] = "Catchment tables"
-    option_dict["3"] = "Trees"
-    option_dict["4"] = "snpit"
-    option_dict["5"] = "Timelines"
-    option_dict["6"] = "Background diversity maps"
-    option_dict["7"] = "Query maps"
+    option_dict["2"] = "catchment tables"
+    option_dict["3"] = "trees"
+    option_dict["4"] = "snipit"
+    option_dict["5"] = "timelines"
+    option_dict["6"] = "background diversity maps"
+    option_dict["7"] = "query maps"
 
     return option_dict
