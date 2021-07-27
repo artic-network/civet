@@ -3,6 +3,7 @@ import pkg_resources
 from civet.utils.log_colours import green,cyan
 import sys
 import os
+from civet.utils.config import *
 
 
 def package_data_check(filename,directory,key,config):
@@ -22,43 +23,8 @@ def get_snakefile(thisdir):
     return snakefile
 
 def check_install(config):
-    resources = [
-        {"key":"reference_sequence",
-        "directory":"data",
-        "filename":"reference.fasta"},
-        {"key":"outgroup_fasta",
-        "directory":"data",
-        "filename":"outgroup.fasta"},
-        {"key":"report_template",
-        "directory":"data/report_modules",
-        "filename":"report_template.mako"},
-        {"key":"mako_query_table",
-        "directory":"data/report_modules",
-        "filename":"query_table.txt"},
-        {"key":"mako_timeline",
-        "directory":"data/report_modules",
-        "filename":"timeline.txt"},
-        {"key":"html_colours",
-        "directory":"data",
-        "filename":"html_colours.csv"},
-        {"key":"global_acceptable_values",
-        "directory":"data/map_data",
-        "filename":"global_acceptable_values.tsv"},
-        {"key":"uk_acceptable_values",
-        "directory":"data/map_data",
-        "filename":"UK_acceptable_values.tsv"},
-        {"key":"adm0_centroids",
-        "directory":"data/map_data",
-        "filename":"adm0_centroids.csv"},
-        {"key":"adm1_centroids",
-        "directory":"data/map_data",
-        "filename":"adm1_centroids.csv"},
-        {"key":"uk_centroids",
-        "directory":"data/map_data",
-        "filename":"uk_centroids.csv"}
-    ]
     for resource in resources:
-        package_data_check(resource["filename"],resource["directory"],resource["key"],config)
+        package_data_check(resource[RESOURCE_KEY_FILENAME],resource[RESOURCE_KEY_DIRECTORY],resource[RESOURCE_KEY],config)
 
 # config={}
 # check_install()

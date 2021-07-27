@@ -7,34 +7,35 @@ from civet.utils.log_colours import green,cyan
 import civet.utils.custom_logger as custom_logger
 import civet.utils.log_handler_handle as lh
 from civet.utils import misc
+from civet.utils.config import *
 
 def get_defaults():
     today = date.today()
     default_dict = {
                     
                     #input options
-                    "from_metadata":False,
-                    "max_queries":5000,
+                    KEY_FROM_METADATA:False,
+                    KEY_MAX_QUERIES:5000,
 
                     #input cols
-                    "input_id_column":"name",
-                    "input_date_column":False, #default is sample_date if present in the input csv
-                    "input_display_column": False,
+                    KEY_INPUT_ID_COLUMN:"name",
+                    KEY_INPUT_DATE_COLUMN:False, #default is sample_date if present in the input csv
+                    KEY_INPUT_DISPLAY_COLUMN: False,
 
                     # input seq options 
-                    "num_seqs":0,
-                    "max_ambiguity":0.5,
-                    "min_length":20000,
-                    "trim_start":265,   # where to pad to using datafunk
-                    "trim_end":29674,
+                    KEY_NUM_SEQS:0,
+                    KEY_MAX_AMBIGUITY:0.5,
+                    KEY_MIN_LENGTH:20000,
+                    KEY_TRIM_START:265,   # where to pad to using datafunk
+                    KEY_TRIM_END:29674,
 
                     # background variables
                     
-                    "datadir": os.getenv('CIVET_DATADIR'),
-                    "background_metadata":False,
-                    "background_sequences":False,
-                    "background_snps":False,
-                    "background_tree":False,
+                    CIVET_DATADIR: os.getenv('CIVET_DATADIR'),
+                    KEY_BACKGROUND_METADATA:False,
+                    KEY_BACKGROUND_SEQUENCES:False,
+                    KEY_BACKGROUND_SNPS:False,
+                    KEY_BACKGROUND_TREE:False,
 
                     # background columns
                     
@@ -90,19 +91,19 @@ def get_defaults():
                     "centroid_file":False, #will select appropriate centroid file for provided jsons as default
 
                     #Query map options
-                    "query_map_file":False, #if UK, will find the geojson containing aggregated_adm2s, if global will find adm0 or adm1 geojson
-                    "latitude_column":"latitude",
-                    "longitude_column":"longitude",
+                    KEY_QUERY_MAP_FILE:False, #if UK, will find the geojson containing aggregated_adm2s, if global will find adm0 or adm1 geojson
+                    KEY_LATITUDE_COLUMN:"latitude",
+                    KEY_LONGITUDE_COLUMN:"longitude",
                     
                     # "map_column":False,
-                    "background_map_date_range":False, #default is no restriction, will do background from 2019-11-01 to today
+                    KEY_BACKGROUND_MAP_DATE_RANGE:False, #default is no restriction, will do background from 2019-11-01 to today
 
                     # misc defaults
-                    "civet_mode": os.getenv('CIVETMODE'),
-                    "threads":1,
-                    "verbose":False,
-                    "date": today,# date investigation was opened
-                    "authors": "" # List of authors, affiliations and contact details
+                    KEY_CIVET_MODE: os.getenv('CIVETMODE'),
+                    KEY_THREADS:1,
+                    KEY_VERBOSE:False,
+                    KEY_DATE: today,# date investigation was opened
+                    KEY_AUTHORS: "" # List of authors, affiliations and contact details
                     
                     }
     return default_dict
@@ -272,7 +273,7 @@ def load_yaml(f):
     return input_config
 
 def return_path_keys():
-    return ["input_metadata","input_sequences","background_metadata","background_sequences","background_tree","background_snps","datadir","outdir","tempdir"]
+    return ["input_metadata","input_sequences","background_metadata","background_sequences","background_tree","background_snps","datadir","outdir",KEY_TEMPDIR]
 
 def setup_absolute_paths(path_to_file,value):
     return os.path.join(path_to_file,value)
@@ -283,7 +284,7 @@ def parse_yaml_file(configfile,configdict):
     path_keys = return_path_keys()
 
     path_to_file = os.path.abspath(os.path.dirname(configfile))
-    configdict["input_path"] = path_to_file
+    configdict[KEY_INPUT_PATH] = path_to_file
     valid_keys = arg_dict(configdict)
 
     invalid_keys = []
@@ -321,31 +322,31 @@ def parse_yaml_file(configfile,configdict):
 
 def setup_config_dict(cwd,config_arg):
     config = get_defaults()
-    config["cwd"] = cwd
+    config[KEY_CWD] = cwd
     if config_arg:
         configfile = check_configfile(cwd,config_arg)
         
         parse_yaml_file(configfile,config)
 
     else:
-        config["input_path"] = cwd
+        config[KEY_INPUT_PATH] = cwd
     return config
 
 def misc_args_to_config(verbose,threads, civet_mode, config):
-    misc.add_arg_to_config("verbose",verbose,config)
-    misc.add_arg_to_config("threads",threads,config)
-    misc.add_arg_to_config("civet_mode", civet_mode, config)
+    misc.add_arg_to_config(KEY_VERBOSE,verbose,config)
+    misc.add_arg_to_config(KEY_THREADS,threads,config)
+    misc.add_arg_to_config(KEY_CIVET_MODE, civet_mode, config)
 
 
 def set_up_verbosity(config):
-    if config["verbose"]:
-        config["quiet"] = False
-        config["log_api"] = ""
-        config["log_string"] = ""
+    if config[KEY_VERBOSE]:
+        config[KEY_QUIET] = False
+        config[KEY_LOG_API] = ""
+        config[KEY_LOG_STRING] = ""
     else:
-        config["quiet"] = True
+        config[KEY_QUIET] = True
         logger = custom_logger.Logger()
-        config["log_api"] = logger.log_handler
+        config[KEY_LOG_API] = logger.log_handler
 
         lh_path = os.path.realpath(lh.__file__)
-        config["log_string"] = f"--quiet --log-handler-script {lh_path} "
+        config[KEY_LOG_STRING] = f"--quiet --log-handler-script {lh_path} "

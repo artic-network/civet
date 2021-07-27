@@ -8,6 +8,9 @@ import yaml
 from Bio import SeqIO
 import csv
 
+from civet.utils.config import *
+
+
 """
 To do: 
 
