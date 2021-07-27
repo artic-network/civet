@@ -194,7 +194,7 @@ def get_background_data(metadata,config):
     return data
 
 
-def define_report_content(metadata,catchments,config):
+def define_report_content(metadata,catchments,figure_catchments,config):
     report_content = config["report_content"]
     catchment_id = 0
     data_for_report = {}
@@ -225,13 +225,13 @@ def define_report_content(metadata,catchments,config):
             data_for_report[catchment]["catchment_summary_data"] = ""
 
     if '3' in report_content:
-        get_nexus(catchments,data_for_report,config)
+        get_nexus(figure_catchments,data_for_report,config)
     else:
         for catchment in catchments:
             data_for_report[catchment]["nexus"] = ""
     
     if '4' in report_content:
-        get_snipit(catchments,data_for_report,config)
+        get_snipit(figure_catchments,data_for_report,config)
     else:
         for catchment in catchments:
             data_for_report[catchment]["snipit_svg"] = ""
@@ -263,7 +263,8 @@ def make_report(metadata,report_to_generate,config):
     #need to call this multiple times if there are multiple reports wanted
 
     catchments = [f"catchment_{i}" for i in range(1,config["catchment_count"]+1)]
-    data_for_report = define_report_content(metadata,catchments,config)
+    figure_catchments = config["figure_catchments"]
+    data_for_report = define_report_content(metadata,catchments,figure_catchments,config)
 
     background_data = get_background_data(metadata,config)
     

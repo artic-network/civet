@@ -3,7 +3,7 @@ from Bio import SeqIO
 import csv
 import collections
 
-catchments = [f"catchment_{i}" for i in range(1,config["catchment_count"]+1)]
+catchments = config["figure_catchments"]
 
 rule all:
     input:
