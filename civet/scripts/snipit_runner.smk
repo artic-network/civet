@@ -39,21 +39,17 @@ rule make_snipit_alignments:
 
         sequences = {}
         for record in SeqIO.parse(input.fasta,"fasta"):
-            sequences[record.id] = record
+            sequences[record.id] = record.seq
 
         for record in SeqIO.parse(config["outgroup_fasta"],"fasta"):
             reference = record
         
         for catchment in catchment_dict:
             with open(os.path.join(config["tempdir"],"snipit",f"{catchment}.aln.fasta"),"w") as fw:
-                records = [reference]
+                fw.write(f">{reference.id}\n{reference.seq}\n")
 
                 for query in catchment_dict[catchment]:
-                    record = sequences[query[1]]
-                    record.id = query[0]
-                    records.append(record)
-
-                SeqIO.write(records, fw, "fasta")
+                    fw.write(f">{query[0]}\n{sequences[query[1]]}\n")
 
 rule run_snipit:
     input:
