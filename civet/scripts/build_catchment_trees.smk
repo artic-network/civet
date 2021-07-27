@@ -1,7 +1,7 @@
 import os
 import csv
 
-catchments = config['catchments'].split(",")
+catchments = config['figure_catchments']
 
 rule all:
     input:
