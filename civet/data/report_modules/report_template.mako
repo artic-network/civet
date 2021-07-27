@@ -831,7 +831,7 @@
                 </table>
             %endif
 
-        %if '3' in config["report_content"]:
+        %if '3' in config["report_content"] and catchment in config["figure_catchments"]:
          <% figure_count +=1 %>
             <button class="accordion">Tree options</button>
             <div class="panel">
@@ -891,7 +891,7 @@
           <hr>
         
         %endif
-        %if '4' in config["report_content"]:
+        %if '4' in config["report_content"] and catchment in config["figure_catchments"]:
         <% figure_count +=1 %>
         <br>
             <div id="${catchment}_snipit">
@@ -901,7 +901,7 @@
             <hr>
             
         %endif
-        %if '5' in config["report_content"]:
+        %if '5' in config["report_content"] and config["show_figures"][catchment]==True:
         <%timeline_data = data_for_report[catchment]["timeline_data"] %>
         <% timeline_height = 50+(30 * data_for_report[catchment]['catchment_summary_data']["query_count"]) %>
         
