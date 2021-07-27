@@ -148,8 +148,12 @@ rule merge_catchments:
         print(green("Merged into ")+f'{catchment_count}' + green(" catchments."))
 
         catchment_parsing.add_catchments_to_metadata(config["background_metadata"],output.csv,output.catchment_csv,catchment_dict,config)
+        
+        catchment_parsing.which_catchments_too_large(output.catchment_csv,config)
+
         with open(output.yaml, 'w') as fw:
             yaml.dump(config, fw) 
+
         if config["verbose"]:
             print(red("\n**** CONFIG UPDATED ****"))
             for k in sorted(config):
@@ -158,18 +162,22 @@ rule merge_catchments:
 rule downsample_catchments:
     input:
         fasta  = rules.seq_brownie.output.fasta,
-        csv= rules.merge_catchments.output.catchment_csv
+        csv= rules.merge_catchments.output.catchment_csv,
+        yaml = os.path.join(config["outdir"],"config.yaml")
     params:
         catchment_dir = os.path.join(config["data_outdir"],"catchments")
     output:
-        csv = os.path.join(config["tempdir"],"catchments.downsample.csv")
+        csv = os.path.join(config["outdir"],"master_metadata.csv")
     run:
-        catchment_parsing.downsample_if_building_trees(input.csv, output.csv, config)
+        with open(input.yaml, 'r') as f:
+            config_loaded = yaml.safe_load(f)
+
+        catchment_parsing.downsample_if_building_trees(input.csv, output.csv, config_loaded)
         if '3' in config["report_content"]:
             print(green("Writing catchment fasta files."))
             if not os.path.exists(params.catchment_dir):
                 os.mkdir(params.catchment_dir)
-            catchment_parsing.write_catchment_fasta(output.csv,input.fasta,params.catchment_dir,config)
+            catchment_parsing.write_catchment_fasta(output.csv,input.fasta,params.catchment_dir,config_loaded)
         
 rule tree_building:
     input:
@@ -177,43 +185,25 @@ rule tree_building:
         csv = rules.downsample_catchments.output.csv,
         snakefile = os.path.join(workflow.current_basedir,"build_catchment_trees.smk")
     output:
-        csv = os.path.join(config["outdir"],"master_metadata.csv")
+        txt = os.path.join(config["tempdir"],"catchments","prompt.txt")
     run:
         if '3' in config["report_content"]:
             print(green("Running tree building pipeline."))
-            to_run = catchment_parsing.which_trees_to_run(input.csv)
             # spawn off a side snakemake with catchment wildcard that builds an iqtree for each one
             shell("snakemake --nolock --snakefile {input.snakefile:q} "
                     "--forceall "
                     "{config[log_string]} "
                     "--directory {config[tempdir]:q} "
                     "--configfile {input.yaml:q} "
-                    f"--config csv='{input.csv}' catchments={to_run} "
+                    f"--config csv='{input.csv}' "
                     "--cores {workflow.cores} && touch {output.txt:q}")
         else:
             shell("touch {output.txt:q}")
-            to_run = ""
-
-        to_run = to_run.split(",")
-        with open(output.csv, "w") as fw:
-            with open(input.csv, "r") as f:
-                reader = csv.DictReader(f)
-                header = reader.fieldnames
-
-                header.append("civet_build_tree")
-                writer = csv.DictWriter(fw, fieldnames=header, lineterminator="\n")
-                for row in reader:
-                    new_row = row
-                    if row["catchment"] in to_run:
-                        new_row["civet_build_tree"] = "True"
-                    else:
-                        new_row["civet_build_tree"] = "False"
-                    writer.writerow(new_row)
 
 rule snipit:
     input:
         yaml = rules.merge_catchments.output.yaml,
-        csv = rules.tree_building.output.csv,
+        csv = rules.downsample_catchments.output.csv,
         fasta = rules.seq_brownie.output.fasta,
         snakefile = os.path.join(workflow.current_basedir,"snipit_runner.smk")
     output:
@@ -235,10 +225,10 @@ rule snipit:
 
 rule render_report:
     input:
-        csv = rules.tree_building.output.csv,
+        csv = rules.downsample_catchments.output.csv,
         yaml = rules.merge_catchments.output.yaml,
         snipit = rules.snipit.output.txt,
-        trees = rules.tree_building.output.csv
+        trees = rules.tree_building.output.txt
     output:
         html = os.path.join(config["outdir"],config["output_reports"][0])
     run:
