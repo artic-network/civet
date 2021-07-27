@@ -183,10 +183,11 @@ def downsample_catchment(catchment_metadata,size,strategy,column,background_colu
 
 def write_catchment_fasta(catchment_metadata,fasta,catchment_dir,config):
     catchment_dict = {}
+    
     with open(catchment_metadata,"r") as f:
         reader = csv.DictReader(f)
         for row in reader:
-            if row["in_tree"] == "True":
+            if row["catchment"] in config["figure_catchments"]:
                 if row["query_boolean"] == "True":
                     catchment_dict[row["hash"]] = row["catchment"]
                 else:
@@ -210,13 +211,37 @@ def write_catchment_fasta(catchment_metadata,fasta,catchment_dir,config):
     if seq_count == 0:
         sys.stderr.write(cyan(f"Error: No sequence records matched.\nPlease check the `-sicol/--sequence-index-column` is matching the sequence ids.\n"))
         sys.exit(-1)
-
+    
     for catchment in seq_dict:
+
         with open(os.path.join(catchment_dir,f"{catchment}.fasta"),"w") as fw:
             records = seq_dict[catchment]
             for record in SeqIO.parse(config["outgroup_fasta"],"fasta"):
                 records.append(record)
             SeqIO.write(records,fw,"fasta")
+
+def which_catchments_too_large(in_csv,config):
+    catchment_counter= collections.Counter()
+
+    figure_catchments = set()
+    with open(in_csv, "r") as f:
+        reader = csv.DictReader(f)
+        for row in reader:
+            if row["query_boolean"] == "True":
+                catchment_counter[row["catchment"]] +=1
+
+    for i in catchment_counter:
+        print(i, catchment_counter[i])
+
+    with open(in_csv, "r") as f:
+        reader = csv.DictReader(f)
+        for row in reader:
+            catchment  = row["catchment"]
+            if catchment_counter[catchment] <= int(config["max_tree_size"]):
+                figure_catchments.add(catchment)
+    print(figure_catchments)
+    config["figure_catchments"] = list(figure_catchments)
+
 
 def downsample_if_building_trees(in_csv, out_csv, config):
     with open(out_csv,"w") as fw:
@@ -228,35 +253,35 @@ def downsample_if_building_trees(in_csv, out_csv, config):
 
             writer = csv.DictWriter(fw, fieldnames=header,lineterminator='\n')
             writer.writeheader()
-
+            
             if not '3' in config["report_content"]:
                 # if no tree, don't need to downsample- just write all true
                 for row in reader:
                     new_row= row
-                    new_row["in_tree"]="True"
+                    new_row["in_tree"]="False"
                     writer.writerow(new_row)
             else:
                 # if going to build tree, see if need to downsample
                 catchment_dict = collections.defaultdict(list)
-                query_counter = collections.Counter()
                 
                 for row in reader:
-                    
-                    if row["query_boolean"] == "True":
-                        # count how many queries per catchment
-                        query_counter[row["catchment"]]+=1
-                        new_row = row
-                        new_row["in_tree"]="True"
-                        # write out the query metadata to file
-                        writer.writerow(new_row)
+                    if row["catchment"] in config["figure_catchments"]:
+                        if row["query_boolean"] == "True":
+                            new_row = row
+                            new_row["in_tree"]="True"
+                            # write out the query metadata to file
+                            writer.writerow(new_row)
+                        else:
+                            # categorise the metadata by catchment
+                            catchment_dict[row["catchment"]].append(row)
                     else:
-                        # categorise the metadata by catchment
-                        catchment_dict[row["catchment"]].append(row)
+                        new_row = row
+                        new_row["in_tree"]="False"
+                        writer.writerow(new_row)
                 
                 for catchment in catchment_dict:
-                    num_seqs = len(catchment_dict[catchment]) + query_counter[catchment]
 
-                    if num_seqs > config["max_tree_size"]:
+                    if catchment not in config["figure_catchments"]:
                         # dont build tree
                         downsample_metadata = []
                         for row in catchment_dict[catchment]:
@@ -264,15 +289,15 @@ def downsample_if_building_trees(in_csv, out_csv, config):
                             new_row["in_tree"] = "False"
                             downsample_metadata.append(new_row)
                             #write out the new info for non queries
-                    else:
+                    else:                        
                         downsample = False
                         # figure out how many seqs to downsample to per catchment
                         target = config["catchment_background_size"]
 
-                        if query_counter[catchment]>config["catchment_background_size"]:
-                            print(cyan(f'Warning: number of queries in {catchment} (n={query_counter[catchment]}) exceeds the maximum catchment size of {config["catchment_background_size"]}.\nPlease be aware tree building may take longer than expected.'))
+                        # if len(catchment_dict[catchment]) > config["catchment_background_size"]:
+                        #     print(cyan(f'Warning: number of queries in {catchment} (n={query_counter[catchment]}) exceeds the maximum catchment size of {config["catchment_background_size"]}.\nPlease be aware tree building may take longer than expected.'))
                             
-                        elif len(catchment_dict[catchment]) > target:
+                        if len(catchment_dict[catchment]) > target:
                             downsample = True
 
                         if downsample == True:
