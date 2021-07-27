@@ -901,7 +901,7 @@
             <hr>
             
         %endif
-        %if '5' in config["report_content"] and config["show_figures"][catchment]==True:
+        %if '5' in config["report_content"] and catchment in config["figure_catchments"]:
         <%timeline_data = data_for_report[catchment]["timeline_data"] %>
         <% timeline_height = 50+(30 * data_for_report[catchment]['catchment_summary_data']["query_count"]) %>
         
