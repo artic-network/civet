@@ -230,8 +230,6 @@ def which_catchments_too_large(in_csv,config):
             if row["query_boolean"] == "True":
                 catchment_counter[row["catchment"]] +=1
 
-    for i in catchment_counter:
-        print(i, catchment_counter[i])
 
     with open(in_csv, "r") as f:
         reader = csv.DictReader(f)
@@ -239,7 +237,7 @@ def which_catchments_too_large(in_csv,config):
             catchment  = row["catchment"]
             if catchment_counter[catchment] <= int(config["max_tree_size"]):
                 figure_catchments.add(catchment)
-    print(figure_catchments)
+
     config["figure_catchments"] = list(figure_catchments)
 
 
