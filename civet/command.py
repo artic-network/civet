@@ -17,6 +17,7 @@ from civet.utils import data_install_checks
 
 import civet.utils.custom_logger as custom_logger
 from civet.utils.log_colours import green,cyan,red
+from civet.utils.config import *
 
 import os
 import sys
@@ -162,7 +163,7 @@ Default: `the_usual`""")
         misc.full_acknowledgements()
         sys.exit(0)
 
-    dependency_checks.check_dependencies()
+    dependency_checks.check_dependencies(dependency_list, module_list)
     
     # Initialise config dict
     config = init.setup_config_dict(cwd,args.config)
@@ -214,21 +215,21 @@ Default: `the_usual`""")
     # write the merged metadata, the extracted passed qc supplied fasta and the extracted matched fasta from the background data
     input_data_parsing.write_parsed_query_files(query_metadata,passed_qc_fasta,found_in_background_data, config)
 
-    if config["anonymise"]:
+    if config[KEY_ANONYMISE]:
         global_report_functions.write_anon_names_to_file(config, name_dict)
 
     # ready to run? either verbose snakemake or quiet mode
 
-    if config["verbose"]:
+    if config[KEY_VERBOSE]:
         print(red("\n**** CONFIG ****"))
         for k in sorted(config):
             print(green(f" - {k}: ") + f"{config[k]}")
         status = snakemake.snakemake(snakefile, printshellcmds=True, forceall=True, force_incomplete=True,
-                                    workdir=config["tempdir"],config=config, cores=config["threads"],lock=False
+                                    workdir=config[KEY_TEMPDIR],config=config, cores=config[KEY_THREADS],lock=False
                                     )
     else:
-        status = snakemake.snakemake(snakefile, printshellcmds=False, forceall=True,force_incomplete=True,workdir=config["tempdir"],
-                                    config=config, cores=config["threads"],lock=False,quiet=True,log_handler=config["log_api"]
+        status = snakemake.snakemake(snakefile, printshellcmds=False, forceall=True,force_incomplete=True,workdir=config[KEY_TEMPDIR],
+                                    config=config, cores=config[KEY_THREADS],lock=False,quiet=True,log_handler=config[KEY_LOG_API]
                                     )
 
     if status: # translate "success" into shell exit code of 0

@@ -1,9 +1,11 @@
 #!/usr/bin/env python3
 import os
 import csv
-from civet.utils.log_colours import green,cyan
 import sys
 import datetime as dt
+
+from civet.utils.log_colours import green,cyan
+from civet.utils.config import *
 
 def add_col_to_metadata(new_column_name, new_column_dict, metadata, new_metadata, match_column, config): 
     #dictionary currently is key=sequence name and value=new col value
@@ -14,9 +16,9 @@ def add_col_to_metadata(new_column_name, new_column_dict, metadata, new_metadata
             reader = csv.DictReader(f)
             header = reader.fieldnames
             header.append(new_column_name)
-            config["query_csv_header"] = header
+            config[KEY_QUERY_CSV_HEADER] = header
             
-            writer = csv.DictWriter(fw, fieldnames=config["query_csv_header"],lineterminator='\n')
+            writer = csv.DictWriter(fw, fieldnames=config[KEY_QUERY_CSV_HEADER],lineterminator='\n')
             writer.writeheader()
 
             for row in reader:

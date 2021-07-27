@@ -24,12 +24,9 @@ def check_this_dependency(dependency,missing):
     if not check:
         missing.append(dependency)
 
-def check_dependencies():
+def check_dependencies(dependency_list, module_list):
 
     missing = []
-
-    dependency_list = ["gofasta","minimap2","snakemake","iqtree","jclusterfunk"]
-    module_list = ["mako","Bio"]
 
     for dependency in dependency_list:
         check_this_dependency(dependency, missing)
