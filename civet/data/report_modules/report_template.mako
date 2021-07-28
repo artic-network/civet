@@ -12,6 +12,8 @@
     <title>${config["report_title"]}</title>
     <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/3.4.1/css/bootstrap.min.css" integrity="sha384-HSMxcRTRxnN+Bdg0JdbxYKrThecOKuH5zCYotlSAcp1+c8xmyTe9GYg1l9a69psu" crossorigin="anonymous">
     <script src="https://code.jquery.com/jquery-1.12.4.min.js" integrity="sha384-nvAa0+6Qg9clwYCGGPpDQLVpLNn0fRaROjHqs13t4Ggj3Ez50XnGQqc/r8MhnRDZ" crossorigin="anonymous"></script>
+    <link href="https://cdn.datatables.net/1.10.25/css/jquery.dataTables.min.css" rel="stylesheet" type="text/css" />
+    <script src="https://cdn.datatables.net/1.10.25/js/jquery.dataTables.min.js"></script>
     <script src="https://stackpath.bootstrapcdn.com/bootstrap/3.4.1/js/bootstrap.min.js" integrity="sha384-aJ21OjlMXNL5UyIl/XNwTMqvzeRMZH2w8c5cRVpzpU8Y5bApTppSuUkhZXN0VxHd" crossorigin="anonymous"></script>
     <script src="https://cdn.jsdelivr.net/gh/rambaut/figtree.js@9880/dist/figtree.umd.js"></script>
     <script src="https://d3js.org/d3.v6.min.js"></script>
@@ -524,26 +526,6 @@
         });
       }
     </script> -->
-    <script>
-          function myFunction(myInput, myTable) {
-            var input, filter, table, tr, td, i, txtValue;
-            input = document.getElementById(myInput);
-            filter = input.value.toUpperCase();
-            table = document.getElementById(myTable);
-            tr = table.getElementsByTagName("tr");
-            for (i = 0; i < tr.length; i++) {
-              td = tr[i].getElementsByTagName("td")[0];
-              if (td) {
-                txtValue = td.textContent || td.innerText;
-                if (txtValue.toUpperCase().indexOf(filter) > -1) {
-                  tr[i].style.display = "";
-                } else {
-                  tr[i].style.display = "none";
-                }
-              }       
-            }
-          }
-    </script>
 
     <!--Figtree.js-->
     <script type="text/javascript"> 
@@ -760,14 +742,41 @@
       </div>
     </div> -->
    %if '1' in config["report_content"]:
-      
-          <h3><strong>Table 1</strong> | Summary of queries  <input class="searchbar" type="text" id="myInput" onkeyup="myFunction('myInput','myTable')" placeholder="Search for sequence..." title="searchbar"></h3>
-          <table class="table table-striped" id="myTable">
-              <tr class="header">
+          <h3><strong>Table 1</strong> | Summary of queries </h3>
+          <button class="accordion">Table options</button>
+          <div class="panel">
+            <div class="row">
+              <div class="column">
+                <strong>Show columns:</strong>
+              </div>
+
+              <% col_no=0 %>
+              %for col in config["query_table_content"]:
+                
+                <div class="column">
+                  <a class="toggle-vis" data-column="${col_no}" style="color:${themeColor}">${col.title().replace("_"," ")}</a> 
+                </div>
+                <% col_no +=1 %>
+              %endfor
+
+          </div>
+          </div>
+          <table class="display nowrap" id="myTable">
+            <thead>
+              <tr>
               %for col in config["query_table_content"]:
               <th style="width:10%;">${col.title().replace("_"," ")}</th>
               %endfor
               </tr>
+            </thead>
+            <tfoot>
+              <tr>
+              %for col in config["query_table_content"]:
+              <th style="width:10%;">${col.title().replace("_"," ")}</th>
+              %endfor
+              </tr>
+            </tfoot>
+            <tbody>
               % for row in query_summary_data:
                   <tr>
                     %for col in config["query_table_content"]:
@@ -779,8 +788,28 @@
                     %endfor
                   </tr>
               % endfor
-              </table>
+              </tbody>
+            </table>
           
+            <script type="text/javascript">
+              $(document).ready( function () {
+                  var table = $('#myTable').DataTable({
+                    "scrollY": "300px",
+                    "paging": false
+                  });
+                  $('a.toggle-vis').on( 'click', function (e) {
+                      e.preventDefault();
+              
+                      // Get the column API object
+                      var column = table.column( $(this).attr('data-column') );
+              
+                      // Toggle the visibility
+                      column.visible( ! column.visible() );
+                  } );
+    
+                } );
+            </script>
+            
         %if 'fasta' in config:
     
           <h3><strong>Table 2 </strong> | Queries provided in fasta file</h3>
@@ -1605,12 +1634,5 @@ longitude = data_for_report[location]["centroids"][0]%>
       </div>
     </footer>
     </div>
-    
-    
-
-    <script src="https://code.jquery.com/jquery-1.12.4.min.js" integrity="sha384-nvAa0+6Qg9clwYCGGPpDQLVpLNn0fRaROjHqs13t4Ggj3Ez50XnGQqc/r8MhnRDZ" crossorigin="anonymous"></script>
-    <script src="https://stackpath.bootstrapcdn.com/bootstrap/3.4.1/js/bootstrap.min.js" integrity="sha384-aJ21OjlMXNL5UyIl/XNwTMqvzeRMZH2w8c5cRVpzpU8Y5bApTppSuUkhZXN0VxHd" crossorigin="anonymous"></script>
-    
-    
   </body>
 </html>
