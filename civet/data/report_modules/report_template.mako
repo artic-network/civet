@@ -15,6 +15,11 @@
     <script src="https://stackpath.bootstrapcdn.com/bootstrap/3.4.1/js/bootstrap.min.js" integrity="sha384-aJ21OjlMXNL5UyIl/XNwTMqvzeRMZH2w8c5cRVpzpU8Y5bApTppSuUkhZXN0VxHd" crossorigin="anonymous"></script>
     <script src="https://cdn.jsdelivr.net/gh/rambaut/figtree.js@9880/dist/figtree.umd.js"></script>
     <script src="https://d3js.org/d3.v6.min.js"></script>
+    <script src="https://sharonchoong.github.io/svg-exportJS/svg-export.min.js"></script>
+    <script src="https://unpkg.com/canvg/lib/umd.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/pdfkit/js/pdfkit.min.js"></script>
+    <script src="https://github.com/devongovett/blob-stream/releases/download/v0.1.3/blob-stream.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/svg-to-pdfkit/source.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/vega@5.16.0"></script>
   <script src="https://cdn.jsdelivr.net/npm/vega-lite@4.15.0"></script>
   <script src="https://cdn.jsdelivr.net/npm/vega-embed@6.11.1"></script>
@@ -714,6 +719,18 @@
       }
     </script>
 
+<script>
+  function exportImageSVG(buttonID,svgID,name){
+      document.querySelector(buttonID).onclick = function(){
+          svgExport.downloadSvg(document.querySelector(svgID), name);
+      };
+  };
+  function exportImagePNG(buttonID,svgID,name){
+      document.querySelector(buttonID).onclick = function(){
+          svgExport.downloadPng(document.querySelector(svgID), name);
+      };
+  };
+</script>
     <div class="container">
       <a href="#" id="toTopBtn" class="cd-top text-replace js-cd-top cd-top--is-visible cd-top--fade-out" data-abc="true"></a>
       <div>
@@ -894,9 +911,26 @@
         %if '4' in config["report_content"] and catchment in config["figure_catchments"]:
         <% figure_count +=1 %>
         <br>
+        <button class="accordion">Export image</button>
+          <div class="panel">
+            <div class="row">
+              <div class="column">
+                <button id="${catchment}_snipit_svg">SVG</button>
+              </div>
+              <div class="column">
+                <button id="${catchment}_snipit_png">PNG</button>
+              </div>
+            </div>
+          </div>
             <div id="${catchment}_snipit">
             ${data_for_report[catchment]["snipit_svg"]}
             </div>
+      <script type="text/javascript">
+        exportImageSVG("#${catchment}_snipit_svg","#${catchment}_snipit","${catchment}_snipit_graph");
+      </script>
+      <script type="text/javascript">
+        exportImagePNG("#${catchment}_snipit_png","#${catchment}_snipit","${catchment}_snipit_graph");
+      </script>
             <h3><strong>Figure ${figure_count}</strong> | snipit plot for queries in ${catchment_name}</h3>
             <hr>
             
