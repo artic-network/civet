@@ -35,22 +35,22 @@ account for ones that dont map
 """
 rule all:
     input:
-        os.path.join(config["outdir"],"master_metadata.csv"),
-        os.path.join(config["outdir"],config["output_reports"][0])
+        os.path.join(config[KEY_OUTDIR],"master_metadata.csv"),
+        os.path.join(config[KEY_OUTDIR],config[KEY_OUTPUT_REPORTS][0])
 
 rule align_to_reference:
     input:
-        reference = config["reference_sequence"]
+        reference = config[KEY_REFERENCE_SEQUENCE]
     params:
-        trim_start = config["trim_start"],
-        trim_end = config["trim_end"],
-        sam = os.path.join(config["tempdir"],"mapped.sam")
+        trim_start = config[KEY_TRIM_START],
+        trim_end = config[KEY_TRIM_END],
+        sam = os.path.join(config[KEY_TEMPDIR],"mapped.sam")
     output:
-        fasta = os.path.join(config["tempdir"],"query.aln.fasta")
+        fasta = os.path.join(config[KEY_TEMPDIR],"query.aln.fasta")
     log:
-        os.path.join(config["tempdir"], "logs/minimap2_sam.log")
+        os.path.join(config[KEY_TEMPDIR], "logs/minimap2_sam.log")
     run:
-        if config["query_fasta"]:
+        if config[KEY_QUERY_FASTA]:
             print(green("Aligning supplied sequences to reference."))
             shell("""
                     minimap2 -a -x asm5 --sam-hit-only --secondary=no -t  {workflow.cores} {input.reference:q} '{config[query_fasta]}' -o {params.sam:q} &> {log:q} 
@@ -68,10 +68,10 @@ rule align_to_reference:
 
 rule seq_brownie:
     input:
-        query_fasta = os.path.join(config["tempdir"],"query.aln.fasta")
+        query_fasta = os.path.join(config[KEY_TEMPDIR],"query.aln.fasta")
     output:
-        fasta = os.path.join(config["tempdir"],"hashed.aln.fasta"),
-        csv = os.path.join(config["tempdir"],"metadata.seq_brownie.master.csv")
+        fasta = os.path.join(config[KEY_TEMPDIR],"hashed.aln.fasta"),
+        csv = os.path.join(config[KEY_TEMPDIR],"metadata.seq_brownie.master.csv")
     run:
         records = 0
         
@@ -79,10 +79,10 @@ rule seq_brownie:
         hash_map = collections.defaultdict(list)
         hash_map_for_metadata = {}
 
-        if config["matched_fasta"]:
-            records = catchment_parsing.add_to_hash(config["matched_fasta"],seq_map,hash_map,records)
+        if config[KEY_MATCHED_FASTA]:
+            records = catchment_parsing.add_to_hash(config[KEY_MATCHED_FASTA],seq_map,hash_map,records)
 
-        if config["query_fasta"]:
+        if config[KEY_QUERY_FASTA]:
             records = catchment_parsing.add_to_hash(input.query_fasta,seq_map,hash_map,records)
         
         with open(output.fasta,"w") as fseqs:
@@ -93,9 +93,9 @@ rule seq_brownie:
                 for seq in hash_map[key]:
                     hash_map_for_metadata[seq] = key
         
-        misc.add_col_to_metadata("hash", hash_map_for_metadata, config["query_metadata"], output.csv, config["sequence_id_column"], config)
+        misc.add_col_to_metadata(KEY_HASH, hash_map_for_metadata, config[KEY_QUERY_METADATA], output.csv, config["sequence_id_column"], config)
 
-        config["query_metadata"] = output.csv
+        config[KEY_QUERY_METADATA] = output.csv
         print(green("Query sequences collapsed from ") + f"{records}" +green(" to ") + f"{len(seq_map)}" + green(" unique sequences."))
 
 
@@ -107,13 +107,13 @@ check_if_int("snp_distance_up",config)
 rule find_catchment:
     input:
         fasta = rules.seq_brownie.output.fasta
-    log: os.path.join(config["tempdir"],"logs","updown_top_ranking.txt")
+    log: os.path.join(config[KEY_TEMPDIR],"logs","updown_top_ranking.txt")
     output:
-        txt = os.path.join(config["tempdir"],"updown_ignore.txt"),
-        catchments = os.path.join(config["tempdir"],"catchments.csv")
+        txt = os.path.join(config[KEY_TEMPDIR],"updown_ignore.txt"),
+        catchments = os.path.join(config[KEY_TEMPDIR],"catchments.csv")
     run:
         with open(output.txt,"w") as fw:
-            for i in config["ids"]:
+            for i in config[KEY_IDS]:
                 fw.write(f"{i}\n")
         shell("""gofasta updown topranking \
         -q {input.fasta:q} \
@@ -132,32 +132,32 @@ rule merge_catchments:
         catchments = rules.find_catchment.output.catchments,
         csv = rules.seq_brownie.output.csv
     output:
-        yaml = os.path.join(config["outdir"],"config.yaml"),
-        merged = os.path.join(config["tempdir"],"catchments","catchments_merged.csv"),
-        csv = os.path.join(config["tempdir"],"query_metadata.key.csv"),
-        catchment_csv = os.path.join(config["tempdir"],"catchments","query_metadata.catchments.csv")
+        yaml = os.path.join(config[KEY_OUTDIR],"config.yaml"),
+        merged = os.path.join(config[KEY_TEMPDIR],"catchments","catchments_merged.csv"),
+        csv = os.path.join(config[KEY_TEMPDIR],"query_metadata.key.csv"),
+        catchment_csv = os.path.join(config[KEY_TEMPDIR],"catchments","query_metadata.catchments.csv")
     run:
         catchment_dict, catchment_key, catchment_count = catchment_parsing.get_merged_catchments(input.catchments,output.merged,config)
-        config["catchment_count"] = catchment_count
+        config[KEY_CATCHMENT_COUNT] = catchment_count
 
-        if config["catchment_count"] == 0:
+        if config[KEY_CATCHMENT_COUNT] == 0:
             sys.stderr.write(cyan(f"Error: no catchments matched in background data file.\n"))
             sys.exit(-1)
 
-        misc.add_col_to_metadata("catchment", catchment_key, input.csv, output.csv, "hash", config)
+        misc.add_col_to_metadata("catchment", catchment_key, input.csv, output.csv, KEY_HASH, config)
 
-        config["query_metadata"] = output.csv
+        config[KEY_QUERY_METADATA] = output.csv
 
         print(green("Merged into ")+f'{catchment_count}' + green(" catchments."))
 
-        catchment_parsing.add_catchments_to_metadata(config["background_metadata"],output.csv,output.catchment_csv,catchment_dict,config)
+        catchment_parsing.add_catchments_to_metadata(config[KEY_BACKGROUND_METADATA],output.csv,output.catchment_csv,catchment_dict,config)
         
         catchment_parsing.which_catchments_too_large(output.catchment_csv,config)
 
         with open(output.yaml, 'w') as fw:
             yaml.dump(config, fw) 
 
-        if config["verbose"]:
+        if config[KEY_VERBOSE]:
             print(red("\n**** CONFIG UPDATED ****"))
             for k in sorted(config):
                 print(green(f" - {k}: ") + f"{config[k]}")
@@ -166,17 +166,17 @@ rule downsample_catchments:
     input:
         fasta  = rules.seq_brownie.output.fasta,
         csv= rules.merge_catchments.output.catchment_csv,
-        yaml = os.path.join(config["outdir"],"config.yaml")
+        yaml = os.path.join(config[KEY_OUTDIR],"config.yaml")
     params:
         catchment_dir = os.path.join(config["data_outdir"],"catchments")
     output:
-        csv = os.path.join(config["outdir"],"master_metadata.csv")
+        csv = os.path.join(config[KEY_OUTDIR],"master_metadata.csv")
     run:
         with open(input.yaml, 'r') as f:
             config_loaded = yaml.safe_load(f)
 
         catchment_parsing.downsample_if_building_trees(input.csv, output.csv, config_loaded)
-        if '3' in config["report_content"]:
+        if '3' in config[KEY_REPORT_CONTENT]:
             print(green("Writing catchment fasta files."))
             if not os.path.exists(params.catchment_dir):
                 os.mkdir(params.catchment_dir)
@@ -188,9 +188,9 @@ rule tree_building:
         csv = rules.downsample_catchments.output.csv,
         snakefile = os.path.join(workflow.current_basedir,"build_catchment_trees.smk")
     output:
-        txt = os.path.join(config["tempdir"],"catchments","prompt.txt")
+        txt = os.path.join(config[KEY_TEMPDIR],"catchments","prompt.txt")
     run:
-        if '3' in config["report_content"]:
+        if '3' in config[KEY_REPORT_CONTENT]:
             print(green("Running tree building pipeline."))
             # spawn off a side snakemake with catchment wildcard that builds an iqtree for each one
             shell("snakemake --nolock --snakefile {input.snakefile:q} "
@@ -210,9 +210,9 @@ rule snipit:
         fasta = rules.seq_brownie.output.fasta,
         snakefile = os.path.join(workflow.current_basedir,"snipit_runner.smk")
     output:
-        txt = os.path.join(config["tempdir"],"snipit","prompt.txt")
+        txt = os.path.join(config[KEY_TEMPDIR],"snipit","prompt.txt")
     run:
-        if '4' in config["report_content"]:
+        if '4' in config[KEY_REPORT_CONTENT]:
             print(green("Running snipit pipeline."))
             # spawn off a side snakemake with catchment wildcard that builds an iqtree for each one
             shell("snakemake --nolock --snakefile {input.snakefile:q} "
@@ -233,12 +233,12 @@ rule render_report:
         snipit = rules.snipit.output.txt,
         trees = rules.tree_building.output.txt
     output:
-        html = os.path.join(config["outdir"],config["output_reports"][0])
+        html = os.path.join(config[KEY_OUTDIR],config[KEY_OUTPUT_REPORTS][0])
     run:
         with open(input.yaml, 'r') as f:
             config_loaded = yaml.safe_load(f)
 
-        for report_to_generate in config["output_reports"]:
-            report_path = os.path.join(config["outdir"],report_to_generate)
+        for report_to_generate in config[KEY_OUTPUT_REPORTS]:
+            report_path = os.path.join(config[KEY_OUTDIR],report_to_generate)
             report.make_report(input.csv,report_path,config_loaded)
         

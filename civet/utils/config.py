@@ -1,6 +1,7 @@
 # QUERY KEYS
 KEY_IDS="ids"
 KEY_INPUT_METADATA="input_metadata"
+KEY_QUERY_METADATA="query_metadata"
 
 # INPUT OPTION KEYS
 KEY_FROM_METADATA="from_metadata"
@@ -19,6 +20,11 @@ KEY_MIN_LENGTH="min_length"
 KEY_TRIM_START="trim_start"
 KEY_TRIM_END="trim_end"
 
+# SEQ RELATED KEYS
+KEY_QUERY_FASTA="query_fasta"
+KEY_MATCHED_FASTA="matched_fasta"
+KEY_HASH="hash"
+
 # BACKRGOUND VARIABLES KEYS
 CIVET_DATADIR="datadir"
 KEY_BACKGROUND_METADATA="background_metadata"
@@ -29,6 +35,8 @@ KEY_BACKGROUND_TREE="background_tree"
 # BACKGROUND COLUMN KEYS
 KEY_BACKGROUND_ID_COLUMN="background_id_column"
 
+# CATCHMENT KEYS
+KEY_CATCHMENT_COUNT="catchment_count"
 
 # DIRECTORIES
 KEY_TEMPDIR="tempdir"
@@ -42,6 +50,10 @@ KEY_LATITUDE_COLUMN="latitude_column"
 KEY_LONGITUDE_COLUMN="longitude_column"
 KEY_BACKGROUND_MAP_DATE_RANGE="background_map_date_range"
 
+# REPORT KEYS
+KEY_REPORT_CONTENT="report_content"
+KEY_OUTPUT_REPORTS="output_reports"
+
 # MISC KEYS
 KEY_ANONYMISE="anonymise"
 KEY_VERBOSE="verbose"
@@ -52,6 +64,8 @@ KEY_QUIET="quiet"
 KEY_CIVET_MODE="civet_mode"
 KEY_DATE="date"
 KEY_AUTHORS="authors"
+
+KEY_REFERENCE_SEQUENCE="reference_sequence"
 
 RESOURCE_KEY_FILENAME="filename"
 RESOURCE_KEY_DIRECTORY="directory"
