@@ -29,7 +29,7 @@ def parse_and_qc_table_cols(table_content,mutations, config):
     # if command line arg, overwrite config value
     misc.add_arg_to_config(KEY_QUERY_TABLE_CONTENT,table_content,config)
     misc.add_arg_to_config(KEY_MUTATIONS,mutations,config)
-    print(config[KEY_MUTATIONS], config["mutations"])
+
     if "input_metadata" in config:
         with open(config["input_metadata"]) as f:
             reader = csv.DictReader(f)

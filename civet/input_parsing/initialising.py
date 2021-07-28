@@ -75,7 +75,7 @@ def get_defaults():
                     
                     #Table options
                     "query_table_content":False,
-                    KEY_MUTATIONS:False,
+                    KEY_MUTATIONS:[],
 
                     #Tree options
                     "tree_annotations": "lineage,country",
@@ -222,7 +222,7 @@ def arg_dict(config):
                 #tb group args
                 "query_table_content":"query_table_content",
                 "catchment_table_content":"catchment_table_content",
-                KEY_MUTATIONS:KEY_MUTATIONS,
+                "mutations":"mutations",
 
                 #t group args
                 "tree_annotations":"tree_annotations",
