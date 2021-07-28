@@ -47,8 +47,7 @@ rule align_to_reference:
         sam = os.path.join(config[KEY_TEMPDIR],"mapped.sam")
     output:
         fasta = os.path.join(config[KEY_TEMPDIR],"query.aln.fasta")
-    log:
-        os.path.join(config[KEY_TEMPDIR], "logs/minimap2_sam.log")
+    log: os.path.join(config[KEY_TEMPDIR], "logs/minimap2_sam.log")
     run:
         if config[KEY_QUERY_FASTA]:
             print(green("Aligning supplied sequences to reference."))
@@ -98,6 +97,46 @@ rule seq_brownie:
         config[KEY_QUERY_METADATA] = output.csv
         print(green("Query sequences collapsed from ") + f"{records}" +green(" to ") + f"{len(seq_map)}" + green(" unique sequences."))
 
+rule scorpio_type:
+    input:
+        fasta = rules.seq_brownie.output.fasta,
+        csv = rules.seq_brownie.output.csv
+    params:
+        muts = os.path.join(config[KEY_TEMPDIR],"scorpio","scorpio.mutations.csv")
+    output:
+        csv = os.path.join(config[KEY_TEMPDIR],"scorpio","scorpio.metadata.csv")
+    log: os.path.join(config[KEY_TEMPDIR],"scorpio","scorpio.log")
+    run:
+        if config[KEY_MUTATIONS]:
+            mutations = " ".join(config[KEY_MUTATIONS])
+            shell("scorpio haplotype -i {input.fasta:q} "
+                  f"--mutations {mutations} "
+                  "--append-genotypes -n mutations -o {params.muts:q} &> {log:q}"
+                  )
+
+            mut_dict = collections.defaultdict(dict)
+            with open(params.muts,"r") as f:
+                reader = csv.DictReader(f)
+                for row in reader:
+                    for mutation in config[KEY_MUTATIONS]:
+                        mut_dict[row["query"]][mutation]= row[mutation]
+
+            with open(output.csv,"w") as fw:
+                with open(input.csv,"r") as f:
+                    reader = csv.DictReader(f)
+                    header = reader.fieldnames
+                    for mutation in config[KEY_MUTATIONS]:
+                        header.append(mutation)
+                    writer = csv.DictWriter(fw, fieldnames=header,lineterminator='\n')
+                    writer.writeheader()
+                    for row in reader:
+                        new_row=row
+                        for mutation in config[KEY_MUTATIONS]:
+                            new_row[mutation] = mut_dict[new_row["hash"]][mutation]
+                        writer.writerow(new_row)
+        else:
+            shell("cp {input.csv:q} {output.csv:q}")
+            
 
 """
 check_if_int("snp_distance_up",config) 
@@ -130,7 +169,7 @@ rule find_catchment:
 rule merge_catchments:
     input:
         catchments = rules.find_catchment.output.catchments,
-        csv = rules.seq_brownie.output.csv
+        csv = rules.scorpio_type.output.csv
     output:
         yaml = os.path.join(config[KEY_OUTDIR],"config.yaml"),
         merged = os.path.join(config[KEY_TEMPDIR],"catchments","catchments_merged.csv"),
@@ -182,6 +221,7 @@ rule downsample_catchments:
                 os.mkdir(params.catchment_dir)
             catchment_parsing.write_catchment_fasta(output.csv,input.fasta,params.catchment_dir,config_loaded)
         
+
 rule tree_building:
     input:
         yaml = rules.merge_catchments.output.yaml,

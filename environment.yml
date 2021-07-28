@@ -11,6 +11,9 @@ dependencies:
   - snakemake-minimal
   - cov-ert::jclusterfunk
   - gofasta>=0.0.5
+pip:
+  - git+https://github.com/cov-lineages/scorpio.git
+  -- git+https://github.com/cov-lineages/constellations.git
 # variables:
 #   TEMPDIR:
 #   CIVET_DATADIR: 

@@ -34,6 +34,9 @@ KEY_BACKGROUND_TREE="background_tree"
 
 # BACKGROUND COLUMN KEYS
 KEY_BACKGROUND_ID_COLUMN="background_id_column"
+KEY_SEQUENCE_ID_COLUMN="sequence_id_column"
+KEY_BACKGROUND_DATE_COLUMN="background_date_column"
+KEY_BACKGROUND_LOCATION_COLUMN="background_location_column"
 
 # CATCHMENT KEYS
 KEY_CATCHMENT_COUNT="catchment_count"
@@ -44,6 +47,13 @@ KEY_INPUT_PATH="input_path"
 KEY_CWD="cwd"
 KEY_OUTDIR="outdir"
 
+# TABLE KEYS
+KEY_MUTATIONS="mutations"
+KEY_QUERY_TABLE_CONTENT="query_table_content"
+
+# TREE KEYS
+KEY_TREE_ANNOTATIONS="tree_annotations"
+
 # QUERY MAP KEYS
 KEY_QUERY_MAP_FILE="query_map_file"
 KEY_LATITUDE_COLUMN="latitude_column"
@@ -53,6 +63,8 @@ KEY_BACKGROUND_MAP_DATE_RANGE="background_map_date_range"
 # REPORT KEYS
 KEY_REPORT_CONTENT="report_content"
 KEY_OUTPUT_REPORTS="output_reports"
+KEY_REPORTS="reports"
+KEY_REPORT_PRESET="report_preset"
 
 # MISC KEYS
 KEY_ANONYMISE="anonymise"
@@ -77,7 +89,7 @@ KEY_QUERY_CSV_HEADER="query_csv_header"
 PROTECTED_COL_NAMES = ["hash","catchment","query_boolean","qc_status","source","seq_N_content","seq_length","in_tree"]
 
 # DEPENDENCIES AND RESOURCES TO CHECK
-dependency_list = ["gofasta","minimap2","snakemake","iqtree","jclusterfunk"]
+dependency_list = ["gofasta","minimap2","snakemake","iqtree","jclusterfunk","scorpio","constellations"]
 module_list = ["mako","Bio"]
 
 resources = [
