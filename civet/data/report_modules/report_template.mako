@@ -178,6 +178,10 @@
         padding: 40px 15px;
         text-align: left;
       } */
+      .dataTables_wrapper.no-footer .dataTables_scrollBody {
+        border-top: 1px solid  rgb(148, 148, 148);
+        border-bottom: none;
+      }
       .svg-icon {
       display: inline-flex;
       align-self: center;
@@ -799,6 +803,7 @@
                   var table = $('#myTable').DataTable({
                     "scrollY": "300px",
                     "paging": false,
+                    "border-bottom":false,
                     dom: 'frtip',
                     buttons: ["copy","csv","print"]
                   });
