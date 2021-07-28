@@ -8,6 +8,7 @@ from Bio import SeqIO
 
 from datetime import datetime 
 from datetime import date
+from civet.utils.config import *
 
 
 """
@@ -28,7 +29,7 @@ def ids_qc(ids):
 
 def check_for_protected_col_names(header):
     for field in header:
-        if field in ["hash","catchment","query_boolean","qc_status","source","seq_N_content","seq_length","in_tree"]:
+        if field in PROTECTED_COL_NAMES:
             sys.stderr.write(cyan(f"Error: `{field}` is a protected column name used internally in civet, please rename this column.\n"))
             sys.exit(-1)
 
@@ -83,23 +84,23 @@ def csv_qc(input_metadata,input_id_column):
 
 def input_query_parsing(input_metadata,input_id_column,ids,from_metadata,config):
 
-    misc.add_arg_to_config("ids",ids,config)
+    misc.add_arg_to_config(KEY_IDS,ids,config)
 
-    misc.add_file_to_config("input_metadata",input_metadata,config)
-    misc.add_arg_to_config("input_id_column",input_id_column,config)
+    misc.add_file_to_config(KEY_INPUT_METADATA,input_metadata,config)
+    misc.add_arg_to_config(KEY_INPUT_ID_COLUMN,input_id_column,config)
 
-    misc.add_arg_to_config("from_metadata",from_metadata,config)
+    misc.add_arg_to_config(KEY_FROM_METADATA,from_metadata,config)
 
-    if "ids" in config and "input_metadata" in config:
+    if KEY_IDS in config and KEY_INPUT_METADATA in config:
         sys.stderr.write(cyan(f"Error: it looks like you've provided a csv file and an ID string, please provide one or the other.\n"))
         sys.exit(-1)
-    elif "ids" in config:
-        config["ids"] = ids_qc(config["ids"])
+    elif KEY_IDS in config:
+        config[KEY_IDS] = ids_qc(config[KEY_IDS])
         
-    elif "input_metadata" in config:
-        config["ids"] = csv_qc(config["input_metadata"],config["input_id_column"])
+    elif KEY_INPUT_METADATA in config:
+        config[KEY_IDS] = csv_qc(config[KEY_INPUT_METADATA],config[KEY_INPUT_ID_COLUMN])
 
-    if config["from_metadata"] and 'ids' in config:
+    if config[KEY_FROM_METADATA] and KEY_IDS in config:
         sys.stderr.write(cyan('Error: civet accepts either -fm/--from-metadata (which generates a query from the background data) or an input query (supplied via `-ids/--id-string`, `-i/--input-metadata` or `-f/--input-sequences`).\n'))
         sys.exit(-1)
     
@@ -153,19 +154,19 @@ def fasta_ids_list(fasta):
 
 def input_fasta_parsing(input_fasta,maxambig,minlen,config):
     
-    misc.add_file_to_config("input_sequences",input_fasta,config)
-    misc.add_arg_to_config("max_ambiguity",maxambig,config)
-    misc.add_arg_to_config("min_length",minlen,config)
+    misc.add_file_to_config(KEY_INPUT_SEQUENCES,input_fasta,config)
+    misc.add_arg_to_config(KEY_MAX_AMBIGUITY,maxambig,config)
+    misc.add_arg_to_config(KEY_MIN_LENGTH,minlen,config)
     
-    if "input_sequences" in config:
-        if config["from_metadata"]:
+    if KEY_INPUT_SEQUENCES in config:
+        if config[KEY_FROM_METADATA]:
             sys.stderr.write(cyan('Error: civet accepts either -fm/--from-metadata (which generates a query from the background data) or an input query (supplied via `-ids/--id-string`, `-i/--input-metadata` or `-f/--input-sequences`).\n'))
             sys.exit(-1)
-        input_fasta_check(config["input_sequences"])
-        fasta_qc_level(config["max_ambiguity"],config["min_length"])
+        input_fasta_check(config[KEY_INPUT_SEQUENCES])
+        fasta_qc_level(config[KEY_MAX_AMBIGUITY],config[KEY_MIN_LENGTH])
 
-        if not "input_metadata" in config and not "ids" in config:
-            config["ids"] = fasta_ids_list(config["input_sequences"])
+        if not KEY_INPUT_METADATA in config and not KEY_IDS in config:
+            config[KEY_IDS] = fasta_ids_list(config[KEY_INPUT_SEQUENCES])
 
 def parse_from_metadata(to_parse,background_csv):
     filters = {}
@@ -291,12 +292,12 @@ def filter_down_metadata(filters,background_csv):
     return rows_to_search
 
 def from_metadata_parsing(config):
-    if not config["from_metadata"] and not 'ids' in config:
+    if not config[KEY_FROM_METADATA] and not KEY_IDS in config:
         sys.stderr.write(cyan('Error: please specifiy a query or define a query using -fm/--from-metadata.\n'))
         sys.exit(-1)
 
-    if config["from_metadata"]:
-        filters = parse_from_metadata(config["from_metadata"],config["background_metadata"])
+    if config[KEY_FROM_METADATA]:
+        filters = parse_from_metadata(config[KEY_FROM_METADATA],config["background_metadata"])
         # for column in [config["sequence_id_column"],config["input_id_column"],config["input_display_column"]]:
         #     column_names.append(column)
 
@@ -307,13 +308,13 @@ def from_metadata_parsing(config):
         count = 0
         for row,c in rows_to_search:
             count +=1
-            query_ids.append(row[config["background_id_column"]])
+            query_ids.append(row[config[KEY_BACKGROUND_ID_COLUMN]])
             # new_row = row
             # for column in [config["sequence_id_column"],config["input_id_column"],config["input_display_column"]]:
-            #     new_row[colum] = row[config["background_id_column"]]
+            #     new_row[colum] = row[config[KEY_BACKGROUND_ID_COLUMN]]
             # query_rows.append(new_row)
 
-        if count > int(config["max_queries"]):
+        if count > int(config[KEY_MAX_QUERIES]):
             sys.stderr.write(cyan(f'Error: -fm/--from-metadata found {count} matches, which exceeds the maximum query count.\n') + f"Either provide a more specific query with `-fm/--from-metadata` or overwrite the default maximum query limit with `-ql/--query-limit`.\n")
             sys.exit(-1)
         elif count == 0:
@@ -322,7 +323,7 @@ def from_metadata_parsing(config):
         else:
             print(green(f"Number of sequences matching defined query:") + f" {count}")
         
-        config["ids"] = query_ids
+        config[KEY_IDS] = query_ids
 
         # return query_ids,query_rows,column_names
 

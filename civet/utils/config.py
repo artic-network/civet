@@ -1,3 +1,7 @@
+# QUERY KEYS
+KEY_IDS="ids"
+KEY_INPUT_METADATA="input_metadata"
+
 # INPUT OPTION KEYS
 KEY_FROM_METADATA="from_metadata"
 KEY_MAX_QUERIES="max_queries"
@@ -8,6 +12,7 @@ KEY_INPUT_DATE_COLUMN="input_date_column"
 KEY_INPUT_DISPLAY_COLUMN="input_display_column"
 
 # INPUT SEQ OPTION KEYS
+KEY_INPUT_SEQUENCES="input_sequences"
 KEY_NUM_SEQS="num_seqs"
 KEY_MAX_AMBIGUITY="max_ambiguity"
 KEY_MIN_LENGTH="min_length"
@@ -20,6 +25,10 @@ KEY_BACKGROUND_METADATA="background_metadata"
 KEY_BACKGROUND_SEQUENCES="background_sequences"
 KEY_BACKGROUND_SNPS="background_snps"
 KEY_BACKGROUND_TREE="background_tree"
+
+# BACKGROUND COLUMN KEYS
+KEY_BACKGROUND_ID_COLUMN="background_id_column"
+
 
 # DIRECTORIES
 KEY_TEMPDIR="tempdir"
@@ -50,6 +59,8 @@ RESOURCE_KEY="KEY"
 
 # HEADER KEYS
 KEY_QUERY_CSV_HEADER="query_csv_header"
+
+PROTECTED_COL_NAMES = ["hash","catchment","query_boolean","qc_status","source","seq_N_content","seq_length","in_tree"]
 
 # DEPENDENCIES AND RESOURCES TO CHECK
 dependency_list = ["gofasta","minimap2","snakemake","iqtree","jclusterfunk"]
