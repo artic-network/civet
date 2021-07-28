@@ -14,6 +14,11 @@
     <script src="https://code.jquery.com/jquery-1.12.4.min.js" integrity="sha384-nvAa0+6Qg9clwYCGGPpDQLVpLNn0fRaROjHqs13t4Ggj3Ez50XnGQqc/r8MhnRDZ" crossorigin="anonymous"></script>
     <link href="https://cdn.datatables.net/1.10.25/css/jquery.dataTables.min.css" rel="stylesheet" type="text/css" />
     <script src="https://cdn.datatables.net/1.10.25/js/jquery.dataTables.min.js"></script>
+    <script src="https://cdn.datatables.net/buttons/1.7.1/js/dataTables.buttons.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.1.3/jszip.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/pdfmake/0.1.53/pdfmake.min.js"></script>
+    <script src="https://cdn.datatables.net/buttons/1.7.1/js/buttons.html5.min.js"></script>
+    <script src="https://cdn.datatables.net/buttons/1.7.1/js/buttons.print.min.js"></script>
     <script src="https://stackpath.bootstrapcdn.com/bootstrap/3.4.1/js/bootstrap.min.js" integrity="sha384-aJ21OjlMXNL5UyIl/XNwTMqvzeRMZH2w8c5cRVpzpU8Y5bApTppSuUkhZXN0VxHd" crossorigin="anonymous"></script>
     <script src="https://cdn.jsdelivr.net/gh/rambaut/figtree.js@9880/dist/figtree.umd.js"></script>
     <script src="https://d3js.org/d3.v6.min.js"></script>
@@ -25,6 +30,7 @@
     <script src="https://cdn.jsdelivr.net/npm/vega@5.16.0"></script>
   <script src="https://cdn.jsdelivr.net/npm/vega-lite@4.15.0"></script>
   <script src="https://cdn.jsdelivr.net/npm/vega-embed@6.11.1"></script>
+
     <meta charset="utf-8">
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
     <meta name="viewport" content="width=device-width, initial-scale=1">
@@ -760,6 +766,10 @@
               %endfor
 
           </div>
+          <div class="row">
+            <div class="col-sm-4" ><strong>Export table: </strong></div>
+            <div class="col-sm-8" id="tableExportID"></div>
+          </div>
           </div>
           <table class="display nowrap" id="myTable">
             <thead>
@@ -795,8 +805,11 @@
               $(document).ready( function () {
                   var table = $('#myTable').DataTable({
                     "scrollY": "300px",
-                    "paging": false
+                    "paging": false,
+                    dom: 'frtip',
+                    buttons: ["copy","csv","print"]
                   });
+                  table.buttons().container().appendTo( $('#tableExportID') );
                   $('a.toggle-vis').on( 'click', function (e) {
                       e.preventDefault();
               
@@ -809,7 +822,7 @@
     
                 } );
             </script>
-            
+
         %if 'fasta' in config:
     
           <h3><strong>Table 2 </strong> | Queries provided in fasta file</h3>
