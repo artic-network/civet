@@ -8,12 +8,13 @@ dependencies:
   - iqtree>=2.1
   - minimap2>=2.17
   - python=3.9
+  - pip=19.3.1
   - snakemake-minimal
   - cov-ert::jclusterfunk
   - gofasta>=0.0.5
-pip:
-  - git+https://github.com/cov-lineages/scorpio.git
-  - git+https://github.com/cov-lineages/constellations.git
+  - pip:
+    - git+https://github.com/cov-lineages/scorpio.git
+    - git+https://github.com/cov-lineages/constellations.git
 # variables:
 #   TEMPDIR:
 #   CIVET_DATADIR: 
