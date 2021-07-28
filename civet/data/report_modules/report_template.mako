@@ -752,14 +752,14 @@
           <button class="accordion">Table options</button>
           <div class="panel">
             <div class="row">
-              <div class="column">
+              <div class="col-sm-2">
                 <strong>Show columns:</strong>
               </div>
 
               <% col_no=0 %>
               %for col in config["query_table_content"]:
                 
-                <div class="column">
+                <div class="col-sm-1">
                   <a class="toggle-vis" data-column="${col_no}" style="color:${themeColor}">${col.title().replace("_"," ")}</a> 
                 </div>
                 <% col_no +=1 %>
@@ -767,7 +767,7 @@
 
           </div>
           <div class="row">
-            <div class="col-sm-4" ><strong>Export table: </strong></div>
+            <div class="col-sm-2" ><strong>Export table: </strong></div>
             <div class="col-sm-8" id="tableExportID"></div>
           </div>
           </div>
@@ -779,13 +779,6 @@
               %endfor
               </tr>
             </thead>
-            <tfoot>
-              <tr>
-              %for col in config["query_table_content"]:
-              <th style="width:10%;">${col.title().replace("_"," ")}</th>
-              %endfor
-              </tr>
-            </tfoot>
             <tbody>
               % for row in query_summary_data:
                   <tr>
