@@ -176,7 +176,6 @@ def parse_tree_options(tree_annotations,max_tree_size, config):
 def parse_optional_report_content(table_content,mutations, timeline_dates, timeline_group_column, colour_theme, colour_map, config):
     #parse optional parts of report
     
-
     misc.add_arg_to_config("colour_theme",colour_theme,config)
     misc.add_arg_to_config("colour_map",colour_map,config)
 

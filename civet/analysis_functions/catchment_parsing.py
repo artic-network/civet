@@ -84,6 +84,10 @@ def add_catchments_to_metadata(background_csv,query_metadata,query_metadata_with
     
     config["query_csv_header"].append("query_boolean")
     
+    if config["mutations"]:
+        for mutation in config["mutations"]:
+            config["query_csv_header"].append(mutation)
+
     catchment_records = []
 
     with open(background_csv,"r") as f:
@@ -109,9 +113,7 @@ def add_catchments_to_metadata(background_csv,query_metadata,query_metadata_with
                     for field in config["query_csv_header"]:
                         if field not in new_row:
                             new_row[field] = ""
-                    for mutation in config["mutations"]:
-                        if mutation not in new_row:
-                            new_row[mutation] = "False"
+
                     catchment_records.append(new_row)
 
     with open(query_metadata_with_catchments,"w") as fw:

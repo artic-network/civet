@@ -4,12 +4,11 @@ from civet.utils import misc
 from civet.utils.log_colours import green,cyan,red
 from civet.utils.config import *
 
-def parse_mutations(mutations,config):
-    misc.add_arg_to_config(KEY_MUTATIONS,mutations,config)
+def parse_mutations(config):
     if config[KEY_MUTATIONS]:
         if not type(config[KEY_MUTATIONS]) == list:
             config[KEY_MUTATIONS] = config[KEY_MUTATIONS].split(",")
-        
+
         for mutation in config[KEY_MUTATIONS]:
             if not ':' in mutation:
                 sys.stderr.write(cyan(f"Error: invalid mutation specified {mutation}\n"))
@@ -29,7 +28,8 @@ def parse_and_qc_table_cols(table_content,mutations, config):
 
     # if command line arg, overwrite config value
     misc.add_arg_to_config(KEY_QUERY_TABLE_CONTENT,table_content,config)
-
+    misc.add_arg_to_config(KEY_MUTATIONS,mutations,config)
+    print(config[KEY_MUTATIONS], config["mutations"])
     if "input_metadata" in config:
         with open(config["input_metadata"]) as f:
             reader = csv.DictReader(f)
@@ -59,7 +59,7 @@ def parse_and_qc_table_cols(table_content,mutations, config):
     else:
         sort_default_headers(input_fieldnames, background_fieldnames, config)
 
-    parse_mutations(mutations,config)
+    parse_mutations(config)
 
     config["fasta_table_content"] = [config[KEY_INPUT_DISPLAY_COLUMN],"seq_N_content","seq_length"]
 
