@@ -1,22 +1,34 @@
-
 import csv
 import sys
 from civet.utils import misc
 from civet.utils.log_colours import green,cyan,red
+from civet.utils.config import *
 
+def parse_mutations(mutations,config):
+    misc.add_arg_to_config(KEY_MUTATIONS,mutations,config)
+    if config[KEY_MUTATIONS]:
+        if not type(config[KEY_MUTATIONS]) == list:
+            config[KEY_MUTATIONS] = config[KEY_MUTATIONS].split(",")
+        
+        for mutation in config[KEY_MUTATIONS]:
+            if not ':' in mutation:
+                sys.stderr.write(cyan(f"Error: invalid mutation specified {mutation}\n"))
+                sys.exit(-1)
+            else:
+                config[KEY_QUERY_TABLE_CONTENT].append(mutation)
 
-def parse_and_qc_table_cols(table_content, config):
+def parse_and_qc_table_cols(table_content,mutations, config):
 
     """ 
     parses the report group argument:
     --query-table-content (default --background_column,--background_date_column,source,lineage,country,catchment)
     """
-
-    processed_columns = ["source","qc_status",config["input_display_column"],"catchment"]
-    # processed_columns = ["source","qc_status","config["input_display_column"]","catchment","SNP_distance","closest","SNP_list"] #update when the analysis pipeline is done
+    
+    processed_columns = ["source","qc_status",config[KEY_INPUT_DISPLAY_COLUMN],"catchment"]
+    # processed_columns = ["source","qc_status","config[KEY_INPUT_DISPLAY_COLUMN]","catchment","SNP_distance","closest","SNP_list"] #update when the analysis pipeline is done
 
     # if command line arg, overwrite config value
-    misc.add_arg_to_config("query_table_content",table_content,config)
+    misc.add_arg_to_config(KEY_QUERY_TABLE_CONTENT,table_content,config)
 
     if "input_metadata" in config:
         with open(config["input_metadata"]) as f:
@@ -29,31 +41,34 @@ def parse_and_qc_table_cols(table_content, config):
         reader = csv.DictReader(f)
         background_fieldnames = reader.fieldnames
 
-    if config["query_table_content"]:
-        if type(config["query_table_content"]) == str:
-            content_list = config["query_table_content"].split(",")
+    if config[KEY_QUERY_TABLE_CONTENT]:
+        if type(config[KEY_QUERY_TABLE_CONTENT]) == str:
+            content_list = config[KEY_QUERY_TABLE_CONTENT].split(",")
         else:
-            content_list = config["query_table_content"]
+            content_list = config[KEY_QUERY_TABLE_CONTENT]
         
         for col in content_list:
             if col not in processed_columns and col not in background_fieldnames and col not in input_fieldnames:
                 sys.stderr.write(cyan(f"Error: {col} column not found in metadata file\n"))
                 sys.exit(-1)
            
-        if config["input_display_column"] not in content_list:
-            content_list.insert(0,config["input_display_column"])
+        if config[KEY_INPUT_DISPLAY_COLUMN] not in content_list:
+            content_list.insert(0,config[KEY_INPUT_DISPLAY_COLUMN])
 
-        config["query_table_content"] = content_list 
+        config[KEY_QUERY_TABLE_CONTENT] = content_list 
     else:
         sort_default_headers(input_fieldnames, background_fieldnames, config)
 
-    config["fasta_table_content"] = [config["input_display_column"],"seq_N_content","seq_length"]
+    parse_mutations(mutations,config)
+
+    config["fasta_table_content"] = [config[KEY_INPUT_DISPLAY_COLUMN],"seq_N_content","seq_length"]
 
 
 def sort_default_headers(input_fieldnames, background_fieldnames, config):
 
-    basic_default_list = [config["input_display_column"], "lineage", "source", "catchment"]
-    full_default_list = [config["background_date_column"], config["input_date_column"], "country", "adm1", "suggested_adm2_grouping", "adm2"]
+    
+    basic_default_list = [config[KEY_INPUT_DISPLAY_COLUMN], "lineage", "source", "catchment"]
+    full_default_list = [config[KEY_BACKGROUND_DATE_COLUMN], config[KEY_INPUT_DATE_COLUMN], "country", "adm1", "suggested_adm2_grouping", "adm2"]
 
     header_list = basic_default_list
 
@@ -62,7 +77,15 @@ def sort_default_headers(input_fieldnames, background_fieldnames, config):
             if col in (background_fieldnames or col in input_fieldnames) and col not in header_list: #so if eg the date columns are the same, they don't get added twice
                 header_list.append(col)
 
-    config["query_table_content"] = header_list
+    if config[KEY_MUTATIONS]:
+        for mutation in config[KEY_MUTATIONS]:
+            header_list.append(mutation)
+
+    config[KEY_QUERY_TABLE_CONTENT] = header_list
 
 
- 
+
+
+
+
+

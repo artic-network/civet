@@ -39,10 +39,10 @@ def get_defaults():
 
                     # background columns
                     
-                    "background_id_column":"sequence_name",
-                    "sequence_id_column":False,
-                    "background_date_column":False, #default is sample_date if present in the background csv, then date_column if present
-                    "background_location_column":False, #default is country if present in the background csv
+                    KEY_BACKGROUND_ID_COLUMN:"sequence_name",
+                    KEY_SEQUENCE_ID_COLUMN:False,
+                    KEY_BACKGROUND_DATE_COLUMN:False, #default is sample_date if present in the background csv, then date_column if present
+                    KEY_BACKGROUND_LOCATION_COLUMN:False, #default is country if present in the background csv
 
                     # Output options
                     "output_prefix":"civet",
@@ -68,13 +68,14 @@ def get_defaults():
                     #Report options
                     "colour_theme": "#7178bc",
                     "colour_map": "#86b0a6,#565b7b,#e9c46a,#e1998a,#d19c2c,#264653,#4888a3,#c77939,#b56576,#eb7e83,#F46D43,#9e2a2b,#84a98c",
-                    "report_content":["1,2,3,4,5"],
-                    "report_preset":False,
+                    KEY_REPORT_CONTENT:["1,2,3,4,5"],
+                    KEY_REPORT_PRESET:False,
                     "report_title":f"civet report",
-                    "anonymise":False,
+                    KEY_ANONYMISE:False,
                     
                     #Table options
                     "query_table_content":False,
+                    KEY_MUTATIONS:False,
 
                     #Tree options
                     "tree_annotations": "lineage,country",
@@ -221,6 +222,7 @@ def arg_dict(config):
                 #tb group args
                 "query_table_content":"query_table_content",
                 "catchment_table_content":"catchment_table_content",
+                KEY_MUTATIONS:KEY_MUTATIONS,
 
                 #t group args
                 "tree_annotations":"tree_annotations",
@@ -273,7 +275,7 @@ def load_yaml(f):
     return input_config
 
 def return_path_keys():
-    return ["input_metadata","input_sequences","background_metadata","background_sequences","background_tree","background_snps","datadir","outdir",KEY_TEMPDIR]
+    return [KEY_INPUT_METADATA,KEY_INPUT_SEQUENCES,KEY_BACKGROUND_METADATA,KEY_BACKGROUND_SEQUENCES,KEY_BACKGROUND_TREE,KEY_BACKGROUND_SNPS,CIVET_DATADIR,KEY_OUTDIR,KEY_TEMPDIR]
 
 def setup_absolute_paths(path_to_file,value):
     return os.path.join(path_to_file,value)

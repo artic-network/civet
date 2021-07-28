@@ -8,6 +8,7 @@ from civet.report_functions import table_functions
 from civet.report_functions import timeline_functions
 from civet.report_functions import map_functions
 from civet.report_functions import global_report_functions
+from civet.utils.config import *
 
 def parse_preset_options(config):
     report_config = []
@@ -18,7 +19,7 @@ def parse_preset_options(config):
         "the_whole_shebang":"1,2,3,4,5,6,7", 
         "hold_the_sauce":"1,2"
         }
-    report_preset = config["report_preset"]
+    report_preset = config[KEY_REPORT_PRESET]
     if not type(report_preset) == list:
         report_preset = report_preset.split(" ")
     
@@ -37,10 +38,10 @@ def parse_preset_options(config):
             sys.exit(-1)
         else:
             report_config.append(valid_preset[preset_option])
-    config["report_content"] = report_config
+    config[KEY_REPORT_CONTENT] = report_config
 
 def qc_report_content(config):
-    reports = config["report_content"]
+    reports = config[KEY_REPORT_CONTENT]
     to_generate = []
     to_run = []
     for report_options in reports:
@@ -76,8 +77,8 @@ def qc_report_content(config):
         content_str = ", ".join([pretty_options[str(x)] for x in to_generate[0]])
         print(f"{content_str}")
         
-    config["report_content"] = to_run
-    config["reports"] = to_generate
+    config[KEY_REPORT_CONTENT] = to_run
+    config[KEY_REPORTS] = to_generate
 
 #then at some point we need to update the treefile with these display names using jclusterfunk
 
@@ -93,9 +94,9 @@ def parse_global_report_options(report_content,report_preset,report_column, anon
     """
 
     # if command line arg, overwrite config value
-    misc.add_arg_to_config("report_content",report_content,config)
-    misc.add_arg_to_config("report_preset",report_preset,config)
-    if config["report_preset"]:
+    misc.add_arg_to_config(KEY_REPORT_CONTENT,report_content,config)
+    misc.add_arg_to_config(KEY_REPORT_PRESET,report_preset,config)
+    if config[KEY_REPORT_PRESET]:
         parse_preset_options(config)
     qc_report_content(config)
 
@@ -152,7 +153,7 @@ def colour_checking(config):
         sys.exit(-1)
 
 def parse_tree_options(tree_annotations,max_tree_size, config):
-    misc.add_arg_to_config("tree_annotations",tree_annotations, config)
+    misc.add_arg_to_config(KEY_TREE_ANNOTATIONS,tree_annotations, config)
     misc.add_arg_to_config("max_tree_size",max_tree_size, config)
 
     try:
@@ -161,39 +162,41 @@ def parse_tree_options(tree_annotations,max_tree_size, config):
         sys.stderr(cyan(f"Error: `-mq/--max-tree-size` must be an integer."))
         sys.exit(-1)
 
-    if not type(config["tree_annotations"])==list:
-        config["tree_annotations"] = config["tree_annotations"].split(',')
+    if not type(config[KEY_TREE_ANNOTATIONS])==list:
+        config[KEY_TREE_ANNOTATIONS] = config[KEY_TREE_ANNOTATIONS].split(',')
 
-    for col in config["tree_annotations"]:
-        if col not in config["query_csv_header"]:
+    for col in config[KEY_TREE_ANNOTATIONS]:
+        if col not in config["query_csv_header"] and col not in config[KEY_MUTATIONS]:
             sys.stderr(cyan(f"Error: `{col}`` column not provided for tree annotations."))
             sys.exit(-1)
     
-    config["tree_annotations"] = " ".join(config["tree_annotations"])
+    config[KEY_TREE_ANNOTATIONS] = " ".join(config[KEY_TREE_ANNOTATIONS])
 
-def parse_optional_report_content(table_content, timeline_dates, timeline_group_column, colour_theme, colour_map, config):
+
+def parse_optional_report_content(table_content,mutations, timeline_dates, timeline_group_column, colour_theme, colour_map, config):
     #parse optional parts of report
     
+
     misc.add_arg_to_config("colour_theme",colour_theme,config)
     misc.add_arg_to_config("colour_map",colour_map,config)
 
     colour_checking(config)
 
-    if 1 in config['report_content']:
-        table_functions.parse_and_qc_table_cols(table_content, config)
-        printable_cols = ",".join(config["query_table_content"])
+    if 1 in config[KEY_REPORT_CONTENT]:
+        table_functions.parse_and_qc_table_cols(table_content,mutations, config)
+        printable_cols = ",".join(config[KEY_QUERY_TABLE_CONTENT])
         print(green("Metadata table will contain the following columns: ") + f"{printable_cols}")
 
-    if 5 in config['report_content']:
+    if 5 in config[KEY_REPORT_CONTENT]:
         timeline_functions.timeline_checking(timeline_dates, timeline_group_column, config)
 
 
 def parse_map_options(background_map_date_range, background_map_column, background_map_file, centroid_file, background_map_location, query_map_file, longitude_column, latitude_column, found_in_background_data, config):
 
-    if 6 in config['report_content']:
+    if 6 in config[KEY_REPORT_CONTENT]:
         map_functions.parse_background_map_options(background_map_file, centroid_file, background_map_date_range, background_map_column, background_map_location, found_in_background_data, config)
 
-    if 7 in config['report_content']:
+    if 7 in config[KEY_REPORT_CONTENT]:
         map_functions.parse_query_map(query_map_file,longitude_column, latitude_column, found_in_background_data, config)
 
 

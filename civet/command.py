@@ -115,7 +115,8 @@ Default: `the_usual`""")
     tb_group = parser.add_argument_group("Table options (report options 1 and 2)")
     tb_group.add_argument("--query-table-content", action='store', dest="query_table_content", help="Columns to include in the table for queries. Default: `<-bicol/--background-id_column>,<-bdate/--background_date_column>,source,lineage,country,catchment`")
     tb_group.add_argument("--catchment-table-content", action='store', dest="catchment_table_content", help="Columns to include in the summary table for catchments. Default: `count,country,lineage`")
-    
+    tb_group.add_argument("--mutations",action="store",dest="mutations",help="Comma separated string of mutations to type query sequences and display in query summary table.")
+
     tl_group = parser.add_argument_group("Timeline options (report option 5)")
     tl_group.add_argument("-tdate", "--timeline-dates", action='store', dest="timeline_dates", help="Data to generate a timeline as a comma separated string. Default: <-idate/--input-date-column>")
     tl_group.add_argument("-tgc", "--timeline-group-column", action='store', dest="timeline_group_column", help="Column to group sequences by to show as single lines on the timeline figures. Default: input_display_column")
@@ -204,7 +205,7 @@ Default: `the_usual`""")
     # Define what's going to go in the report and sort global report options 
     # stored under config = { "report_content": [1, 2, 3, 4], "reports": [1,2,3,4],[1,2]}
     name_dict = report_arg_parsing.parse_global_report_options(args.report_content,args.report_preset, args.input_display_column, args.anonymise, args.input_date_column, args.background_date_column, args.background_location_column, config)
-    report_arg_parsing.parse_optional_report_content(args.query_table_content, args.timeline_dates, args.timeline_group_column, args.colour_theme, args.colour_map, config)
+    report_arg_parsing.parse_optional_report_content(args.query_table_content,args.mutations, args.timeline_dates, args.timeline_group_column, args.colour_theme, args.colour_map, config)
     report_arg_parsing.parse_map_options(args.background_map_date_range, args.background_map_column, args.background_map_file, args.centroid_file, args.background_map_location, args.query_map_file, args.longitude_column, args.latitude_column, found_in_background_data, config)
     report_arg_parsing.parse_tree_options(args.tree_annotations,args.max_tree_size, config)
 
