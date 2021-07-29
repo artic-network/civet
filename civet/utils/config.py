@@ -23,7 +23,14 @@ KEY_TRIM_END="trim_end"
 # SEQ RELATED KEYS
 KEY_QUERY_FASTA="query_fasta"
 KEY_MATCHED_FASTA="matched_fasta"
+
+# COLUMN NAME KEYS
 KEY_HASH="hash"
+KEY_QUERY_BOOLEAN="query_boolean"
+KEY_QUERY="query"
+KEY_IN_TREE="in_tree"
+KEY_CATCHMENT="catchment"
+
 
 # BACKRGOUND VARIABLES KEYS
 CIVET_DATADIR="datadir"
@@ -46,6 +53,7 @@ KEY_TEMPDIR="tempdir"
 KEY_INPUT_PATH="input_path"
 KEY_CWD="cwd"
 KEY_OUTDIR="outdir"
+KEY_DATA_OUTDIR="data_outdir"
 
 # TABLE KEYS
 KEY_MUTATIONS="mutations"
