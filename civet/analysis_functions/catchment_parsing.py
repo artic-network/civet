@@ -203,7 +203,8 @@ def write_catchment_fasta(catchment_metadata,fasta,catchment_dir,config):
                 if row[KEY_QUERY_BOOLEAN] == "True":
                     catchment_dict[row["hash"]] = row[KEY_CATCHMENT]
                 else:
-                    catchment_dict[row[config[KEY_SEQUENCE_ID_COLUMN]]] = row[KEY_CATCHMENT]
+                    if row[KEY_IN_TREE] == "True":
+                        catchment_dict[row[config[KEY_SEQUENCE_ID_COLUMN]]] = row[KEY_CATCHMENT]
 
     seq_dict = collections.defaultdict(list)
     seq_count = 0
