@@ -163,8 +163,13 @@ def enrich_weights(column,field,factor,metadata):
         weight_list.append(weights[row[column]])
     return weight_list
 
-def downsample_catchment(catchment_metadata,size,strategy,column,background_column,field=None,factor=None):
+def downsample_catchment(catchment,catchment_metadata,size,strategy,column,background_column,field=None,factor=None):
     names = [row[background_column] for row in catchment_metadata]
+    if strategy == "enrich":
+        print(f"{catchment}: "+ green("Downsampling") + f" {(len(names))} " + green("sequences to") + f" {size} " + green("sequences with an ") + f"{strategy} " + green("strategy."))
+    else:
+        print(f"{catchment}: "+ green("Downsampling") + f" {(len(names))} " + green("sequences to") + f" {size} " + green("sequences with a ") + f"{strategy} " + green("strategy."))
+
     if strategy == "random":
         downsample = choice(names,size=size,replace=False)
     else:
@@ -283,37 +288,21 @@ def downsample_if_building_trees(in_csv, out_csv, config):
                         writer.writerow(new_row)
                 
                 for catchment in catchment_dict:
+                    # figure out how many seqs to downsample to per catchment
+                    target = config["catchment_background_size"]
 
-                    if catchment not in config["figure_catchments"]:
-                        # dont build tree
+                    if len(catchment_dict[catchment]) > target:
+                        # need to downsample
+                        downsample_metadata = downsample_catchment(catchment,catchment_dict[catchment],target,config["mode"],config["downsample_column"],config["sequence_id_column"],config["downsample_field"],config["factor"])
+                    else:
+                        # dont need to downsample
                         downsample_metadata = []
+                        print(f"{catchment}: "+ green("No need to downsample, catchment has ") + f"{len(catchment_dict[catchment])} " + green("sequences."))
                         for row in catchment_dict[catchment]:
                             new_row = row
-                            new_row["in_tree"] = "False"
+                            new_row["in_tree"] = "True"
                             downsample_metadata.append(new_row)
                             #write out the new info for non queries
-                    else:                        
-                        downsample = False
-                        # figure out how many seqs to downsample to per catchment
-                        target = config["catchment_background_size"]
-
-                        # if len(catchment_dict[catchment]) > config["catchment_background_size"]:
-                        #     print(cyan(f'Warning: number of queries in {catchment} (n={query_counter[catchment]}) exceeds the maximum catchment size of {config["catchment_background_size"]}.\nPlease be aware tree building may take longer than expected.'))
-                            
-                        if len(catchment_dict[catchment]) > target:
-                            downsample = True
-
-                        if downsample == True:
-                            # need to downsample
-                            downsample_metadata = downsample_catchment(catchment_dict[catchment],target,config["mode"],config["downsample_column"],config["sequence_id_column"],config["downsample_field"],config["factor"])
-                        else:
-                            # dont need to downsample
-                            downsample_metadata = []
-                            for row in catchment_dict[catchment]:
-                                new_row = row
-                                new_row["in_tree"] = "True"
-                                downsample_metadata.append(new_row)
-                                #write out the new info for non queries
 
                     for new_row in downsample_metadata:
                         writer.writerow(new_row)

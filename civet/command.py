@@ -201,7 +201,7 @@ Default: `the_usual`""")
     # merges the metadata to a master metadata
     # runs supplied fasta qc
     query_metadata, passed_qc_fasta, found_in_background_data = input_data_parsing.query_check_against_background_merge_input(config)
-    print("TEST MUTS", args.mutations, config["mutations"])
+
     # Define what's going to go in the report and sort global report options 
     # stored under config = { "report_content": [1, 2, 3, 4], "reports": [1,2,3,4],[1,2]}
     name_dict = report_arg_parsing.parse_global_report_options(args.report_content,args.report_preset, args.input_display_column, args.anonymise, args.input_date_column, args.background_date_column, args.background_location_column, config)
