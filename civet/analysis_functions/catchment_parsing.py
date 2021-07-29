@@ -6,6 +6,8 @@ from numpy.random import choice
 import sys
 from civet.utils.log_colours import green,cyan,red
 import os
+from civet.utils.config import *
+
 csv.field_size_limit(sys.maxsize)
 
 def add_to_hash(seq_file,seq_map,hash_map,records):
@@ -82,7 +84,7 @@ def get_merged_catchments(catchment_file,merged_catchment_file,config):
 
 def add_catchments_to_metadata(background_csv,query_metadata,query_metadata_with_catchments,catchment_dict,config):
     
-    config["query_csv_header"].append("query_boolean")
+    config["query_csv_header"].append(KEY_QUERY_BOOLEAN)
     
     if config["mutations"]:
         for mutation in config["mutations"]:
@@ -103,10 +105,10 @@ def add_catchments_to_metadata(background_csv,query_metadata,query_metadata_with
                     new_row = row
 
                     # query seqs excluded above
-                    new_row["query_boolean"] = "False"
+                    new_row[KEY_QUERY_BOOLEAN] = "False"
 
                     # add what catchment the sequence is in
-                    new_row["catchment"] = catchment_dict[new_row[config["sequence_id_column"]]]
+                    new_row[KEY_CATCHMENT] = catchment_dict[new_row[config["sequence_id_column"]]]
                     new_row[config["input_display_column"]] = new_row[config["sequence_id_column"]]
 
                     # check if it's got the headers from header in config, if not add them
@@ -124,7 +126,7 @@ def add_catchments_to_metadata(background_csv,query_metadata,query_metadata_with
             reader = csv.DictReader(f)
             for row in reader:
                 new_row = row
-                new_row["query_boolean"] = "True"
+                new_row[KEY_QUERY_BOOLEAN] = "True"
                 writer.writerow(new_row)
 
         for record in catchment_records:
@@ -184,9 +186,9 @@ def downsample_catchment(catchment,catchment_metadata,size,strategy,column,backg
     for row in catchment_metadata:
         new_row = row
         if row[background_column] in downsample:
-            new_row["in_tree"] = "True"
+            new_row[KEY_IN_TREE] = "True"
         else:
-            new_row["in_tree"] = "False"
+            new_row[KEY_IN_TREE] = "False"
         downsample_metadata.append(new_row)
 
     return downsample_metadata
@@ -197,11 +199,11 @@ def write_catchment_fasta(catchment_metadata,fasta,catchment_dir,config):
     with open(catchment_metadata,"r") as f:
         reader = csv.DictReader(f)
         for row in reader:
-            if row["catchment"] in config["figure_catchments"]:
-                if row["query_boolean"] == "True":
-                    catchment_dict[row["hash"]] = row["catchment"]
+            if row[KEY_CATCHMENT] in config["figure_catchments"]:
+                if row[KEY_QUERY_BOOLEAN] == "True":
+                    catchment_dict[row["hash"]] = row[KEY_CATCHMENT]
                 else:
-                    catchment_dict[row[config["sequence_id_column"]]] = row["catchment"]
+                    catchment_dict[row[config[KEY_SEQUENCE_ID_COLUMN]]] = row[KEY_CATCHMENT]
 
     seq_dict = collections.defaultdict(list)
     seq_count = 0
@@ -210,7 +212,7 @@ def write_catchment_fasta(catchment_metadata,fasta,catchment_dir,config):
             seq_count+=1
             seq_dict[catchment_dict[record.id]].append(record)
 
-    for record in SeqIO.parse(config["background_sequences"],"fasta"):
+    for record in SeqIO.parse(config[KEY_BACKGROUND_SEQUENCES],"fasta"):
         if seq_count != len(catchment_dict):
             if record.id in catchment_dict:
                 seq_dict[catchment_dict[record.id]].append(record)
@@ -237,14 +239,14 @@ def which_catchments_too_large(in_csv,config):
     with open(in_csv, "r") as f:
         reader = csv.DictReader(f)
         for row in reader:
-            if row["query_boolean"] == "True":
-                catchment_counter[row["catchment"]] +=1
+            if row[KEY_QUERY_BOOLEAN] == "True":
+                catchment_counter[row[KEY_CATCHMENT]] +=1
 
 
     with open(in_csv, "r") as f:
         reader = csv.DictReader(f)
         for row in reader:
-            catchment  = row["catchment"]
+            catchment  = row[KEY_CATCHMENT]
             if catchment_counter[catchment] <= int(config["max_tree_size"]):
                 figure_catchments.add(catchment)
 
@@ -257,7 +259,7 @@ def downsample_if_building_trees(in_csv, out_csv, config):
             reader = csv.DictReader(f)
             header = reader.fieldnames
             # in tree to header
-            header.append("in_tree")
+            header.append(KEY_IN_TREE)
 
             writer = csv.DictWriter(fw, fieldnames=header,lineterminator='\n')
             writer.writeheader()
@@ -266,25 +268,25 @@ def downsample_if_building_trees(in_csv, out_csv, config):
                 # if no tree, don't need to downsample- just write all true
                 for row in reader:
                     new_row= row
-                    new_row["in_tree"]="False"
+                    new_row[KEY_IN_TREE]="False"
                     writer.writerow(new_row)
             else:
                 # if going to build tree, see if need to downsample
                 catchment_dict = collections.defaultdict(list)
                 
                 for row in reader:
-                    if row["catchment"] in config["figure_catchments"]:
-                        if row["query_boolean"] == "True":
+                    if row[KEY_CATCHMENT] in config["figure_catchments"]:
+                        if row[KEY_QUERY_BOOLEAN] == "True":
                             new_row = row
-                            new_row["in_tree"]="True"
+                            new_row[KEY_IN_TREE]="True"
                             # write out the query metadata to file
                             writer.writerow(new_row)
                         else:
                             # categorise the metadata by catchment
-                            catchment_dict[row["catchment"]].append(row)
+                            catchment_dict[row[KEY_CATCHMENT]].append(row)
                     else:
                         new_row = row
-                        new_row["in_tree"]="False"
+                        new_row[KEY_IN_TREE]="False"
                         writer.writerow(new_row)
                 
                 for catchment in catchment_dict:
@@ -300,7 +302,7 @@ def downsample_if_building_trees(in_csv, out_csv, config):
                         print(f"{catchment}: "+ green("No need to downsample, catchment has ") + f"{len(catchment_dict[catchment])} " + green("sequences."))
                         for row in catchment_dict[catchment]:
                             new_row = row
-                            new_row["in_tree"] = "True"
+                            new_row[KEY_IN_TREE] = "True"
                             downsample_metadata.append(new_row)
                             #write out the new info for non queries
 
@@ -313,8 +315,8 @@ def which_trees_to_run(in_csv):
     with open(in_csv, "r") as f:
         reader = csv.DictReader(f)
         for row in reader:
-            if row["in_tree"] == "True":
-                catchment_counter[row["catchment"]] +=1
+            if row[KEY_IN_TREE] == "True":
+                catchment_counter[row[KEY_CATCHMENT]] +=1
     to_run = []
     for catchment in catchment_counter:
         if catchment_counter[catchment] != 0:
