@@ -182,7 +182,9 @@ def parse_optional_report_content(table_content,mutations, timeline_dates, timel
     colour_checking(config)
 
     if 1 in config[KEY_REPORT_CONTENT]:
+
         table_functions.parse_and_qc_table_cols(table_content,mutations, config)
+        print(KEY_QUERY_TABLE_CONTENT, config[KEY_QUERY_TABLE_CONTENT])
         printable_cols = ",".join(config[KEY_QUERY_TABLE_CONTENT])
         print(green("Metadata table will contain the following columns: ") + f"{printable_cols}")
 
