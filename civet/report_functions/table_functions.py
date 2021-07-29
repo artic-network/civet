@@ -8,7 +8,7 @@ def parse_mutations(config):
     if config[KEY_MUTATIONS]:
         if not type(config[KEY_MUTATIONS]) == list:
             config[KEY_MUTATIONS] = config[KEY_MUTATIONS].split(",")
-
+        print(config[KEY_MUTATIONS])
         for mutation in config[KEY_MUTATIONS]:
             if not ':' in mutation:
                 sys.stderr.write(cyan(f"Error: invalid mutation specified {mutation}\n"))
@@ -76,10 +76,6 @@ def sort_default_headers(input_fieldnames, background_fieldnames, config):
         if col: #deals with the date columns
             if col in (background_fieldnames or col in input_fieldnames) and col not in header_list: #so if eg the date columns are the same, they don't get added twice
                 header_list.append(col)
-
-    if config[KEY_MUTATIONS]:
-        for mutation in config[KEY_MUTATIONS]:
-            header_list.append(mutation)
 
     config[KEY_QUERY_TABLE_CONTENT] = header_list
 
