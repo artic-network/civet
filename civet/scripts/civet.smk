@@ -96,46 +96,6 @@ rule seq_brownie:
 
         config[KEY_QUERY_METADATA] = output.csv
         print(green("Query sequences collapsed from ") + f"{records}" +green(" to ") + f"{len(seq_map)}" + green(" unique sequences."))
-
-rule scorpio_type:
-    input:
-        fasta = rules.seq_brownie.output.fasta,
-        csv = rules.seq_brownie.output.csv
-    params:
-        muts = os.path.join(config[KEY_TEMPDIR],"scorpio","scorpio.mutations.csv")
-    output:
-        csv = os.path.join(config[KEY_TEMPDIR],"scorpio","scorpio.metadata.csv")
-    log: os.path.join(config[KEY_TEMPDIR],"scorpio","scorpio.log")
-    run:
-        if config[KEY_MUTATIONS]:
-            mutations = " ".join(config[KEY_MUTATIONS])
-            shell("scorpio haplotype -i {input.fasta:q} "
-                  f"--mutations {mutations} "
-                  "--append-genotypes -n mutations -o {params.muts:q} &> {log:q}"
-                  )
-
-            mut_dict = collections.defaultdict(dict)
-            with open(params.muts,"r") as f:
-                reader = csv.DictReader(f)
-                for row in reader:
-                    for mutation in config[KEY_MUTATIONS]:
-                        mut_dict[row["query"]][mutation]= row[mutation]
-
-            with open(output.csv,"w") as fw:
-                with open(input.csv,"r") as f:
-                    reader = csv.DictReader(f)
-                    header = reader.fieldnames
-                    for mutation in config[KEY_MUTATIONS]:
-                        header.append(mutation)
-                    writer = csv.DictWriter(fw, fieldnames=header,lineterminator='\n')
-                    writer.writeheader()
-                    for row in reader:
-                        new_row=row
-                        for mutation in config[KEY_MUTATIONS]:
-                            new_row[mutation] = mut_dict[new_row["hash"]][mutation]
-                        writer.writerow(new_row)
-        else:
-            shell("cp {input.csv:q} {output.csv:q}")
             
 
 """
@@ -169,7 +129,7 @@ rule find_catchment:
 rule merge_catchments:
     input:
         catchments = rules.find_catchment.output.catchments,
-        csv = rules.scorpio_type.output.csv
+        csv = rules.seq_brownie.output.csv
     output:
         yaml = os.path.join(config[KEY_OUTDIR],"config.yaml"),
         merged = os.path.join(config[KEY_TEMPDIR],"catchments","catchments_merged.csv"),
@@ -209,7 +169,7 @@ rule downsample_catchments:
     params:
         catchment_dir = os.path.join(config["data_outdir"],"catchments")
     output:
-        csv = os.path.join(config[KEY_OUTDIR],"master_metadata.csv")
+        csv = os.path.join(config[KEY_TEMPDIR],"catchments","catchment_metadata.csv")
     run:
         with open(input.yaml, 'r') as f:
             config_loaded = yaml.safe_load(f)
@@ -220,12 +180,38 @@ rule downsample_catchments:
             if not os.path.exists(params.catchment_dir):
                 os.mkdir(params.catchment_dir)
             catchment_parsing.write_catchment_fasta(output.csv,input.fasta,params.catchment_dir,config_loaded)
-        
+
+
+rule scorpio_type:
+    input:
+        snakefile = os.path.join(workflow.current_basedir,"scorpio_type.smk"),
+        yaml = os.path.join(config[KEY_OUTDIR],"config.yaml"),
+        fasta = rules.seq_brownie.output.fasta,
+        csv = rules.downsample_catchments.output.csv
+    params:
+        muts = os.path.join(config[KEY_TEMPDIR],"scorpio","scorpio.mutations.csv")
+    output:
+        csv = os.path.join(config[KEY_OUTDIR],"master_metadata.csv")
+    log: os.path.join(config[KEY_TEMPDIR],"scorpio","scorpio.log")
+    run:
+        if config[KEY_MUTATIONS]:
+            print(green("Running scorpio typing."))
+            # spawn off a side snakemake with catchment wildcard that types the mutations of interest per catchment
+            shell("snakemake --nolock --snakefile {input.snakefile:q} "
+                    "--forceall "
+                    "{config[log_string]} "
+                    "--directory {config[tempdir]:q} "
+                    "--configfile {input.yaml:q} "
+                    "--config fasta={input.fasta:q} csv={input.csv:q} "
+                    "--cores {workflow.cores} &> {log:q}")
+                    
+        else:
+            shell("cp {input.csv:q} {output.csv:q}")
 
 rule tree_building:
     input:
         yaml = rules.merge_catchments.output.yaml,
-        csv = rules.downsample_catchments.output.csv,
+        csv = rules.scorpio_type.output.csv,
         snakefile = os.path.join(workflow.current_basedir,"build_catchment_trees.smk")
     output:
         txt = os.path.join(config[KEY_TEMPDIR],"catchments","prompt.txt")
@@ -246,7 +232,7 @@ rule tree_building:
 rule snipit:
     input:
         yaml = rules.merge_catchments.output.yaml,
-        csv = rules.downsample_catchments.output.csv,
+        csv = rules.scorpio_type.output.csv,
         fasta = rules.seq_brownie.output.fasta,
         snakefile = os.path.join(workflow.current_basedir,"snipit_runner.smk")
     output:
@@ -268,7 +254,7 @@ rule snipit:
 
 rule render_report:
     input:
-        csv = rules.downsample_catchments.output.csv,
+        csv = rules.scorpio_type.output.csv,
         yaml = rules.merge_catchments.output.yaml,
         snipit = rules.snipit.output.txt,
         trees = rules.tree_building.output.txt
