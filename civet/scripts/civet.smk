@@ -184,7 +184,7 @@ rule downsample_catchments:
 
 rule scorpio_type:
     input:
-        snakefile = os.path.join(workflow.current_basedir,"scorpio_type.smk"),
+        snakefile = os.path.join(workflow.current_basedir,"scorpio_runner.smk"),
         yaml = os.path.join(config[KEY_OUTDIR],"config.yaml"),
         fasta = rules.seq_brownie.output.fasta,
         csv = rules.downsample_catchments.output.csv
