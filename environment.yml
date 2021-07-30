@@ -10,7 +10,7 @@ dependencies:
   - python=3.9
   - pip=21.2.1
   - snakemake-minimal
-  - cov-ert::jclusterfunk
+  - cov-ert::jclusterfunk>=0.0.25
   - gofasta>=0.0.5
   - pip:
     - git+https://github.com/cov-lineages/scorpio.git
