@@ -30,14 +30,14 @@ def parse_and_qc_table_cols(table_content,mutations, config):
     misc.add_arg_to_config(KEY_QUERY_TABLE_CONTENT,table_content,config)
     misc.add_arg_to_config(KEY_MUTATIONS,mutations,config)
 
-    if "input_metadata" in config:
-        with open(config["input_metadata"]) as f:
+    if KEY_INPUT_METADATA in config:
+        with open(config[KEY_INPUT_METADATA]) as f:
             reader = csv.DictReader(f)
             input_fieldnames = reader.fieldnames
     else:
         input_fieldnames = []
 
-    with open(config["background_metadata"]) as f:
+    with open(config[KEY_BACKGROUND_METADATA]) as f:
         reader = csv.DictReader(f)
         background_fieldnames = reader.fieldnames
 
@@ -61,7 +61,7 @@ def parse_and_qc_table_cols(table_content,mutations, config):
 
     parse_mutations(config)
 
-    config["fasta_table_content"] = [config[KEY_INPUT_DISPLAY_COLUMN],"seq_N_content","seq_length"]
+    config[KEY_FASTA_TABLE_CONTENT] = [config[KEY_INPUT_DISPLAY_COLUMN],"seq_N_content","seq_length"]
 
 
 def sort_default_headers(input_fieldnames, background_fieldnames, config):

@@ -199,7 +199,7 @@ def write_catchment_fasta(catchment_metadata,fasta,catchment_dir,config):
     with open(catchment_metadata,"r") as f:
         reader = csv.DictReader(f)
         for row in reader:
-            if row[KEY_CATCHMENT] in config["figure_catchments"]:
+            if row[KEY_CATCHMENT] in config[KEY_FIGURE_CATCHMENTS]:
                 if row[KEY_QUERY_BOOLEAN] == "True":
                     catchment_dict[row["hash"]] = row[KEY_CATCHMENT]
                 else:
@@ -248,10 +248,10 @@ def which_catchments_too_large(in_csv,config):
         reader = csv.DictReader(f)
         for row in reader:
             catchment  = row[KEY_CATCHMENT]
-            if catchment_counter[catchment] <= int(config["max_tree_size"]):
+            if catchment_counter[catchment] <= int(config[KEY_MAX_TREE_SIZE]):
                 figure_catchments.add(catchment)
 
-    config["figure_catchments"] = list(figure_catchments)
+    config[KEY_FIGURE_CATCHMENTS] = list(figure_catchments)
 
 
 def downsample_if_building_trees(in_csv, out_csv, config):
@@ -276,7 +276,7 @@ def downsample_if_building_trees(in_csv, out_csv, config):
                 catchment_dict = collections.defaultdict(list)
                 
                 for row in reader:
-                    if row[KEY_CATCHMENT] in config["figure_catchments"]:
+                    if row[KEY_CATCHMENT] in config[KEY_FIGURE_CATCHMENTS]:
                         if row[KEY_QUERY_BOOLEAN] == "True":
                             new_row = row
                             new_row[KEY_IN_TREE]="True"

@@ -16,14 +16,16 @@ from mako.exceptions import RichTraceback
 from io import StringIO
 import os
 
+from civet.utils.config import *
+
 def make_query_summary_data(metadata, config):
     query_summary_data = []
     with open(metadata, "r") as f:
         reader = csv.DictReader(f)
         for row in reader:
-            if row["query_boolean"] == "True":
+            if row[KEY_QUERY_BOOLEAN] == "True":
                 table_row = {}
-                for col in config["query_table_content"]:
+                for col in config[KEY_QUERY_TABLE_CONTENT]:
 
                     table_row[col] = row[col]
                     
@@ -41,7 +43,7 @@ def make_fasta_summary_data(metadata,config):
             if row["source"] == "input_fasta":
                 table_row = {}
 
-                for col in config["fasta_table_content"]:
+                for col in config[KEY_FASTA_TABLE_CONTENT]:
                     table_row[col] = row[col]
                 if row["qc_status"] == "Pass":
                     fasta_summary_pass.append(table_row)
@@ -88,20 +90,20 @@ def make_catchment_summary_data(metadata,catchments,config):
         reader = csv.DictReader(f)
 
         for row in reader:
-            catchment = row["catchment"]
-            if row['query_boolean'] == "True":
-                catchment_summary_dict[catchment]['query_count'] +=1
-            elif row["query_boolean"] == "False":
-                catchment = row["catchment"]
+            catchment = row[KEY_CATCHMENT]
+            if row[KEY_QUERY_BOOLEAN] == "True":
+                catchment_summary_dict[catchment]["query_count"] +=1
+            elif row[KEY_QUERY_BOOLEAN] == "False":
+                catchment = row[KEY_CATCHMENT]
 
                 catchment_summary_dict[catchment]['total'] +=1
 
-                if config["input_date_column"] in reader.fieldnames:
+                if config[KEY_INPUT_DATE_COLUMN] in reader.fieldnames:
                     for i in ['earliest_date','latest_date']:
                         if i not in catchment_summary_dict[catchment]:
                             catchment_summary_dict[catchment][i] = ''
 
-                    d = date.fromisoformat(row[config["input_date_column"]])
+                    d = date.fromisoformat(row[config[KEY_INPUT_DATE_COLUMN]])
                     check_earliest_latest_dates(d,catchment_summary_dict,catchment)
 
                 if config["background_location_column"] in reader.fieldnames:
@@ -177,25 +179,25 @@ def get_background_data(metadata,config):
     with open(metadata,"r") as f:
         reader = csv.DictReader(f)
         background_columns = []
-        for i in [config["input_display_column"],config["sequence_id_column"],"lineage",config["background_location_column"],config["background_date_column"],config["input_date_column"]]:
+        for i in [config[KEY_INPUT_DISPLAY_COLUMN],config[KEY_SEQUENCE_ID_COLUMN],"lineage",config[KEY_BACKGROUND_LOCATION_COLUMN],config[KEY_BACKGROUND_DATE_COLUMN],config[KEY_INPUT_DATE_COLUMN]]:
             if i in reader.fieldnames:
                 background_columns.append(i)
         for row in reader:
             data = {}
             for i in background_columns:
                 data[i] = row[i]
-            if row["query_boolean"] == "True":
+            if row[KEY_QUERY_BOOLEAN] == "True":
                 data["Query"] = "True"
-                background_data[row[config["input_display_column"]]] = data
+                background_data[row[config[KEY_INPUT_DISPLAY_COLUMN]]] = data
             else:
                 data["Query"] = "False"
-                background_data[row[config["input_display_column"]]] = data
+                background_data[row[config[KEY_INPUT_DISPLAY_COLUMN]]] = data
     data = json.dumps(background_data) 
     return data
 
 
 def define_report_content(metadata,catchments,figure_catchments,config):
-    report_content = config["report_content"]
+    report_content = config[KEY_REPORT_CONTENT]
     catchment_id = 0
     data_for_report = {}
     for catchment in catchments:
@@ -204,11 +206,11 @@ def define_report_content(metadata,catchments,figure_catchments,config):
         data_for_report[catchment]["catchmentID"]=f"catchment_{catchment_id}"
 
     if '1' in report_content:
-        data_for_report["query_summary_data"] = make_query_summary_data(metadata, config)
-        data_for_report["fasta_summary_pass"],data_for_report["fasta_summary_fail"] = make_fasta_summary_data(metadata, config)
+        data_for_report[KEY_QUERY_SUMMARY_DATA] = make_query_summary_data(metadata, config)
+        data_for_report[KEY_FASTA_SUMMARY_PASS],data_for_report[KEY_FASTA_SUMMARY_FAIL] = make_fasta_summary_data(metadata, config)
     else:
-        data_for_report["query_summary_data"] = ""
-        data_for_report["fasta_summary_pass"],data_for_report["fasta_summary_fail"] = "",""
+        data_for_report[KEY_QUERY_SUMMARY_DATA] = ""
+        data_for_report[KEY_FASTA_SUMMARY_PASS],data_for_report[KEY_FASTA_SUMMARY_FAIL] = "",""
     
     if '2' in report_content:
         catchment_summary_data = make_catchment_summary_data(metadata,catchments,config)
@@ -245,7 +247,7 @@ def define_report_content(metadata,catchments,figure_catchments,config):
     
     if '6' in report_content:
         data_for_report["background_map_data"] = get_background_map(config)
-        data_for_report["locations_wanted"] = config["background_map_location"]
+        data_for_report["locations_wanted"] = config[KEY_BACKGROUND_MAP_LOCATION]
         data_for_report = map_functions.get_location_information(config, data_for_report)
     else:
         data_for_report["background_map_data"] = ""
@@ -263,24 +265,24 @@ def make_report(metadata,report_to_generate,config):
     #need to call this multiple times if there are multiple reports wanted
 
     catchments = [f"catchment_{i}" for i in range(1,config["catchment_count"]+1)]
-    figure_catchments = config["figure_catchments"]
+    figure_catchments = config[KEY_FIGURE_CATCHMENTS]
     data_for_report = define_report_content(metadata,catchments,figure_catchments,config)
 
     background_data = get_background_data(metadata,config)
     
-    template_dir = os.path.abspath(os.path.dirname(config["report_template"]))
+    template_dir = os.path.abspath(os.path.dirname(config[KEY_REPORT_TEMPLATE]))
     mylookup = TemplateLookup(directories=[template_dir]) #absolute or relative works
 
-    mytemplate = Template(filename=config["report_template"], lookup=mylookup)
+    mytemplate = Template(filename=config[KEY_REPORT_TEMPLATE], lookup=mylookup)
     buf = StringIO()
 
     ctx = Context(buf, 
-                    date = config["date"], 
+                    date = config[KEY_DATE], 
                     version = __version__, 
                     catchments = catchments, 
-                    query_summary_data = data_for_report["query_summary_data"],
-                    fasta_summary_pass = data_for_report["fasta_summary_pass"],
-                    fasta_summary_fail = data_for_report["fasta_summary_fail"],
+                    query_summary_data = data_for_report[KEY_QUERY_SUMMARY_DATA],
+                    fasta_summary_pass = data_for_report[KEY_FASTA_SUMMARY_PASS],
+                    fasta_summary_fail = data_for_report[KEY_FASTA_SUMMARY_FAIL],
                     data_for_report = data_for_report,
                     background_data = background_data,
                     config=config)

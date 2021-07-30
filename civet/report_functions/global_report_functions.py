@@ -5,6 +5,7 @@ import os
 import random
 from civet.utils import misc
 from civet.utils.log_colours import green,cyan,red
+from civet.utils.config import *
 
 def sequence_name_parsing(report_column, anonymise, config):
     """
@@ -13,46 +14,46 @@ def sequence_name_parsing(report_column, anonymise, config):
     --anonymise (Default False)
     """
     # if command line arg, overwrite config value
-    misc.add_arg_to_config("input_display_column",report_column,config)
-    misc.add_arg_to_config("anonymise",anonymise,config)
+    misc.add_arg_to_config(KEY_INPUT_DISPLAY_COLUMN,report_column,config)
+    misc.add_arg_to_config(KEY_ANONYMISE,anonymise,config)
 
-    if config["anonymise"]:
+    if config[KEY_ANONYMISE]:
         name_dict = {}
-        if "input_metadata" in config:
-            name_dict = create_anon_ids_from_csv(config, config["input_metadata"])
-        elif "ids" in config:
-            name_dict = create_anon_ids_from_list(config["ids"])
+        if KEY_INPUT_METADATA in config:
+            name_dict = create_anon_ids_from_csv(config, config[KEY_INPUT_METADATA])
+        elif KEY_IDS in config:
+            name_dict = create_anon_ids_from_list(config[KEY_IDS])
 
-        config["input_display_column"] = "anon_names"
+        config[KEY_INPUT_DISPLAY_COLUMN] = "anon_names"
 
         return name_dict
 
-    elif config["input_display_column"]:
-        if "input_metadata" in config:
-            with open(config["input_metadata"]) as f:
+    elif config[KEY_INPUT_DISPLAY_COLUMN]:
+        if KEY_INPUT_METADATA in config:
+            with open(config[KEY_INPUT_METADATA]) as f:
                 reader = csv.DictReader(f)
-                if config["input_display_column"] not in reader.fieldnames:
-                    sys.stderr.write(cyan(f"Error: {config['input_display_column']} not found in input metadata file.\n") + "Please provide a column containing alternate sequence names, or use --anonymise if you would like civet to make them for you.\n")
+                if config[KEY_INPUT_DISPLAY_COLUMN] not in reader.fieldnames:
+                    sys.stderr.write(cyan(f"Error: {config[KEY_INPUT_DISPLAY_COLUMN]} not found in input metadata file.\n") + "Please provide a column containing alternate sequence names, or use --anonymise if you would like civet to make them for you.\n")
                     sys.exit(-1)
                 for row in reader:
-                    if '|' in row[config["input_display_column"]]:
-                        sys.stderr.write(cyan(f"Error: {config['input_display_column']} contains '|' characters.\n") + "Please remove and try again.\n")
+                    if '|' in row[config[KEY_INPUT_DISPLAY_COLUMN]]:
+                        sys.stderr.write(cyan(f"Error: {config[KEY_INPUT_DISPLAY_COLUMN]} contains '|' characters.\n") + "Please remove and try again.\n")
                         sys.exit(-1)
         else:
-            config["input_display_column"] = config["background_id_column"]
+            config[KEY_INPUT_DISPLAY_COLUMN] = config[KEY_BACKGROUND_ID_COLUMN]
 
     else:
-        config["input_display_column"] = config["input_id_column"]
+        config[KEY_INPUT_DISPLAY_COLUMN] = config[KEY_INPUT_ID_COLUMN]
 
     test_duplicates = []
-    if "input_metadata" in config:
-        with open(config["input_metadata"]) as f:
+    if KEY_INPUT_METADATA in config:
+        with open(config[KEY_INPUT_METADATA]) as f:
             reader = csv.DictReader(f)
             for row in reader:
-                if row[config["input_display_column"]] not in test_duplicates:
-                    test_duplicates.append(row[config["input_display_column"]])
+                if row[config[KEY_INPUT_DISPLAY_COLUMN]] not in test_duplicates:
+                    test_duplicates.append(row[config[KEY_INPUT_DISPLAY_COLUMN]])
                 else:
-                    sys.stderr.write(cyan(f"Error: {row[config['input_display_column']]} in input metadata twice. Please ensure unique IDs are used. To present these sequences together on the timeline, use the -tgc/--timeline-group-column argument\n"))
+                    sys.stderr.write(cyan(f"Error: {row[config[KEY_INPUT_DISPLAY_COLUMN]]} in input metadata twice. Please ensure unique IDs are used. To present these sequences together on the timeline, use the -tgc/--timeline-group-column argument\n"))
                     sys.exit(-1)
     return
 
@@ -65,7 +66,7 @@ def create_anon_ids_from_csv(config, metadata): #the names need to be swapped ou
     with open(metadata) as f:
         reader = csv.DictReader(f)
         for row in reader:
-            name_list.append(row[config["input_id_column"]])
+            name_list.append(row[config[KEY_INPUT_ID_COLUMN]])
 
     random.shuffle(name_list)
 
@@ -89,11 +90,11 @@ def create_anon_ids_from_list(input_list):
 
 def write_anon_names_to_file(config, name_dict):
 
-    new_metadata = os.path.join(config["tempdir"], "query_metadata.anonymised.master.csv")
+    new_metadata = os.path.join(config[KEY_TEMPDIR], "query_metadata.anonymised.master.csv")
 
-    misc.add_col_to_metadata(config["input_display_column"],name_dict, config["query_metadata"], new_metadata, config["input_id_column"], config)
+    misc.add_col_to_metadata(config[KEY_INPUT_DISPLAY_COLUMN],name_dict, config[KEY_QUERY_METADATA], new_metadata, config[KEY_INPUT_ID_COLUMN], config)
 
-    config["query_metadata"] = new_metadata
+    config[KEY_QUERY_METADATA] = new_metadata
 
 def qc_date_col(column_arg, config, metadata, metadata_name, cl_arg):
 
@@ -122,29 +123,29 @@ def parse_date_args(date_column, background_date_column, config):
     --background-date-column (default: False, and then the same as date_column if none provided)
     """
 
-    misc.add_arg_to_config("input_date_column", date_column, config)
-    misc.add_arg_to_config("background_date_column", background_date_column, config)
+    misc.add_arg_to_config(KEY_INPUT_DATE_COLUMN, date_column, config)
+    misc.add_arg_to_config(KEY_BACKGROUND_DATE_COLUMN, background_date_column, config)
 
-    if "input_metadata" in config:
-        if not config["input_date_column"]:
-            with open(config["input_metadata"]) as f:
+    if KEY_INPUT_METADATA in config:
+        if not config[KEY_INPUT_DATE_COLUMN]:
+            with open(config[KEY_INPUT_METADATA]) as f:
                 reader = csv.DictReader(f)
                 if "sample_date" in reader.fieldnames:
-                    config["input_date_column"] = "sample_date"
+                    config[KEY_INPUT_DATE_COLUMN] = "sample_date"
         
-    if "input_metadata" in config and config["input_date_column"]: #so this will also scoop in "sample_date" assigned above
-        qc_date_col("input_date_column", config, config["input_metadata"], "input", "-idate/--input-date-column")
+    if KEY_INPUT_METADATA in config and config[KEY_INPUT_DATE_COLUMN]: #so this will also scoop in "sample_date" assigned above
+        qc_date_col(KEY_INPUT_DATE_COLUMN, config, config[KEY_INPUT_METADATA], "input", "-idate/--input-date-column")
 
-    if not config["background_date_column"]:
-        with open(config["background_metadata"]) as f:
+    if not config[KEY_BACKGROUND_DATE_COLUMN]:
+        with open(config[KEY_BACKGROUND_METADATA]) as f:
                 reader = csv.DictReader(f)
                 if "sample_date" in reader.fieldnames:
-                    config["background_date_column"] = "sample_date"
-                elif config["input_date_column"] and config["input_date_column"] in reader.fieldnames:
-                    config["background_date_column"] = config["input_date_column"]
+                    config[KEY_BACKGROUND_DATE_COLUMN] = "sample_date"
+                elif config[KEY_INPUT_DATE_COLUMN] and config[KEY_INPUT_DATE_COLUMN] in reader.fieldnames:
+                    config[KEY_BACKGROUND_DATE_COLUMN] = config[KEY_INPUT_DATE_COLUMN]
 
-    if config["background_date_column"]:
-        qc_date_col("background_date_column", config, config["background_metadata"], "background", "-bdate/--background-date-column")
+    if config[KEY_BACKGROUND_DATE_COLUMN]:
+        qc_date_col(KEY_BACKGROUND_DATE_COLUMN, config, config[KEY_BACKGROUND_METADATA], "background", "-bdate/--background-date-column")
 
 
 def parse_location(location_column, config):
@@ -153,16 +154,16 @@ def parse_location(location_column, config):
     --location_column (default: country)
     """
 
-    misc.add_arg_to_config("background_location_column", location_column, config)
+    misc.add_arg_to_config(KEY_BACKGROUND_LOCATION_COLUMN, location_column, config)
 
-    with open(config["background_metadata"]) as f:
+    with open(config[KEY_BACKGROUND_METADATA]) as f:
         reader = csv.DictReader(f)
         headers = reader.fieldnames
      
-        if config["background_location_column"]:
-            if config["background_location_column"] not in headers:
-                sys.stderr.write(cyan(f"Error: {config['background_location_column']} column not found in background metadata file. Please specify which column to match with -loc/--location`\n"))
+        if config[KEY_BACKGROUND_LOCATION_COLUMN]:
+            if config[KEY_BACKGROUND_LOCATION_COLUMN] not in headers:
+                sys.stderr.write(cyan(f"Error: {config[KEY_BACKGROUND_LOCATION_COLUMN]} column not found in background metadata file. Please specify which column to match with -loc/--location`\n"))
                 sys.exit(-1)
         else:
             if "country" in headers:
-                config["background_location_column"] = "country"
+                config[KEY_BACKGROUND_LOCATION_COLUMN] = "country"

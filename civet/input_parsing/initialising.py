@@ -45,60 +45,60 @@ def get_defaults():
                     KEY_BACKGROUND_LOCATION_COLUMN:False, #default is country if present in the background csv
 
                     # Output options
-                    "output_prefix":"civet",
-                    "output_data":False,
-                    "datestamp":False,
-                    "no_temp":False,
-                    "overwrite":False,
+                    KEY_OUTPUT_PREFIX:"civet",
+                    KEY_OUTPUT_DATA:False,
+                    KEY_DATESTAMP:False,
+                    KEY_NO_TEMP:False,
+                    KEY_OVERWRITE:False,
 
                     # background data curation
                     KEY_BACKGROUND_DATA_OUTDIR:"civet_data",
                     KEY_PRIMARY_FIELD_DELIMTER:"|",
-                    "secondary_fields":False,
+                    KEY_SECONDARY_FIELDS:False,
                     KEY_SECONDARY_FIELD_DELIMTER:"/",
                     KEY_SECONDARY_FIELD_LOCATION:0,
                     KEY_PRIMARY_METADATA_FIELDS:"sequence_name,gisaid_id,sample_date",
                     KEY_SECONDARY_METADATA_FIELDS:"virus,country,sequence_id,year",
 
                     # catchment config
-                    "catchment_background_size":100,
-                    "snp_distance":False,
-                    "snp_distance_up":2,
-                    "snp_distance_down":2,
-                    "snp_distance_side":2,
-                    "collapse_threshold":1,
+                    KEY_CATCHMENT_BACKGROUND_SIZE:100,
+                    KEY_SNP_DISTANCE:False,
+                    KEY_SNP_DISTANCE_UP:2,
+                    KEY_SNP_DISTANCE_DOWN:2,
+                    KEY_SNP_DISTANCE_SIDE:2,
+                    KEY_COLLAPSE_THRESHOLD:1,
 
-                    "downsample":["mode=random"],
-                    "mode":False,
-                    "factor":False,
-                    "downsample_field":False,
-                    "downsample_column":False,                    
+                    KEY_DOWNSAMPLE:["mode=random"],
+                    KEY_MODE:False,
+                    KEY_FACTOR:False,
+                    KEY_DOWNSAMPLE_FIELD:False,
+                    KEY_DOWNSAMPLE_COLUMN:False,                    
 
                     #Report options
-                    "colour_theme": "#7178bc",
-                    "colour_map": "#86b0a6,#565b7b,#e9c46a,#e1998a,#d19c2c,#264653,#4888a3,#c77939,#b56576,#eb7e83,#F46D43,#9e2a2b,#84a98c",
+                    KEY_COLOUR_THEME: "#7178bc",
+                    KEY_COLOUR_MAP: "#86b0a6,#565b7b,#e9c46a,#e1998a,#d19c2c,#264653,#4888a3,#c77939,#b56576,#eb7e83,#F46D43,#9e2a2b,#84a98c",
                     KEY_REPORT_CONTENT:["1,2,3,4,5"],
                     KEY_REPORT_PRESET:False,
-                    "report_title":f"civet report",
+                    KEY_REPORT_TITLE:f"civet report",
                     KEY_ANONYMISE:False,
                     
                     #Table options
-                    "query_table_content":False,
+                    KEY_QUERY_TABLE_CONTENT:False,
                     KEY_MUTATIONS:[],
 
                     #Tree options
-                    "tree_annotations": "lineage,country",
-                    "max_tree_size":500,
+                    KEY_TREE_ANNOTATIONS: "lineage,country",
+                    KEY_MAX_TREE_SIZE:500,
 
                     #Timeline options
-                    "timeline_dates":False, #default is date_column or background_date_column if they are present
-                    "timeline_group_column":False, #default is input_display_column
+                    KEY_TIMELINE_DATES:False, #default is date_column or background_date_column if they are present
+                    KEY_TIMELINE_GROUP_COLUMN:False, #default is input_display_column
 
                     #Background map options
-                    "background_map_column":False, #default is location_column
-                    "background_map_location":False, #default is all valid locations in background metadata
-                    "background_map_file": False, #Same as above
-                    "centroid_file":False, #will select appropriate centroid file for provided jsons as default
+                    KEY_BACKGROUND_MAP_COLUMN:False, #default is location_column
+                    KEY_BACKGROUND_MAP_LOCATION:False, #default is all valid locations in background metadata
+                    KEY_BACKGROUND_MAP_FILE: False, #Same as above
+                    KEY_CENTROID_FILE:False, #will select appropriate centroid file for provided jsons as default
 
                     #Query map options
                     KEY_QUERY_MAP_FILE:False, #if UK, will find the geojson containing aggregated_adm2s, if global will find adm0 or adm1 geojson

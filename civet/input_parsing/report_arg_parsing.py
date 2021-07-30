@@ -124,7 +124,7 @@ def get_acceptable_colours(config):
 
     acceptable_colours = []
 
-    with open(config["html_colours"]) as f:
+    with open(config[KEY_HTML_COLOURS]) as f:
         reader = csv.DictReader(f)
         for row in reader:
             acceptable_colours.append(row["name"].lower())
@@ -134,7 +134,7 @@ def get_acceptable_colours(config):
 
 def colour_checking(config):
     acceptable_colours = get_acceptable_colours(config)
-    cmap = config["colour_map"]
+    cmap = config[KEY_COLOUR_MAP]
     if not type(cmap) == "list":
         if ',' in cmap:
             cmap = cmap.split(",")
@@ -147,17 +147,17 @@ def colour_checking(config):
             if not is_hex(cmap[0]) and colour.lower() not in acceptable_colours:
                 sys.stderr(cyan(f"Invalid colour code: ") + f"{cmap[0]}\nPlease provide a comma-separated string of HEX codes or see htmlcolorcodes.com/color-names for `-cmap/--colour-map`.\n")
                 sys.exit(-1)
-    config["colour_map"] = cmap
-    if not is_hex(config["colour_theme"]) and config["colour_theme"].lower() not in acceptable_colours:
-        sys.stderr(cyan(f"Invalid HEX colour code: ") + f"{config['colour_theme']}\nPlease provide a valid HEX code or see htmlcolorcodes.com/color-names for `-ct/--colour-theme`.\n")
+    config[KEY_COLOUR_MAP] = cmap
+    if not is_hex(config[KEY_COLOUR_THEME]) and config[KEY_COLOUR_THEME].lower() not in acceptable_colours:
+        sys.stderr(cyan(f"Invalid HEX colour code: ") + f"{config[KEY_COLOUR_THEME]}\nPlease provide a valid HEX code or see htmlcolorcodes.com/color-names for `-ct/--colour-theme`.\n")
         sys.exit(-1)
 
 def parse_tree_options(tree_annotations,max_tree_size, config):
     misc.add_arg_to_config(KEY_TREE_ANNOTATIONS,tree_annotations, config)
-    misc.add_arg_to_config("max_tree_size",max_tree_size, config)
+    misc.add_arg_to_config(KEY_MAX_TREE_SIZE,max_tree_size, config)
 
     try:
-        config["max_tree_size"] = int(config["max_tree_size"])
+        config[KEY_MAX_TREE_SIZE] = int(config[KEY_MAX_TREE_SIZE])
     except:
         sys.stderr(cyan(f"Error: `-mq/--max-tree-size` must be an integer."))
         sys.exit(-1)
@@ -166,7 +166,7 @@ def parse_tree_options(tree_annotations,max_tree_size, config):
         config[KEY_TREE_ANNOTATIONS] = config[KEY_TREE_ANNOTATIONS].split(',')
 
     for col in config[KEY_TREE_ANNOTATIONS]:
-        if col not in config["query_csv_header"] and col not in config[KEY_MUTATIONS]:
+        if col not in config[KEY_QUERY_CSV_HEADER] and col not in config[KEY_MUTATIONS]:
             sys.stderr(cyan(f"Error: `{col}`` column not provided for tree annotations."))
             sys.exit(-1)
     
@@ -176,8 +176,8 @@ def parse_tree_options(tree_annotations,max_tree_size, config):
 def parse_optional_report_content(table_content,mutations, timeline_dates, timeline_group_column, colour_theme, colour_map, config):
     #parse optional parts of report
     
-    misc.add_arg_to_config("colour_theme",colour_theme,config)
-    misc.add_arg_to_config("colour_map",colour_map,config)
+    misc.add_arg_to_config(KEY_COLOUR_THEME,colour_theme,config)
+    misc.add_arg_to_config(KEY_COLOUR_MAP,colour_map,config)
 
     colour_checking(config)
 

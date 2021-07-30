@@ -2,8 +2,9 @@ import os
 from Bio import SeqIO
 import csv
 import collections
+from civet.utils.config import *
 
-catchments = config["figure_catchments"]
+catchments = config[KEY_FIGURE_CATCHMENTS]
 
 rule all:
     input:

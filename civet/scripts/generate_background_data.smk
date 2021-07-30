@@ -23,8 +23,8 @@ def input_fasta_qc(input_fasta,output_fasta,output_notes,config):
     - Maximum ambiguities
     - Whether the records are duplicated
     """
-    minlen = config["min_length"]
-    maxambig = config["max_ambiguity"]
+    minlen = config[KEY_MIN_LENGTH]
+    maxambig = config[KEY_MAX_AMBIGUITY]
     passed_qc = 0
     with open(output_notes,"w") as fw2:
         fw2.write("sequence_header,N_count,proportion_N,seq_length,QC_status\n")

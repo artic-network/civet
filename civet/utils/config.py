@@ -31,7 +31,6 @@ KEY_QUERY="query"
 KEY_IN_TREE="in_tree"
 KEY_CATCHMENT="catchment"
 
-
 # BACKRGOUND VARIABLES KEYS
 CIVET_DATADIR="datadir"
 KEY_BACKGROUND_METADATA="background_metadata"
@@ -45,15 +44,17 @@ KEY_SEQUENCE_ID_COLUMN="sequence_id_column"
 KEY_BACKGROUND_DATE_COLUMN="background_date_column"
 KEY_BACKGROUND_LOCATION_COLUMN="background_location_column"
 
-# CATCHMENT KEYS
-KEY_CATCHMENT_COUNT="catchment_count"
-
-# DIRECTORIES
+# OUTPUT AND DIRECTORIES
 KEY_TEMPDIR="tempdir"
+KEY_NO_TEMP="no_temp"
 KEY_INPUT_PATH="input_path"
 KEY_CWD="cwd"
 KEY_OUTDIR="outdir"
 KEY_DATA_OUTDIR="data_outdir"
+KEY_OUTPUT_PREFIX="output_prefix"
+KEY_OUTPUT_DATA="output_data"
+KEY_DATESTAMP="datestamp"
+KEY_OVERWRITE="overwrite"
 
 # BACKGROUND CURATION KEYS
 KEY_UNALIGNED_SEQUENCES="unaligned_sequences"
@@ -65,12 +66,57 @@ KEY_SECONDARY_FIELD_DELIMTER="secondary_field_delimiter"
 KEY_SECONDARY_FIELD_LOCATION="secondary_field_location"
 KEY_SECONDARY_METADATA_FIELDS="secondary_metadata_fields"
 
+
+# CATCHMENT KEYS
+KEY_CATCHMENT_COUNT="catchment_count"
+KEY_FIGURE_CATCHMENTS="figure_catchments"
+KEY_CATCHMENT_BACKGROUND_SIZE="catchment_background_size"
+KEY_SNP_DISTANCE="snp_distance"
+KEY_SNP_DISTANCE_UP="snp_distance_up"
+KEY_SNP_DISTANCE_DOWN="snp_distance_down"
+KEY_SNP_DISTANCE_SIDE="snp_distance_side"
+KEY_COLLAPSE_THRESHOLD="collapse_threshold"
+
+KEY_DOWNSAMPLE="downsample"
+KEY_MODE="mode"
+KEY_FACTOR="factor"
+KEY_DOWNSAMPLE_FIELD="downsample_field"
+KEY_DOWNSAMPLE_COLUMN="downsample_column"
+
+# REPORT KEYS
+KEY_COLOUR_THEME="colour_theme"
+KEY_COLOUR_MAP="colour_map"
+KEY_REPORT_CONTENT="report_content"
+KEY_OUTPUT_REPORTS="output_reports"
+KEY_REPORTS="reports"
+KEY_REPORT_PRESET="report_preset"
+KEY_REPORT_TITLE="report_title"
+KEY_ANONYMISE="anonymise"
+KEY_HTML_COLOURS="html_colours"
+KEY_REPORT_TEMPLATE="report_template"
+
+KEY_QUERY_SUMMARY_DATA="query_summary_data"
+KEY_FASTA_SUMMARY_PASS="fasta_summary_pass"
+KEY_FASTA_SUMMARY_FAIL="fasta_summary_fail"
+
 # TABLE KEYS
 KEY_MUTATIONS="mutations"
 KEY_QUERY_TABLE_CONTENT="query_table_content"
+KEY_FASTA_TABLE_CONTENT="fasta_table_content"
 
 # TREE KEYS
 KEY_TREE_ANNOTATIONS="tree_annotations"
+KEY_MAX_TREE_SIZE="max_tree_size"
+
+# TIMELINE KEYS
+KEY_TIMELINE_DATES="timeline_dates"
+KEY_TIMELINE_GROUP_COLUMN="timeline_group_column"
+
+# BACKGROUND MAP KEYS
+KEY_BACKGROUND_MAP_COLUMN="background_map_column"
+KEY_BACKGROUND_MAP_LOCATION="background_map_location"
+KEY_BACKGROUND_MAP_FILE="background_map_file"
+KEY_CENTROID_FILE="centroid_file"
 
 # QUERY MAP KEYS
 KEY_QUERY_MAP_FILE="query_map_file"
@@ -78,14 +124,8 @@ KEY_LATITUDE_COLUMN="latitude_column"
 KEY_LONGITUDE_COLUMN="longitude_column"
 KEY_BACKGROUND_MAP_DATE_RANGE="background_map_date_range"
 
-# REPORT KEYS
-KEY_REPORT_CONTENT="report_content"
-KEY_OUTPUT_REPORTS="output_reports"
-KEY_REPORTS="reports"
-KEY_REPORT_PRESET="report_preset"
 
 # MISC KEYS
-KEY_ANONYMISE="anonymise"
 KEY_VERBOSE="verbose"
 KEY_THREADS="threads"
 KEY_LOG_API="log_api"
