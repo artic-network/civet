@@ -119,10 +119,10 @@ rule generate_metadata:
         csv = os.path.join(config[KEY_BACKGROUND_DATA_OUTDIR],"background_metadata.csv")
     run:
         with open(output.csv,"w") as fw:
-            if config[KEY_SECONDARY_METADATA_FIELDS]:
+            if config[KEY_SECONDARY_FIELDS]:
                 header_string = "sequence_header,"+ config[KEY_PRIMARY_METADATA_FIELDS] + ',' + config[KEY_SECONDARY_METADATA_FIELDS]
             else:
-                header_string = config[KEY_PRIMARY_METADATA_FIELDS]
+                header_string = "sequence_header,"+config[KEY_PRIMARY_METADATA_FIELDS]
 
             header = header_string.split(",")
 
@@ -137,7 +137,7 @@ rule generate_metadata:
                 for col_name,field in zip(config[KEY_PRIMARY_METADATA_FIELDS].split(","),primary_fields):
                     row[col_name]=field
                 
-                if config[KEY_SECONDARY_METADATA_FIELDS]:
+                if config[KEY_SECONDARY_FIELDS]:
                     location = config[KEY_SECONDARY_FIELD_LOCATION]
                     secondary_info = primary_fields[location]
                     secondary_fields = secondary_info.split(config[KEY_SECONDARY_FIELD_DELIMTER])

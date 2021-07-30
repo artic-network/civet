@@ -47,7 +47,7 @@ def check_input_sequences(config):
             sys.stderr.write(cyan(f"Number of primary fields in sequence header does not match number of primary field names. Check delimiter and fields specified.\n")+f"Primary field names: {config[KEY_PRIMARY_METADATA_FIELDS]}\nPrimary field delimiter: {config[KEY_PRIMARY_FIELD_DELIMTER]}\n")
             sys.exit(-1)
 
-        if config[KEY_SECONDARY_METADATA_FIELDS]:
+        if config[KEY_SECONDARY_FIELDS]:
             try:
                 secondary_string = primary_fields[config[KEY_SECONDARY_FIELD_LOCATION]]
             except:
@@ -56,15 +56,16 @@ def check_input_sequences(config):
 
             secondary_fields = secondary_string.split(config[KEY_SECONDARY_FIELD_DELIMTER])
             if len(secondary_fields) != len(config[KEY_SECONDARY_METADATA_FIELDS].split(",")):
-                sys.stderr.write(cyan(f"Number of secondary fields in sequence header does not match number of secondary field names. Check delimiter and fields specified.\n")+f"Secondary field names: {config[KEY_SECONDARY_METADATA_FIELDS]}\Secondary field delimiter: {config[KEY_SECONDARY_FIELD_DELIMTER]}\n")
+                sys.stderr.write(cyan(f"Number of secondary fields in sequence header does not match number of secondary field names. Check delimiter and fields specified.\n")+f"Secondary field names: {config[KEY_SECONDARY_METADATA_FIELDS]}\nSecondary field delimiter: {config[KEY_SECONDARY_FIELD_DELIMTER]}\n")
                 sys.exit(-1)
 
 
-def parse_generate_background_args(generate_civet_background_data,background_data_outdir,primary_field_delimiter,primary_metadata_fields,secondary_field_delimiter,secondary_field_location,secondary_metadata_fields,config):
+def parse_generate_background_args(generate_civet_background_data,background_data_outdir,primary_field_delimiter,primary_metadata_fields,secondary_fields,secondary_field_delimiter,secondary_field_location,secondary_metadata_fields,config):
     misc.add_arg_to_config("generate_civet_background_data",generate_civet_background_data,config)
     misc.add_path_to_config(KEY_BACKGROUND_DATA_OUTDIR,background_data_outdir,config)
     misc.add_arg_to_config(KEY_PRIMARY_FIELD_DELIMTER,primary_field_delimiter,config)
     misc.add_arg_to_config(KEY_PRIMARY_METADATA_FIELDS,primary_metadata_fields,config)
+    misc.add_arg_to_config(KEY_SECONDARY_FIELDS,secondary_fields,config)
     misc.add_arg_to_config(KEY_SECONDARY_FIELD_DELIMTER,secondary_field_delimiter,config)
     misc.add_arg_to_config(KEY_SECONDARY_FIELD_LOCATION,secondary_field_location,config)
     misc.add_arg_to_config(KEY_SECONDARY_METADATA_FIELDS,secondary_metadata_fields,config)

@@ -85,6 +85,7 @@ def main(sysargs = sys.argv[1:]):
     dc_group.add_argument("--background-data-outdir",dest="background_data_outdir",action="store",help="Directory to output the civet background data. Default: `civet_data`")
     dc_group.add_argument("--primary-field-delimiter",dest="primary_field_delimiter",action="store",help="Primary sequence header field delimiter to create metadata file from. Default: `|`")
     dc_group.add_argument("--primary-metadata-fields",dest="primary_metadata_fields",action="store",help="Primary sequence header fields to create metadata file from. Default: `sequence_name,gisaid_id,sample_date`")
+    dc_group.add_argument("--secondary-fields",dest="secondary_fields",action="store_true",help="Parse header for secondary sequence fields to add to metadata file. Default: `False`")
     dc_group.add_argument("--secondary-field-delimiter",dest="secondary_field_delimiter",action="store",help="Secondary sequence header field delimiter to create metadata file from. Default: `/`")
     dc_group.add_argument("--secondary-field-location",dest="secondary_field_location",action="store",help="Secondary sequence header location within primary field list. Default: `0` (i.e. the first field)")
     dc_group.add_argument("--secondary-metadata-fields",dest="secondary_metadata_fields",action="store",help="Secondary sequence header fields to create metadata file from. Default: `virus,country,sequence_id,year`")
@@ -191,7 +192,7 @@ Default: `the_usual`""")
     data_install_checks.check_install(config)
     
     if args.generate_civet_background_data:
-        generate_background_parsing.parse_generate_background_args(args.generate_civet_background_data,args.background_data_outdir,args.primary_field_delimiter,args.primary_metadata_fields,args.secondary_field_delimiter,args.secondary_field_location,args.secondary_metadata_fields,config)
+        generate_background_parsing.parse_generate_background_args(args.generate_civet_background_data,args.background_data_outdir,args.primary_field_delimiter,args.primary_metadata_fields,args.secondary_fields,args.secondary_field_delimiter,args.secondary_field_location,args.secondary_metadata_fields,config)
         snakefile = data_install_checks.get_generator_snakefile(thisdir)
         if config[KEY_VERBOSE]:
             print(red("\n**** CONFIG ****"))
