@@ -8,7 +8,7 @@ def parse_mutations(config):
     if config[KEY_MUTATIONS]:
         if not type(config[KEY_MUTATIONS]) == list:
             config[KEY_MUTATIONS] = config[KEY_MUTATIONS].split(",")
-        print(config[KEY_MUTATIONS])
+
         for mutation in config[KEY_MUTATIONS]:
             if not ':' in mutation:
                 sys.stderr.write(cyan(f"Error: invalid mutation specified {mutation}\n"))
