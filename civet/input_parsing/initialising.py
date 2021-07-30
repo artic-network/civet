@@ -51,6 +51,14 @@ def get_defaults():
                     "no_temp":False,
                     "overwrite":False,
 
+                    # background data curation
+                    KEY_BACKGROUND_DATA_OUTDIR:"civet_data",
+                    KEY_PRIMARY_FIELD_DELIMTER:"|",
+                    KEY_SECONDARY_FIELD_DELIMTER:"/",
+                    KEY_SECONDARY_FIELD_LOCATION:0,
+                    KEY_PRIMARY_METADATA_FIELDS:"sequence_name,gisaid_id,sample_date",
+                    KEY_SECONDARY_METADATA_FIELDS:"virus,country,sequence_id,year",
+
                     # catchment config
                     "catchment_background_size":100,
                     "snp_distance":False,

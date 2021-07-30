@@ -22,6 +22,13 @@ def get_snakefile(thisdir):
         sys.exit(-1)
     return snakefile
 
+def get_generator_snakefile(thisdir):
+    snakefile = os.path.join(thisdir, 'scripts','generate_background_data.smk')
+    if not os.path.exists(snakefile):
+        sys.stderr.write(cyan(f'Error: cannot find Snakefile at {snakefile}\n Check installation\n'))
+        sys.exit(-1)
+    return snakefile
+
 def check_install(config):
     for resource in resources:
         package_data_check(resource[RESOURCE_KEY_FILENAME],resource[RESOURCE_KEY_DIRECTORY],resource[RESOURCE_KEY],config)

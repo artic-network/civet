@@ -7,6 +7,7 @@ from civet.input_parsing import data_arg_parsing
 from civet.input_parsing import analysis_arg_parsing
 from civet.input_parsing import input_data_parsing
 from civet.input_parsing import report_arg_parsing
+from civet.input_parsing import generate_background_parsing
 
 from civet.output_options import directory_setup
 from civet.report_functions import global_report_functions
@@ -62,8 +63,7 @@ def main(sysargs = sys.argv[1:]):
     d_group.add_argument("-bsnp","--background-snps",action="store",dest="background_snps",help="Optional SNP file for all background data. Civet will calculate this file if not supplied, which may take some time")
     d_group.add_argument("-bseq","--background-sequences", action="store", dest="background_sequences", help="Custom background sequence file for all background data. Sequence IDs should match the background metadata id column, or specify another column using <-biseq/--background-sequence-id>")
     d_group.add_argument("-bt","--background-tree", action="store", dest="background_tree", help="Custom background tree file for all background data. Tip names should match the background metadata background_column. *Coming soon*")
-    d_group.add_argument("--background-data-checks",dest="debug",action="store_true",help="Run checks on custom background data files, not run by default")
-
+    
     bc_group = parser.add_argument_group('Background column configuration')
     bc_group.add_argument("-bicol",'--background-id-column', action="store", dest="background_id_column",help="Column in background metadata to match with input IDs. Default: `sequence_name`")
     bc_group.add_argument("-sicol",'--sequence-id-column', action="store", dest="sequence_id_column",help="Column in background data to match with sequence IDs. Default: <-bicol/--background-id-column>")
@@ -78,6 +78,16 @@ def main(sysargs = sys.argv[1:]):
     o_group.add_argument('--output-data',action="store_true",help="Output intermediate data files to the output directory",dest="output_data")
     o_group.add_argument('-temp','--tempdir',action="store",help="Specify where you want the temp stuff to go. Default: `$TMPDIR`")
     o_group.add_argument("--no-temp",action="store_true",help="Output all intermediate files. For development/ debugging purposes",dest="no_temp")
+
+    dc_group = parser.add_argument_group('Background data curation')
+    dc_group.add_argument("-bd","--generate-civet-background-data",dest="generate_civet_background_data",action="store",help="A sequence file to create background metadata, alignment and SNP file from.")
+    dc_group.add_argument("--background-data-checks",dest="debug",action="store_true",help="Run checks on custom background data files, not run by default")
+    dc_group.add_argument("--background-data-outdir",dest="background_data_outdir",action="store",help="Directory to output the civet background data. Default: `civet_data`")
+    dc_group.add_argument("--primary-field-delimiter",dest="primary_field_delimiter",action="store",help="Primary sequence header field delimiter to create metadata file from. Default: `|`")
+    dc_group.add_argument("--primary-metadata-fields",dest="primary_metadata_fields",action="store",help="Primary sequence header fields to create metadata file from. Default: `sequence_name,gisaid_id,sample_date`")
+    dc_group.add_argument("--secondary-field-delimiter",dest="secondary_field_delimiter",action="store",help="Secondary sequence header field delimiter to create metadata file from. Default: `/`")
+    dc_group.add_argument("--secondary-field-location",dest="secondary_field_location",action="store",help="Secondary sequence header location within primary field list. Default: `0` (i.e. the first field)")
+    dc_group.add_argument("--secondary-metadata-fields",dest="secondary_metadata_fields",action="store",help="Secondary sequence header fields to create metadata file from. Default: `virus,country,sequence_id,year`")
 
     c_group = parser.add_argument_group("Catchment options")
     c_group.add_argument('-snpd','--snp-distance', type=int, action="store",dest="snp_distance",help="Define radius of catchment by number of SNPs from query. Default: `2`")
@@ -177,6 +187,28 @@ Default: `the_usual`""")
     init.misc_args_to_config(args.verbose,args.threads,args.civet_mode,config)
     init.set_up_verbosity(config)
 
+    # Checks access to package data and grabs the snakefile
+    data_install_checks.check_install(config)
+    
+    if args.generate_civet_background_data:
+        generate_background_parsing.parse_generate_background_args(args.generate_civet_background_data,args.background_data_outdir,args.primary_field_delimiter,args.primary_metadata_fields,args.secondary_field_delimiter,args.secondary_field_location,args.secondary_metadata_fields,config)
+        snakefile = data_install_checks.get_generator_snakefile(thisdir)
+        if config[KEY_VERBOSE]:
+            print(red("\n**** CONFIG ****"))
+            for k in sorted(config):
+                print(green(f" - {k}: ") + f"{config[k]}")
+            status = snakemake.snakemake(snakefile, printshellcmds=True, forceall=True, force_incomplete=True,
+                                        config=config, cores=config[KEY_THREADS],lock=False
+                                        )
+        else:
+            status = snakemake.snakemake(snakefile, printshellcmds=False, forceall=True,force_incomplete=True,
+                                        config=config, cores=config[KEY_THREADS],lock=False,quiet=True,log_handler=config[KEY_LOG_API]
+                                        )
+        if status: # translate "success" into shell exit code of 0
+            return 0   
+
+        return 1
+
     # Checks background data exists and is the right format.
     # Checks same number of records supplied for csv, fasta and (optional) SNP file. 
     data_arg_parsing.data_group_parsing(args.debug,args.datadir,args.background_metadata,args.background_snps,args.background_sequences,args.background_tree,args.background_id_column,args.sequence_id_column,config)
@@ -192,10 +224,8 @@ Default: `the_usual`""")
     input_arg_parsing.input_fasta_parsing(args.input_sequences,args.max_ambiguity,args.min_length,config)
 
     input_arg_parsing.from_metadata_parsing(config)
-    # Checks access to package data and grabs the snakefile
-    data_install_checks.check_install(config)
-    snakefile = data_install_checks.get_snakefile(thisdir)
 
+    snakefile = data_install_checks.get_snakefile(thisdir)
 
     # Checks there are records to run and matches them up from background or supplied fasta
     # merges the metadata to a master metadata

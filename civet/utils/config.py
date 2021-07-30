@@ -55,6 +55,15 @@ KEY_CWD="cwd"
 KEY_OUTDIR="outdir"
 KEY_DATA_OUTDIR="data_outdir"
 
+# BACKGROUND CURATION KEYS
+KEY_UNALIGNED_SEQUENCES="unaligned_sequences"
+KEY_BACKGROUND_DATA_OUTDIR="background_data_outdir"
+KEY_PRIMARY_FIELD_DELIMTER="primary_field_delimiter"
+KEY_PRIMARY_METADATA_FIELDS="primary_metadata_fields"
+KEY_SECONDARY_FIELD_DELIMTER="secondary_field_delimiter"
+KEY_SECONDARY_FIELD_LOCATION="secondary_field_location"
+KEY_SECONDARY_METADATA_FIELDS="secondary_metadata_fields"
+
 # TABLE KEYS
 KEY_MUTATIONS="mutations"
 KEY_QUERY_TABLE_CONTENT="query_table_content"
