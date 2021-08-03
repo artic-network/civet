@@ -26,6 +26,24 @@ thisdir = os.path.abspath(os.path.dirname(__file__))
 cwd = os.getcwd()
 today = date.today()
 
+END_FORMATTING = '\033[0m'
+BOLD = '\033[1m'
+UNDERLINE = '\033[4m'
+RED = '\033[31m'
+GREEN = '\033[32m'
+YELLOW = '\033[93m'
+CYAN = '\u001b[36m'
+DIM = '\033[2m'
+
+
+def get_global_snipit_snakefile(run_dir):
+    snakefile = os.path.join(run_dir, 'scripts','global_snipit.smk')
+    if not os.path.exists(snakefile):
+        sys.stderr.write(f'Error: cannot find Snakefile at {snakefile}\n Check installation\n')
+        sys.exit(-1)
+    return snakefile
+
+
 def main(sysargs = sys.argv[1:]):
 
     parser = argparse.ArgumentParser(add_help=False, prog = _program, 
@@ -69,6 +87,7 @@ def main(sysargs = sys.argv[1:]):
     report_group.add_argument("--table-fields", action="store", help="Fields to include in the table produced in the report. Query ID, name of sequence in tree and the local tree it's found in will always be shown", dest="table_fields")
     report_group.add_argument("--remove-snp-table", action="store_true", help="Include information about closest sequence in database in table. Default is False", dest="remove_snp_table")
     report_group.add_argument('--no-snipit', action="store_true",help="Don't run snipit graph", dest="no_snipit")
+    report_group.add_argument('--global_snipit', action="store_true", help="Create a global snipit figure for all focal sequences", dest="global_snipit")
     report_group.add_argument('--include-bars', action="store_true",help="Render barcharts in the output report", dest="include_bars")
     report_group.add_argument('--omit-appendix', action="store_true", help="Omit the appendix section. Default=False", dest="omit_appendix")
     report_group.add_argument('--omit-trees', action="store_true", help="Omit trees.", dest="omit_trees")
@@ -364,7 +383,18 @@ def main(sysargs = sys.argv[1:]):
 
     if args.generate_config:
         qcfunk.make_config_file("civet_config.yaml",config)
-    
+
+    if config["global_snipit"]:
+        qcfunk.add_arg_to_config("global_snipit", args.global_snipit, config)
+        global_snipit_snakefile = get_global_snipit_snakefile(thisdir)
+        status = snakemake.snakemake(global_snipit_snakefile, printshellcmds=True, forceall=True,
+                                     force_incomplete=True,
+
+                                     workdir=tempdir, config=config, cores=threads, lock=False)
+
+        if not status:
+            print(qcfunk.cyan(f"Error: Cluster civet did not successfully run"))
+            sys.exit(-1)
 
     """
     cluster civet checks
@@ -383,6 +413,7 @@ def main(sysargs = sys.argv[1:]):
         cfunk.configure_cluster(config)
 
         cluster_snakefile = qcfunk.get_cluster_snakefile(thisdir)
+
 
         if args.verbose:
             print("\n**** CONFIG ****")
@@ -410,7 +441,7 @@ def main(sysargs = sys.argv[1:]):
             sys.exit(0)
         else:
             config["query"] = cluster_csv
-        
+
     # find the master Snakefile
     snakefile = qcfunk.get_snakefile(thisdir)
 

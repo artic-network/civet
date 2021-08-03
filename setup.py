@@ -28,6 +28,7 @@ setup(name='civet',
       "civet/scripts/civet_template.pmd",
       "civet/scripts/parse_closest.py",
       "civet/scripts/mapping.py",
+      "civet/scripts/global_snipit.smk",
       "civet/scripts/civetfunks.py"],
       package_data={"civet":["data/*","data/headers/*","data/mapping_files/*","data/vega_templates/*"]},
       install_requires=[

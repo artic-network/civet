@@ -63,6 +63,7 @@ def get_defaults():
                     "date_fields":False,
                     "remote":False,
                     "no_snipit":False,
+                    "global_snipit": False,
                     "remove_snp_table":False,
                     "include_bars":False,
                     "omit_trees":False,
@@ -648,6 +649,10 @@ def report_group_to_config(args,config):
 
     ## no-snipit
     qcfunk.add_arg_to_config("no_snipit",args.no_snipit, config)
+
+    ## global snipit figures
+
+    qcfunk.add_arg_to_config("global_snipit", args.global_snipit, config)
 
     ## omit-trees
     qcfunk.add_arg_to_config("omit_trees", args.omit_trees, config)

@@ -226,6 +226,12 @@ if too_tall_trees != []:
 
 ```
 
+```python, name="global_snipit", echo=False, results='raw'
+if global_snipit:
+    print("""\n\n### Global snipit\n\nsnipit figure highlighting the SNP diversity among all focal input sequences relative to the reference""")
+    print(f"![]({figdir}/genome_graph_global_focal.png)")
+```
+
 ```python, name="tree_background", echo=False, include=False,  results='raw'
 if include_bars:
     print("""### Tree background\n\nThe following plots describe the data in the collapsed nodes in more detail.\nIf more than one """ + node_summary + """ was present, the bar chart describes the number of sequences present in each """ + node_summary + """. \nWhere there were 10 options or more, the largest 10 have been taken.""")
