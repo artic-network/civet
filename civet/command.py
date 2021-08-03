@@ -176,6 +176,8 @@ Default: `the_usual`""")
         sys.exit(0)
 
     dependency_checks.check_dependencies(dependency_list, module_list)
+    if args.mutations:
+        dependency_checks.check_scorpio_mutations(args.mutations)
     
     # Initialise config dict
     config = init.setup_config_dict(cwd,args.config)

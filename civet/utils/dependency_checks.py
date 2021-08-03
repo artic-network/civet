@@ -48,5 +48,22 @@ def check_dependencies(dependency_list, module_list):
     else:
         print(green("All dependencies satisfied."))
 
+def check_scorpio_mutations(comma_separated_mutations):
+    mutations = " ".join(comma_separated_mutations.split(","))
+    test_fasta = os.path.join("../tests/action_test_data/civet_test.fa")
+    command = "scorpio haplotype \
+                  -i %s \
+                  --mutations %s \
+                  --append-genotypes \
+                  -n mutations \
+                  --dry-run" % (test_fasta, mutations)
+    completed_process = subprocess.run(command, shell=True, stderr=subprocess.PIPE, stdout=subprocess.PIPE,
+                                           universal_newlines=True)
+    if completed_process.returncode != 0:
+        sys.stderr.write(cyan(
+            f'Error: Scorpio does not like your mutations\n%s' % completed_process.stderr))
+        sys.exit(-1)
+    else:
+        print(green("Scorpio mutations are in approved format."))
 
 # check_dependencies()

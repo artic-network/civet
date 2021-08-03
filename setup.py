@@ -17,7 +17,7 @@ setup(name='civet',
             "civet/scripts/scorpio_runner.smk",
             "civet/scripts/generate_background_data.smk"
             ],
-      package_data={"civet":["data/*","data/report_modules/*","data/map_data/*"]},
+      package_data={"civet":["data/*","data/report_modules/*","data/map_data/*","tests/action_test_data/*.fa"]},
       install_requires=[
             "biopython>=1.70",
             "mako>=1.1",
