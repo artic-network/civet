@@ -164,6 +164,13 @@ elif not_in_cog_number == 0 and cog_number != 0:
     df_cog = output
     print(f"**Table {table_count}**| Queries found in COG-UK database.\n")
     print(df_cog.to_markdown())
+    print("""\n\n""")
+```
+
+```python, name="query_sequence_snp_diversity", echo=False, results='raw'
+if global_snipit:
+    print("""\n\n### Query Sequence SNP diversity\n\n snipit figure highlighting the SNP diversity among all focal input sequences relative to the reference""")
+    print(f"![]({figdir}/genome_graph_global_focal.png)")
 ```
 
 ```python, name="make_trees", echo=False, include=False, figure=False
@@ -226,11 +233,6 @@ if too_tall_trees != []:
 
 ```
 
-```python, name="global_snipit", echo=False, results='raw'
-if global_snipit:
-    print("""\n\n### Global snipit\n\nsnipit figure highlighting the SNP diversity among all focal input sequences relative to the reference""")
-    print(f"![]({figdir}/genome_graph_global_focal.png)")
-```
 
 ```python, name="tree_background", echo=False, include=False,  results='raw'
 if include_bars:

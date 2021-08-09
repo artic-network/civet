@@ -73,6 +73,9 @@ def main(sysargs = sys.argv[1:]):
     data_group.add_argument("-uun","--your-user-name", action="store", help="Your CLIMB COG-UK username. Required if running with --remote flag", dest="uun")
     data_group.add_argument('--input-column', action="store",help="Column in input csv file to match with database. Default: name", dest="input_column")
     data_group.add_argument('--data-column', action="store",help="Option to search COG database for a different id type. Default: COG-UK ID", dest="data_column")
+    data_group.add_argument('--reference_name', action="store",
+                            help="Optional input for the reference name in the focal alignment. Default: Reference",
+                            dest="reference_name")
 
     report_group = parser.add_argument_group('report customisation')
     report_group.add_argument('-sc',"--sequencing-centre", action="store",help="Customise report with logos from sequencing centre.", dest="sequencing_centre")
