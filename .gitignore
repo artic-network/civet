@@ -2,3 +2,4 @@ build/
 civet.egg-info/
 dist/
 __pycache__/
+.idea/
