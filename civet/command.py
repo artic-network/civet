@@ -76,6 +76,8 @@ def main(sysargs = sys.argv[1:]):
     data_group.add_argument('--reference_name', action="store",
                             help="Optional input for the reference name in the focal alignment. Default: Reference",
                             dest="reference_name")
+    data_group.add_argument('--focal_alignment', action="store",
+                            help="Optional alignment of focal sequences for global snipit", dest="focal_alignment")
 
     report_group = parser.add_argument_group('report customisation')
     report_group.add_argument('-sc',"--sequencing-centre", action="store",help="Customise report with logos from sequencing centre.", dest="sequencing_centre")

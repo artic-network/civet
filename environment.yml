@@ -1,4 +1,4 @@
-name: civet_testing
+name: civet
 channels:
   - conda-forge
   - bioconda

@@ -64,6 +64,7 @@ def get_defaults():
                     "remote":False,
                     "no_snipit":False,
                     "global_snipit": False,
+                    "focal_alignment": "",
                     "reference_name": "Reference",
                     "remove_snp_table":False,
                     "include_bars":False,
