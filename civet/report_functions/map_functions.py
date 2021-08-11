@@ -453,6 +453,7 @@ def make_query_map_json(config):
                 per_seq_dict["longitude"] = l[long_col]
                 start_centre_lat = l[lat_col]
                 start_centre_long = l[long_col]
+                per_seq_dict["catchment"] = l['catchment']
                 
                 all_queries.append(per_seq_dict)
 

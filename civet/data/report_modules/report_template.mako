@@ -1535,6 +1535,14 @@ longitude = data_for_report[location]["centroids"][0]%>
                 "translate": [{"signal": "tx"}, {"signal": "ty"}]
               }
             ],
+            "scales":[
+              {
+                "name":"color",
+                "type":"ordinal",
+                "domain":{"data":"source_0", "field":"catchment"},
+                "range":"category"
+              }
+            ],
 
             "data": [
               {
@@ -1589,7 +1597,7 @@ longitude = data_for_report[location]["centroids"][0]%>
                   "update": {
                     "opacity": {"value": 0.7},
                     "tooltip": {"signal": "datum"},
-                    "fill": {"value": "#A6626F"},
+                    "fill":{"scale":"color","field":"catchment"},
                     "ariaRoleDescription": {"value": "circle"},
                     "description": {
                       "signal": "\"longitude: \" + (format(datum[\"longitude\"], \"\")) + \"; latitude: \" + (format(datum[\"latitude\"], \"\"))"
