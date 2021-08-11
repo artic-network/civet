@@ -1548,7 +1548,7 @@ longitude = data_for_report[location]["centroids"][0]%>
               },
               {
                 "name": "data_0",
-                "source": "background_data",
+                "source": "background_data"
               },
               {
                 "name": "data_1",
