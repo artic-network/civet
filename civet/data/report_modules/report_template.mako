@@ -1458,7 +1458,6 @@ longitude = data_for_report[location]["centroids"][0]%>
             "padding": 5,
             "width": 100,
             "height": 100,
-            "style": "cell",
 
           "signals": [
               { "name": "tx", "update": "width / 2" },
@@ -1548,7 +1547,7 @@ longitude = data_for_report[location]["centroids"][0]%>
               {
                 "name": "background_data",
                 "url": "${config['query_map_file']}",
-                "format": {"property": "features"}
+                "format": {"type": "topojson", "feature": "$config['topojson_feature_name']"}
               },
               {
                 "name": "source_0",

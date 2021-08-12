@@ -133,14 +133,15 @@ Default: `the_usual`""")
     tl_group.add_argument("-tgc", "--timeline-group-column", action='store', dest="timeline_group_column", help="Column to group sequences by to show as single lines on the timeline figures. Default: input_display_column")
 
     bm_group = parser.add_argument_group("Background map options (report option 6)")
-    bm_group.add_argument("-bmfile","--background-map-file", action="store", dest="background_map_file", help="JSON or GeoJSON containing polygons to plot background diversity on. Must be an online resource eg on a Github pages website.")
+    bm_group.add_argument("-bmfile","--background-map-file", action="store", dest="background_map_file", help="Topojson containing polygons to plot background diversity on. Must be an online resource eg on a Github pages website.")
     bm_group.add_argument("--centroid-file", action="store", dest="centroid_file", help="csv containing centroids matching locations in background_map_file. Must be provided if custom geojson/json is provided for background mapping. Headers must be location, latitude and longitude.")
     bm_group.add_argument("-bmloc,", "--background-map-location", action="store", dest="background_map_location", help="Comma separated list containing locations to show background lineage diversity for. Default is all locations at the appropriate administrative level.")
     bm_group.add_argument("-bmdr","--background-map-date-range", dest="background_map_date_range", action="store", help="Date range for mapping background lineage diversity. Can be an integer (number of days either side of queries to restrict to) or a date range, format='YYYY-MM-DD:YYYY-MM-DD'")
     bm_group.add_argument("-bmcol","--background-map-column", dest="background_map_column", action="store", help="Column in background metadata containing location to map background lineage diversity by.")
 
     qm_group = parser.add_argument_group("Query map options (report option 7)")
-    qm_group.add_argument("-qmfile","--query-map-file", action="store", dest="query_map_file", help="JSON or GeoJSON containing polygons to plot queries on. Must be an online resource eg on a Github pages website.")
+    qm_group.add_argument("-qmfile","--query-map-file", action="store", dest="query_map_file", help="Topojson containing polygons to plot queries on. Must be an online resource eg on a Github pages website.")
+    qm_group.add_argument("-topo_feat","--topojson-feature-name", action="store", dest="topojson_feature_name", help="Name of the feature object containing polygons in the topojson provided. Not required if using default map files.")
     qm_group.add_argument("-lat","--latitude-column", dest="latitude_column", action="store", help="Column containing latitude coordinate information to plot queries on a map")
     qm_group.add_argument("-long","--longitude-column", dest="longitude_column", action="store", help="Column containing longitude coordinate information to plot queries on a map")
 
@@ -239,7 +240,7 @@ Default: `the_usual`""")
     # stored under config = { "report_content": [1, 2, 3, 4], "reports": [1,2,3,4],[1,2]}
     name_dict = report_arg_parsing.parse_global_report_options(args.report_content,args.report_preset, args.input_display_column, args.anonymise, args.input_date_column, args.background_date_column, args.background_location_column, config)
     report_arg_parsing.parse_optional_report_content(args.query_table_content,args.mutations, args.timeline_dates, args.timeline_group_column, args.colour_theme, args.colour_map, config)
-    report_arg_parsing.parse_map_options(args.background_map_date_range, args.background_map_column, args.background_map_file, args.centroid_file, args.background_map_location, args.query_map_file, args.longitude_column, args.latitude_column, found_in_background_data, config)
+    report_arg_parsing.parse_map_options(args.background_map_date_range, args.background_map_column, args.background_map_file, args.centroid_file, args.background_map_location, args.query_map_file, args.topojson_feature_name, args.longitude_column, args.latitude_column, found_in_background_data, config)
     report_arg_parsing.parse_tree_options(args.tree_annotations,args.max_tree_size, config)
 
 

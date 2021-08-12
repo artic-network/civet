@@ -31,15 +31,15 @@ def parse_map_file_arg(arg_name, map_file_arg, config):
         else:
             map_string = response.text 
 
-        if not config[arg_name].endswith(".json") and not config[arg_name].endswith(".geojson"):
-            sys.stderr.write(cyan(f"{config[arg_name]} must be in the format of a geojson. You can use mapshaper.org to convert between file formats.\n"))
+        if not config[arg_name].endswith(".json") and not config[arg_name].endswith(".topojson"):
+            sys.stderr.write(cyan(f"{config[arg_name]} must be in the format of a topojson. You can use mapshaper.org to convert between file formats.\n"))
             sys.exit(-1)
     else:
         map_string = None
 
     return map_string
 
-def parse_query_map(query_map_file, longitude_column, latitude_column, found_in_background_data, config):
+def parse_query_map(query_map_file, topojson_feature_name, longitude_column, latitude_column, found_in_background_data, config):
     """
     parses map group arguments:
     --longitude_column (default=longitude)
@@ -113,15 +113,22 @@ def parse_query_map(query_map_file, longitude_column, latitude_column, found_in_
             sys.stderr.write(cyan(f"Error: no query with longitude and latitude information contained in the columns provided ({config['longitude_column'], config['latitude_column']}), so map cannot be produced.\n"))
             sys.exit(-1)
 
+        misc.add_arg_to_config("topojson_feature_name", topojson_feature_name,config)
         if config["query_map_file"]:
             parse_map_file_arg("query_map_file",query_map_file, config) #don't need to QC this because it doesn't matter what's in it if only the query map
+            if not config["topojson_feature_name"]:
+                sys.stderr.write(cyan("You have provided a custom topojson to map queries, but we also need what the features are called. This is the name that comes after the phrase 'objects:{' in the file. Please then specify it using --topojson_feature_name/-topo_feat.\n"))
+                sys.exit(-1)
         else:
             if config["civet_mode"] == "CLIMB":
                 map_file = "https://viralverity.github.io/civet_geo/uk_map.json"
+                feature_name = "uk_map"
             else:
                 map_file = "https://viralverity.github.io/civet_geo/adm0_global.json"
+                feature_name = "adm0_global"
             
             config["query_map_file"] = map_file
+            config["topojson_feature_name"] = feature_name
 
 
 def parse_background_map_options(background_map_file, centroid_file, background_map_date_range, background_map_column, background_map_location, found_in_background_metadata, config):
