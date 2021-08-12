@@ -1209,7 +1209,7 @@ start_text = data_for_report[location]["start_text"]%>
             {
               "name": "background_data",
               "url": "${config['background_map_file']}",
-              "format": {"property": "features", "type": "json"}
+              "format": {"type": "topojson", "feature": "${config['background_topojson_feature_name']}"}
             },
             {
               "name": "lineage_data",
@@ -1298,11 +1298,11 @@ longitude = data_for_report[location]["centroids"][0]%>
               "style": ["geoshape"],
               "from": {"data": "background_data"},
               "encode": {
-                "update": {
-                  "fill": {"value": null},
-                  "stroke": {"value": "black"},
-                  "ariaRoleDescription": {"value": "geoshape"}
-                }
+                "enter": {
+                    "strokeWidth": {"value": 0.2},
+                    "stroke": {"value": "white"},
+                    "fill": {"value": "lightgrey"}
+                  }
               },
               "transform": [{"type": "geoshape", "projection": "projection"}]
             }
@@ -1548,7 +1548,7 @@ longitude = data_for_report[location]["centroids"][0]%>
               {
                 "name": "background_data",
                 "url": "${config['query_map_file']}",
-                "format": {"type": "topojson", "feature": "${config['topojson_feature_name']}"}
+                "format": {"type": "topojson", "feature": "${config['query_topojson_feature_name']}"}
               },
               {
                 "name": "source_0",

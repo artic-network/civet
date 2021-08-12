@@ -192,13 +192,13 @@ def parse_optional_report_content(table_content,mutations, timeline_dates, timel
         timeline_functions.timeline_checking(timeline_dates, timeline_group_column, config)
 
 
-def parse_map_options(background_map_date_range, background_map_column, background_map_file, centroid_file, background_map_location, query_map_file, topojson_feature_name, longitude_column, latitude_column, found_in_background_data, config):
+def parse_map_options(background_map_date_range, background_map_column, background_map_file, centroid_file, background_map_location, query_map_file, longitude_column, latitude_column, found_in_background_data, config):
 
     if 6 in config[KEY_REPORT_CONTENT]:
         map_functions.parse_background_map_options(background_map_file, centroid_file, background_map_date_range, background_map_column, background_map_location, found_in_background_data, config)
 
     if 7 in config[KEY_REPORT_CONTENT]:
-        map_functions.parse_query_map(query_map_file, topojson_feature_name, longitude_column, latitude_column, found_in_background_data, config)
+        map_functions.parse_query_map(query_map_file, longitude_column, latitude_column, found_in_background_data, config)
 
 
 def find_pretty_report_options():

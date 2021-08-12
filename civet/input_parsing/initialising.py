@@ -102,7 +102,6 @@ def get_defaults():
 
                     #Query map options
                     KEY_QUERY_MAP_FILE:False, #if UK, will find the topojson containing aggregated_adm2s, if global will find adm0 or adm1 geojson
-                    KEY_QUERY_MAP_FEATURE:False,#will match to appropriate topojson file
                     KEY_LATITUDE_COLUMN:"latitude",
                     KEY_LONGITUDE_COLUMN:"longitude",
                     
@@ -264,8 +263,6 @@ def arg_dict(config):
                 "longitude_column":"longitude_column",
                 "query_map_file":"query_map_file",
                 "qmfile":"query_map_file",
-                "topojson_feature_name":"topojson_feature_name",
-                "topo_feat":"topojson_feature_name",
                 
                 # misc group args
                 "civet_mode":"civet_mode",

@@ -141,7 +141,6 @@ Default: `the_usual`""")
 
     qm_group = parser.add_argument_group("Query map options (report option 7)")
     qm_group.add_argument("-qmfile","--query-map-file", action="store", dest="query_map_file", help="Topojson containing polygons to plot queries on. Must be an online resource eg on a Github pages website.")
-    qm_group.add_argument("-topo_feat","--topojson-feature-name", action="store", dest="topojson_feature_name", help="Name of the feature object containing polygons in the topojson provided. Not required if using default map files.")
     qm_group.add_argument("-lat","--latitude-column", dest="latitude_column", action="store", help="Column containing latitude coordinate information to plot queries on a map")
     qm_group.add_argument("-long","--longitude-column", dest="longitude_column", action="store", help="Column containing longitude coordinate information to plot queries on a map")
 
@@ -240,7 +239,7 @@ Default: `the_usual`""")
     # stored under config = { "report_content": [1, 2, 3, 4], "reports": [1,2,3,4],[1,2]}
     name_dict = report_arg_parsing.parse_global_report_options(args.report_content,args.report_preset, args.input_display_column, args.anonymise, args.input_date_column, args.background_date_column, args.background_location_column, config)
     report_arg_parsing.parse_optional_report_content(args.query_table_content,args.mutations, args.timeline_dates, args.timeline_group_column, args.colour_theme, args.colour_map, config)
-    report_arg_parsing.parse_map_options(args.background_map_date_range, args.background_map_column, args.background_map_file, args.centroid_file, args.background_map_location, args.query_map_file, args.topojson_feature_name, args.longitude_column, args.latitude_column, found_in_background_data, config)
+    report_arg_parsing.parse_map_options(args.background_map_date_range, args.background_map_column, args.background_map_file, args.centroid_file, args.background_map_location, args.query_map_file, args.longitude_column, args.latitude_column, found_in_background_data, config)
     report_arg_parsing.parse_tree_options(args.tree_annotations,args.max_tree_size, config)
 
 
