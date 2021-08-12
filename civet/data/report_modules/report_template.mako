@@ -1547,7 +1547,7 @@ longitude = data_for_report[location]["centroids"][0]%>
               {
                 "name": "background_data",
                 "url": "${config['query_map_file']}",
-                "format": {"type": "topojson", "feature": "$config['topojson_feature_name']"}
+                "format": {"type": "topojson", "feature": "${config['topojson_feature_name']}"}
               },
               {
                 "name": "source_0",
@@ -1571,17 +1571,15 @@ longitude = data_for_report[location]["centroids"][0]%>
               }
             ],
             "marks": [
-              {
-                "name": "layer_0_marks",
+               {
+                "name":"layer_0_marks",
                 "type": "shape",
-                "clip": true,
-                "style": ["geoshape"],
-                "from": {"data": "data_0"},
+                "from": {"data": "background_data"},
                 "encode": {
-                  "update": {
-                    "fill": {"value": null},
-                    "stroke": {"value": "black"},
-                    "ariaRoleDescription": {"value": "geoshape"}
+                  "enter": {
+                    "strokeWidth": {"value": 0.2},
+                    "stroke": {"value": "white"},
+                    "fill": {"value": "lightgrey"}
                   }
                 },
                 "transform": [{"type": "geoshape", "projection": "projection"}]
