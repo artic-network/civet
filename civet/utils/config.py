@@ -120,6 +120,7 @@ KEY_CENTROID_FILE="centroid_file"
 
 # QUERY MAP KEYS
 KEY_QUERY_MAP_FILE="query_map_file"
+KEY_QUERY_MAP_FEATURE = "topojson_feature_name"
 KEY_LATITUDE_COLUMN="latitude_column"
 KEY_LONGITUDE_COLUMN="longitude_column"
 KEY_BACKGROUND_MAP_DATE_RANGE="background_map_date_range"

@@ -1448,6 +1448,7 @@ longitude = data_for_report[location]["centroids"][0]%>
         
         %if '7' in config["report_content"]:
         <%qmap_data = data_for_report["query_map_data"] %>
+        <% figure_count +=1 %>
         <div id="query_map" style="width:90%"></div>
         <script>
 			      var vSpec_qmap = {
