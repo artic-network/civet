@@ -29,7 +29,7 @@ def parse_map_file_arg(arg_name, map_file_arg, config):
             sys.stderr.write(cyan(f"Unable to access online resource for {config[arg_name]}. Please ensure you are connected to the internet and the path is valid.\n"))
             sys.exit(-1)
         else:
-            map_string = response.text 
+            map_string = map_file_arg
 
         if not config[arg_name].endswith(".json") and not config[arg_name].endswith(".topojson"):
             sys.stderr.write(cyan(f"{config[arg_name]} must be in the format of a topojson. You can use mapshaper.org to convert between file formats.\n"))
@@ -114,8 +114,8 @@ def parse_query_map(query_map_file, topojson_feature_name, longitude_column, lat
             sys.exit(-1)
 
         misc.add_arg_to_config("topojson_feature_name", topojson_feature_name,config)
-        if config["query_map_file"]:
-            parse_map_file_arg("query_map_file",query_map_file, config) #don't need to QC this because it doesn't matter what's in it if only the query map
+        map_file = parse_map_file_arg("query_map_file",query_map_file, config)         
+        if map_file:
             if not config["topojson_feature_name"]:
                 sys.stderr.write(cyan("You have provided a custom topojson to map queries, but we also need what the features are called. This is the name that comes after the phrase 'objects:{' in the file. Please then specify it using --topojson_feature_name/-topo_feat.\n"))
                 sys.exit(-1)
@@ -127,8 +127,8 @@ def parse_query_map(query_map_file, topojson_feature_name, longitude_column, lat
                 map_file = "https://viralverity.github.io/civet_geo/adm0_global.json"
                 feature_name = "adm0_global"
             
-            config["query_map_file"] = map_file
-            config["topojson_feature_name"] = feature_name
+        config["query_map_file"] = map_file
+        config["topojson_feature_name"] = feature_name
 
 
 def parse_background_map_options(background_map_file, centroid_file, background_map_date_range, background_map_column, background_map_location, found_in_background_metadata, config):
