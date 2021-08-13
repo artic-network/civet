@@ -1586,6 +1586,28 @@ longitude = data_for_report[location]["centroids"][0]%>
                 "transform": [{"type": "geoshape", "projection": "projection"}]
               },
               {
+                "name": "layer_2_marks",
+                "type": "symbol",
+                "clip": true,
+                "style": ["circle"],
+                "from": {"data": "data_1"},
+                "encode": {
+                  "update": {
+                    "opacity": {"value": 0.7},
+                    "tooltip": {"signal": "datum"},
+                    "fill":{"value":"black"},
+                    "ariaRoleDescription": {"value": "circle"},
+                    "description": {
+                      "signal": "\"longitude: \" + (format(datum[\"longitude\"], \"\")) + \"; latitude: \" + (format(datum[\"latitude\"], \"\"))"
+                    },
+                    "x": {"field": "layer_1_x"},
+                    "y": {"field": "layer_1_y"},
+                    "size": {"value": 15},
+                    "shape": {"value": "circle"}
+                  }
+                }
+              },
+              {
                 "name": "layer_1_marks",
                 "type": "symbol",
                 "clip": true,
