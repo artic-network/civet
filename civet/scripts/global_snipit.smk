@@ -98,6 +98,6 @@ rule snipit_all:
         os.path.join(config["outdir"],"report","figures","genome_graph_global_focal.png")
     shell:
         """
-        snipit {input.aln:q} -o {params.out_path} -l {input.names} -r $(grep "Reference" {input.names} | head -n 1 | cut -d, -f1) --sort-by-mutation-number --high-to-low
+        snipit {input.aln:q} -o {params.out_path} -l {input.names} -r $(grep "Reference" {input.names} | head -n 1 | cut -d, -f1)
         """
 

@@ -30,6 +30,5 @@ dependencies:
     - git+https://github.com/cov-ert/datafunk.git
     - git+https://github.com/cov-ert/reportfunk.git
     - git+https://github.com/cov-ert/clusterfunk.git
-    - git+https://github.com/matt-sd-watson/snipit.git
     - Cython==0.29.24
 
