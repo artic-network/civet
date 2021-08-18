@@ -4,60 +4,53 @@ from Bio import SeqIO
 import csv
 import collections
 
-if config["focal_alignment"]: 
-    rule all:
-        input:
-            os.path.join(config["tempdir"], "report", "global_snipit_labels.txt"),
-	    os.path.join(config["outdir"],"report","figures","genome_graph_global_focal.png")
+rule all:
+    input:
+        os.path.join(config["tempdir"], "report", "global_snipit_labels.txt"),
+	os.path.join(config["outdir"],"report","figures","genome_graph_global_focal.png"),
+        lambda wildcards: os.path.join(config["tempdir"],"all_focal.reference_mapped.sam") if not config["focal_alignment"] else [],
+        lambda wildcards: os.path.join(config["tempdir"],"all_focal.reference_mapped.fasta") if not config["focal_alignment"] else [],
+        lambda wildcards: os.path.join(config["tempdir"],"all_focal_aln.fasta") if not config["focal_alignment"] else []
 
-elif not config["focal_alignment"]: 
-    rule all:
-        input:
-            os.path.join(config["tempdir"], "report", "global_snipit_labels.txt"),
-	    os.path.join(config["outdir"],"report","figures","genome_graph_global_focal.png"),
-            os.path.join(config["tempdir"],"all_focal.reference_mapped.sam"),
-            os.path.join(config["tempdir"],"all_focal.reference_mapped.fasta"),
-            os.path.join(config["tempdir"],"all_focal_aln.fasta")
+rule minimap_all_focal: 
+    input:
+        focal = config["fasta"],
+        ref = config["reference_fasta"]
+    output: 
+        sam = os.path.join(config["tempdir"],"all_focal.reference_mapped.sam")
+    shell: 
+        """
+        minimap2 -a -x asm5 {input.ref:q} {input.focal:q} -o {output.sam:q}
+        """
 
-    rule minimap_all_focal: 
-        input:
-            focal = config["fasta"],
-            ref = config["reference_fasta"]
-        output: 
-            sam = os.path.join(config["tempdir"],"all_focal.reference_mapped.sam")
-        shell: 
-            """
-            minimap2 -a -x asm5 {input.ref:q} {input.focal:q} -o {output.sam:q}
-            """
+rule focal_sam_to_fasta: 
+    input: 
+        sam = rules.minimap_all_focal.output.sam,
+        reference = config["reference_fasta"]
+    output: 
+        fasta = os.path.join(config["tempdir"],"all_focal.reference_mapped.fasta")
+    shell: 
+        """
+        datafunk sam_2_fasta \
+        -s {input.sam:q} \
+        -r {input.reference:q} \
+        -o {output.fasta:q} \
+        --pad \
+        --log-inserts
+        """
 
-    rule focal_sam_to_fasta: 
-        input: 
-            sam = rules.minimap_all_focal.output.sam,
-            reference = config["reference_fasta"]
-        output: 
-            fasta = os.path.join(config["tempdir"],"all_focal.reference_mapped.fasta")
-        shell: 
-            """
-            datafunk sam_2_fasta \
-            -s {input.sam:q} \
-            -r {input.reference:q} \
-            -o {output.fasta:q} \
-            --pad \
-            --log-inserts
-            """
-
-    rule gather_focal_seqs: 
-        input: 
-            outgroup_fasta = config["outgroup_fasta"],
-            focal_align = rules.focal_sam_to_fasta.output.fasta
-        output: 
-            full_aln = os.path.join(config["tempdir"],"all_focal_aln.fasta")
-        run: 
-            with open(output.full_aln, "w") as handle: 
-                for record in SeqIO.parse(input.outgroup_fasta, "fasta"):
-                    handle.write(f">Reference\n{record.seq}\n")
-                for record in SeqIO.parse(input.focal_align, "fasta"):
-                    handle.write(f">{record.description}\n{record.seq}\n")
+rule gather_focal_seqs: 
+    input: 
+        outgroup_fasta = config["outgroup_fasta"],
+        focal_align = rules.focal_sam_to_fasta.output.fasta
+    output: 
+        full_aln = os.path.join(config["tempdir"],"all_focal_aln.fasta")
+    run: 
+        with open(output.full_aln, "w") as handle: 
+            for record in SeqIO.parse(input.outgroup_fasta, "fasta"):
+                handle.write(f">Reference\n{record.seq}\n")
+            for record in SeqIO.parse(input.focal_align, "fasta"):
+                handle.write(f">{record.description}\n{record.seq}\n")
 
 
 if not config["focal_alignment"]:
@@ -105,6 +98,6 @@ rule snipit_all:
         os.path.join(config["outdir"],"report","figures","genome_graph_global_focal.png")
     shell:
         """
-        snipit {input.aln:q} -o {params.out_path} -l {input.names} -r $(grep "Reference" {input.names} | head -n 1 | cut -d, -f1)
+        snipit {input.aln:q} -o {params.out_path} -l {input.names} -r $(grep "Reference" {input.names} | head -n 1 | cut -d, -f1) --sort-by-mutation-number --high-to-low
         """
 
