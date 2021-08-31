@@ -11,6 +11,9 @@ KEY_MAX_QUERIES="max_queries"
 KEY_INPUT_ID_COLUMN="input_id_column"
 KEY_INPUT_DATE_COLUMN="input_date_column"
 KEY_INPUT_DISPLAY_COLUMN="input_display_column"
+KEY_GLOBAL_SNIPIT="global_snipit"
+KEY_FOCAL_ALIGNMENT="focal_alignment"
+KEY_REFERENCE_NAME="reference_name"
 
 # INPUT SEQ OPTION KEYS
 KEY_INPUT_SEQUENCES="input_sequences"

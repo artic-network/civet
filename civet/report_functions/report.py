@@ -195,6 +195,14 @@ def get_background_data(metadata,config):
     data = json.dumps(background_data) 
     return data
 
+def get_global_snipit(data_for_report,config):
+    global_snipit_svg = ""
+    with open(os.path.join(config["tempdir"],"snipit", "global_snipit.svg"),"r") as f:
+        for l in f:
+            l = l.rstrip("\n")
+            global_snipit_svg+=f"{l}\n"
+    data_for_report["global_snipit_svg"] = global_snipit_svg
+
 
 def define_report_content(metadata,catchments,figure_catchments,config):
     report_content = config[KEY_REPORT_CONTENT]
@@ -257,6 +265,9 @@ def define_report_content(metadata,catchments,figure_catchments,config):
         data_for_report["query_map_data"] = get_query_map(config)
     else:
         data_for_report["query_map_data"] = ""
+
+    if config[KEY_GLOBAL_SNIPIT]:
+        get_global_snipit(data_for_report, config)
     
     return data_for_report
 
@@ -299,4 +310,4 @@ def make_report(metadata,report_to_generate,config):
     with open(report_to_generate, 'w') as fw:
         print(green("Generating: ") + f"{report_to_generate}")
         fw.write(buf.getvalue())
-    
+
