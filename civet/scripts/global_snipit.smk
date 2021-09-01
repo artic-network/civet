@@ -28,7 +28,7 @@ rule gather_focal_seqs:
 
 
 if not config["focal_alignment"]:
-    ALIGN = config["fasta"]
+    ALIGN = rules.gather_focal_seqs.output.full_aln
 else: 
     ALIGN = config["focal_alignment"]
 
@@ -39,7 +39,7 @@ rule get_all_sequence_names:
         seq_names = os.path.join(config["tempdir"], "snipit", "global_snipit_labels.txt")
 	
     params: 
-        ref_name = config[KEY_REFERENCE_SEQUENCE]
+        ref_name = config[KEY_REFERENCE_NAME]
     run:
         ref_done = "no"
        
