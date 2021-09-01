@@ -880,10 +880,10 @@
             ${data_for_report["global_snipit_svg"]}
             </div>
       <script type="text/javascript">
-        exportImageSVG("global_snipit_svg","global_snipit");
+        exportImageSVG("#global_snipit_svg","#global_snipit", "global_snipit_chart");
       </script>
       <script type="text/javascript">
-        exportImagePNG("global_snipit_png","global_snipit");
+        exportImagePNG("#global_snipit_png","#global_snipit", "global_snipit_chart");
       </script>
             <h3><strong>Figure ${figure_count}</strong> | snipit plot for all focal query sequences</h3>
             <hr>        
