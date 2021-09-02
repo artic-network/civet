@@ -821,7 +821,7 @@
                 } );
             </script>
 
-        %if 'fasta' in config:
+        %if 'query_fasta' in config:
     
           <h3><strong>Table 2 </strong> | Queries provided in fasta file</h3>
           <button class="accordion">Passed QC</button>
@@ -866,7 +866,7 @@
         <h2><a id = "header_${catchment}"></a>${catchment_name}</h2> 
         
         %if '2' in config["report_content"]:
-          %if 'fasta' in config:
+          %if 'query_fasta' in config:
             <h3><strong>Table ${2+int(catchment_name.split(" ")[1])}</strong> | Summary of ${catchment_name}</h3>
           %else:
             <h3><strong>Table ${1+int(catchment_name.split(" ")[1])}</strong> | Summary of ${catchment_name}</h3>
