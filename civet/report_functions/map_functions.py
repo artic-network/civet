@@ -16,6 +16,7 @@ def parse_map_file_arg(arg_name, map_file_arg, config):
     parses map group arguments:
     --background-map-file (default=UK_map if civet_mode == CLIMB, relevant level of world_map (ie adm0 or adm1) if not)
     --query-map-file
+    Also generates the feature name from the input map file if provided by user
     """
     misc.add_arg_to_config(arg_name, map_file_arg, config)
 
@@ -29,15 +30,21 @@ def parse_map_file_arg(arg_name, map_file_arg, config):
             sys.stderr.write(cyan(f"Unable to access online resource for {config[arg_name]}. Please ensure you are connected to the internet and the path is valid.\n"))
             sys.exit(-1)
         else:
-            map_string = response.text 
+            map_string = response.text
 
-        if not config[arg_name].endswith(".json") and not config[arg_name].endswith(".geojson"):
-            sys.stderr.write(cyan(f"{config[arg_name]} must be in the format of a geojson. You can use mapshaper.org to convert between file formats.\n"))
+        if not config[arg_name].endswith(".json") and not config[arg_name].endswith(".topojson"):
+            sys.stderr.write(cyan(f"{config[arg_name]} must be in the format of a topojson. You can use mapshaper.org to convert between file formats.\n"))
             sys.exit(-1)
+
+        geodata = json.loads(map_string)
+        feature_name = list(geodata['objects'].keys())[0]
+
     else:
         map_string = None
+        feature_name = None 
+        geodata = None
 
-    return map_string
+    return map_string, map_file_arg, feature_name, geodata
 
 def parse_query_map(query_map_file, longitude_column, latitude_column, found_in_background_data, config):
     """
@@ -113,18 +120,20 @@ def parse_query_map(query_map_file, longitude_column, latitude_column, found_in_
             sys.stderr.write(cyan(f"Error: no query with longitude and latitude information contained in the columns provided ({config['longitude_column'], config['latitude_column']}), so map cannot be produced.\n"))
             sys.exit(-1)
 
-        if config["query_map_file"]:
-            parse_map_file_arg("query_map_file",query_map_file, config) #don't need to QC this because it doesn't matter what's in it if only the query map
-        else:
+        map_string, map_file, feature_name, geodata = parse_map_file_arg("query_map_file",query_map_file, config)         
+        if not map_string:
             if config["civet_mode"] == "CLIMB":
                 map_file = "https://viralverity.github.io/civet_geo/uk_map.json"
+                feature_name = "uk_map"
             else:
                 map_file = "https://viralverity.github.io/civet_geo/adm0_global.json"
+                feature_name = "adm0_global"
             
-            config["query_map_file"] = map_file
+        config["query_map_file"] = map_file
+        config["query_topojson_feature_name"] = feature_name
 
 
-def parse_background_map_options(background_map_file, centroid_file, background_map_date_range, background_map_column, background_map_location, found_in_background_metadata, config):
+def parse_background_map_options(background_map_file,centroid_file, background_map_date_range, background_map_column, background_map_location, found_in_background_metadata, config):
 
     """
     parses map group arguments:
@@ -263,30 +272,28 @@ def qc_map_file_for_background_map(background_map_file, centroid_file,config):
     if config["verbose"]:
         print("Beginning checks for background map")
 
-    map_string = parse_map_file_arg("background_map_file", background_map_file, config)
+    map_string, map_file, feature_name, geodata = parse_map_file_arg("background_map_file", background_map_file, config)
     misc.add_arg_to_config("centroid_file", centroid_file, config)  #needs to happen here so we can check it exists if they have provided a custom map file
-
-    if config["background_map_file"]:
-
+    
+    if map_string:
         if not config["centroid_file"]:
             sys.stderr.write(cyan("You have provided a custom background map file, but not a csv containing centroids matching this file. Please provide a csv with the column headers location, longitude and latitude.\n"))
             sys.exit(-1)
 
-        geodata = json.loads(map_string)
-        
-        headers = geodata["features"][0]["properties"].keys()
+        headers = list(geodata['objects']['uk_map']['geometries'][0]['properties'].keys())
         
         if config["background_map_column"] not in headers:
             sys.stderr.write(cyan(f"{config['background_map_column']} not found in custom shapefile.\n"))
             sys.exit(-1)
         else:
             acceptable_locations = []
-            for item in geodata['features']:
-                acceptable_locations.append(item["properties"][config["background_map_column"]])
+            for item in geodata['objects']['uk_map']['geometries']:
+                acceptable_locations.append(item['properties'][config["background_map_column"]])
     
     else:
         if config["civet_mode"] == "CLIMB":
             map_file = "https://viralverity.github.io/civet_geo/uk_map.json"
+            feature_name = "uk_map"
             uk_cols = ["suggested_adm2_grouping", "adm1", "adm2"]
             if config["background_map_column"] not in uk_cols:
                 sys.stderr.write(cyan(f'{config["background_map_column"]} not in default UK map file.\n Options allowed are "suggested_adm2_grouping","adm1" or "adm2".  Alternatively, please provide a custom geojson containing this column to use it using -bmfile/--background-map-file\n'))
@@ -294,14 +301,17 @@ def qc_map_file_for_background_map(background_map_file, centroid_file,config):
         else: 
             if config["background_map_column"] == "adm1":
                 map_file = "https://viralverity.github.io/civet_geo/adm1_global.json"
+                feature_name = "adm1_global"
             elif config["background_map_column"] == "country" or config["background_map_column"] == "adm0":
                 map_file = "https://viralverity.github.io/civet_geo/adm0_global.json"
+                feature_name = "adm0_global"
             else:
                 sys.stderr.write(cyan(f"{config['background_map_column']} not in default map file. Please use country/adm0 or adm1 or provide your own shape file using -bmfile/--background-map-file\n"))
                 sys.exit(-1)
 
 
     config["background_map_file"] = map_file
+    config["background_topojson_feature_name"] = feature_name
 
 
 def check_locations(background_map_location,config):
@@ -453,6 +463,7 @@ def make_query_map_json(config):
                 per_seq_dict["longitude"] = l[long_col]
                 start_centre_lat = l[lat_col]
                 start_centre_long = l[long_col]
+                per_seq_dict["catchment"] = l['catchment']
                 
                 all_queries.append(per_seq_dict)
 

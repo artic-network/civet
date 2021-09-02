@@ -255,12 +255,36 @@ rule snipit:
             shell("touch {output.txt:q}")
 
 
+rule global_snipit:
+    input:
+        fasta = rules.align_to_reference.output.fasta,
+	yaml = rules.merge_catchments.output.yaml,
+	prompt = rules.snipit.output.txt,
+        snakefile = os.path.join(workflow.current_basedir,"global_snipit.smk")
+    output:
+        txt = os.path.join(config[KEY_TEMPDIR],"global_snipit","prompt.txt")
+    run:
+        if config[KEY_GLOBAL_SNIPIT]:
+            print(green("Running global snipit"))
+            # spawn off global snipit
+            shell("snakemake --nolock --snakefile {input.snakefile:q} "
+                    "--forceall "
+                    "{config[log_string]} "
+                    "--directory {config[tempdir]:q} "
+		    "--configfile {input.yaml:q} "
+                    "--config fasta={input.fasta:q} "
+                    "--cores {workflow.cores} && touch {output.txt:q}")
+        else:
+            shell("touch {output.txt:q}")
+
+
 rule render_report:
     input:
         csv = rules.scorpio_type.output.csv,
         yaml = rules.merge_catchments.output.yaml,
         snipit = rules.snipit.output.txt,
-        trees = rules.tree_building.output.txt
+        trees = rules.tree_building.output.txt,
+	global_snipit = rules.global_snipit.output.txt
     output:
         html = os.path.join(config[KEY_OUTDIR],config[KEY_OUTPUT_REPORTS][0])
     run:

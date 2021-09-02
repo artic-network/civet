@@ -859,8 +859,36 @@
             </table>
           </div>
         %endif
+	<% figure_count = 0 %>
+        %if config["global_snipit"]:
+	<h2>global snipit </h2>
+	<h3>SNP summary for all query sequences relative to the reference </h3>
+	<% figure_count +=1 %>
+        <br>
+        <button class="accordion">Export image</button>
+          <div class="panel">
+            <div class="row">
+              <div class="column">
+                <button id="global_snipit_svg">SVG</button>
+              </div>
+              <div class="column">
+                <button id="global_snipit_png">PNG</button>
+              </div>
+            </div>
+          </div>
+            <div id="global_snipit">
+            ${data_for_report["global_snipit_svg"]}
+            </div>
+      <script type="text/javascript">
+        exportImageSVG("#global_snipit_svg","#global_snipit", "global_snipit_chart");
+      </script>
+      <script type="text/javascript">
+        exportImagePNG("#global_snipit_png","#global_snipit", "global_snipit_chart");
+      </script>
+            <h3><strong>Figure ${figure_count}</strong> | snipit plot for all focal query sequences</h3>
+            <hr>        
+        %endif
   %endif
-    <% figure_count = 0 %>
     %for catchment in catchments:
         <% catchment_name = catchment.replace("_"," ").title() %>
         <h2><a id = "header_${catchment}"></a>${catchment_name}</h2> 
@@ -1209,7 +1237,7 @@ start_text = data_for_report[location]["start_text"]%>
             {
               "name": "background_data",
               "url": "${config['background_map_file']}",
-              "format": {"property": "features", "type": "json"}
+              "format": {"type": "topojson", "feature": "${config['background_topojson_feature_name']}"}
             },
             {
               "name": "lineage_data",
@@ -1298,11 +1326,11 @@ longitude = data_for_report[location]["centroids"][0]%>
               "style": ["geoshape"],
               "from": {"data": "background_data"},
               "encode": {
-                "update": {
-                  "fill": {"value": null},
-                  "stroke": {"value": "black"},
-                  "ariaRoleDescription": {"value": "geoshape"}
-                }
+                "enter": {
+                    "strokeWidth": {"value": 0.2},
+                    "stroke": {"value": "white"},
+                    "fill": {"value": "lightgrey"}
+                  }
               },
               "transform": [{"type": "geoshape", "projection": "projection"}]
             }
@@ -1448,6 +1476,7 @@ longitude = data_for_report[location]["centroids"][0]%>
         
         %if '7' in config["report_content"]:
         <%qmap_data = data_for_report["query_map_data"] %>
+        <% figure_count +=1 %>
         <div id="query_map" style="width:90%"></div>
         <script>
 			      var vSpec_qmap = {
@@ -1458,7 +1487,6 @@ longitude = data_for_report[location]["centroids"][0]%>
             "padding": 5,
             "width": 100,
             "height": 100,
-            "style": "cell",
 
           "signals": [
               { "name": "tx", "update": "width / 2" },
@@ -1535,12 +1563,20 @@ longitude = data_for_report[location]["centroids"][0]%>
                 "translate": [{"signal": "tx"}, {"signal": "ty"}]
               }
             ],
+            "scales":[
+              {
+                "name":"color",
+                "type":"ordinal",
+                "domain":{"data":"source_0", "field":"catchment"},
+                "range":"category"
+              }
+            ],
 
             "data": [
               {
                 "name": "background_data",
                 "url": "${config['query_map_file']}",
-                "format": {"property": "features"}
+                "format": {"type": "topojson", "feature": "${config['query_topojson_feature_name']}"}
               },
               {
                 "name": "source_0",
@@ -1548,7 +1584,7 @@ longitude = data_for_report[location]["centroids"][0]%>
               },
               {
                 "name": "data_0",
-                "source": "background_data",
+                "source": "background_data"
               },
               {
                 "name": "data_1",
@@ -1564,20 +1600,40 @@ longitude = data_for_report[location]["centroids"][0]%>
               }
             ],
             "marks": [
-              {
-                "name": "layer_0_marks",
+               {
+                "name":"layer_0_marks",
                 "type": "shape",
-                "clip": true,
-                "style": ["geoshape"],
-                "from": {"data": "data_0"},
+                "from": {"data": "background_data"},
                 "encode": {
-                  "update": {
-                    "fill": {"value": null},
-                    "stroke": {"value": "black"},
-                    "ariaRoleDescription": {"value": "geoshape"}
+                  "enter": {
+                    "strokeWidth": {"value": 0.2},
+                    "stroke": {"value": "white"},
+                    "fill": {"value": "lightgrey"}
                   }
                 },
                 "transform": [{"type": "geoshape", "projection": "projection"}]
+              },
+              {
+                "name": "layer_2_marks",
+                "type": "symbol",
+                "clip": true,
+                "style": ["circle"],
+                "from": {"data": "data_1"},
+                "encode": {
+                  "update": {
+                    "opacity": {"value": 0.7},
+                    "tooltip": {"signal": "datum"},
+                    "fill":{"value":"black"},
+                    "ariaRoleDescription": {"value": "circle"},
+                    "description": {
+                      "signal": "\"longitude: \" + (format(datum[\"longitude\"], \"\")) + \"; latitude: \" + (format(datum[\"latitude\"], \"\"))"
+                    },
+                    "x": {"field": "layer_1_x"},
+                    "y": {"field": "layer_1_y"},
+                    "size": {"value": 15},
+                    "shape": {"value": "circle"}
+                  }
+                }
               },
               {
                 "name": "layer_1_marks",
@@ -1589,7 +1645,7 @@ longitude = data_for_report[location]["centroids"][0]%>
                   "update": {
                     "opacity": {"value": 0.7},
                     "tooltip": {"signal": "datum"},
-                    "fill": {"value": "#A6626F"},
+                    "fill":{"scale":"color","field":"catchment"},
                     "ariaRoleDescription": {"value": "circle"},
                     "description": {
                       "signal": "\"longitude: \" + (format(datum[\"longitude\"], \"\")) + \"; latitude: \" + (format(datum[\"latitude\"], \"\"))"

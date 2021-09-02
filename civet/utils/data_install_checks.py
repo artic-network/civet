@@ -35,3 +35,11 @@ def check_install(config):
 
 # config={}
 # check_install()
+
+def get_global_snipit_snakefile(thisdir):
+    snakefile = os.path.join(thisdir, 'scripts','global_snipit.smk')
+    if not os.path.exists(snakefile):
+        sys.stderr.write(cyan(f'Error: cannot find Snakefile at {snakefile}\n Check installation\n'))
+        sys.exit(-1)
+    return snakefile
+

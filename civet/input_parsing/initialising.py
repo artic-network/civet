@@ -20,7 +20,10 @@ def get_defaults():
                     #input cols
                     KEY_INPUT_ID_COLUMN:"name",
                     KEY_INPUT_DATE_COLUMN:False, #default is sample_date if present in the input csv
-                    KEY_INPUT_DISPLAY_COLUMN: False,
+                    KEY_INPUT_DISPLAY_COLUMN:False,
+                    KEY_GLOBAL_SNIPIT: False,
+                    KEY_FOCAL_ALIGNMENT:"",
+                    KEY_REFERENCE_NAME:"reference",
 
                     # input seq options 
                     KEY_NUM_SEQS:0,
@@ -102,7 +105,7 @@ def get_defaults():
                     KEY_CENTROID_FILE:False, #will select appropriate centroid file for provided jsons as default
 
                     #Query map options
-                    KEY_QUERY_MAP_FILE:False, #if UK, will find the geojson containing aggregated_adm2s, if global will find adm0 or adm1 geojson
+                    KEY_QUERY_MAP_FILE:False, #if UK, will find the topojson containing aggregated_adm2s, if global will find adm0 or adm1 geojson
                     KEY_LATITUDE_COLUMN:"latitude",
                     KEY_LONGITUDE_COLUMN:"longitude",
                     
@@ -148,6 +151,9 @@ def arg_dict(config):
                 "from_metadata":"from_metadata",
                 "max_queries":"max_queries",
                 "mq":"max_queries",
+                "global_snipit": "global_snipit",
+                "focal_alignment": "focal_alignment",
+                "reference_name": "reference_name",
 
                 # ic group args
                 "icol":"input_id_column",

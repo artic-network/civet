@@ -15,7 +15,8 @@ setup(name='civet',
             "civet/scripts/build_catchment_trees.smk",
             "civet/scripts/snipit_runner.smk",
             "civet/scripts/scorpio_runner.smk",
-            "civet/scripts/generate_background_data.smk"
+            "civet/scripts/generate_background_data.smk",
+            "civet/scripts/global_snipit.smk"
             ],
       package_data={"civet":["data/*","data/report_modules/*","data/map_data/*","tests/action_test_data/*.fa"]},
       install_requires=[

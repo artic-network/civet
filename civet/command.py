@@ -45,6 +45,13 @@ def main(sysargs = sys.argv[1:]):
     i_group.add_argument('-f','--input-sequences', action="store",help="Optional fasta file. Sequence IDs must match to a query ID specified either in the input csv or ID string", dest="input_sequences")
     i_group.add_argument('-fm','--from-metadata',nargs='*', dest="from_metadata",help="Generate a query from the metadata file supplied. Define a search that will be used to pull out sequences of interest from the background data. Example: -fm country=Ireland sample_date=2020-03-01:2020-04-01")
     i_group.add_argument('-mq','--max-queries', type=int, action="store",dest="max_queries",help="Max number of queries. Default: `5000`")
+    i_group.add_argument('--global_snipit', action="store_true",
+                              help="Create a global snipit figure for all focal sequences", dest="global_snipit")
+    i_group.add_argument('--focal_alignment', action="store",
+                            help="Optional alignment of focal sequences for global snipit", dest="focal_alignment")
+    i_group.add_argument('--reference_name', action="store",
+                         help="Optional input for the reference name in the focal alignment. Default: Reference",
+                         dest="reference_name")
 
     ic_group = parser.add_argument_group('Input column configuration')
     ic_group.add_argument('-icol',"--input-id-column", action="store", dest="input_id_column",help="Column in input csv file to match with database. Default: `name`")
@@ -133,14 +140,14 @@ Default: `the_usual`""")
     tl_group.add_argument("-tgc", "--timeline-group-column", action='store', dest="timeline_group_column", help="Column to group sequences by to show as single lines on the timeline figures. Default: input_display_column")
 
     bm_group = parser.add_argument_group("Background map options (report option 6)")
-    bm_group.add_argument("-bmfile","--background-map-file", action="store", dest="background_map_file", help="JSON or GeoJSON containing polygons to plot background diversity on. Must be an online resource eg on a Github pages website.")
+    bm_group.add_argument("-bmfile","--background-map-file", action="store", dest="background_map_file", help="Topojson containing polygons to plot background diversity on. Must be an online resource eg on a Github pages website.")
     bm_group.add_argument("--centroid-file", action="store", dest="centroid_file", help="csv containing centroids matching locations in background_map_file. Must be provided if custom geojson/json is provided for background mapping. Headers must be location, latitude and longitude.")
     bm_group.add_argument("-bmloc,", "--background-map-location", action="store", dest="background_map_location", help="Comma separated list containing locations to show background lineage diversity for. Default is all locations at the appropriate administrative level.")
     bm_group.add_argument("-bmdr","--background-map-date-range", dest="background_map_date_range", action="store", help="Date range for mapping background lineage diversity. Can be an integer (number of days either side of queries to restrict to) or a date range, format='YYYY-MM-DD:YYYY-MM-DD'")
     bm_group.add_argument("-bmcol","--background-map-column", dest="background_map_column", action="store", help="Column in background metadata containing location to map background lineage diversity by.")
 
     qm_group = parser.add_argument_group("Query map options (report option 7)")
-    qm_group.add_argument("-qmfile","--query-map-file", action="store", dest="query_map_file", help="JSON or GeoJSON containing polygons to plot queries on. Must be an online resource eg on a Github pages website.")
+    qm_group.add_argument("-qmfile","--query-map-file", action="store", dest="query_map_file", help="Topojson containing polygons to plot queries on. Must be an online resource eg on a Github pages website.")
     qm_group.add_argument("-lat","--latitude-column", dest="latitude_column", action="store", help="Column containing latitude coordinate information to plot queries on a map")
     qm_group.add_argument("-long","--longitude-column", dest="longitude_column", action="store", help="Column containing longitude coordinate information to plot queries on a map")
 
@@ -212,6 +219,7 @@ Default: `the_usual`""")
 
         return 1
 
+
     # Checks background data exists and is the right format.
     # Checks same number of records supplied for csv, fasta and (optional) SNP file. 
     data_arg_parsing.data_group_parsing(args.debug,args.datadir,args.background_metadata,args.background_snps,args.background_sequences,args.background_tree,args.background_id_column,args.sequence_id_column,config)
@@ -270,7 +278,8 @@ Default: `the_usual`""")
        return 0
 
     return 1
-    
+
+
 
 if __name__ == '__main__':
     main()
