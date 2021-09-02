@@ -859,8 +859,36 @@
             </table>
           </div>
         %endif
+	<% figure_count = 0 %>
+        %if config["global_snipit"]:
+	<h2>global snipit </h2>
+	<h3>SNP summary for all query sequences relative to the reference </h3>
+	<% figure_count +=1 %>
+        <br>
+        <button class="accordion">Export image</button>
+          <div class="panel">
+            <div class="row">
+              <div class="column">
+                <button id="global_snipit_svg">SVG</button>
+              </div>
+              <div class="column">
+                <button id="global_snipit_png">PNG</button>
+              </div>
+            </div>
+          </div>
+            <div id="global_snipit">
+            ${data_for_report["global_snipit_svg"]}
+            </div>
+      <script type="text/javascript">
+        exportImageSVG("#global_snipit_svg","#global_snipit", "global_snipit_chart");
+      </script>
+      <script type="text/javascript">
+        exportImagePNG("#global_snipit_png","#global_snipit", "global_snipit_chart");
+      </script>
+            <h3><strong>Figure ${figure_count}</strong> | snipit plot for all focal query sequences</h3>
+            <hr>        
+        %endif
   %endif
-    <% figure_count = 0 %>
     %for catchment in catchments:
         <% catchment_name = catchment.replace("_"," ").title() %>
         <h2><a id = "header_${catchment}"></a>${catchment_name}</h2> 

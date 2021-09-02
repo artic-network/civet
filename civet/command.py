@@ -45,6 +45,13 @@ def main(sysargs = sys.argv[1:]):
     i_group.add_argument('-f','--input-sequences', action="store",help="Optional fasta file. Sequence IDs must match to a query ID specified either in the input csv or ID string", dest="input_sequences")
     i_group.add_argument('-fm','--from-metadata',nargs='*', dest="from_metadata",help="Generate a query from the metadata file supplied. Define a search that will be used to pull out sequences of interest from the background data. Example: -fm country=Ireland sample_date=2020-03-01:2020-04-01")
     i_group.add_argument('-mq','--max-queries', type=int, action="store",dest="max_queries",help="Max number of queries. Default: `5000`")
+    i_group.add_argument('--global_snipit', action="store_true",
+                              help="Create a global snipit figure for all focal sequences", dest="global_snipit")
+    i_group.add_argument('--focal_alignment', action="store",
+                            help="Optional alignment of focal sequences for global snipit", dest="focal_alignment")
+    i_group.add_argument('--reference_name', action="store",
+                         help="Optional input for the reference name in the focal alignment. Default: Reference",
+                         dest="reference_name")
 
     ic_group = parser.add_argument_group('Input column configuration')
     ic_group.add_argument('-icol',"--input-id-column", action="store", dest="input_id_column",help="Column in input csv file to match with database. Default: `name`")
@@ -212,6 +219,7 @@ Default: `the_usual`""")
 
         return 1
 
+
     # Checks background data exists and is the right format.
     # Checks same number of records supplied for csv, fasta and (optional) SNP file. 
     data_arg_parsing.data_group_parsing(args.debug,args.datadir,args.background_metadata,args.background_snps,args.background_sequences,args.background_tree,args.background_id_column,args.sequence_id_column,config)
@@ -270,7 +278,8 @@ Default: `the_usual`""")
        return 0
 
     return 1
-    
+
+
 
 if __name__ == '__main__':
     main()
