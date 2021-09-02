@@ -59,10 +59,11 @@ rule run_snipit:
         out_stem =os.path.join(config["tempdir"],"snipit","{catchment}.snipit")
     output:
         os.path.join(config["tempdir"],"snipit","{catchment}.snipit.svg")
-    shell:
-        """
-        snipit {input.aln:q} -r "outgroup" -o {params.out_stem} -f svg
-        """
+    run:
+        try:
+            shell("""snipit {input.aln:q} -r "outgroup" -o {params.out_stem} -f svg""")
+        except:
+            shell("touch {output[0]:q}")
 
 rule gather_graphs:
     input:

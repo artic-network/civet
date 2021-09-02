@@ -72,7 +72,8 @@ def get_defaults():
                     KEY_MODE:False,
                     KEY_FACTOR:False,
                     KEY_DOWNSAMPLE_FIELD:False,
-                    KEY_DOWNSAMPLE_COLUMN:False,                    
+                    KEY_DOWNSAMPLE_COLUMN:False,    
+                    KEY_FIGURE_CATCHMENTS:[],                
 
                     #Report options
                     KEY_COLOUR_THEME: "#7178bc",
