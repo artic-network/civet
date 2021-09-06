@@ -1211,25 +1211,14 @@ start_inner_arc = data_for_report[location]["start_inner_arc"]
 start_text = data_for_report[location]["start_text"]%>
                       ,{
                         "name": "arc_zoom_${location}",
-                        "value": ${start_arc},
-                        "on": [{
-                          "events": {"type": "wheel", "consume": true},
-                          "update": "clamp(arc_zoom_${location} * pow(1.0005, -event.deltaY * pow(16, event.deltaMode)), 1, ${arc_max})"
-                        }]
+                        "value": ${start_arc}
                         },{
                         "name":"inner_arc_zoom_${location}",
-                        "value":${start_inner_arc},
-                        "on": [{
-                          "events": {"type": "wheel", "consume": true},
-                          "update": "clamp(inner_arc_zoom_${location} * pow(1.0005, -event.deltaY * pow(16, event.deltaMode)), 0.1, ${inner_arc_max})"
-                          }]
+                        "value":${start_inner_arc}
+                        
                     },{
                       "name":"text_zoom_${location}",
-                      "value":${start_text},
-                      "on": [{
-                          "events": {"type": "wheel", "consume": true},
-                          "update": "clamp(text_zoom_${location} * pow(1.0005, -event.deltaY * pow(16, event.deltaMode)), 1, ${text_max})"
-                          }]
+                      "value":${start_text}
                     }
   %endfor
                     ],

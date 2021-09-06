@@ -170,10 +170,12 @@ def parse_background_map_column(background_map_column, config):
     else:
         if config["civet_mode"] == "CLIMB" and "suggested_adm2_grouping" in background_fieldnames: 
             config["background_map_column"] = "suggested_adm2_grouping"
-        elif "adm1" in background_fieldnames:
-            config["background_map_column"] = "adm1"
         elif "adm0" in background_fieldnames:
             config["background_map_column"] = "adm0"
+        elif "country" in background_fieldnames:
+            config["background_map_column"] = "country"
+        elif "adm1" in background_fieldnames:
+            config["background_map_column"] = "adm1"
         elif config["background_location_column"]:
             config["background_map_column"] = config["background_location_column"]
         else:
@@ -321,6 +323,8 @@ def check_locations(background_map_location,config):
 
     misc.add_arg_to_config("background_map_location", background_map_location,config)
 
+    initials = ["UK", "USA", "DRC"]
+
     if config["background_map_location"]:
         lst = config["background_map_location"].split(",")
         new_set = set()
@@ -332,11 +336,13 @@ def check_locations(background_map_location,config):
                 else:
                     new_set.add(i.upper())
             else:
-                if i.title() not in acceptable_locations:
+                if i.title() not in acceptable_locations and i not in initials:
                     sys.stderr.write(cyan(f'{i} not found in list of acceptable locations to map background lineage diversity.\n Please ensure it is spelt correctly and contains underscores instead of spaces. Please also ensure you are using the correct level of geography by using "--background-map-column". If you still cannot find it and are using default map files, please file a github issue and we will get to it as soon as we can.\n'))
                     sys.exit(-1)
-                else:
+                elif i not in initials:
                     new_set.add(i.title())
+                else:
+                    new_set.add(i)
 
         new_lst = list(new_set)
 
@@ -476,7 +482,6 @@ def make_query_map_json(config):
 
 
 def get_location_information(config, data_for_report):
-
 
     with open(config["centroid_file"]) as f:
         reader = csv.DictReader(f)
