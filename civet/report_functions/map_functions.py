@@ -487,7 +487,7 @@ def get_location_information(config, data_for_report):
         reader = csv.DictReader(f)
         fieldnames = reader.fieldnames
         
-        if "arc_max" in fieldnames:
+        if "start_arc" in fieldnames:
             get_other_data = True 
         else:
             get_other_data = False
@@ -500,19 +500,13 @@ def get_location_information(config, data_for_report):
                 if row['location'] == location:
                     data_for_report[location]["centroids"] = (row["longitude"], row["latitude"])
                     if get_other_data:
-                        data_for_report[location]["arc_max"] = float(row["arc_max"])
-                        data_for_report[location]["inner_arc_max"] = float(row["inner_arc_max"])
-                        data_for_report[location]["text_max"] = float(row["text_max"])
                         data_for_report[location]["start_arc"] = float(row["start_arc"])
                         data_for_report[location]["start_inner_arc"] = float(row["start_inner_arc"])
                         data_for_report[location]["start_text"] = float(row["start_text"])
                     else:
-                        data_for_report[location]["arc_max"] = 150
-                        data_for_report[location]["inner_arc_max"] = 30
-                        data_for_report[location]["text_max"] = 10
-                        data_for_report[location]["start_arc"] = 15
+                        data_for_report[location]["start_arc"] = 20
                         data_for_report[location]["start_inner_arc"] = 5
-                        data_for_report[location]["start_text"] = 5
+                        data_for_report[location]["start_text"] = 10
 
                     break
 

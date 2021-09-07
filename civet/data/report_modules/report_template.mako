@@ -1203,9 +1203,7 @@
                         }]
                       }
 %for location in data_for_report['locations_wanted']:
-<%arc_max = data_for_report[location]["arc_max"]
-inner_arc_max = data_for_report[location]["inner_arc_max"]
-text_max = data_for_report[location]["text_max"]
+<%
 start_arc = data_for_report[location]["start_arc"]
 start_inner_arc = data_for_report[location]["start_inner_arc"]
 start_text = data_for_report[location]["start_text"]%>
