@@ -1335,7 +1335,7 @@ longitude = data_for_report[location]["centroids"][0]%>
                   "padAngle": {"value": 0.05},
                   "innerRadius": {"signal": "inner_arc_zoom_${location}"},
                   "tooltip": {
-                    "signal": "{\"count\": format(datum[\"count\"], \"\"), \"lineage\": isValid(datum[\"lineage\"]) ? datum[\"lineage\"] : \"\"+datum[\"lineage\"]}"
+                    "signal": "{\"location\": datum[\"location\"], \"lineage\": isValid(datum[\"lineage\"]) ? datum[\"lineage\"] : \"\"+datum[\"lineage\"], \"count\": format(datum[\"count\"], \"\")}"
                   },
                   "cornerRadius": {"value": 5},
                   "fill": {"scale": "color", "field": "lineage"},
