@@ -525,7 +525,8 @@ def get_top_ten(counter):
         if pcent >= 5: #otherwise it doesn't get a nice slice of the pie
             remainder-= lin[1]
             summary[lin[0]] = lin[1]
-    summary["other"] = remainder
+    if remainder > 0:
+        summary["other"] = remainder
     
     return summary
 
