@@ -9,7 +9,7 @@ dependencies:
   - minimap2>=2.17
   - python=3.9
   - pip=21.2.1
-  - snakemake-minimal
+  - snakemake-minimal<=6.8.0
   - cov-ert::jclusterfunk>=0.0.25
   - gofasta>=0.0.5
   - pip:
