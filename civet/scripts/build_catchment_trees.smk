@@ -21,7 +21,7 @@ rule iqtree:
                 -blmin  0.0000000001 \
                 -nt 1 \
                 -redo \
-                --fast \
+                -fast \
                 -o outgroup \
                 -quiet &> {log:q}
         """
