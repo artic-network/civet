@@ -1337,7 +1337,7 @@ longitude = data_for_report[location]["centroids"][0]%>
                   "tooltip": {
                     "signal": "{\"location\": datum[\"location\"], \"lineage\": isValid(datum[\"lineage\"]) ? datum[\"lineage\"] : \"\"+datum[\"lineage\"], \"count\": format(datum[\"count\"], \"\")}"
                   },
-                  "cornerRadius": {"value": 5},
+                  "cornerRadius": {"value": 3},
                   "fill": {"scale": "color", "field": "lineage"},
                   "description": {
                     "signal": "\"count: \" + (format(datum[\"count\"], \"\")) + \"; lineage: \" + (isValid(datum[\"lineage\"]) ? datum[\"lineage\"] : \"\"+datum[\"lineage\"])"
@@ -1426,8 +1426,8 @@ longitude = data_for_report[location]["centroids"][0]%>
               "domain": {
                 "fields": [
 %for count,location in enumerate(data_for_report['locations_wanted']):
-                  {"data": "data_${location}_2", "field": "lineage"},
-                  {"data": "data_${location}_3", "field": "lineage"}
+                  {"data": "data_${location}_2", "field": "lineage"}
+                  
 %if count < len(data_for_report['locations_wanted'])-1:
 ,
 %endif
