@@ -3,6 +3,7 @@ import os
 import csv
 from civet.utils.log_colours import green,cyan
 from civet.utils import misc
+from civet.report_functions.global_report_functions import colour_checking
 import datetime as dt
 from collections import defaultdict
 from collections import Counter
@@ -10,6 +11,8 @@ import json
 import datetime as dt
 import requests
 import time
+from civet.utils.config import *
+
 
 def parse_map_file_arg(arg_name, map_file_arg, config): 
     """
@@ -133,7 +136,7 @@ def parse_query_map(query_map_file, longitude_column, latitude_column, found_in_
         config["query_topojson_feature_name"] = feature_name
 
 
-def parse_background_map_options(background_map_file,centroid_file, background_map_date_range, background_map_column, background_map_location, found_in_background_metadata, config):
+def parse_background_map_options(background_map_file,centroid_file, background_map_date_range, background_map_column, background_map_location, found_in_background_metadata, background_map_colours, background_map_other_colours, config):
 
     """
     parses map group arguments:
@@ -149,6 +152,12 @@ def parse_background_map_options(background_map_file,centroid_file, background_m
 
     qc_centroid_file(config)
 
+    misc.add_arg_to_config(KEY_BACKGROUND_MAP_COLOURS, background_map_colours, config)
+    misc.add_arg_to_config(KEY_BACKGROUND_MAP_OTHER_COLOURS, background_map_other_colours, config)
+
+    colour_checking(KEY_BACKGROUND_MAP_COLOURS, config)
+    colour_checking(KEY_BACKGROUND_MAP_OTHER_COLOURS, config)    
+    
     if config["verbose"]:
         print(green("Using the following for mapping background:"))
         print(config["background_map_file"])
@@ -530,6 +539,31 @@ def get_top_ten(counter):
     
     return summary
 
+def make_colour_dict(locations_all_lins, config):
+
+    all_lins = []
+    for lins in locations_all_lins.values():
+        all_lins.extend(lins)
+
+    all_lin_count = Counter(all_lins)
+                
+    sorted_lins = {k:v for k,v in sorted(all_lin_count.items(), key=lambda item:item[1], reverse=True)}
+
+    colour_list = config[KEY_BACKGROUND_MAP_COLOURS]
+
+    count = 0
+    colour_dict = {}
+    for k,v in sorted_lins.items():
+        if k != "other" and count <= len(colour_list):
+            colour_dict[k] = colour_list[count]
+            count += 1
+        elif count > 20:
+            colour_dict[k] = config[KEY_BACKGROUND_MAP_OTHER_COLOURS][0]
+
+    colour_dict["other"] = config[KEY_BACKGROUND_MAP_OTHER_COLOURS][1]
+
+    return colour_dict
+
 def make_background_map_json(config): 
 
     lin_col = "lineage" #does this need to be flexible?
@@ -547,6 +581,8 @@ def make_background_map_json(config):
                     date = dt.datetime.strptime(row['sample_date'], '%Y-%m-%d').date()
                     if date >= start_date and date <= end_date:
                         locations_all_lins[row[geog_col]].append(row[lin_col])
+
+    colour_dict = make_colour_dict(locations_all_lins, config)
                           
     top_ten = defaultdict(dict)
     
@@ -562,6 +598,7 @@ def make_background_map_json(config):
             new_dict["location"] = location
             new_dict["lineage"] = lin
             new_dict["count"] = count
+            new_dict["colour"] = colour_dict[lin]
             
             overall.append(new_dict)
     

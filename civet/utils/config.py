@@ -120,6 +120,8 @@ KEY_BACKGROUND_MAP_COLUMN="background_map_column"
 KEY_BACKGROUND_MAP_LOCATION="background_map_location"
 KEY_BACKGROUND_MAP_FILE="background_map_file"
 KEY_CENTROID_FILE="centroid_file"
+KEY_BACKGROUND_MAP_COLOURS="background_map_colours"
+KEY_BACKGROUND_MAP_OTHER_COLOURS="background_map_other_colours"
 
 # QUERY MAP KEYS
 KEY_QUERY_MAP_FILE="query_map_file"

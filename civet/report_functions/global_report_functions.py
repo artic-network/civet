@@ -167,3 +167,51 @@ def parse_location(location_column, config):
         else:
             if "country" in headers:
                 config[KEY_BACKGROUND_LOCATION_COLUMN] = "country"
+
+
+def is_hex(code):
+    hex_code = False
+    if code.startswith("#") and len(code)==7:
+        values = code[1:].upper()
+        for value in values:
+            if value in "ABCDEF0123456789":
+                hex_code = True
+            else:
+                hex_code = False
+                break
+                
+    return hex_code
+
+def get_acceptable_colours(config):
+
+    acceptable_colours = []
+
+    with open(config[KEY_HTML_COLOURS]) as f:
+        reader = csv.DictReader(f)
+        for row in reader:
+            acceptable_colours.append(row["name"].lower())
+            # acceptable_colours.append(row["hex"].lower())
+
+    return acceptable_colours
+
+def colour_checking(colour_key,config):
+    acceptable_colours = get_acceptable_colours(config)
+    cmap = config[colour_key]
+    if not type(cmap) == "list":
+        if ',' in cmap:
+            cmap = cmap.split(",")
+            for colour in cmap:
+                if not is_hex(colour) and colour.lower() not in acceptable_colours:
+                    sys.stderr(cyan(f"Invalid colour code: ") + f"{colour}\n")
+                    sys.exit(-1)
+        else:
+            cmap = cmap.split(",")
+            if not is_hex(cmap[0]) and colour.lower() not in acceptable_colours:
+                sys.stderr(cyan(f"Invalid colour code: ") + f"{cmap[0]}\nPlease provide a comma-separated string of HEX codes or see htmlcolorcodes.com/color-names for `-cmap/--colour-map`.\n")
+                sys.exit(-1)
+    config[colour_key] = cmap
+    
+def check_theme(config):
+    if not is_hex(config[KEY_COLOUR_THEME]) and config[KEY_COLOUR_THEME].lower() not in acceptable_colours:
+        sys.stderr(cyan(f"Invalid HEX colour code: ") + f"{config[KEY_COLOUR_THEME]}\nPlease provide a valid HEX code or see htmlcolorcodes.com/color-names for `-ct/--colour-theme`.\n")
+        sys.exit(-1)

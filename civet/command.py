@@ -145,6 +145,8 @@ Default: `the_usual`""")
     bm_group.add_argument("-bmloc,", "--background-map-location", action="store", dest="background_map_location", help="Comma separated list containing locations to show background lineage diversity for. Default is all locations at the appropriate administrative level.")
     bm_group.add_argument("-bmdr","--background-map-date-range", dest="background_map_date_range", action="store", help="Date range for mapping background lineage diversity. Can be an integer (number of days either side of queries to restrict to) or a date range, format='YYYY-MM-DD:YYYY-MM-DD'")
     bm_group.add_argument("-bmcol","--background-map-column", dest="background_map_column", action="store", help="Column in background metadata containing location to map background lineage diversity by.")
+    bm_group.add_argument("--background-map-colours", dest="background_map_colours", action="store", help="list of 20 colours to colour most common lineages by in background map.")
+    bm_group.add_argument("--background-map-other-colours", dest="background_map_other_colours", action="store", help="Comma separated string of two colours to colour lineages that make up less than 5/% of a countries sequences, and those that no tin the 20 most common lineages in the whole dataset.")
 
     qm_group = parser.add_argument_group("Query map options (report option 7)")
     qm_group.add_argument("-qmfile","--query-map-file", action="store", dest="query_map_file", help="Topojson containing polygons to plot queries on. Must be an online resource eg on a Github pages website.")
@@ -247,7 +249,7 @@ Default: `the_usual`""")
     # stored under config = { "report_content": [1, 2, 3, 4], "reports": [1,2,3,4],[1,2]}
     name_dict = report_arg_parsing.parse_global_report_options(args.report_content,args.report_preset, args.input_display_column, args.anonymise, args.input_date_column, args.background_date_column, args.background_location_column, config)
     report_arg_parsing.parse_optional_report_content(args.query_table_content,args.mutations, args.timeline_dates, args.timeline_group_column, args.colour_theme, args.colour_map, config)
-    report_arg_parsing.parse_map_options(args.background_map_date_range, args.background_map_column, args.background_map_file, args.centroid_file, args.background_map_location, args.query_map_file, args.longitude_column, args.latitude_column, found_in_background_data, config)
+    report_arg_parsing.parse_map_options(args.background_map_date_range, args.background_map_column, args.background_map_file, args.centroid_file, args.background_map_location, args.query_map_file, args.longitude_column, args.latitude_column, found_in_background_data, args.background_map_colours, args.background_map_other_colours,config)
     report_arg_parsing.parse_tree_options(args.tree_annotations,args.max_tree_size, config)
 
 

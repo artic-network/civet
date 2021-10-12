@@ -1338,7 +1338,7 @@ longitude = data_for_report[location]["centroids"][0]%>
                     "signal": "{\"location\": datum[\"location\"], \"lineage\": isValid(datum[\"lineage\"]) ? datum[\"lineage\"] : \"\"+datum[\"lineage\"], \"count\": format(datum[\"count\"], \"\")}"
                   },
                   "cornerRadius": {"value": 3},
-                  "fill": {"scale": "color", "field": "lineage"},
+                  "fill": {"field": "colour"},
                   "description": {
                     "signal": "\"count: \" + (format(datum[\"count\"], \"\")) + \"; lineage: \" + (isValid(datum[\"lineage\"]) ? datum[\"lineage\"] : \"\"+datum[\"lineage\"])"
                   },
@@ -1391,8 +1391,8 @@ longitude = data_for_report[location]["centroids"][0]%>
           ]
           ,
           "scales": [
-%for location in data_for_report['locations_wanted']:
-            {
+%for count,location in enumerate(data_for_report['locations_wanted']):            
+			{
               "name": "theta_${location}",
               "type": "linear",
               "domain": {
@@ -1418,37 +1418,11 @@ longitude = data_for_report[location]["centroids"][0]%>
               },
               "range": [{"signal":"inner_arc_zoom_${location}"},{"signal":"arc_zoom_${location}"}],
               "zero": true
-            },
-%endfor
-            {
-              "name": "color",
-              "type": "ordinal",
-              "domain": {
-                "fields": [
-%for count,location in enumerate(data_for_report['locations_wanted']):
-                  {"data": "data_${location}_2", "field": "lineage"}
-                  
+            }
 %if count < len(data_for_report['locations_wanted'])-1:
 ,
 %endif
 %endfor
-                ],
-                "sort": true
-              },
-              "range": [
-                "#B6B8C8",
-                "#D4B489",
-                "#A6626F",
-                "#733646",
-                "#A47E3E",
-                "#DC9598",
-                "#83818F",
-                "#B3ABD0",
-                "#B8B2C4",
-                "#A07E62",
-                "#F9C0C7"
-              ]
-            }
           ]
         }
 
