@@ -146,7 +146,7 @@ Default: `the_usual`""")
     bm_group.add_argument("-bmdr","--background-map-date-range", dest="background_map_date_range", action="store", help="Date range for mapping background lineage diversity. Can be an integer (number of days either side of queries to restrict to) or a date range, format='YYYY-MM-DD:YYYY-MM-DD'")
     bm_group.add_argument("-bmcol","--background-map-column", dest="background_map_column", action="store", help="Column in background metadata containing location to map background lineage diversity by.")
     bm_group.add_argument("--background-map-colours", dest="background_map_colours", action="store", help="list of 20 colours to colour most common lineages by in background map.")
-    bm_group.add_argument("--background-map-other-colours", dest="background_map_other_colours", action="store", help="Comma separated string of two colours to colour lineages that make up less than 5/% of a countries sequences, and those that no tin the 20 most common lineages in the whole dataset.")
+    bm_group.add_argument("--background-map-other-colours", dest="background_map_other_colours", action="store", help="Comma separated string of two colours to colour lineages that make up less than 5%% of a country's sequences, and those that no tin the 20 most common lineages in the whole dataset.")
 
     qm_group = parser.add_argument_group("Query map options (report option 7)")
     qm_group.add_argument("-qmfile","--query-map-file", action="store", dest="query_map_file", help="Topojson containing polygons to plot queries on. Must be an online resource eg on a Github pages website.")
