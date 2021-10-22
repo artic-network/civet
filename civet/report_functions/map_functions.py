@@ -147,8 +147,8 @@ def parse_background_map_options(background_map_file,centroid_file, background_m
     parse_background_map_column(background_map_column, config)
     parse_date_range(background_map_date_range, config)    
     
-    qc_map_file_for_background_map(background_map_file, centroid_file, config)
-    check_locations(background_map_location, config)
+    acceptable_locations = qc_map_file_for_background_map(background_map_file, centroid_file, config)
+    check_locations(background_map_location, acceptable_locations, config)
 
     qc_centroid_file(config)
 
@@ -286,20 +286,23 @@ def qc_map_file_for_background_map(background_map_file, centroid_file,config):
     map_string, map_file, feature_name, geodata = parse_map_file_arg("background_map_file", background_map_file, config)
     misc.add_arg_to_config("centroid_file", centroid_file, config)  #needs to happen here so we can check it exists if they have provided a custom map file
     
+    acceptable_locations = []
+
     if map_string:
         if not config["centroid_file"]:
             sys.stderr.write(cyan("You have provided a custom background map file, but not a csv containing centroids matching this file. Please provide a csv with the column headers location, longitude and latitude.\n"))
             sys.exit(-1)
 
+        #need to infer the feature name here - uk_map won't be right for most of it
         headers = list(geodata['objects']['uk_map']['geometries'][0]['properties'].keys())
         
         if config["background_map_column"] not in headers:
             sys.stderr.write(cyan(f"{config['background_map_column']} not found in custom shapefile.\n"))
             sys.exit(-1)
         else:
-            acceptable_locations = []
             for item in geodata['objects']['uk_map']['geometries']:
-                acceptable_locations.append(item['properties'][config["background_map_column"]])
+                #then also get centroids from this instead, and make them upper case and no spaces
+                acceptable_locations.append(item['properties'][config["background_map_column"]].upper().replace(" ","_"))
     
     else:
         if config["civet_mode"] == "CLIMB":
@@ -324,34 +327,25 @@ def qc_map_file_for_background_map(background_map_file, centroid_file,config):
     config["background_map_file"] = map_file
     config["background_topojson_feature_name"] = feature_name
 
+    return acceptable_locations
 
-def check_locations(background_map_location,config):
-    #the background files need tidying so that they're all upper case and then we can just check upper case and make them upper case
+def check_locations(background_map_location, acceptable_locations, config):
 
-    acceptable_locations = get_acceptable_locations(config["background_map_file"], config)
+    if acceptable_locations == []:
+        acceptable_locations = get_acceptable_locations(config["background_map_file"], config)
 
     misc.add_arg_to_config("background_map_location", background_map_location,config)
-
-    initials = ["UK", "USA", "DRC"]
 
     if config["background_map_location"]:
         lst = config["background_map_location"].split(",")
         new_set = set()
         for i in lst:
-            if config["civet_mode"] == "CLIMB":
-                if i.upper() not in acceptable_locations:
-                    sys.stderr.write(cyan(f'{i} not found in list of acceptable locations to map background lineage diversity.\n Please ensure it is spelt correctly and contains underscores instead of spaces. Please also ensure you are using the correct level of geography by using "--background-map-column". If you still cannot find it and are using default map files, please file a github issue and we will get to it as soon as we can.\n'))
-                    sys.exit(-1)
-                else:
-                    new_set.add(i.upper())
+            new_value = i.upper().replace(" ","_")
+            if new_value not in acceptable_locations:
+                sys.stderr.write(cyan(f'{i} not found in list of acceptable locations to map background lineage diversity.\n Please ensure it is spelt correctly. Please also ensure you are using the correct level of geography by using "--background-map-column". If you still cannot find it and are using default map files, please file a github issue and we will get to it as soon as we can.\n'))
+                sys.exit(-1)
             else:
-                if i.title() not in acceptable_locations and i not in initials:
-                    sys.stderr.write(cyan(f'{i} not found in list of acceptable locations to map background lineage diversity.\n Please ensure it is spelt correctly and contains underscores instead of spaces. Please also ensure you are using the correct level of geography by using "--background-map-column". If you still cannot find it and are using default map files, please file a github issue and we will get to it as soon as we can.\n'))
-                    sys.exit(-1)
-                elif i not in initials:
-                    new_set.add(i.title())
-                else:
-                    new_set.add(i)
+                new_set.add(new_value)
 
         new_lst = list(new_set)
 
@@ -363,7 +357,7 @@ def check_locations(background_map_location,config):
         with open(config["background_metadata"]) as f:
             data = csv.DictReader(f)
             for line in data:
-                location_value = line[config["background_map_column"]]
+                location_value = line[config["background_map_column"]].upper().replace(" ","_")
                 if config["background_date_column"]:
                     date_value = line[config["background_date_column"]]
                     if date_value != "":
@@ -397,7 +391,6 @@ def check_locations(background_map_location,config):
         final_list = list(final_set)
         config["background_map_location"] = final_list
 
-
     if config["verbose"]:
         print("Finished with checks for background map")
 
@@ -405,7 +398,7 @@ def get_acceptable_locations(map_file, config):
 
     if config["civet_mode"] == "CLIMB":
         if config["background_map_column"] == "adm1":
-            acceptable_locations = ["Scotland", "Wales", "Northern_Ireland", "England", "Jersey", "Guernsey", "Isle_of_Man", "Falkland_Islands", "Gibraltar"]
+            acceptable_locations = ["SCOTLAND", "WALES", "NORTHERN_IRELAND", "ENGLAND", "JERSEY", "GUERNSEY", "ISLE_OF_MAN", "FALKLAND_ISLANDS", "GIBRALTAR"]
         else:
             acceptable_locations = []
             with open(config["uk_acceptable_values"]) as f:
