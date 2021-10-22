@@ -16,9 +16,10 @@ from civet.utils.config import *
 
 def parse_map_file_arg(arg_name, map_file_arg, config): 
     """
-    parses map group arguments:
-    --background-map-file (default=UK_map if civet_mode == CLIMB, relevant level of world_map (ie adm0 or adm1) if not)
+    QCs map group arguments:
+    --background-map-file 
     --query-map-file
+    if the user has provided them
     Also generates the feature name from the input map file if provided by user
     """
     misc.add_arg_to_config(arg_name, map_file_arg, config)
@@ -123,7 +124,7 @@ def parse_query_map(query_map_file, longitude_column, latitude_column, found_in_
             sys.stderr.write(cyan(f"Error: no query with longitude and latitude information contained in the columns provided ({config['longitude_column'], config['latitude_column']}), so map cannot be produced.\n"))
             sys.exit(-1)
 
-        map_string, map_file, feature_name, geodata = parse_map_file_arg("query_map_file",query_map_file, config)         
+        map_string, map_file, feature_name = parse_map_file_arg("query_map_file",query_map_file, config)         
         if not map_string:
             if config["civet_mode"] == "CLIMB":
                 map_file = "https://viralverity.github.io/civet_geo/uk_map.json"
@@ -293,14 +294,13 @@ def qc_map_file_for_background_map(background_map_file, centroid_file,config):
             sys.stderr.write(cyan("You have provided a custom background map file, but not a csv containing centroids matching this file. Please provide a csv with the column headers location, longitude and latitude.\n"))
             sys.exit(-1)
 
-        #need to infer the feature name here - uk_map won't be right for most of it
-        headers = list(geodata['objects']['uk_map']['geometries'][0]['properties'].keys())
+        headers = list(geodata['objects'][feature_name]['geometries'][0]['properties'].keys())
         
         if config["background_map_column"] not in headers:
             sys.stderr.write(cyan(f"{config['background_map_column']} not found in custom shapefile.\n"))
             sys.exit(-1)
         else:
-            for item in geodata['objects']['uk_map']['geometries']:
+            for item in geodata['objects'][feature_name]['geometries']:
                 #then also get centroids from this instead, and make them upper case and no spaces
                 acceptable_locations.append(item['properties'][config["background_map_column"]].upper().replace(" ","_"))
     
@@ -382,7 +382,6 @@ def check_locations(background_map_location, acceptable_locations, config):
                 sys.stderr.write(cyan(f'WARNING: {loc} is an invalid location. It will be left out of mapping background diversity\n'))
                 missing_locations.add(loc)
             
-
         final_set = set()
         for i in check_set:   
             if i not in missing_locations:
@@ -432,7 +431,7 @@ def qc_centroid_file(config):
                     sys.exit(-1)
             centroid_locs = []
             for row in reader:
-                centroid_locs.append(row["location"])
+                centroid_locs.append(row["location"].upper().replace(" ","_"))
 
         for loc in config["background_map_location"]:
             if loc not in centroid_locs:
@@ -483,7 +482,7 @@ def make_query_map_json(config):
     return json_data
 
 
-def get_location_information(config, data_for_report):
+def get_location_information(seq_counts, config, data_for_report):
 
     with open(config["centroid_file"]) as f:
         reader = csv.DictReader(f)
@@ -499,16 +498,22 @@ def get_location_information(config, data_for_report):
 
         for row in reader:
             for location in config["background_map_location"]:
+                location = location.upper().replace(" ","_")
+                seq_number = seq_counts[location]
                 if row['location'] == location:
                     data_for_report[location]["centroids"] = (row["longitude"], row["latitude"])
-                    if get_other_data:
-                        data_for_report[location]["start_arc"] = float(row["start_arc"])
-                        data_for_report[location]["start_inner_arc"] = float(row["start_inner_arc"])
-                        data_for_report[location]["start_text"] = float(row["start_text"])
+                    
+                    if seq_number < 100:
+                        data_for_report[location]["start_arc"] = seq_number**0.5
+                        data_for_report[location]["start_inner_arc"] = (seq_number**0.5)/4
+                    elif seq_number >= 100 and seq_number <10000:
+                        data_for_report[location]["start_arc"] = seq_number**0.4
+                        data_for_report[location]["start_inner_arc"] = (seq_number**0.4)/4
                     else:
-                        data_for_report[location]["start_arc"] = 20
-                        data_for_report[location]["start_inner_arc"] = 5
-                        data_for_report[location]["start_text"] = 10
+                        data_for_report[location]["start_arc"] = seq_number**0.35
+                        data_for_report[location]["start_inner_arc"] = (seq_number**0.35)/4
+                    
+                    data_for_report[location]["start_text"] = 10
 
                     break
 
@@ -547,10 +552,10 @@ def make_colour_dict(locations_all_lins, config):
     count = 0
     colour_dict = {}
     for k,v in sorted_lins.items():
-        if k != "other" and count <= len(colour_list):
+        if k != "other" and count < len(colour_list):
             colour_dict[k] = colour_list[count]
             count += 1
-        elif count > 20:
+        elif count >= len(colour_list):
             colour_dict[k] = config[KEY_BACKGROUND_MAP_OTHER_COLOURS][0]
 
     colour_dict["other"] = config[KEY_BACKGROUND_MAP_OTHER_COLOURS][1]
@@ -566,14 +571,20 @@ def make_background_map_json(config):
     end_date = dt.datetime.strptime(config["end_date"],'%Y-%m-%d').date()
 
     locations_all_lins = defaultdict(list)
+    location_to_seq_count = {}
     with open(config["background_metadata"]) as f: 
         reader = csv.DictReader(f)
         for row in reader:
             if row[geog_col] != "" and row[lin_col] != "":
-                if row[geog_col] in wanted_list:
+                new_value = row[geog_col].upper().replace(" ","_")
+                if new_value in wanted_list:
                     date = dt.datetime.strptime(row['sample_date'], '%Y-%m-%d').date()
                     if date >= start_date and date <= end_date:
-                        locations_all_lins[row[geog_col]].append(row[lin_col])
+                        locations_all_lins[new_value].append(row[lin_col])
+                        if new_value in location_to_seq_count:
+                            location_to_seq_count[new_value] += 1
+                        else:
+                            location_to_seq_count[new_value] = 1
 
     colour_dict = make_colour_dict(locations_all_lins, config)
                           
@@ -597,5 +608,5 @@ def make_background_map_json(config):
     
     json_data = json.dumps(overall)
 
-    return json_data
+    return json_data, location_to_seq_count
 

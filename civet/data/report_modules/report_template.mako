@@ -1431,7 +1431,7 @@ longitude = data_for_report[location]["centroids"][0]%>
                       .catch(console.warn);
 
       </script>
-      <h3><strong>Figure ${figure_count}</strong> | Background diversity map</h3>
+      <h3><strong>Figure ${figure_count}</strong> | Background diversity map (doughnut size is proportional to number of sequences) </h3>
       <hr>
         %endif
         

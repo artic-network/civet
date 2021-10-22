@@ -254,9 +254,9 @@ def define_report_content(metadata,catchments,figure_catchments,config):
             data_for_report[catchment]["timeline_data"] = ""
     
     if '6' in report_content:
-        data_for_report["background_map_data"] = get_background_map(config)
+        data_for_report["background_map_data"], seq_counts = get_background_map(config)
         data_for_report["locations_wanted"] = config[KEY_BACKGROUND_MAP_LOCATION]
-        data_for_report = map_functions.get_location_information(config, data_for_report)
+        data_for_report = map_functions.get_location_information(seq_counts, config, data_for_report)
     else:
         data_for_report["background_map_data"] = ""
         data_for_report["locations_wanted"]  = ""
