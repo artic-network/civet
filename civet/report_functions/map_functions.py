@@ -291,6 +291,7 @@ def qc_map_file_for_background_map(background_map_file, centroid_file,config):
 
     if map_string:
         if not config["centroid_file"]:
+            #generate centroids from the input shapefile
             sys.stderr.write(cyan("You have provided a custom background map file, but not a csv containing centroids matching this file. Please provide a csv with the column headers location, longitude and latitude.\n"))
             sys.exit(-1)
 
@@ -301,7 +302,6 @@ def qc_map_file_for_background_map(background_map_file, centroid_file,config):
             sys.exit(-1)
         else:
             for item in geodata['objects'][feature_name]['geometries']:
-                #then also get centroids from this instead, and make them upper case and no spaces
                 acceptable_locations.append(item['properties'][config["background_map_column"]].upper().replace(" ","_"))
     
     else:
@@ -488,11 +488,6 @@ def get_location_information(seq_counts, config, data_for_report):
         reader = csv.DictReader(f)
         fieldnames = reader.fieldnames
         
-        if "start_arc" in fieldnames:
-            get_other_data = True 
-        else:
-            get_other_data = False
-        
         for location in config["background_map_location"]:
             data_for_report[location] = {}
 
@@ -560,7 +555,42 @@ def make_colour_dict(locations_all_lins, config):
 
     colour_dict["other"] = config[KEY_BACKGROUND_MAP_OTHER_COLOURS][1]
 
-    return colour_dict
+
+    ##for legend
+    sorted_colour_dict = {k:v for k,v in sorted(colour_dict.items(), key =lambda item:item[0])}
+    overall = []
+    y_val = 12
+    for lineage, colour in sorted(sorted_colour_dict.items()):
+        if colour != config[KEY_BACKGROUND_MAP_OTHER_COLOURS][0] and lineage != "other":
+            new_dict = {}
+            new_dict["lineage"] = lineage
+            new_dict["colour"] = colour
+            
+            new_dict["y_val"] = y_val
+            new_dict["text_val"] = y_val+8
+            y_val += 13
+
+            overall.append(new_dict)
+
+    new_dict = {}
+    new_dict["lineage"] = "Not in the largest 20 lineages overall"
+    new_dict["colour"] = config[KEY_BACKGROUND_MAP_OTHER_COLOURS][0]
+    new_dict["y_val"] = y_val
+    new_dict["text_val"] = y_val+8
+    y_val += 13
+    overall.append(new_dict)
+
+    new_dict = {}
+    new_dict["lineage"] = "Less than 5% of area's sequences"
+    new_dict["colour"] = config[KEY_BACKGROUND_MAP_OTHER_COLOURS][1]
+    new_dict["y_val"] = y_val
+    new_dict["text_val"] = y_val+8
+    y_val += 13
+    overall.append(new_dict)
+    
+    colour_json = json.dumps(overall)
+
+    return colour_dict, colour_json
 
 def make_background_map_json(config): 
 
@@ -586,7 +616,7 @@ def make_background_map_json(config):
                         else:
                             location_to_seq_count[new_value] = 1
 
-    colour_dict = make_colour_dict(locations_all_lins, config)
+    colour_dict, colour_json = make_colour_dict(locations_all_lins, config)
                           
     top_ten = defaultdict(dict)
     
@@ -608,5 +638,5 @@ def make_background_map_json(config):
     
     json_data = json.dumps(overall)
 
-    return json_data, location_to_seq_count
+    return json_data, colour_json, location_to_seq_count
 

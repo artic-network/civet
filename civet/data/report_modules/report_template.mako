@@ -1116,6 +1116,56 @@
         %if '6' in config["report_content"]:
           <% figure_count +=1 %>
           <br>
+          <div id="background_map_legend" style="width:50%"></div>
+          <script>
+          var vSpec_legend = {
+            "$schema": "https://vega.github.io/schema/vega/v5.json",
+            "background": "white",
+            "padding": 5,
+            "width": 10,
+            "height": 100,
+            
+            "data":[{
+              "name":"colour_dict",
+              "values": ${data_for_report["background_map_colour_data"]}
+            }],
+
+            "marks":[{
+              "type":"rect",
+              "from":{"data":"colour_dict"},
+              "encode":{
+                "update":{
+                  "x":{"value":10},
+                  "y":{"field":"y_val"},
+                  "width":{"value":10},
+                  "height":{"value":10},
+                  "fill":{"field":"colour"}
+                }
+              }
+            },{
+            "name": "text_marks",
+                "type": "text",
+                "from": {"data": "colour_dict"},
+                "encode": {
+                  "enter": {
+                    "fill": {"value": "black"},
+                    "text":{"field":"lineage"}
+                    },
+                "update":{
+                  "x":{"value":25},
+                  "y":{"field":"text_val"}
+                },
+                  "font": {"value": "Helvetica Neue"} 
+                  }
+      }
+  ]
+}
+vegaEmbed('#background_map_legend', vSpec_legend, {renderer: "svg"})
+                      .then(result => console.log(result))
+                      .catch(console.warn);
+
+        </script>
+        <br>
         <div id="background_map" style="width:90%"></div>
         <script>
         var vSpec_bmap = {
