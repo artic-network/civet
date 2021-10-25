@@ -561,32 +561,34 @@ def make_colour_dict(locations_all_lins, top_ten, config):
     ##for legend
     sorted_colour_dict = {k:v for k,v in sorted(colour_dict.items(), key =lambda item:item[0])}
     overall = []
-    y_val = 12
+    y_val = 30
     for lineage, colour in sorted(sorted_colour_dict.items()):
         if colour != config[KEY_BACKGROUND_MAP_OTHER_COLOURS][0] and lineage != "other":
             new_dict = {}
             new_dict["lineage"] = lineage
             new_dict["colour"] = colour
             new_dict["y_val"] = y_val
-            new_dict["text_val"] = y_val+8
-            y_val += 13
+            new_dict["text_val"] = y_val+20
+            new_dict["text_size"] = 20
+            y_val += 30
 
             overall.append(new_dict)
 
     new_dict = {}
-    new_dict["lineage"] = "Not in the largest 20 lineages overall OR never more than 5% of an area's sequences"
+    new_dict["lineage"] = ["Not in largest 20 lineages overall","or never more than 5% of an area's sequences"]
     new_dict["colour"] = config[KEY_BACKGROUND_MAP_OTHER_COLOURS][0]
-    new_dict["y_val"] = y_val
-    new_dict["text_val"] = y_val+8
-    y_val += 13
+    new_dict["y_val"] = y_val+5
+    new_dict["text_val"] = y_val+15
+    new_dict["text_size"] = 20
+    y_val += 40
     overall.append(new_dict)
 
     new_dict = {}
     new_dict["lineage"] = "Less than 5% of area's sequences"
     new_dict["colour"] = config[KEY_BACKGROUND_MAP_OTHER_COLOURS][1]
     new_dict["y_val"] = y_val
-    new_dict["text_val"] = y_val+8
-    y_val += 13
+    new_dict["text_val"] = y_val+20
+    new_dict["text_size"] = 20
     overall.append(new_dict)
     
     colour_json = json.dumps(overall)

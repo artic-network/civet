@@ -1138,8 +1138,8 @@
                 "update":{
                   "x":{"value":10},
                   "y":{"field":"y_val"},
-                  "width":{"value":10},
-                  "height":{"value":10},
+                  "width":{"value":20},
+                  "height":{"value":20},
                   "fill":{"field":"colour"}
                 }
               }
@@ -1153,8 +1153,9 @@
                     "text":{"field":"lineage"}
                     },
                 "update":{
-                  "x":{"value":25},
-                  "y":{"field":"text_val"}
+                  "x":{"value":40},
+                  "y":{"field":"text_val"},
+                  "fontSize":{"field":"text_size"}
                 },
                   "font": {"value": "Helvetica Neue"} 
                   }
@@ -1191,6 +1192,7 @@ vegaEmbed('#background_map_legend', vSpec_legend, {renderer: "svg"})
 % endif
 
           "signals": [
+                      {"name":"show_labels", "value":false, "bind":{"input":"checkbox"}},
                       { "name": "tx", "update": "width / 2" },
                       { "name": "ty", "update": "height / 2" },
                       {
@@ -1413,8 +1415,7 @@ longitude = data_for_report[location]["centroids"][0]%>
               "from": {"data": "data_${location}_3"},
               "encode": {
                 "update": {
-                  "fill": {"value": "black"},
-                  "stroke": {"value": "white"},
+                  "fill": {"scale":"text_colour", "signal":"show_labels"},
                   "strokeWidth": {"value": 0.1},
                   "align": {"value": "center"},
                   "radius": {"scale": "radius_${location}", "field": "count","offset":10},
@@ -1442,6 +1443,12 @@ longitude = data_for_report[location]["centroids"][0]%>
           ]
           ,
           "scales": [
+             {
+      "name":"text_colour",
+      "type":"threshold",
+      "domain":[true, false],
+      "range":["none", "black"]
+    },
 %for count,location in enumerate(data_for_report['locations_wanted']):            
 			{
               "name": "theta_${location}",
