@@ -1116,7 +1116,8 @@
         %if '6' in config["report_content"]:
           <% figure_count +=1 %>
           <br>
-          <div id="background_map_legend" style="width:50%"></div>
+          <div class="container" style="width:100%;">
+          <div id="background_map_legend" style="width: 30%; float:right"></div>
           <script>
           var vSpec_legend = {
             "$schema": "https://vega.github.io/schema/vega/v5.json",
@@ -1166,7 +1167,7 @@ vegaEmbed('#background_map_legend', vSpec_legend, {renderer: "svg"})
 
         </script>
         <br>
-        <div id="background_map" style="width:90%"></div>
+        <div id="background_map" style="width: 70%; float:left""></div>
         <script>
         var vSpec_bmap = {
           "$schema": "https://vega.github.io/schema/vega/v5.json",
@@ -1481,6 +1482,7 @@ longitude = data_for_report[location]["centroids"][0]%>
                       .catch(console.warn);
 
       </script>
+      </div>
       <h3><strong>Figure ${figure_count}</strong> | Background diversity map (doughnut size is proportional to number of sequences) </h3>
       <hr>
         %endif
