@@ -532,29 +532,31 @@ def get_top_ten(counter):
     
     return summary
 
-def make_colour_dict(locations_all_lins, config):
+def make_colour_dict(locations_all_lins, top_ten, config):
 
     all_lins = []
     for lins in locations_all_lins.values():
         all_lins.extend(lins)
-
     all_lin_count = Counter(all_lins)
-                
     sorted_lins = {k:v for k,v in sorted(all_lin_count.items(), key=lambda item:item[1], reverse=True)}
+
+    display = set()
+    for lin_lists in top_ten.values():
+        for i in lin_lists:
+            display.add(i)
 
     colour_list = config[KEY_BACKGROUND_MAP_COLOURS]
 
     count = 0
     colour_dict = {}
     for k,v in sorted_lins.items():
-        if k != "other" and count < len(colour_list):
+        if k != "other" and count < len(colour_list) and k in display:
             colour_dict[k] = colour_list[count]
             count += 1
         elif count >= len(colour_list):
             colour_dict[k] = config[KEY_BACKGROUND_MAP_OTHER_COLOURS][0]
 
     colour_dict["other"] = config[KEY_BACKGROUND_MAP_OTHER_COLOURS][1]
-
 
     ##for legend
     sorted_colour_dict = {k:v for k,v in sorted(colour_dict.items(), key =lambda item:item[0])}
@@ -565,7 +567,6 @@ def make_colour_dict(locations_all_lins, config):
             new_dict = {}
             new_dict["lineage"] = lineage
             new_dict["colour"] = colour
-            
             new_dict["y_val"] = y_val
             new_dict["text_val"] = y_val+8
             y_val += 13
@@ -573,7 +574,7 @@ def make_colour_dict(locations_all_lins, config):
             overall.append(new_dict)
 
     new_dict = {}
-    new_dict["lineage"] = "Not in the largest 20 lineages overall"
+    new_dict["lineage"] = "Not in the largest 20 lineages overall OR never more than 5% of an area's sequences"
     new_dict["colour"] = config[KEY_BACKGROUND_MAP_OTHER_COLOURS][0]
     new_dict["y_val"] = y_val
     new_dict["text_val"] = y_val+8
@@ -616,14 +617,16 @@ def make_background_map_json(config):
                         else:
                             location_to_seq_count[new_value] = 1
 
-    colour_dict, colour_json = make_colour_dict(locations_all_lins, config)
                           
     top_ten = defaultdict(dict)
     
     for location, lin_list in locations_all_lins.items():
         counts = Counter(lin_list)
         top_ten[location] = get_top_ten(counts)
-       
+
+
+    colour_dict, colour_json = make_colour_dict(locations_all_lins, top_ten, config)
+
     overall = []
     
     for location,lineage_counts in top_ten.items():
