@@ -484,6 +484,8 @@ def make_query_map_json(config):
 
 def get_location_information(seq_counts, config, data_for_report):
 
+    a,b, min_y = solve_size_function(seq_counts)
+
     with open(config["centroid_file"]) as f:
         reader = csv.DictReader(f)
         fieldnames = reader.fieldnames
@@ -494,27 +496,40 @@ def get_location_information(seq_counts, config, data_for_report):
         for row in reader:
             for location in config["background_map_location"]:
                 location = location.upper().replace(" ","_")
-                seq_number = seq_counts[location]
+                x = seq_counts[location]
                 if row['location'] == location:
-                    data_for_report[location]["centroids"] = (row["longitude"], row["latitude"])
-                    
-                    if seq_number < 100:
-                        data_for_report[location]["start_arc"] = seq_number**0.5
-                        data_for_report[location]["start_inner_arc"] = (seq_number**0.5)/4
-                    elif seq_number >= 100 and seq_number <10000:
-                        data_for_report[location]["start_arc"] = seq_number**0.4
-                        data_for_report[location]["start_inner_arc"] = (seq_number**0.4)/4
-                    else:
-                        data_for_report[location]["start_arc"] = seq_number**0.35
-                        data_for_report[location]["start_inner_arc"] = (seq_number**0.35)/4
-                    
+
+                    y = a - 500/((x+b)**0.5)
+                    if y < min_y: #so they are always visible
+                        y = min_y
+
+                    data_for_report[location]["start_arc"] = y
+                    data_for_report[location]["start_inner_arc"] = y/4
+                   
                     data_for_report[location]["start_text"] = 10
+                    data_for_report[location]["centroids"] = (row["longitude"], row["latitude"])
 
                     break
 
     return data_for_report
 
                 
+def solve_size_function(seq_counts):
+
+    #y= a - 1/((x+b)**0.5)
+
+    min_x = min(list(seq_counts.values()))
+    max_x = max(list(seq_counts.values()))
+
+    max_y = 50 #the size of the largest doughnut
+    min_y = 5 #the size of the smallest doughnut
+
+    a = max_y #this is the asymptote
+    b = ((500/a-min_y)**2) - min_x
+    
+
+    return a,b, min_y
+
 
 def get_top_ten(counter):
 
