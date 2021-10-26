@@ -575,7 +575,7 @@ def make_colour_dict(locations_all_lins, top_ten, config):
             overall.append(new_dict)
 
     new_dict = {}
-    new_dict["lineage"] = ["Not in largest 20 lineages overall","or never more than 5% of an area's sequences"]
+    new_dict["lineage"] = ["Not in largest 20 lineages overall","or never more than 5% of an area's sequences"] #list allows it to show up with a line break in the html
     new_dict["colour"] = config[KEY_BACKGROUND_MAP_OTHER_COLOURS][0]
     new_dict["y_val"] = y_val+5
     new_dict["text_val"] = y_val+15
