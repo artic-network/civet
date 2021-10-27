@@ -127,6 +127,8 @@ KEY_LATITUDE_COLUMN="latitude_column"
 KEY_LONGITUDE_COLUMN="longitude_column"
 KEY_BACKGROUND_MAP_DATE_RANGE="background_map_date_range"
 
+# QUERY TIME SERIES
+KEY_SERIES_COLOUR_FACTOR="series_colour_factor"
 
 # MISC KEYS
 KEY_VERBOSE="verbose"
