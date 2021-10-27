@@ -137,6 +137,17 @@ def make_catchment_summary_data(metadata,catchments,config):
 
     return catchment_summary_dict
 
+def get_full_metadata(config):
+
+    query_metadata = []
+    with open(config[KEY_QUERY_METADATA]) as f:
+        reader = csv.DictReader(f)
+        for row in reader:
+            query_metadata.append(row)
+    
+    return json.dumps(query_metadata)
+
+
 def get_timeline(catchment, config):
 
     timeline_data = timeline_functions.make_timeline_json(catchment, config)
@@ -265,6 +276,9 @@ def define_report_content(metadata,catchments,figure_catchments,config):
         data_for_report["query_map_data"] = get_query_map(config)
     else:
         data_for_report["query_map_data"] = ""
+
+    if '8' in report_content:
+        data_for_report["full_metadata"] = get_full_metadata(config)
 
     if config[KEY_GLOBAL_SNIPIT]:
         get_global_snipit(data_for_report, config)
