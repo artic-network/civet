@@ -16,7 +16,7 @@ def parse_preset_options(config):
     valid_preset = {
         "the_usual":"1,2,3,4,5", 
         "the_works":"1,2,3,4,5,7", 
-        "the_whole_shebang":"1,2,3,4,5,6,7", 
+        "the_whole_shebang":"1,2,3,4,5,6,7,8", 
         "hold_the_sauce":"1,2"
         }
     report_preset = config[KEY_REPORT_PRESET]
@@ -32,7 +32,7 @@ def parse_preset_options(config):
             """
 - the_usual (1,2,3,4,5)
 - the_works (1,2,3,4,5,7) 
-- the_whole_shebang (1,2,3,4,5,6,7)
+- the_whole_shebang (1,2,3,4,5,6,7,8)
 - hold_the_sauce (1,2)  
             """)
             sys.exit(-1)
@@ -56,7 +56,7 @@ def qc_report_content(config):
             if i in range(1,8):
                 to_run.append(i)
             else:
-                sys.stderr.write(cyan(f'Error: {i} is an invalid -rc/ --report-content option. Options 1..7 inclusive.\n'))
+                sys.stderr.write(cyan(f'Error: {i} is an invalid -rc/ --report-content option. Options 1..8 inclusive.\n'))
                 sys.exit(-1)
 
         report_options = sorted(list(set(report_options)))
@@ -192,6 +192,20 @@ def parse_optional_report_content(table_content,mutations, timeline_dates, timel
         timeline_functions.timeline_checking(timeline_dates, timeline_group_column, config)
 
 
+def parse_series_options(series_colour_factor, input_date_column,config):
+    if 8 in config[KEY_REPORT_CONTENT]:
+        misc.add_arg_to_config(KEY_SERIES_COLOUR_FACTOR,series_colour_factor,config)
+        misc.add_arg_to_config(KEY_INPUT_DATE_COLUMN,input_date_column,config)
+
+        global_report_functions.qc_date_col(KEY_INPUT_DATE_COLUMN, config, config[KEY_INPUT_METADATA], "input", "-idate/--input-date-column")
+        
+        with open(config[KEY_INPUT_METADATA],"r") as f:
+            reader = csv.DictReader(f)
+            if not config[KEY_SERIES_COLOUR_FACTOR] in reader.fieldnames:
+                sys.stderr.write(cyan(f"Error: {config[KEY_SERIES_COLOUR_FACTOR]} column not found in input csv file.\n"))
+                sys.exit(-1)
+
+
 def parse_map_options(background_map_date_range, background_map_column, background_map_file, centroid_file, background_map_location, query_map_file, longitude_column, latitude_column, found_in_background_data, config):
 
     if 6 in config[KEY_REPORT_CONTENT]:
@@ -210,5 +224,6 @@ def find_pretty_report_options():
     option_dict["5"] = "timelines"
     option_dict["6"] = "background diversity maps"
     option_dict["7"] = "query maps"
+    option_dict["8"] = "time series"
 
     return option_dict
