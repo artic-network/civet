@@ -53,7 +53,7 @@ def qc_report_content(config):
             sys.exit(-1)
         
         for i in report_options:
-            if i in range(1,8):
+            if i in range(1,9):
                 to_run.append(i)
             else:
                 sys.stderr.write(cyan(f'Error: {i} is an invalid -rc/ --report-content option. Options 1..8 inclusive.\n'))
