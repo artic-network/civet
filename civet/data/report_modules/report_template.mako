@@ -751,7 +751,7 @@
           </div>
       </div>
     </div> -->
-   %if '1' in config["report_content"]:
+   %if '1' in config['report_content']:
           <h3><strong>Table 1</strong> | Summary of queries </h3>
           <button class="accordion">Table options</button>
           <div class="panel">
@@ -797,7 +797,7 @@
               % endfor
               </tbody>
             </table>
-          
+            
             <script type="text/javascript">
               $(document).ready( function () {
                   var table = $('#myTable').DataTable({
@@ -820,7 +820,7 @@
     
                 } );
             </script>
-
+        %endif
         %if 'query_fasta' in config:
     
           <h3><strong>Table 2 </strong> | Queries provided in fasta file</h3>
@@ -859,7 +859,7 @@
             </table>
           </div>
         %endif
-	<% figure_count = 0 %>
+    <% figure_count = 0 %>
         %if config["global_snipit"]:
           <h2>global snipit </h2>
           <h3>SNP summary for all query sequences relative to the reference </h3>
@@ -888,10 +888,11 @@
                     <h3><strong>Figure ${figure_count}</strong> | snipit plot for all focal query sequences</h3>
                     <hr>        
           %endif
-        %if config["time_series"]:
         %if '8' in config["report_content"]:
         <%timeseries_data = data_for_report["full_metadata"] %>
-        
+        <%date_field = config["input_date_column"] %>
+        <%series_colour_factor = config["series_colour_factor"] %>
+
         <% figure_count +=1 %>
         <br>
 
@@ -909,7 +910,7 @@
                 "mark": "bar",
                 "encoding": {
                   "x": {
-                    "field": "sample_date", 
+                    "field": "${date_field}", 
                     "bin":true,
                     "scale": {"type": "nice","interval": "week", "step": 2},
                     "timeUnit": {
@@ -936,14 +937,25 @@
                   "titleFont":"Helvetica Neue"}
                   },
                   "color": {
-                        "field": "lineage", 
+                        "field": "${series_colour_factor}", 
                         "type": "nominal",
                         "scale": {
-                                "domain": ["B.1.111","B.1.1.33","B.1.1","None"],
-                                "range": ["#7178BC", "#42A8AA", "#D4B489","#D3D3D3"]
+                              "range": [
+                                    "#B6B8C8",
+                                    "#D4B489",
+                                    "#A6626F",
+                                    "#733646",
+                                    "#A47E3E",
+                                    "#DC9598",
+                                    "#83818F",
+                                    "#B3ABD0",
+                                    "#B8B2C4",
+                                    "#A07E62",
+                                    "#F9C0C7"
+                                  ]
                             },
                         "legend": {
-                            "title": "Lineage",
+                            "title": "${series_colour_factor.capitalize()}",
                             "labelFontSize":14,
                             "labelFont":"Helvetica Neue",
                             "titleFontSize":16,
@@ -962,63 +974,10 @@
                 .then(result => console.log(result))
                 .catch(console.warn);
   </script>
-
           <% figure_count +=1 %>
           <h3><strong>Figure ${figure_count}</strong> | Time series of query sequences and epidata</h3>
           
           <div id="time_series_fig" style="width:90%"></div>
-
-          <script>
-            var vlSpec_time = {
-              "$schema": "https://vega.github.io/schema/vega-lite/v5.json",
-              "width": "container",
-              "height": 300,
-              "datasets": ${timeseries_data},
-          "data": {
-            "name": "time_series"
-              },
-            "transform":[
-              {
-              "filter": {
-                "field": "date_type",
-                "oneOf": ['sample_date']
-              }
-              }
-            ],
-            "mark": "bar",
-            "encoding": {
-              "x": {
-                "field": "date", 
-                "bin":true,
-                "timeUnit": "utcyearmonthdate",
-                "title": "Date",
-                "axis": {
-                  "grid": false,
-                  "format":"%Y-%m-%d",
-                  "labelFont":"Helvetica Neue",
-                  "labelFontSize":18,
-                  "titleFontSize":18,
-                  "titleFont":"Helvetica Neue"
-                },
-              },
-              "y": 
-              {"aggregate": "count",
-              "title": "Genome count",
-              "axis":{
-              "grid": false,
-              "labelFont":"Helvetica Neue",
-              "labelFontSize":18,
-              "titleFontSize":18,
-              "titleFont":"Helvetica Neue"}
-              }
-            }
-            };          
-      vegaEmbed('#time_series_fig', vlSpec_time, {renderer: "svg"})
-            .then(result => console.log(result))
-            .catch(console.warn);
-    </script>
-         
-
   %endif
 
     %for catchment in catchments:
