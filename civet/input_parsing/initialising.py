@@ -103,14 +103,15 @@ def get_defaults():
                     KEY_BACKGROUND_MAP_LOCATION:False, #default is all valid locations in background metadata
                     KEY_BACKGROUND_MAP_FILE: False, #Same as above
                     KEY_CENTROID_FILE:False, #will select appropriate centroid file for provided jsons as default
+                    KEY_BACKGROUND_MAP_DATE_RANGE:False, #default is no restriction, will do background from 2019-11-01 to today
 
                     #Query map options
                     KEY_QUERY_MAP_FILE:False, #if UK, will find the topojson containing aggregated_adm2s, if global will find adm0 or adm1 geojson
                     KEY_LATITUDE_COLUMN:"latitude",
                     KEY_LONGITUDE_COLUMN:"longitude",
                     
-                    # "map_column":False,
-                    KEY_BACKGROUND_MAP_DATE_RANGE:False, #default is no restriction, will do background from 2019-11-01 to today
+                    #Query time series options
+                    KEY_SERIES_COLOUR_FACTOR:"lineage",
 
                     # misc defaults
                     KEY_CIVET_MODE: os.getenv('CIVETMODE'),
