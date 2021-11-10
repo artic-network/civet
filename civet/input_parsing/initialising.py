@@ -103,6 +103,7 @@ def get_defaults():
                     KEY_BACKGROUND_MAP_LOCATION:False, #default is all valid locations in background metadata
                     KEY_BACKGROUND_MAP_FILE: False, #Same as above
                     KEY_CENTROID_FILE:False, #will select appropriate centroid file for provided jsons as default
+                    KEY_BACKGROUND_MAP_DATE_RANGE:False, #default is no restriction, will do background from 2019-11-01 to today
                     KEY_BACKGROUND_MAP_COLOURS:"#b6b8c8,#c6b6a7,#d2b088,#b9857a,#a15d6b,#864655,#7b4145,#956741,#b08351,#cd8f80,#c59096,#968591,#928ea4,#aba4c6,#b5aecc,#b7b1c5,#ae9c9b,#a18167,#ca9d92,#f9c0c7",
                     KEY_BACKGROUND_MAP_OTHER_COLOURS:"#F5F5DC,#E1C699",
 
@@ -111,8 +112,8 @@ def get_defaults():
                     KEY_LATITUDE_COLUMN:"latitude",
                     KEY_LONGITUDE_COLUMN:"longitude",
                     
-                    # "map_column":False,
-                    KEY_BACKGROUND_MAP_DATE_RANGE:False, #default is no restriction, will do background from 2019-11-01 to today
+                    #Query time series options
+                    KEY_SERIES_COLOUR_FACTOR:"lineage",
 
                     # misc defaults
                     KEY_CIVET_MODE: os.getenv('CIVETMODE'),

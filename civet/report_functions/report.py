@@ -53,18 +53,12 @@ def make_fasta_summary_data(metadata,config):
     return fasta_summary_pass,fasta_summary_fail
 
 def check_earliest_latest_dates(d,catchment_summary_dict,catchment):
-    if catchment_summary_dict[catchment]["earliest_date"]:
-        if d < catchment_summary_dict[catchment]["earliest_date"]:
-            catchment_summary_dict[catchment]["earliest_date"] = d
-    else:
+    if d < catchment_summary_dict[catchment]["earliest_date"]:
         catchment_summary_dict[catchment]["earliest_date"] = d
 
-    if catchment_summary_dict[catchment]["latest_date"]:
-        if d > catchment_summary_dict[catchment]["latest_date"]:
-            catchment_summary_dict[catchment]["latest_date"] = d
-    else:
+    if d > catchment_summary_dict[catchment]["latest_date"]:
         catchment_summary_dict[catchment]["latest_date"] = d
-
+    
 def get_top_10_str(total,counter_dict):
     summary = ""
     top = counter_dict.most_common(10)
@@ -91,6 +85,7 @@ def make_catchment_summary_data(metadata,catchments,config):
 
         for row in reader:
             catchment = row[KEY_CATCHMENT]
+
             if row[KEY_QUERY_BOOLEAN] == "True":
                 catchment_summary_dict[catchment]["query_count"] +=1
             elif row[KEY_QUERY_BOOLEAN] == "False":
@@ -98,12 +93,13 @@ def make_catchment_summary_data(metadata,catchments,config):
 
                 catchment_summary_dict[catchment]['total'] +=1
 
-                if config[KEY_INPUT_DATE_COLUMN] in reader.fieldnames:
+                if config[KEY_BACKGROUND_DATE_COLUMN] in reader.fieldnames:
+                    d = date.fromisoformat(row[config[KEY_BACKGROUND_DATE_COLUMN]])
+
                     for i in ['earliest_date','latest_date']:
                         if i not in catchment_summary_dict[catchment]:
-                            catchment_summary_dict[catchment][i] = ''
+                            catchment_summary_dict[catchment][i] = d
 
-                    d = date.fromisoformat(row[config[KEY_INPUT_DATE_COLUMN]])
                     check_earliest_latest_dates(d,catchment_summary_dict,catchment)
 
                 if config["background_location_column"] in reader.fieldnames:
@@ -136,6 +132,17 @@ def make_catchment_summary_data(metadata,catchments,config):
 
 
     return catchment_summary_dict
+
+def get_full_metadata(config):
+
+    query_metadata = []
+    with open(config[KEY_QUERY_METADATA]) as f:
+        reader = csv.DictReader(f)
+        for row in reader:
+            query_metadata.append(row)
+    
+    return json.dumps(query_metadata)
+
 
 def get_timeline(catchment, config):
 
@@ -265,6 +272,9 @@ def define_report_content(metadata,catchments,figure_catchments,config):
         data_for_report["query_map_data"] = get_query_map(config)
     else:
         data_for_report["query_map_data"] = ""
+
+    if '8' in report_content:
+        data_for_report["full_metadata"] = get_full_metadata(config)
 
     if config[KEY_GLOBAL_SNIPIT]:
         get_global_snipit(data_for_report, config)

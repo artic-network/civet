@@ -751,7 +751,7 @@
           </div>
       </div>
     </div> -->
-   %if '1' in config["report_content"]:
+   %if '1' in config['report_content']:
           <h3><strong>Table 1</strong> | Summary of queries </h3>
           <button class="accordion">Table options</button>
           <div class="panel">
@@ -797,7 +797,7 @@
               % endfor
               </tbody>
             </table>
-          
+            
             <script type="text/javascript">
               $(document).ready( function () {
                   var table = $('#myTable').DataTable({
@@ -820,7 +820,7 @@
     
                 } );
             </script>
-
+        %endif
         %if 'query_fasta' in config:
     
           <h3><strong>Table 2 </strong> | Queries provided in fasta file</h3>
@@ -859,36 +859,127 @@
             </table>
           </div>
         %endif
-	<% figure_count = 0 %>
+    <% figure_count = 0 %>
         %if config["global_snipit"]:
-	<h2>global snipit </h2>
-	<h3>SNP summary for all query sequences relative to the reference </h3>
-	<% figure_count +=1 %>
+          <h2>global snipit </h2>
+          <h3>SNP summary for all query sequences relative to the reference </h3>
+          <% figure_count +=1 %>
+                <br>
+                <button class="accordion">Export image</button>
+                  <div class="panel">
+                    <div class="row">
+                      <div class="column">
+                        <button id="global_snipit_svg">SVG</button>
+                      </div>
+                      <div class="column">
+                        <button id="global_snipit_png">PNG</button>
+                      </div>
+                    </div>
+                  </div>
+                    <div id="global_snipit">
+                    ${data_for_report["global_snipit_svg"]}
+                    </div>
+              <script type="text/javascript">
+                exportImageSVG("#global_snipit_svg","#global_snipit", "global_snipit_chart");
+              </script>
+              <script type="text/javascript">
+                exportImagePNG("#global_snipit_png","#global_snipit", "global_snipit_chart");
+              </script>
+                    <h3><strong>Figure ${figure_count}</strong> | snipit plot for all focal query sequences</h3>
+                    <hr>        
+          %endif
+        %if '8' in config["report_content"]:
+        <%timeseries_data = data_for_report["full_metadata"] %>
+        <%date_field = config["input_date_column"] %>
+        <%series_colour_factor = config["series_colour_factor"] %>
+
+        <% figure_count +=1 %>
         <br>
-        <button class="accordion">Export image</button>
-          <div class="panel">
-            <div class="row">
-              <div class="column">
-                <button id="global_snipit_svg">SVG</button>
-              </div>
-              <div class="column">
-                <button id="global_snipit_png">PNG</button>
-              </div>
-            </div>
-          </div>
-            <div id="global_snipit">
-            ${data_for_report["global_snipit_svg"]}
-            </div>
-      <script type="text/javascript">
-        exportImageSVG("#global_snipit_svg","#global_snipit", "global_snipit_chart");
-      </script>
-      <script type="text/javascript">
-        exportImagePNG("#global_snipit_png","#global_snipit", "global_snipit_chart");
-      </script>
-            <h3><strong>Figure ${figure_count}</strong> | snipit plot for all focal query sequences</h3>
-            <hr>        
-        %endif
+
+        <div id="time_series" style="width:95%"></div>
+
+          <script>
+            var vlSpec_time = {
+              "$schema": "https://vega.github.io/schema/vega-lite/v5.json",
+              "width": "container",
+              "height": 200,
+              "datasets": {"time_series": ${timeseries_data}},
+              "data": {
+                "name": "time_series"
+                  },
+                "mark": "bar",
+                "encoding": {
+                  "x": {
+                    "field": "${date_field}", 
+                    "bin":true,
+                    "scale": {"type": "nice","interval": "week", "step": 2},
+                    "timeUnit": {
+                        "unit": "utcyearmonthdate",
+                        "step": 7},
+                    "title": "Date",
+                    "axis": {
+                      "grid": false,
+                      "format":"%Y-%m-%d",
+                      "labelFont":"Helvetica Neue",
+                      "labelFontSize":18,
+                      "titleFontSize":18,
+                      "titleFont":"Helvetica Neue"
+                    },
+                  },
+                  "y": 
+                  {"aggregate": "count",
+                  "title": "Genome count",
+                  "axis":{
+                  "grid": false,
+                  "labelFont":"Helvetica Neue",
+                  "labelFontSize":18,
+                  "titleFontSize":18,
+                  "titleFont":"Helvetica Neue"}
+                  },
+                  "color": {
+                        "field": "${series_colour_factor}", 
+                        "type": "nominal",
+                        "scale": {
+                              "range": [
+                                    "#B6B8C8",
+                                    "#D4B489",
+                                    "#A6626F",
+                                    "#733646",
+                                    "#A47E3E",
+                                    "#DC9598",
+                                    "#83818F",
+                                    "#B3ABD0",
+                                    "#B8B2C4",
+                                    "#A07E62",
+                                    "#F9C0C7"
+                                  ]
+                            },
+                        "legend": {
+                            "title": "${series_colour_factor.capitalize()}",
+                            "labelFontSize":14,
+                            "labelFont":"Helvetica Neue",
+                            "titleFontSize":16,
+                            "titleFont":"Helvetica Neue",
+                            "titleFontStyle":"normal"
+                            }
+                        }
+                    },
+                        "config": {
+                          "view": {"stroke": null},
+                          "axis": {"grid": false},
+                          "text": {"font":"Helvetica Neue","fontWeight":0.1}
+                        }
+                };          
+          vegaEmbed('#time_series', vlSpec_time, {renderer: "svg"})
+                .then(result => console.log(result))
+                .catch(console.warn);
+  </script>
+          <% figure_count +=1 %>
+          <h3><strong>Figure ${figure_count}</strong> | Time series of query sequences and epidata</h3>
+          
+          <div id="time_series_fig" style="width:90%"></div>
   %endif
+
     %for catchment in catchments:
         <% catchment_name = catchment.replace("_"," ").title() %>
         <h2><a id = "header_${catchment}"></a>${catchment_name}</h2> 
