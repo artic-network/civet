@@ -104,6 +104,8 @@ def get_defaults():
                     KEY_BACKGROUND_MAP_FILE: False, #Same as above
                     KEY_CENTROID_FILE:False, #will select appropriate centroid file for provided jsons as default
                     KEY_BACKGROUND_MAP_DATE_RANGE:False, #default is no restriction, will do background from 2019-11-01 to today
+                    KEY_BACKGROUND_MAP_COLOURS:"#b6b8c8,#c6b6a7,#d2b088,#b9857a,#a15d6b,#864655,#7b4145,#956741,#b08351,#cd8f80,#c59096,#968591,#928ea4,#aba4c6,#b5aecc,#b7b1c5,#ae9c9b,#a18167,#ca9d92,#f9c0c7",
+                    KEY_BACKGROUND_MAP_OTHER_COLOURS:"#F5F5DC,#E1C699",
 
                     #Query map options
                     KEY_QUERY_MAP_FILE:False, #if UK, will find the topojson containing aggregated_adm2s, if global will find adm0 or adm1 geojson
@@ -263,6 +265,8 @@ def arg_dict(config):
                 "bmloc":"background_map_location",
                 "bmfile":"background_map_file",
                 "centroid_file":"centroid_file",
+                "background_map_colours":"background_map_colours",
+                "background_map_other_colours":"background_map_other_colours",
 
                 #qm group args
                 "lat":"latitude_column",

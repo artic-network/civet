@@ -1207,7 +1207,59 @@
         %if '6' in config["report_content"]:
           <% figure_count +=1 %>
           <br>
-        <div id="background_map" style="width:90%"></div>
+          <div class="container" style="width:100%;">
+          <div id="background_map_legend" style="width: 30%; float:right"></div>
+          <script>
+          var vSpec_legend = {
+            "$schema": "https://vega.github.io/schema/vega/v5.json",
+            "background": "white",
+            "padding": 5,
+            "width": 10,
+            "height": 100,
+            
+            "data":[{
+              "name":"colour_dict",
+              "values": ${data_for_report["background_map_colour_data"]}
+            }],
+
+            "marks":[{
+              "type":"rect",
+              "from":{"data":"colour_dict"},
+              "encode":{
+                "update":{
+                  "x":{"value":10},
+                  "y":{"field":"y_val"},
+                  "width":{"value":20},
+                  "height":{"value":20},
+                  "fill":{"field":"colour"}
+                }
+              }
+            },{
+            "name": "text_marks",
+                "type": "text",
+                "from": {"data": "colour_dict"},
+                "encode": {
+                  "enter": {
+                    "fill": {"value": "black"},
+                    "text":{"field":"lineage"}
+                    },
+                "update":{
+                  "x":{"value":40},
+                  "y":{"field":"text_val"},
+                  "fontSize":{"field":"text_size"}
+                },
+                  "font": {"value": "Helvetica Neue"} 
+                  }
+      }
+  ]
+}
+vegaEmbed('#background_map_legend', vSpec_legend, {renderer: "svg"})
+                      .then(result => console.log(result))
+                      .catch(console.warn);
+
+        </script>
+        <br>
+        <div id="background_map" style="width: 70%; float:left""></div>
         <script>
         var vSpec_bmap = {
           "$schema": "https://vega.github.io/schema/vega/v5.json",
@@ -1231,6 +1283,7 @@
 % endif
 
           "signals": [
+                      {"name":"show_labels", "value":false, "bind":{"input":"checkbox"}},
                       { "name": "tx", "update": "width / 2" },
                       { "name": "ty", "update": "height / 2" },
                       {
@@ -1428,8 +1481,8 @@ longitude = data_for_report[location]["centroids"][0]%>
                   "tooltip": {
                     "signal": "{\"location\": datum[\"location\"], \"lineage\": isValid(datum[\"lineage\"]) ? datum[\"lineage\"] : \"\"+datum[\"lineage\"], \"count\": format(datum[\"count\"], \"\")}"
                   },
-                  "cornerRadius": {"value": 5},
-                  "fill": {"scale": "color", "field": "lineage"},
+                  "cornerRadius": {"value": 3},
+                  "fill": {"field": "colour"},
                   "description": {
                     "signal": "\"count: \" + (format(datum[\"count\"], \"\")) + \"; lineage: \" + (isValid(datum[\"lineage\"]) ? datum[\"lineage\"] : \"\"+datum[\"lineage\"])"
                   },
@@ -1453,8 +1506,7 @@ longitude = data_for_report[location]["centroids"][0]%>
               "from": {"data": "data_${location}_3"},
               "encode": {
                 "update": {
-                  "fill": {"value": "black"},
-                  "stroke": {"value": "white"},
+                  "fill": {"scale":"text_colour", "signal":"show_labels"},
                   "strokeWidth": {"value": 0.1},
                   "align": {"value": "center"},
                   "radius": {"scale": "radius_${location}", "field": "count","offset":10},
@@ -1482,8 +1534,14 @@ longitude = data_for_report[location]["centroids"][0]%>
           ]
           ,
           "scales": [
-%for location in data_for_report['locations_wanted']:
-            {
+             {
+      "name":"text_colour",
+      "type":"threshold",
+      "domain":[true, false],
+      "range":["none", "black"]
+    },
+%for count,location in enumerate(data_for_report['locations_wanted']):            
+			{
               "name": "theta_${location}",
               "type": "linear",
               "domain": {
@@ -1509,37 +1567,11 @@ longitude = data_for_report[location]["centroids"][0]%>
               },
               "range": [{"signal":"inner_arc_zoom_${location}"},{"signal":"arc_zoom_${location}"}],
               "zero": true
-            },
-%endfor
-            {
-              "name": "color",
-              "type": "ordinal",
-              "domain": {
-                "fields": [
-%for count,location in enumerate(data_for_report['locations_wanted']):
-                  {"data": "data_${location}_2", "field": "lineage"},
-                  {"data": "data_${location}_3", "field": "lineage"}
+            }
 %if count < len(data_for_report['locations_wanted'])-1:
 ,
 %endif
 %endfor
-                ],
-                "sort": true
-              },
-              "range": [
-                "#B6B8C8",
-                "#D4B489",
-                "#A6626F",
-                "#733646",
-                "#A47E3E",
-                "#DC9598",
-                "#83818F",
-                "#B3ABD0",
-                "#B8B2C4",
-                "#A07E62",
-                "#F9C0C7"
-              ]
-            }
           ]
         }
 
@@ -1548,7 +1580,8 @@ longitude = data_for_report[location]["centroids"][0]%>
                       .catch(console.warn);
 
       </script>
-      <h3><strong>Figure ${figure_count}</strong> | Background diversity map</h3>
+      </div>
+      <h3><strong>Figure ${figure_count}</strong> | Background diversity map (doughnut size is proportional to number of sequences) </h3>
       <hr>
         %endif
         

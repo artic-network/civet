@@ -107,51 +107,6 @@ def parse_global_report_options(report_content,report_preset,report_column, anon
 
     return name_output
 
-def is_hex(code):
-    hex_code = False
-    if code.startswith("#") and len(code)==7:
-        values = code[1:].upper()
-        for value in values:
-            if value in "ABCDEF0123456789":
-                hex_code = True
-            else:
-                hex_code = False
-                break
-                
-    return hex_code
-
-def get_acceptable_colours(config):
-
-    acceptable_colours = []
-
-    with open(config[KEY_HTML_COLOURS]) as f:
-        reader = csv.DictReader(f)
-        for row in reader:
-            acceptable_colours.append(row["name"].lower())
-            # acceptable_colours.append(row["hex"].lower())
-
-    return acceptable_colours
-
-def colour_checking(config):
-    acceptable_colours = get_acceptable_colours(config)
-    cmap = config[KEY_COLOUR_MAP]
-    if not type(cmap) == "list":
-        if ',' in cmap:
-            cmap = cmap.split(",")
-            for colour in cmap:
-                if not is_hex(colour) and colour.lower() not in acceptable_colours:
-                    sys.stderr(cyan(f"Invalid colour code: ") + f"{colour}\n")
-                    sys.exit(-1)
-        else:
-            cmap = cmap.split(",")
-            if not is_hex(cmap[0]) and colour.lower() not in acceptable_colours:
-                sys.stderr(cyan(f"Invalid colour code: ") + f"{cmap[0]}\nPlease provide a comma-separated string of HEX codes or see htmlcolorcodes.com/color-names for `-cmap/--colour-map`.\n")
-                sys.exit(-1)
-    config[KEY_COLOUR_MAP] = cmap
-    if not is_hex(config[KEY_COLOUR_THEME]) and config[KEY_COLOUR_THEME].lower() not in acceptable_colours:
-        sys.stderr(cyan(f"Invalid HEX colour code: ") + f"{config[KEY_COLOUR_THEME]}\nPlease provide a valid HEX code or see htmlcolorcodes.com/color-names for `-ct/--colour-theme`.\n")
-        sys.exit(-1)
-
 def parse_tree_options(tree_annotations,max_tree_size, config):
     misc.add_arg_to_config(KEY_TREE_ANNOTATIONS,tree_annotations, config)
     misc.add_arg_to_config(KEY_MAX_TREE_SIZE,max_tree_size, config)
@@ -173,13 +128,14 @@ def parse_tree_options(tree_annotations,max_tree_size, config):
     config[KEY_TREE_ANNOTATIONS] = " ".join(config[KEY_TREE_ANNOTATIONS])
 
 
-def parse_optional_report_content(table_content,mutations, timeline_dates, timeline_group_column, colour_theme, colour_map, config):
+def parse_optional_report_content(table_content, mutations, timeline_dates, timeline_group_column, colour_theme, colour_map, config):
     #parse optional parts of report
     
-    misc.add_arg_to_config(KEY_COLOUR_THEME,colour_theme,config)
+    #move these four bits to global report option parsing?
+    misc.add_arg_to_config(KEY_COLOUR_THEME,colour_theme,config) 
     misc.add_arg_to_config(KEY_COLOUR_MAP,colour_map,config)
-
-    colour_checking(config)
+    global_report_functions.colour_checking(KEY_COLOUR_MAP,config)
+    global_report_functions.check_theme(config)
 
     if 1 in config[KEY_REPORT_CONTENT]:
 
@@ -190,7 +146,6 @@ def parse_optional_report_content(table_content,mutations, timeline_dates, timel
 
     if 5 in config[KEY_REPORT_CONTENT]:
         timeline_functions.timeline_checking(timeline_dates, timeline_group_column, config)
-
 
 def parse_series_options(series_colour_factor, input_date_column,config):
     if 8 in config[KEY_REPORT_CONTENT]:
@@ -205,11 +160,10 @@ def parse_series_options(series_colour_factor, input_date_column,config):
                 sys.stderr.write(cyan(f"Error: {config[KEY_SERIES_COLOUR_FACTOR]} column not found in input csv file.\n"))
                 sys.exit(-1)
 
-
-def parse_map_options(background_map_date_range, background_map_column, background_map_file, centroid_file, background_map_location, query_map_file, longitude_column, latitude_column, found_in_background_data, config):
+def parse_map_options(background_map_date_range, background_map_column, background_map_file, centroid_file, background_map_location, query_map_file, longitude_column, latitude_column, found_in_background_data, background_map_colours, background_map_other_colours, config):
 
     if 6 in config[KEY_REPORT_CONTENT]:
-        map_functions.parse_background_map_options(background_map_file, centroid_file, background_map_date_range, background_map_column, background_map_location, found_in_background_data, config)
+        map_functions.parse_background_map_options(background_map_file, centroid_file, background_map_date_range, background_map_column, background_map_location, found_in_background_data, background_map_colours, background_map_other_colours, config)
 
     if 7 in config[KEY_REPORT_CONTENT]:
         map_functions.parse_query_map(query_map_file, longitude_column, latitude_column, found_in_background_data, config)
