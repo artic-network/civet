@@ -2,6 +2,8 @@
 
 ![civet-test-installation](https://github.com/COG-UK/civet/workflows/civet-test-installation/badge.svg)
 
+This branch is a stable version of civet2, which is dependent on access to a global phylogeny. Much of the code is specific for usage on CLIMB. For general purposes, see master branch of civet for civet3.
+
 **C**luster **I**nvestigation & **V**irus **E**pidemiology **T**ool
 
 <img src="./docs/doc_figures/civet_logo.png" width="350">
