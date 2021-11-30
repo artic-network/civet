@@ -4,31 +4,19 @@ channels:
   - bioconda
   - defaults
 dependencies:
-  - biopython=1.74
-  - iqtree<2
-  - mafft
-  - minimap2
-  - pip=19.3.1
-  - python=3.6
-  - snakemake-minimal=5.13
-  - libpysal=4.3.0
-  - nodejs=10.12.0
-  - openjdk
-  - cov-ert::jclusterfunk
-  - benjamincjackson::gofasta
-  - importlib-metadata=3.10.1
-  - pyproj=3.0.0
+  - biopython
+  - iqtree>=2.1
+  - minimap2>=2.17
+  - python=3.9
+  - pip=21.2.1
+  - snakemake-minimal<=6.8.0
+  - cov-ert::jclusterfunk>=0.0.25
+  - gofasta>=0.0.5
   - pip:
-    - pandas==1.1.0
-    - pytools==2020.1
-    - dendropy>=4.4.0
-    - tabulate>=0.8.7
-    - grip>=4.5.2
-    - descartes>=1.1.0
-    - adjustText>=0.7.3
-    - click==7.1.2
-    - git+https://github.com/cov-ert/datafunk.git
-    - git+https://github.com/cov-ert/reportfunk.git
-    - git+https://github.com/cov-ert/clusterfunk.git
-    - Cython==0.29.24
-
+    - git+https://github.com/cov-lineages/scorpio.git
+    - git+https://github.com/cov-lineages/constellations.git
+# variables:
+#   TEMPDIR:
+#   CIVET_DATADIR: 
+#   CIVETMODE: 
+# civet now requires conda version 4.9 or later
