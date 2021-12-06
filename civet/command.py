@@ -97,6 +97,7 @@ def main(sysargs = sys.argv[1:]):
 
     c_group = parser.add_argument_group("Catchment options")
     c_group.add_argument('-snpd','--snp-distance', type=int, action="store",dest="snp_distance",help="Define radius of catchment by number of SNPs from query. Default: `2`")
+    c_group.add_argument('-pushd','--push-distance', type=int, action="store",dest="push_distance",help="Define node radius to push from query. Default: `2`")
     c_group.add_argument('--snp-distance-up', type=int, action="store",dest="snp_distance_up",help="Define radius of catchment by number of SNPs from query. Default: <-snpd/--snp-distance>")
     c_group.add_argument('--snp-distance-down', type=int, action="store",dest="snp_distance_down",help="Define radius of catchment by number of SNPs from query. Default: <-snpd/--snp-distance>")
     c_group.add_argument('--snp-distance-side', type=int, action="store",dest="snp_distance_side",help="Define radius of catchment by number of SNPs from query. Default: <-snpd/--snp-distance>")
@@ -233,7 +234,7 @@ Default: `the_usual`""")
     # Analysis options, including ref and trim and pad
     analysis_arg_parsing.analysis_group_parsing(args.reference_sequence,args.trim_start,args.trim_end,args.max_queries,config)
 
-    analysis_arg_parsing.catchment_group_parsing(args.catchment_background_size,args.downsample,args.snp_distance,args.snp_distance_up,args.snp_distance_down,args.snp_distance_side,config)
+    analysis_arg_parsing.catchment_group_parsing(args.catchment_background_size,args.downsample,args.push_distance,args.snp_distance,args.snp_distance_up,args.snp_distance_down,args.snp_distance_side,config)
 
     # Sort out where the query info is coming from, csv or id string, optional fasta seqs.
     # Checks if they're real files, of the right format and that QC args sensible values.

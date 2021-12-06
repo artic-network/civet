@@ -122,7 +122,7 @@ rule find_catchment:
         -t '{config[background_search_file]}' \
         -o {output.catchments:q} \
         --reference '{config[reference_sequence]}' \
-        --dist-push \
+        --dist-push {config[push_distance]} \
         --dist-up {config[snp_distance_up]} \
         --dist-down {config[snp_distance_down]} \
         --dist-side {config[snp_distance_side]} \

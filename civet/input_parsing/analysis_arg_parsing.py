@@ -183,10 +183,11 @@ def distance_configuration(config):
         check_if_int("snp_distance_side",config)
         print(green("SNP distance radius for catchment:") + f"\n\t- Up {config['snp_distance_up']}\n\t- Down {config['snp_distance_down']}\n\t- Side {config['snp_distance_side']}")
 
-def catchment_group_parsing(catchment_background_size,downsample,distance,distance_up,distance_down,distance_side,config):
+def catchment_group_parsing(catchment_background_size,downsample,push_distance,distance,distance_up,distance_down,distance_side,config):
 
     misc.add_arg_to_config("catchment_background_size",catchment_background_size,config)
     misc.add_arg_to_config("downsample",downsample,config)
+    misc.add_arg_to_config("push_distance",push_distance,config)
 
     misc.add_arg_to_config("snp_distance",distance,config)
     misc.add_arg_to_config("snp_distance_up",distance_up,config)

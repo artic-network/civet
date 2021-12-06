@@ -65,6 +65,7 @@ def get_defaults():
 
                     # catchment config
                     KEY_CATCHMENT_BACKGROUND_SIZE:100,
+                    KEY_PUSH_DISTANCE:2,
                     KEY_SNP_DISTANCE:False,
                     KEY_SNP_DISTANCE_UP:2,
                     KEY_SNP_DISTANCE_DOWN:2,
