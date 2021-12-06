@@ -4,6 +4,7 @@ from civet.utils import misc
 import sys
 import os
 import csv
+from civet.utils.config import *
 from Bio import SeqIO
 
 def check_coords_within_reference_length(config):
@@ -187,7 +188,7 @@ def catchment_group_parsing(catchment_background_size,downsample,push_distance,d
 
     misc.add_arg_to_config("catchment_background_size",catchment_background_size,config)
     misc.add_arg_to_config("downsample",downsample,config)
-    misc.add_arg_to_config("push_distance",push_distance,config)
+    misc.add_arg_to_config(KEY_PUSH_DISTANCE,push_distance,config)
 
     misc.add_arg_to_config("snp_distance",distance,config)
     misc.add_arg_to_config("snp_distance_up",distance_up,config)
