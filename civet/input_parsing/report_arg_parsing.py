@@ -147,18 +147,14 @@ def parse_optional_report_content(table_content, mutations, timeline_dates, time
     if 5 in config[KEY_REPORT_CONTENT]:
         timeline_functions.timeline_checking(timeline_dates, timeline_group_column, config)
 
-def parse_series_options(series_colour_factor,query_metadata, input_date_column,config):
+def parse_series_options(series_colour_factor, input_date_column,config):
     if 8 in config[KEY_REPORT_CONTENT]:
         misc.add_arg_to_config(KEY_SERIES_COLOUR_FACTOR,series_colour_factor,config)
         misc.add_arg_to_config(KEY_INPUT_DATE_COLUMN,input_date_column,config)
-
-        global_report_functions.qc_date_col(KEY_INPUT_DATE_COLUMN, config, query_metadata, "input", "-idate/--input-date-column")
         
-        with open(query_metadata,"r") as f:
-            reader = csv.DictReader(f)
-            if not config[KEY_SERIES_COLOUR_FACTOR] in reader.fieldnames:
-                sys.stderr.write(cyan(f"Error: {config[KEY_SERIES_COLOUR_FACTOR]} column not found in input csv file.\n"))
-                sys.exit(-1)
+        if not config[KEY_SERIES_COLOUR_FACTOR] in config["query_csv_header"]:
+            sys.stderr.write(cyan(f"Error: {config[KEY_SERIES_COLOUR_FACTOR]} column not found in input csv file.\n"))
+            sys.exit(-1)
 
 def parse_map_options(background_map_date_range, background_map_column, background_map_file, centroid_file, background_map_location, query_map_file, longitude_column, latitude_column, found_in_background_data, background_map_colours, background_map_other_colours, config):
 
