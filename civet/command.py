@@ -256,7 +256,7 @@ Default: `the_usual`""")
     report_arg_parsing.parse_optional_report_content(args.query_table_content,args.mutations, args.timeline_dates, args.timeline_group_column, args.colour_theme, args.colour_map, config)
     report_arg_parsing.parse_map_options(args.background_map_date_range, args.background_map_column, args.background_map_file, args.centroid_file, args.background_map_location, args.query_map_file, args.longitude_column, args.latitude_column, found_in_background_data, args.background_map_colours, args.background_map_other_colours,config)
     report_arg_parsing.parse_tree_options(args.tree_annotations,args.max_tree_size, config)
-    report_arg_parsing.parse_series_options(args.series_colour_factor, config[KEY_INPUT_DATE_COLUMN],config)
+    report_arg_parsing.parse_series_options(args.series_colour_factor,query_metadata, config[KEY_INPUT_DATE_COLUMN],config)
 
     # sets up the output dir, temp dir, and data output desination
     directory_setup.output_group_parsing(args.outdir, args.output_prefix, args.overwrite, args.datestamp, args.output_data, args.tempdir, args.no_temp, config)
@@ -268,6 +268,8 @@ Default: `the_usual`""")
         global_report_functions.write_anon_names_to_file(config, name_dict)
 
     # ready to run? either verbose snakemake or quiet mode
+    for k in sorted(config):
+        print(green(f" - {k}: ") + f"{config[k]}")
 
     if config[KEY_VERBOSE]:
         print(red("\n**** CONFIG ****"))
@@ -277,6 +279,7 @@ Default: `the_usual`""")
                                     workdir=config[KEY_TEMPDIR],config=config, cores=config[KEY_THREADS],lock=False
                                     )
     else:
+        
         status = snakemake.snakemake(snakefile, printshellcmds=False, forceall=True,force_incomplete=True,workdir=config[KEY_TEMPDIR],
                                     config=config, cores=config[KEY_THREADS],lock=False,quiet=True,log_handler=config[KEY_LOG_API]
                                     )
