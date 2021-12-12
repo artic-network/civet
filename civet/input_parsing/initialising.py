@@ -19,7 +19,7 @@ def get_defaults():
 
                     #input cols
                     KEY_INPUT_ID_COLUMN:"name",
-                    KEY_INPUT_DATE_COLUMN:False, #default is sample_date if present in the input csv
+                    KEY_INPUT_DATE_COLUMN:"sample_date", #default is sample_date if present in the input csv
                     KEY_INPUT_DISPLAY_COLUMN:False,
                     KEY_GLOBAL_SNIPIT: False,
                     KEY_FOCAL_ALIGNMENT:"",

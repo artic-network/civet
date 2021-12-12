@@ -912,10 +912,10 @@
                   "x": {
                     "field": "${date_field}", 
                     "bin":true,
-                    "scale": {"type": "nice","interval": "week", "step": 2},
+                    "scale": {"type": "nice","interval": "day", "step": 1},
                     "timeUnit": {
                         "unit": "utcyearmonthdate",
-                        "step": 7},
+                        "step": 1},
                     "title": "Date",
                     "axis": {
                       "grid": false,
