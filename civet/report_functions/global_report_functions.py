@@ -126,15 +126,20 @@ def parse_date_args(date_column, background_date_column, config):
     misc.add_arg_to_config(KEY_INPUT_DATE_COLUMN, date_column, config)
     misc.add_arg_to_config(KEY_BACKGROUND_DATE_COLUMN, background_date_column, config)
 
+
     if KEY_INPUT_METADATA in config:
         if not config[KEY_INPUT_DATE_COLUMN]:
             with open(config[KEY_INPUT_METADATA]) as f:
                 reader = csv.DictReader(f)
                 if "sample_date" in reader.fieldnames:
                     config[KEY_INPUT_DATE_COLUMN] = "sample_date"
-        
+
+    
     if KEY_INPUT_METADATA in config and config[KEY_INPUT_DATE_COLUMN]: #so this will also scoop in "sample_date" assigned above
         qc_date_col(KEY_INPUT_DATE_COLUMN, config, config[KEY_INPUT_METADATA], "input", "-idate/--input-date-column")
+
+    if not config[KEY_INPUT_DATE_COLUMN]:
+        config[KEY_INPUT_DATE_COLUMN] = "sample_date"
 
     if not config[KEY_BACKGROUND_DATE_COLUMN]:
         with open(config[KEY_BACKGROUND_METADATA]) as f:
