@@ -1,4 +1,4 @@
-name: civet3
+name: civet
 channels:
   - conda-forge
   - bioconda

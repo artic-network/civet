@@ -45,8 +45,6 @@ def main(sysargs = sys.argv[1:]):
     i_group.add_argument('-f','--input-sequences', action="store",help="Optional fasta file. Sequence IDs must match to a query ID specified either in the input csv or ID string", dest="input_sequences")
     i_group.add_argument('-fm','--from-metadata',nargs='*', dest="from_metadata",help="Generate a query from the metadata file supplied. Define a search that will be used to pull out sequences of interest from the background data. Example: -fm country=Ireland sample_date=2020-03-01:2020-04-01")
     i_group.add_argument('-mq','--max-queries', type=int, action="store",dest="max_queries",help="Max number of queries. Default: `5000`")
-    i_group.add_argument('--global_snipit', action="store_true",
-                              help="Create a global snipit figure for all focal sequences", dest="global_snipit")
     i_group.add_argument('--focal_alignment', action="store",
                             help="Optional alignment of focal sequences for global snipit", dest="focal_alignment")
     i_group.add_argument('--reference_name', action="store",
@@ -124,7 +122,10 @@ Default: `the_usual`""")
 4: snipit plots, 
 5: Timeline, 
 6: Background map, 
-7: Query map""")
+7: Query map,
+8: Time series""")
+    r_group.add_argument('--global_snipit', action="store_true",
+                              help="Create a global snipit figure for all focal sequences", dest="global_snipit")
     r_group.add_argument("-rt", "--report-title", action="store", dest="report_title", help="""Title to display in report. Default: `civet report`""")
     r_group.add_argument("--anonymise", action="store_true", dest="anonymise",help="Generates arbitrary labels for sequences for dissemination")
     r_group.add_argument("-ct", "--colour-theme", action="store", dest="colour_theme", help="""Report theme colour. Default: `#7178bc`""")
@@ -152,6 +153,9 @@ Default: `the_usual`""")
     qm_group.add_argument("-qmfile","--query-map-file", action="store", dest="query_map_file", help="Topojson containing polygons to plot queries on. Must be an online resource eg on a Github pages website.")
     qm_group.add_argument("-lat","--latitude-column", dest="latitude_column", action="store", help="Column containing latitude coordinate information to plot queries on a map")
     qm_group.add_argument("-long","--longitude-column", dest="longitude_column", action="store", help="Column containing longitude coordinate information to plot queries on a map")
+
+    bs_group = parser.add_argument_group("Query time series options (report option 8)")
+    bs_group.add_argument("--series-colour-factor", action='store', dest="series_colour_factor", help="Comma separated string of columns to colour time series by. Default: lineage")
 
     misc_group = parser.add_argument_group('Misc options')
     misc_group.add_argument("--civet-mode", action="store", dest='civet_mode', help="If CLIMB then import UK specific modules. Default=`GLOBAL`")
@@ -251,7 +255,7 @@ Default: `the_usual`""")
     report_arg_parsing.parse_optional_report_content(args.query_table_content,args.mutations, args.timeline_dates, args.timeline_group_column, args.colour_theme, args.colour_map, config)
     report_arg_parsing.parse_map_options(args.background_map_date_range, args.background_map_column, args.background_map_file, args.centroid_file, args.background_map_location, args.query_map_file, args.longitude_column, args.latitude_column, found_in_background_data, args.background_map_colours, args.background_map_other_colours,config)
     report_arg_parsing.parse_tree_options(args.tree_annotations,args.max_tree_size, config)
-
+    report_arg_parsing.parse_series_options(args.series_colour_factor, config[KEY_INPUT_DATE_COLUMN],config)
 
     # sets up the output dir, temp dir, and data output desination
     directory_setup.output_group_parsing(args.outdir, args.output_prefix, args.overwrite, args.datestamp, args.output_data, args.tempdir, args.no_temp, config)
