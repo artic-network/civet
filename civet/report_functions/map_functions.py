@@ -610,7 +610,7 @@ def make_colour_dict(locations_all_lins, top_ten, config):
 
     return colour_dict, colour_json
 
-def get_background_map(config): 
+def make_background_map(config): 
 
     lin_col = "lineage" #does this need to be flexible?
     geog_col = config["background_map_column"]

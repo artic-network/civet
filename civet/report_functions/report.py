@@ -158,7 +158,7 @@ def get_query_map(config):
 
 def get_background_map(config):
 
-    bmap_data = map_functions.make_background_map_json(config)
+    bmap_data = map_functions.make_background_map(config)
 
     return bmap_data
 
