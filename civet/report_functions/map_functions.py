@@ -610,7 +610,7 @@ def make_colour_dict(locations_all_lins, top_ten, config):
 
     return colour_dict, colour_json
 
-def make_background_map_json(config): 
+def make_background_map(config): 
 
     lin_col = "lineage" #does this need to be flexible?
     geog_col = config["background_map_column"]
@@ -633,8 +633,8 @@ def make_background_map_json(config):
                             location_to_seq_count[new_value] += 1
                         else:
                             location_to_seq_count[new_value] = 1
-
-                          
+    
+        
     top_ten = defaultdict(dict)
     
     for location, lin_list in locations_all_lins.items():
@@ -655,6 +655,11 @@ def make_background_map_json(config):
             new_dict["colour"] = colour_dict[lin]
             
             overall.append(new_dict)
+            
+    for place in wanted_list:
+        if place not in location_to_seq_count:
+            sys.stderr.write(cyan(f'WARNING: {place} has no sequences in this timeframe, and so will be left out of mapping background diversity.\n'))
+            config["background_map_location"].remove(place)
     
     json_data = json.dumps(overall)
 
