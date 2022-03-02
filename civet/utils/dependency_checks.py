@@ -45,8 +45,6 @@ def check_dependencies(dependency_list, module_list):
 
             sys.stderr.write(cyan(f'Error: Missing dependencies.')+f'\n{dependencies}Please update your civet environment.\n')
             sys.exit(-1)
-    else:
-        print(green("All dependencies satisfied."))
 
 def check_scorpio_mutations(comma_separated_mutations):
     mutations = " ".join(comma_separated_mutations.split(","))
