@@ -60,8 +60,8 @@ def get_defaults():
                     KEY_SECONDARY_FIELDS:False,
                     KEY_SECONDARY_FIELD_DELIMTER:"/",
                     KEY_SECONDARY_FIELD_LOCATION:0,
-                    KEY_PRIMARY_METADATA_FIELDS:"sequence_name,gisaid_id,sample_date",
-                    KEY_SECONDARY_METADATA_FIELDS:"virus,country,sequence_id,year",
+                    KEY_PRIMARY_METADATA_FIELDS:VALUE_PRIMARY_METADATA_FIELDS,
+                    KEY_SECONDARY_METADATA_FIELDS:VALUE_SECONDARY_METADATA_FIELDS,
 
                     # catchment config
                     KEY_CATCHMENT_BACKGROUND_SIZE:100,

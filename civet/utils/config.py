@@ -132,6 +132,14 @@ KEY_BACKGROUND_MAP_DATE_RANGE="background_map_date_range"
 # QUERY TIME SERIES
 KEY_SERIES_COLOUR_FACTOR="series_colour_factor"
 
+# GENERATE BACKGROUND DATA
+KEY_GENERATE_CIVET_BACKGROUND_DATA = "generate_civet_background_data"
+INPUT_SEQ_OPTIONS = ["gisaid","auspice_source_fasta","fasta"]
+INPUT_METADATA_OPTIONS = ["auspice_source_tsv","csv"]
+
+GISAID_HEADER_METADATA_FIELDS = ["sequence_name","gisaid_id","date","country"]
+AUSPICE_SOURCE_HEADER_METADATA_FIELDS = ["sequence_name","country"]
+
 # MISC KEYS
 KEY_VERBOSE="verbose"
 KEY_THREADS="threads"
@@ -152,6 +160,11 @@ RESOURCE_KEY="KEY"
 KEY_QUERY_CSV_HEADER="query_csv_header"
 
 PROTECTED_COL_NAMES = ["hash","catchment","query_boolean","qc_status","source","seq_N_content","seq_length","in_tree"]
+
+# background metadata fields
+QC_FIELDS = ["N_count","proportion_N","seq_length","QC_status"]
+VALUE_PRIMARY_METADATA_FIELDS = ["sequence_name","gisaid_id","sample_date"]
+VALUE_SECONDARY_METADATA_FIELDS = ["virus","country","sequence_id","year"]
 
 # DEPENDENCIES AND RESOURCES TO CHECK
 dependency_list = ["gofasta","minimap2","snakemake","iqtree","jclusterfunk","scorpio","constellations"]
