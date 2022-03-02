@@ -7,7 +7,7 @@ from civet.input_parsing import data_arg_parsing
 from civet.input_parsing import analysis_arg_parsing
 from civet.input_parsing import input_data_parsing
 from civet.input_parsing import report_arg_parsing
-from civet.input_parsing import generate_background_parsing
+from civet.input_parsing import generate_background_parsing as gbd
 
 from civet.output_options import directory_setup
 from civet.report_functions import global_report_functions
@@ -85,8 +85,10 @@ def main(sysargs = sys.argv[1:]):
     o_group.add_argument("--no-temp",action="store_true",help="Output all intermediate files. For development/ debugging purposes",dest="no_temp")
 
     dc_group = parser.add_argument_group('Background data curation')
-    dc_group.add_argument("-bd","--generate-civet-background-data",dest="generate_civet_background_data",action="store",help="A sequence file to create background metadata, alignment and SNP file from.")
-    dc_group.add_argument("--background-data-checks",dest="debug",action="store_true",help="Run checks on custom background data files, not run by default")
+    dc_group.add_argument("-bd","--generate-civet-background-data",dest="generate_civet_background_data",nargs='*',action="store",help="""Specify one or more sequence files to curate into the civet background data format. 
+Options are space delimited one or more of: gisaid=seq_file.fasta, auspice_source_fasta=seq_file.fasta, fasta=seq_file.fasta, auspice_source_tsv=metadata.tsv. 
+If fasta is specified, field delimiters and field names will need to be specified too. 
+The gisaid option will assume the format of gisaid headers and auspice_source will assume the format of the headers downloadable from gisaid from nextregions.""")
     dc_group.add_argument("--background-data-outdir",dest="background_data_outdir",action="store",help="Directory to output the civet background data. Default: `civet_data`")
     dc_group.add_argument("--primary-field-delimiter",dest="primary_field_delimiter",action="store",help="Primary sequence header field delimiter to create metadata file from. Default: `|`")
     dc_group.add_argument("--primary-metadata-fields",dest="primary_metadata_fields",action="store",help="Primary sequence header fields to create metadata file from. Default: `sequence_name,gisaid_id,sample_date`")
@@ -94,6 +96,7 @@ def main(sysargs = sys.argv[1:]):
     dc_group.add_argument("--secondary-field-delimiter",dest="secondary_field_delimiter",action="store",help="Secondary sequence header field delimiter to create metadata file from. Default: `/`")
     dc_group.add_argument("--secondary-field-location",dest="secondary_field_location",action="store",help="Secondary sequence header location within primary field list. Default: `0` (i.e. the first field)")
     dc_group.add_argument("--secondary-metadata-fields",dest="secondary_metadata_fields",action="store",help="Secondary sequence header fields to create metadata file from. Default: `virus,country,sequence_id,year`")
+    dc_group.add_argument("--background-data-checks",dest="debug",action="store_true",help="Run checks on custom background data files, not run by default")
 
     c_group = parser.add_argument_group("Catchment options")
     c_group.add_argument('-snpd','--snp-distance', type=int, action="store",dest="snp_distance",help="Define radius of catchment by number of SNPs from query. Default: `2`")
@@ -207,23 +210,36 @@ Default: `the_usual`""")
     data_install_checks.check_install(config)
     
     if args.generate_civet_background_data:
-        generate_background_parsing.parse_generate_background_args(args.generate_civet_background_data,args.background_data_outdir,args.primary_field_delimiter,args.primary_metadata_fields,args.secondary_fields,args.secondary_field_delimiter,args.secondary_field_location,args.secondary_metadata_fields,config)
-        snakefile = data_install_checks.get_generator_snakefile(thisdir)
-        if config[KEY_VERBOSE]:
-            print(red("\n**** CONFIG ****"))
-            for k in sorted(config):
-                print(green(f" - {k}: ") + f"{config[k]}")
-            status = snakemake.snakemake(snakefile, printshellcmds=True, forceall=True, force_incomplete=True,
-                                        config=config, cores=config[KEY_THREADS],lock=False
-                                        )
-        else:
-            status = snakemake.snakemake(snakefile, printshellcmds=False, forceall=True,force_incomplete=True,
-                                        config=config, cores=config[KEY_THREADS],lock=False,quiet=True,log_handler=config[KEY_LOG_API]
-                                        )
-        if status: # translate "success" into shell exit code of 0
-            return 0   
+        input_seq_files,input_metadata_files = gbd.parse_background_generation_options(args.generate_civet_background_data,args.background_data_outdir,config)
+        
+        if 'fasta' in input_seq_files:
+            gbd.parse_field_delimiter_args(args.primary_field_delimiter,args.primary_metadata_fields,args.secondary_fields,args.secondary_field_delimiter,args.secondary_field_location,args.secondary_metadata_fields,config)
+        
+        fasta_outfile = os.path.join(config[KEY_BACKGROUND_DATA_OUTDIR],"passed_qc.fasta")
+        seq_metadata_outfile = os.path.join(config[KEY_BACKGROUND_DATA_OUTDIR],"passed_qc.csv")
 
-        return 1
+        gbd.parse_all_background_fasta(input_seq_files,fasta_outfile,seq_metadata_outfile,config)
+
+        if input_metadata_files:
+            parse_all_background_metadata(input_metadata_files)
+
+        sys.exit(0)
+        # snakefile = data_install_checks.get_generator_snakefile(thisdir)
+        # if config[KEY_VERBOSE]:
+        #     print(red("\n**** CONFIG ****"))
+        #     for k in sorted(config):
+        #         print(green(f" - {k}: ") + f"{config[k]}")
+        #     status = snakemake.snakemake(snakefile, printshellcmds=True, forceall=True, force_incomplete=True,
+        #                                 config=config, cores=config[KEY_THREADS],lock=False
+        #                                 )
+        # else:
+        #     status = snakemake.snakemake(snakefile, printshellcmds=False, forceall=True,force_incomplete=True,
+        #                                 config=config, cores=config[KEY_THREADS],lock=False,quiet=True,log_handler=config[KEY_LOG_API]
+        #                                 )
+        # if status: # translate "success" into shell exit code of 0
+        #     return 0   
+
+        # return 1
 
 
     # Checks background data exists and is the right format.
