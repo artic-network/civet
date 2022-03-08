@@ -139,6 +139,8 @@ INPUT_METADATA_OPTIONS = ["auspice_source_tsv","csv"]
 
 GISAID_HEADER_METADATA_FIELDS = ["sequence_name","gisaid_id","date","country"]
 AUSPICE_SOURCE_HEADER_METADATA_FIELDS = ["sequence_name","country"]
+AUSPICE_TSV_FIELDS_TO_PARSE = ["strain","gisaid_epi_isl","date","region","country"]
+AUSPICE_ACKNOWLEDGEMENTS = ["strain","originating_lab","submitting_lab","authors"]
 
 # MISC KEYS
 KEY_VERBOSE="verbose"
