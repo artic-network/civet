@@ -303,20 +303,92 @@ def parse_all_background_fasta(input_seq_files,fasta_outfile,seq_metadata_outfil
     fasta_out_handle.close()
     fasta_written = {}
 
-def parse_all_background_metadata(seq_metadata_outfile,input_metadata_files,config):
-    record_occurance = {}
+def parse_auspice_metadata_file(input_file,counter):
+    with open(input_file,"r") as f:
+        for l in f:
+            try:
+                strain = l.rstrip("\n").split("\t")[0]
+                vir,country,seq_id,year = strain.split("/")
+                country = country.replace(" ","_").replace("_","").title()
+                sequence_name = f"{country}/{seq_id}/{year}"
+                counter[sequence_name]+=1
+            except:
+                pass
 
+def store_auspice_metadata_file(input_file,counter,store,writer):
+    with open(input_file,"r") as f:
+        reader = csv.DictReader(f, delimiter="\t")
+        for row in reader:
+            strain = row["strain"]
+            try:
+                new_row = row
+                vir,country,seq_id,year = strain.split("/")
+                country = country.replace(" ","_").replace("_","").title()
+                sequence_name = f"{country}/{seq_id}/{year}"
+                new_row["sequence_name"] = sequence_name
+                if counter[sequence_name] > 1:
+                    store[sequence_name].append(new_row)
+                else:
+                    writer.writerow(new_row)
+
+            except:
+                pass
+
+def parse_all_background_metadata(seq_metadata_outfile,input_metadata_files,config):
+    record_occurance = collections.Counter()
+    header = []
     with open(seq_metadata_outfile,"r") as f:
+        #first pass store occurances
         reader = csv.DictReader(f)
         header = reader.fieldnames
 
-        with open(background_metadata_outfile, "w") as fw:
-            header = set_up_header_for_handle(header,input_metadata_files)
-            writer = csv.DictWriter(fw, fieldnames=header, lineterminator="\n")
+        for row in reader:
+            record_occurance[row["sequence_name"]] +=1
 
+    for option in input_metadata_files:
+        if option == "auspice_source_metadata":
+            for input_file in input_metadata_files[option]:
+                parse_auspice_metadata_file(input_file, record_occurance)
+        elif option == "csv":
+            #to do
+            pass
+
+    row_store = collections.default_dict(list)
+    with open(background_metadata_outfile, "w") as fw:
+        header = set_up_header_for_handle(header,input_metadata_files)
+        writer = csv.DictWriter(fw, fieldnames=header, lineterminator="\n")
+        writer.writeheader()
+        # second pass store rows if occurance >1, but stream write out if not
+        # and then then write out merge
+
+        with open(seq_metadata_outfile,"r") as f:
             #first pass store occurances
-            # second pass store rows if occurance >1, but stream write out if not
-            # and then then write out merge
+            reader = csv.DictReader(f)
+            for row in reader:
+                if record_occurance[row["sequence_name"]] > 1:
+                    row_store[row["sequence_name"]].append(row)
+                else:
+                    new_row = row
+
+                    for i in header:
+                        if i not in new_row:
+                            new_row[i] = ""
+
+                    writer.writerow(new_row)
+
+        for option in input_metadata_files:
+            if option == "auspice_source_metadata":
+                for input_file in input_metadata_files[option]:
+                    parse_auspice_metadata_file(input_file, record_occurance)
+            elif option == "csv":
+                #to do
+                pass
+
+
+
+            
+            
+            
 
 
 

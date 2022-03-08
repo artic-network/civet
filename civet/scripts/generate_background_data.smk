@@ -6,16 +6,24 @@ import os
 from civet.utils.config import *
 
 from civet.input_parsing.generate_background_parsing import *
+
 """
-config = {
-    KEY_DATA_OUTDIR:"civet_data",
-    KEY_PRIMARY_FIELD_DELIMTER:"|",
-    KEY_SECONDARY_FIELD_DELIMTER:"/",
-    KEY_SECONDARY_FIELD_LOCATION:0,
-    KEY_PRIMARY_METADATA_FIELDS:"sequence_name,gisaid_id,sample_date",
-    KEY_SECONDARY_METADATA_FIELDS:"virus,country,sequence_id,year"
-    # KEY_UNALIGNED_SEQUENCES:
-    }
+Rationale: 
+
+We want to be able to process one or more of the following file types
+combine the info for:
+- auspice_source fasta file
+- auspice_source tsv file
+
+parse metadata from the header for:
+- gisaid input fasta file
+
+custom fields, link with metadata
+- custom fasta file
+- custom metadata file
+
+Unique based on id column (gisaid id)
+
 """
 
 def metadata_and_seq_qc(input_fasta,output_fasta,output_notes,config):
@@ -32,7 +40,10 @@ def metadata_and_seq_qc(input_fasta,output_fasta,output_notes,config):
     primary_fields = config[KEY_PRIMARY_METADATA_FIELDS]
     secondary_fields = config[KEY_SECONDARY_FIELDS]
 
-    qc_fields = ["N_count","proportion_N","seq_length","QC_status"]
+    metadata_fields = []
+    for field_list in [primary_fields, secondary_fields, qc_fields]:
+        for field in field:
+            metadata_fields.append(field)
     with open(metadata,"w") as fw2:
         fw2.write("sequence_name,sequence_id,date,sequence_header\n")
         with open(output_fasta,"w") as fw:
