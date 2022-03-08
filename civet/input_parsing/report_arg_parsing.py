@@ -114,17 +114,16 @@ def parse_tree_options(tree_annotations,max_tree_size, config):
     try:
         config[KEY_MAX_TREE_SIZE] = int(config[KEY_MAX_TREE_SIZE])
     except:
-        sys.stderr(cyan(f"Error: `-mq/--max-tree-size` must be an integer."))
+        sys.stderr.write(cyan(f"Error: `-mq/--max-tree-size` must be an integer.\n"))
         sys.exit(-1)
 
     if not type(config[KEY_TREE_ANNOTATIONS])==list:
         config[KEY_TREE_ANNOTATIONS] = config[KEY_TREE_ANNOTATIONS].split(',')
 
     for col in config[KEY_TREE_ANNOTATIONS]:
-        if col not in config[KEY_QUERY_CSV_HEADER] and col not in config[KEY_MUTATIONS]:
-            sys.stderr(cyan(f"Error: `{col}`` column not provided for tree annotations."))
+        if col not in config[KEY_QUERY_CSV_HEADER]:
+            sys.stderr.write(cyan(f"Error: tree annotation `{col}` not found as column in metadata.\n"))
             sys.exit(-1)
-    
     config[KEY_TREE_ANNOTATIONS] = " ".join(config[KEY_TREE_ANNOTATIONS])
 
 
