@@ -801,7 +801,7 @@
             <script type="text/javascript">
               $(document).ready( function () {
                   var table = $('#myTable').DataTable({
-                    "scrollY": "300px",
+                    'iDisplayLength': 100,
                     "paging": false,
                     "border-bottom":false,
                     dom: 'frtip',
