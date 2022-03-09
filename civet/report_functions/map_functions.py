@@ -201,12 +201,12 @@ def parse_date_range(background_map_date_range, config):
             date_range = config["background_map_date_range"].split(":")
             if len(date_range) > 1:
                 try:
-                    start_date = dt.datetime.strptime(date_range[0], "%Y-%m-%d").date()
+                    start_date = dt.datetime.strptime(date_range[0], config[KEY_DATE_FORMAT]).date()
                 except:
                     sys.stderr.write(cyan("Start date in background map date range in incorrect format. Please use YYYY-MM-DD"))
                     sys.exit(-1)
                 try:
-                    end_date = dt.datetime.strptime(date_range[1], "%Y-%m-%d").date()
+                    end_date = dt.datetime.strptime(date_range[1], config[KEY_DATE_FORMAT]).date()
                 except:
                     sys.stderr.write(cyan("End date in background map date range in incorrect format. Please use YYYY-MM-DD"))
                     sys.exit(-1)
@@ -230,7 +230,7 @@ def parse_date_range(background_map_date_range, config):
                 enough_data = False
                 for line in data:
                     if line[config["background_date_column"]] != "":
-                        date = dt.datetime.strptime(line[config["background_date_column"]], "%Y-%m-%d").date()
+                        date = dt.datetime.strptime(line[config["background_date_column"]],config[KEY_DATE_FORMAT]).date()
                         if date >= start_date and date <= end_date and line[config["background_map_column"]] != "":
                             data_count += 1
                         if data_count > 50:
@@ -261,11 +261,11 @@ def do_date_window(date_window, found_in_background_metadata, config):
             data = csv.DictReader(f)
             for l in data:
                 if l[config["input_date_column"]] != "": 
-                    dates.add(dt.datetime.strptime(l[config["input_date_column"]], '%Y-%m-%d').date())
+                    dates.add(dt.datetime.strptime(l[config["input_date_column"]], config[KEY_DATE_FORMAT]).date())
 
     for seq, metadata in found_in_background_metadata.items(): 
         if metadata[config["background_date_column"]] != "":
-            dates.add(dt.datetime.strptime(metadata[config["background_date_column"]],'%Y-%m-%d').date())
+            dates.add(dt.datetime.strptime(metadata[config["background_date_column"]],config[KEY_DATE_FORMAT]).date())
 
     if len(dates) == 0:
         sys.stderr.write(cyan("Error: no dates in queries to restrict using date window. Please provide absolute dates in the format 'YYYY-MM-DD:YYYY-MM-DD' using the argument '-daterestric/--background-map-date-restriction'\n"))
@@ -361,7 +361,7 @@ def check_locations(background_map_location, acceptable_locations, config):
                 if config["background_date_column"]:
                     date_value = line[config["background_date_column"]]
                     if date_value != "":
-                        date = dt.datetime.strptime(date_value, "%Y-%m-%d").date()
+                        date = dt.datetime.strptime(date_value, config[KEY_DATE_FORMAT]).date()
                         if date >= config["start_date"] and date <= config["end_date"]:
                             if location_value != "":
                                 if config["civet_mode"] == "CLIMB": 
@@ -615,8 +615,8 @@ def make_background_map(config):
     lin_col = "lineage" #does this need to be flexible?
     geog_col = config["background_map_column"]
     wanted_list = set(config["background_map_location"])
-    start_date = dt.datetime.strptime(config["start_date"],'%Y-%m-%d').date()
-    end_date = dt.datetime.strptime(config["end_date"],'%Y-%m-%d').date()
+    start_date = dt.datetime.strptime(config["start_date"],config[KEY_DATE_FORMAT]).date()
+    end_date = dt.datetime.strptime(config["end_date"],config[KEY_DATE_FORMAT]).date()
 
     locations_all_lins = defaultdict(list)
     location_to_seq_count = {}
@@ -626,7 +626,7 @@ def make_background_map(config):
             if row[geog_col] != "" and row[lin_col] != "":
                 new_value = row[geog_col].upper().replace(" ","_")
                 if new_value in wanted_list:
-                    date = dt.datetime.strptime(row['sample_date'], '%Y-%m-%d').date()
+                    date = dt.datetime.strptime(row['sample_date'], config[KEY_DATE_FORMAT]).date()
                     if date >= start_date and date <= end_date:
                         locations_all_lins[new_value].append(row[lin_col])
                         if new_value in location_to_seq_count:

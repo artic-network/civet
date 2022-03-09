@@ -62,6 +62,7 @@ def get_defaults():
                     KEY_SECONDARY_FIELD_LOCATION:0,
                     KEY_PRIMARY_METADATA_FIELDS:"sequence_name,gisaid_id,sample_date",
                     KEY_SECONDARY_METADATA_FIELDS:"virus,country,sequence_id,year",
+                    "background_data_checks": False,
 
                     # catchment config
                     KEY_CATCHMENT_BACKGROUND_SIZE:100,
@@ -116,6 +117,7 @@ def get_defaults():
                     KEY_SERIES_COLOUR_FACTOR:"lineage",
 
                     # misc defaults
+                    KEY_DATE_FORMAT: "%Y-%m-%d",
                     KEY_CIVET_MODE: os.getenv('CIVETMODE'),
                     KEY_THREADS:1,
                     KEY_VERBOSE:False,

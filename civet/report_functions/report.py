@@ -94,7 +94,7 @@ def make_catchment_summary_data(metadata,catchments,config):
                 catchment_summary_dict[catchment]['total'] +=1
 
                 if config[KEY_BACKGROUND_DATE_COLUMN] in reader.fieldnames:
-                    d = date.fromisoformat(row[config[KEY_BACKGROUND_DATE_COLUMN]])
+                    d = dt.datetime.strptime(row[config[KEY_BACKGROUND_DATE_COLUMN]], config[KEY_DATE_FORMAT]).date()
 
                     for i in ['earliest_date','latest_date']:
                         if i not in catchment_summary_dict[catchment]:

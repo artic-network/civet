@@ -86,7 +86,7 @@ def main(sysargs = sys.argv[1:]):
 
     dc_group = parser.add_argument_group('Background data curation')
     dc_group.add_argument("-bd","--generate-civet-background-data",dest="generate_civet_background_data",action="store",help="A sequence file to create background metadata, alignment and SNP file from.")
-    dc_group.add_argument("--background-data-checks",dest="debug",action="store_true",help="Run checks on custom background data files, not run by default")
+    dc_group.add_argument("--background-data-checks",dest="background_data_checks",action="store_true",help="Run checks on custom background data files, not run by default")
     dc_group.add_argument("--background-data-outdir",dest="background_data_outdir",action="store",help="Directory to output the civet background data. Default: `civet_data`")
     dc_group.add_argument("--primary-field-delimiter",dest="primary_field_delimiter",action="store",help="Primary sequence header field delimiter to create metadata file from. Default: `|`")
     dc_group.add_argument("--primary-metadata-fields",dest="primary_metadata_fields",action="store",help="Primary sequence header fields to create metadata file from. Default: `sequence_name,gisaid_id,sample_date`")
@@ -158,6 +158,7 @@ Default: `the_usual`""")
     bs_group.add_argument("--series-colour-factor", action='store', dest="series_colour_factor", help="Comma separated string of columns to colour time series by. Default: lineage")
 
     misc_group = parser.add_argument_group('Misc options')
+    misc_group.add_argument("--date-format", action="store",dest="date_format",help="Option to parse differently formatted date strings. Default: YYYY-MM-DD")
     misc_group.add_argument("--civet-mode", action="store", dest='civet_mode', help="If CLIMB then import UK specific modules. Default=`GLOBAL`")
     misc_group.add_argument("-r","--reference-sequence",action="store",dest="reference_sequence",help="Custom reference genome to map and pad against. Must match the reference the background sequence alignment was generated from.")
     misc_group.add_argument("--art",action="store_true",help="Print art")
@@ -228,7 +229,7 @@ Default: `the_usual`""")
 
     # Checks background data exists and is the right format.
     # Checks same number of records supplied for csv, fasta and (optional) SNP file. 
-    data_arg_parsing.data_group_parsing(args.debug,args.datadir,args.background_metadata,args.background_snps,args.background_sequences,args.background_tree,args.background_id_column,args.sequence_id_column,config)
+    data_arg_parsing.data_group_parsing(args.background_data_checks,args.datadir,args.background_metadata,args.background_snps,args.background_sequences,args.background_tree,args.background_id_column,args.sequence_id_column,config)
 
     # Analysis options, including ref and trim and pad
     analysis_arg_parsing.analysis_group_parsing(args.reference_sequence,args.trim_start,args.trim_end,args.max_queries,config)
@@ -251,7 +252,7 @@ Default: `the_usual`""")
 
     # Define what's going to go in the report and sort global report options 
     # stored under config = { "report_content": [1, 2, 3, 4], "reports": [1,2,3,4],[1,2]}
-    name_dict = report_arg_parsing.parse_global_report_options(args.report_content,args.report_preset, args.input_display_column, args.anonymise, args.input_date_column, args.background_date_column, args.background_location_column, config)
+    name_dict = report_arg_parsing.parse_global_report_options(args.report_content,args.report_preset, args.input_display_column, args.anonymise, args.input_date_column, args.background_date_column,args.date_format, args.background_location_column, config)
     report_arg_parsing.parse_optional_report_content(args.query_table_content,args.mutations, args.timeline_dates, args.timeline_group_column, args.colour_theme, args.colour_map, config)
     report_arg_parsing.parse_map_options(args.background_map_date_range, args.background_map_column, args.background_map_file, args.centroid_file, args.background_map_location, args.query_map_file, args.longitude_column, args.latitude_column, found_in_background_data, args.background_map_colours, args.background_map_other_colours,config)
     report_arg_parsing.parse_tree_options(args.tree_annotations,args.max_tree_size, config)

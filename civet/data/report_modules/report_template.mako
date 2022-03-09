@@ -892,6 +892,7 @@
         <%timeseries_data = data_for_report["full_metadata"] %>
         <%date_field = config["input_date_column"] %>
         <%series_colour_factor = config["series_colour_factor"] %>
+        <%date_format = config["date_format"] %>
 
         <% figure_count +=1 %>
         <br>
@@ -919,7 +920,7 @@
                     "title": "Date",
                     "axis": {
                       "grid": false,
-                      "format":"%Y-%m-%d",
+                      "format": ${date_format},
                       "labelFont":"Helvetica Neue",
                       "labelFontSize":18,
                       "titleFontSize":18,

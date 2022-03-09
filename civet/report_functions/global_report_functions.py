@@ -96,7 +96,7 @@ def write_anon_names_to_file(config, name_dict):
 
     config[KEY_QUERY_METADATA] = new_metadata
 
-def qc_date_col(column_arg, config, metadata, metadata_name, cl_arg):
+def qc_date_col(column_arg,  date_format, metadata, metadata_name, cl_arg, config):
 
     with open(metadata) as f:
         reader = csv.DictReader(f)
@@ -113,9 +113,9 @@ def qc_date_col(column_arg, config, metadata, metadata_name, cl_arg):
             for row in reader:
                 count += 1
                 if row[config[column_arg]] != "":
-                    misc.check_date_format(row[config[column_arg]], count, config[column_arg])    
+                    misc.check_date_format(row[config[column_arg]],date_format, count, config[column_arg])    
 
-def parse_date_args(date_column, background_date_column, config):
+def parse_date_args(date_column, background_date_column, date_format, config):
 
     """
     parses the report group arguments:
@@ -125,6 +125,7 @@ def parse_date_args(date_column, background_date_column, config):
 
     misc.add_arg_to_config(KEY_INPUT_DATE_COLUMN, date_column, config)
     misc.add_arg_to_config(KEY_BACKGROUND_DATE_COLUMN, background_date_column, config)
+    misc.add_arg_to_config(KEY_DATE_FORMAT, date_format, config)
 
 
     if KEY_INPUT_METADATA in config:
@@ -136,7 +137,7 @@ def parse_date_args(date_column, background_date_column, config):
 
     
     if KEY_INPUT_METADATA in config and config[KEY_INPUT_DATE_COLUMN]: #so this will also scoop in "sample_date" assigned above
-        qc_date_col(KEY_INPUT_DATE_COLUMN, config, config[KEY_INPUT_METADATA], "input", "-idate/--input-date-column")
+        qc_date_col(KEY_INPUT_DATE_COLUMN, config[KEY_DATE_FORMAT],  config[KEY_INPUT_METADATA], "input", "-idate/--input-date-column", config)
 
     if not config[KEY_INPUT_DATE_COLUMN]:
         config[KEY_INPUT_DATE_COLUMN] = "sample_date"
@@ -150,7 +151,7 @@ def parse_date_args(date_column, background_date_column, config):
                     config[KEY_BACKGROUND_DATE_COLUMN] = config[KEY_INPUT_DATE_COLUMN]
 
     if config[KEY_BACKGROUND_DATE_COLUMN]:
-        qc_date_col(KEY_BACKGROUND_DATE_COLUMN, config, config[KEY_BACKGROUND_METADATA], "background", "-bdate/--background-date-column")
+        qc_date_col(KEY_BACKGROUND_DATE_COLUMN, config[KEY_DATE_FORMAT],  config[KEY_BACKGROUND_METADATA], "background", "-bdate/--background-date-column", config)
 
 
 def parse_location(location_column, config):

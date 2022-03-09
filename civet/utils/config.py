@@ -133,6 +133,7 @@ KEY_BACKGROUND_MAP_DATE_RANGE="background_map_date_range"
 KEY_SERIES_COLOUR_FACTOR="series_colour_factor"
 
 # MISC KEYS
+KEY_DATE_FORMAT="date_format"
 KEY_VERBOSE="verbose"
 KEY_THREADS="threads"
 KEY_LOG_API="log_api"
