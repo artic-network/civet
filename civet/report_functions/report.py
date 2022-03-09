@@ -94,13 +94,16 @@ def make_catchment_summary_data(metadata,catchments,config):
                 catchment_summary_dict[catchment]['total'] +=1
 
                 if config[KEY_BACKGROUND_DATE_COLUMN] in reader.fieldnames:
-                    d = dt.datetime.strptime(row[config[KEY_BACKGROUND_DATE_COLUMN]], config[KEY_DATE_FORMAT]).date()
+                    try:
+                        d = dt.datetime.strptime(row[config[KEY_BACKGROUND_DATE_COLUMN]], config[KEY_DATE_FORMAT]).date()
+                    
+                        for i in ['earliest_date','latest_date']:
+                            if i not in catchment_summary_dict[catchment]:
+                                catchment_summary_dict[catchment][i] = d
 
-                    for i in ['earliest_date','latest_date']:
-                        if i not in catchment_summary_dict[catchment]:
-                            catchment_summary_dict[catchment][i] = d
-
-                    check_earliest_latest_dates(d,catchment_summary_dict,catchment)
+                        check_earliest_latest_dates(d,catchment_summary_dict,catchment)
+                    except:
+                        pass
 
                 if config["background_location_column"] in reader.fieldnames:
                     location_column = config["background_location_column"]
