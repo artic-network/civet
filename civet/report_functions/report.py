@@ -28,7 +28,7 @@ def make_query_summary_data(metadata, config):
                 for col in config[KEY_QUERY_TABLE_CONTENT]:
 
                     table_row[col] = row[col]
-                    
+
                 query_summary_data.append(table_row)
     
     return query_summary_data
@@ -212,6 +212,7 @@ def get_global_snipit(data_for_report,config):
 
 
 def define_report_content(metadata,catchments,figure_catchments,config):
+
     report_content = config[KEY_REPORT_CONTENT]
     catchment_id = 0
     data_for_report = {}

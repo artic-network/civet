@@ -7,6 +7,7 @@ from civet.utils.log_colours import cyan
 from civet.utils import misc
 
 from civet.report_functions import global_report_functions
+from civet.utils.config import *
 
 def timeline_checking(timeline_dates, timeline_group_column, config):  
 
@@ -64,7 +65,7 @@ def timeline_checking(timeline_dates, timeline_group_column, config):
                     for header in input_cols_to_check:
                         count += 1
                         if l[header] != "":
-                            misc.check_date_format(l[header], count, header)
+                            misc.check_date_format(l[header],config[KEY_DATE_FORMAT], count, header)
         
         count = 0
         with open(config["background_metadata"]) as f:
@@ -73,7 +74,7 @@ def timeline_checking(timeline_dates, timeline_group_column, config):
                 for header in background_cols_to_check:
                     count += 1
                     if l[header] != "":
-                        misc.check_date_format(l[header], count, header)
+                        misc.check_date_format(l[header],config[KEY_DATE_FORMAT], count, header)
 
 
     elif config["input_date_column"] and config["background_date_column"]:
