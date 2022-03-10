@@ -857,8 +857,10 @@
                   "x": {
                     "field": "${date_field}", 
                     "bin":true,
+                    "scale": {"type": "nice","interval": "day", "step": 1},
                     "timeUnit": {
-                        "unit": "utcyearmonthdate"},
+                        "unit": "utcyearmonthdate",
+                        "step": 1},
                     "title": "Date",
                     "axis": {
                       "grid": false,
