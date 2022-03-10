@@ -856,7 +856,7 @@
                 "encoding": {
                   "x": {
                     "field": "${date_field}", 
-                    "bin":true,s
+                    "bin":true,
                     "timeUnit": {
                         "unit": "utcyearmonthdate"},
                     "title": "Date",
@@ -866,7 +866,7 @@
                       "labelFont":"Helvetica",
                       "labelFontSize":15,
                       "titleFontSize":15,
-                      "labelAlign":"Helvetica",
+                      "labelAlign":"center",
                       "titleFont":"Helvetica"
                     },
                   },
