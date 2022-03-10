@@ -885,19 +885,7 @@
                         "field": "${series_colour_factor}", 
                         "type": "nominal",
                         "scale": {
-                              "range": [
-                                    "#B6B8C8",
-                                    "#D4B489",
-                                    "#A6626F",
-                                    "#733646",
-                                    "#A47E3E",
-                                    "#DC9598",
-                                    "#83818F",
-                                    "#B3ABD0",
-                                    "#B8B2C4",
-                                    "#A07E62",
-                                    "#F9C0C7"
-                                  ]
+                              "range": ${colorCodes}
                             },
                         "legend": {
                             "orient":"bottom",
