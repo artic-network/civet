@@ -44,12 +44,14 @@ def qc_report_content(config):
     reports = config[KEY_REPORT_CONTENT]
     to_generate = []
     to_run = []
+    if not type(reports) == list:
+        reports = [reports]
     for report_options in reports:
         report_options = report_options.split(",")
         try:
             report_options = [int(i) for i in report_options]
         except:
-            sys.stderr.write(cyan(f'Error: -rc/ --report-content should be a comma separated numerical string.\n'))
+            sys.stderr.write(cyan(f'Error: -rc/ --report-content should be one or more comma separated numerical strings.\n'))
             sys.exit(-1)
         
         for i in report_options:
