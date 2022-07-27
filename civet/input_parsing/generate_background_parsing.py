@@ -29,7 +29,7 @@ def check_background_data_outdir(config):
             sys.stderr.write(cyan(f"Cannot make background data outdir.\n"))
             sys.exit(-1)
 
-def check_input_sequences(config):
+def check_input_sequences(align_only,config):
     background_fasta = config["generate_civet_background_data"]
     config[KEY_UNALIGNED_SEQUENCES] = background_fasta
     ending = background_fasta.split(".")[-1]
@@ -37,31 +37,32 @@ def check_input_sequences(config):
     if ending not in ["fa","fasta","fas"]:
         sys.stderr.write(cyan(f"Please input unaligned sequences in fasta format, with file extension reflecting that.\n"))
         sys.exit(-1)
-    
-    with open(background_fasta) as f: 
-        header = f.readline()
+    if not align_only:
+        with open(background_fasta) as f: 
+            header = f.readline()
 
-        primary_fields = header.split(config[KEY_PRIMARY_FIELD_DELIMTER])
+            primary_fields = header.split(config[KEY_PRIMARY_FIELD_DELIMTER])
 
-        if len(primary_fields) != len(config[KEY_PRIMARY_METADATA_FIELDS].split(",")):
-            sys.stderr.write(cyan(f"Number of primary fields in sequence header does not match number of primary field names. Check delimiter and fields specified.\n")+f"Primary field names: {config[KEY_PRIMARY_METADATA_FIELDS]}\nPrimary field delimiter: {config[KEY_PRIMARY_FIELD_DELIMTER]}\n")
-            sys.exit(-1)
-
-        if config[KEY_SECONDARY_FIELDS]:
-            try:
-                secondary_string = primary_fields[config[KEY_SECONDARY_FIELD_LOCATION]]
-            except:
-                sys.stderr.write(cyan(f"Secondary field location not found in primary fields.\n"))
+            if len(primary_fields) != len(config[KEY_PRIMARY_METADATA_FIELDS].split(",")):
+                sys.stderr.write(cyan(f"Number of primary fields in sequence header does not match number of primary field names. Check delimiter and fields specified.\n")+f"Primary field names: {config[KEY_PRIMARY_METADATA_FIELDS]}\nPrimary field delimiter: {config[KEY_PRIMARY_FIELD_DELIMTER]}\n")
                 sys.exit(-1)
 
-            secondary_fields = secondary_string.split(config[KEY_SECONDARY_FIELD_DELIMTER])
-            if len(secondary_fields) != len(config[KEY_SECONDARY_METADATA_FIELDS].split(",")):
-                sys.stderr.write(cyan(f"Number of secondary fields in sequence header does not match number of secondary field names. Check delimiter and fields specified.\n")+f"Secondary field names: {config[KEY_SECONDARY_METADATA_FIELDS]}\nSecondary field delimiter: {config[KEY_SECONDARY_FIELD_DELIMTER]}\n")
-                sys.exit(-1)
+            if config[KEY_SECONDARY_FIELDS]:
+                try:
+                    secondary_string = primary_fields[config[KEY_SECONDARY_FIELD_LOCATION]]
+                except:
+                    sys.stderr.write(cyan(f"Secondary field location not found in primary fields.\n"))
+                    sys.exit(-1)
+
+                secondary_fields = secondary_string.split(config[KEY_SECONDARY_FIELD_DELIMTER])
+                if len(secondary_fields) != len(config[KEY_SECONDARY_METADATA_FIELDS].split(",")):
+                    sys.stderr.write(cyan(f"Number of secondary fields in sequence header does not match number of secondary field names. Check delimiter and fields specified.\n")+f"Secondary field names: {config[KEY_SECONDARY_METADATA_FIELDS]}\nSecondary field delimiter: {config[KEY_SECONDARY_FIELD_DELIMTER]}\n")
+                    sys.exit(-1)
 
 
-def parse_generate_background_args(generate_civet_background_data,background_data_outdir,primary_field_delimiter,primary_metadata_fields,secondary_fields,secondary_field_delimiter,secondary_field_location,secondary_metadata_fields,config):
+def parse_generate_background_args(generate_civet_background_data,background_data_align_only,background_data_outdir,primary_field_delimiter,primary_metadata_fields,secondary_fields,secondary_field_delimiter,secondary_field_location,secondary_metadata_fields,config):
     misc.add_arg_to_config("generate_civet_background_data",generate_civet_background_data,config)
+    misc.add_arg_to_config(KEY_BACKGROUND_DATA_ALIGN_ONLY,background_data_align_only,config)
     misc.add_path_to_config(KEY_BACKGROUND_DATA_OUTDIR,background_data_outdir,config)
     misc.add_arg_to_config(KEY_PRIMARY_FIELD_DELIMTER,primary_field_delimiter,config)
     misc.add_arg_to_config(KEY_PRIMARY_METADATA_FIELDS,primary_metadata_fields,config)
@@ -70,7 +71,7 @@ def parse_generate_background_args(generate_civet_background_data,background_dat
     misc.add_arg_to_config(KEY_SECONDARY_FIELD_LOCATION,secondary_field_location,config)
     misc.add_arg_to_config(KEY_SECONDARY_METADATA_FIELDS,secondary_metadata_fields,config)
 
-    check_input_sequences(config)
+    check_input_sequences(config[KEY_BACKGROUND_DATA_ALIGN_ONLY],config)
 
     check_background_data_outdir(config)
 

@@ -65,6 +65,7 @@ def main(sysargs = sys.argv[1:]):
     d_group = parser.add_argument_group('Background data options')
     d_group.add_argument('-d','--datadir', action="store",help="Directory containing the background data files.")
     d_group.add_argument("-bm","--background-metadata",action="store",dest="background_metadata",help="Custom metadata file for all background data. Should have a column matching <-bicol/--background-id-column>")
+    d_group.add_argument("-bmd","--background-metadata-delimiter",action="store",dest="background_metadata_delimiter",help="Default delimiter is ',' (i.e. a csv file) but can specify a custom delimiter with this flag.")
     d_group.add_argument("-bsnp","--background-snps",action="store",dest="background_snps",help="Optional SNP file for all background data. Civet will calculate this file if not supplied, which may take some time")
     d_group.add_argument("-bseq","--background-sequences", action="store", dest="background_sequences", help="Custom background sequence file for all background data. Sequence IDs should match the background metadata id column, or specify another column using <-biseq/--background-sequence-id>")
     d_group.add_argument("-bt","--background-tree", action="store", dest="background_tree", help="Custom background tree file for all background data. Tip names should match the background metadata background_column. *Coming soon*")
@@ -86,6 +87,7 @@ def main(sysargs = sys.argv[1:]):
 
     dc_group = parser.add_argument_group('Background data curation')
     dc_group.add_argument("-bd","--generate-civet-background-data",dest="generate_civet_background_data",action="store",help="A sequence file to create background metadata, alignment and SNP file from.")
+    dc_group.add_argument("-bd-align","--background-data-align-only",dest="background_data_align_only",action="store_true",help="Skip metadata parsing and align only.")
     dc_group.add_argument("--background-data-checks",dest="debug",action="store_true",help="Run checks on custom background data files, not run by default")
     dc_group.add_argument("--background-data-outdir",dest="background_data_outdir",action="store",help="Directory to output the civet background data. Default: `civet_data`")
     dc_group.add_argument("--primary-field-delimiter",dest="primary_field_delimiter",action="store",help="Primary sequence header field delimiter to create metadata file from. Default: `|`")
@@ -205,7 +207,16 @@ Default: `the_usual`""")
     data_install_checks.check_install(config)
     
     if args.generate_civet_background_data:
-        generate_background_parsing.parse_generate_background_args(args.generate_civet_background_data,args.background_data_outdir,args.primary_field_delimiter,args.primary_metadata_fields,args.secondary_fields,args.secondary_field_delimiter,args.secondary_field_location,args.secondary_metadata_fields,config)
+        generate_background_parsing.parse_generate_background_args(args.generate_civet_background_data,
+                                                                    args.background_data_align_only,
+                                                                    args.background_data_outdir,
+                                                                    args.primary_field_delimiter,
+                                                                    args.primary_metadata_fields,
+                                                                    args.secondary_fields,
+                                                                    args.secondary_field_delimiter,
+                                                                    args.secondary_field_location,
+                                                                    args.secondary_metadata_fields,
+                                                                    config)
         snakefile = data_install_checks.get_generator_snakefile(thisdir)
         if config[KEY_VERBOSE]:
             print(red("\n**** CONFIG ****"))
@@ -226,7 +237,7 @@ Default: `the_usual`""")
 
     # Checks background data exists and is the right format.
     # Checks same number of records supplied for csv, fasta and (optional) SNP file. 
-    data_arg_parsing.data_group_parsing(args.debug,args.datadir,args.background_metadata,args.background_snps,args.background_sequences,args.background_tree,args.background_id_column,args.sequence_id_column,config)
+    data_arg_parsing.data_group_parsing(args.debug,args.datadir,args.background_metadata,args.background_metadata_delimiter,args.background_snps,args.background_sequences,args.background_tree,args.background_id_column,args.sequence_id_column,config)
 
     # Analysis options, including ref and trim and pad
     analysis_arg_parsing.analysis_group_parsing(args.reference_sequence,args.trim_start,args.trim_end,args.max_queries,config)

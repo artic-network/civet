@@ -56,12 +56,17 @@ def input_fasta_qc(input_fasta,output_fasta,output_notes,config):
 \t- Whether the records are duplicated in the file\n""" + cyan("You can change the default QC settings with `-n/--max-ambiguity` and `-l/--min-length`."))
         sys.exit(-1)
     
-
-rule all:
-    input:
-        os.path.join(config[KEY_BACKGROUND_DATA_OUTDIR],"background_sequences.aln.fasta"),
-        os.path.join(config[KEY_BACKGROUND_DATA_OUTDIR],"background_snps.csv"),
-        os.path.join(config[KEY_BACKGROUND_DATA_OUTDIR],"background_metadata.csv")
+if config[KEY_BACKGROUND_DATA_ALIGN_ONLY]:
+    rule all:
+        input:
+            os.path.join(config[KEY_BACKGROUND_DATA_OUTDIR],"background_sequences.aln.fasta"),
+            os.path.join(config[KEY_BACKGROUND_DATA_OUTDIR],"background_snps.csv")
+else:
+    rule all:
+        input:
+            os.path.join(config[KEY_BACKGROUND_DATA_OUTDIR],"background_sequences.aln.fasta"),
+            os.path.join(config[KEY_BACKGROUND_DATA_OUTDIR],"background_snps.csv"),
+            os.path.join(config[KEY_BACKGROUND_DATA_OUTDIR],"background_metadata.csv")
                     
 
 rule qc_input_fasta:
@@ -87,7 +92,7 @@ rule align_to_reference:
         os.path.join(config[KEY_BACKGROUND_DATA_OUTDIR], "logs","minimap2_sam.log")
     shell:
         """
-        minimap2 -a -x asm5 --sam-hit-only --secondary=no -t  {workflow.cores} {input.reference:q} '{input.fasta}' -o {params.sam:q} &> {log:q} 
+        minimap2 -a -x asm20 --sam-hit-only --secondary=no --score-N=0  -t  {workflow.cores} {input.reference:q} '{input.fasta}' -o {params.sam:q} &> {log:q} 
         gofasta sam toMultiAlign \
             -s {params.sam:q} \
             -t {workflow.cores} \
