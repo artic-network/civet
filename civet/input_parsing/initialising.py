@@ -36,6 +36,7 @@ def get_defaults():
                     
                     CIVET_DATADIR: os.getenv('CIVET_DATADIR'),
                     KEY_BACKGROUND_METADATA:False,
+                    KEY_BACKGROUND_METADATA_DELIMITER:",",
                     KEY_BACKGROUND_SEQUENCES:False,
                     KEY_BACKGROUND_SNPS:False,
                     KEY_BACKGROUND_TREE:False,

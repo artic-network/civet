@@ -150,7 +150,7 @@ def check_background_snps(config):
         
 
 
-def data_group_parsing(debug,datadir,background_metadata,background_snps,background_sequences,background_tree,background_id_column,sequence_id_column,config):
+def data_group_parsing(debug,datadir,background_metadata,background_metadata_delimiter,background_snps,background_sequences,background_tree,background_id_column,sequence_id_column,config):
     """
     parses the data group arguments 
     --datadir (Default $DATADIR)
@@ -165,6 +165,7 @@ def data_group_parsing(debug,datadir,background_metadata,background_snps,backgro
     # if command line arg, overwrite config value
     misc.add_arg_to_config("datadir",datadir,config)
     misc.add_file_to_config("background_metadata",background_metadata,config)
+    misc.add_file_to_config(KEY_BACKGROUND_METADATA_DELIMITER,background_metadata_delimiter,config)
     misc.add_file_to_config("background_snps",background_snps,config)
     misc.add_file_to_config("background_sequences",background_sequences,config)
     misc.add_file_to_config("background_tree",background_tree,config)
@@ -199,12 +200,16 @@ def data_group_parsing(debug,datadir,background_metadata,background_snps,backgro
         config["background_search_file"] = config["background_sequences"]
 
     with open(config["background_metadata"],"r") as f:
-        reader = csv.DictReader(f)
-        if config["background_id_column"] not in reader.fieldnames:
-            sys.stderr.write(cyan(f"Error: {config['background_id_column']} column not found in background metadata file. Please specify which column to match with `-bicol/--background-id-column.`\n"))
-            sys.exit(-1)
-        elif config["sequence_id_column"] not in reader.fieldnames:
-            sys.stderr.write(cyan(f"Error: {config['sequence_id_column']} column not found in background metadata file. Please specify which column to match with `-sicol/--sequence-id-column.`\n"))
+        try:
+            reader = csv.DictReader(f,delimiter=config[KEY_BACKGROUND_METADATA_DELIMITER])
+            if config["background_id_column"] not in reader.fieldnames:
+                sys.stderr.write(cyan(f"Error: {config['background_id_column']} column not found in background metadata file. Please specify which column to match with `-bicol/--background-id-column.`\n"))
+                sys.exit(-1)
+            elif config["sequence_id_column"] not in reader.fieldnames:
+                sys.stderr.write(cyan(f"Error: {config['sequence_id_column']} column not found in background metadata file. Please specify which column to match with `-sicol/--sequence-id-column.`\n"))
+                sys.exit(-1)
+        except:
+            sys.stderr.write(cyan(f"Error: cannot read background metadata file. Try specifying a different delimiter.\nCurrent delimiter is {config[KEY_BACKGROUND_METADATA_DELIMITER]}\n"))
             sys.exit(-1)
 
     if debug:
