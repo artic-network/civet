@@ -9,6 +9,7 @@ from collections import Counter
 from Bio import SeqIO
 from civet.utils.config import *
 
+
 def check_dir_for_file(file_list, extension,argument,key,config,required):
     match = []
     for fn in file_list:
@@ -151,7 +152,7 @@ def check_background_snps(config):
         
 
 
-def data_group_parsing(debug,datadir,background_metadata,background_metadata_delimiter,background_snps,background_sequences,background_tree,background_id_column,sequence_id_column,config):
+def data_group_parsing(debug,datadir,background_metadata,background_snps,background_sequences,background_tree,background_id_column,sequence_id_column,config):
     """
     parses the data group arguments 
     --datadir (Default $DATADIR)
@@ -166,7 +167,6 @@ def data_group_parsing(debug,datadir,background_metadata,background_metadata_del
     # if command line arg, overwrite config value
     misc.add_arg_to_config("datadir",datadir,config)
     misc.add_file_to_config("background_metadata",background_metadata,config)
-    misc.add_file_to_config(KEY_BACKGROUND_METADATA_DELIMITER,background_metadata_delimiter,config)
     misc.add_file_to_config("background_snps",background_snps,config)
     misc.add_file_to_config("background_sequences",background_sequences,config)
     misc.add_file_to_config("background_tree",background_tree,config)
@@ -201,17 +201,22 @@ def data_group_parsing(debug,datadir,background_metadata,background_metadata_del
         config["background_search_file"] = config["background_sequences"]
 
     with open(config["background_metadata"],"r") as f:
-        try:
-            reader = csv.DictReader(f,delimiter=config[KEY_BACKGROUND_METADATA_DELIMITER])
-            if config["background_id_column"] not in reader.fieldnames:
-                sys.stderr.write(cyan(f"Error: {config['background_id_column']} column not found in background metadata file. Please specify which column to match with `-bicol/--background-id-column.`\n"))
-                sys.exit(-1)
-            elif config["sequence_id_column"] not in reader.fieldnames:
-                sys.stderr.write(cyan(f"Error: {config['sequence_id_column']} column not found in background metadata file. Please specify which column to match with `-sicol/--sequence-id-column.`\n"))
-                sys.exit(-1)
-        except:
-            sys.stderr.write(cyan(f"Error: cannot read background metadata file. Try specifying a different delimiter.\nCurrent delimiter is {config[KEY_BACKGROUND_METADATA_DELIMITER]}\n"))
+        ending = config["background_metadata"].split(".")[-1]
+        if ending == "csv":
+            reader = csv.DictReader(f)
+        elif ending == "tsv":
+            reader = csv.DictReader(f,delimiter='\t')
+        else:
+            sys.stderr.write(cyan(f"Error: cannot read background metadata file. Try supplying a csv or tsv."))
             sys.exit(-1)
+
+        if config["background_id_column"] not in reader.fieldnames:
+            sys.stderr.write(cyan(f"Error: {config['background_id_column']} column not found in background metadata file. Please specify which column to match with `-bicol/--background-id-column.`\n"))
+            sys.exit(-1)
+        elif config["sequence_id_column"] not in reader.fieldnames:
+            sys.stderr.write(cyan(f"Error: {config['sequence_id_column']} column not found in background metadata file. Please specify which column to match with `-sicol/--sequence-id-column.`\n"))
+            sys.exit(-1)
+        
 
     if debug:
         csv_record_count = check_csv_file("-bm/--background-metadata","background csv",config["background_metadata"],config["background_id_column"],config["sequence_id_column"])
