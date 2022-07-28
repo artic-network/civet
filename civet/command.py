@@ -65,7 +65,6 @@ def main(sysargs = sys.argv[1:]):
     d_group = parser.add_argument_group('Background data options')
     d_group.add_argument('-d','--datadir', action="store",help="Directory containing the background data files.")
     d_group.add_argument("-bm","--background-metadata",action="store",dest="background_metadata",help="Custom metadata file for all background data. Should have a column matching <-bicol/--background-id-column>")
-    d_group.add_argument("-bmd","--background-metadata-delimiter",action="store",dest="background_metadata_delimiter",help="Default delimiter is ',' (i.e. a csv file) but can specify a custom delimiter with this flag.")
     d_group.add_argument("-bsnp","--background-snps",action="store",dest="background_snps",help="Optional SNP file for all background data. Civet will calculate this file if not supplied, which may take some time")
     d_group.add_argument("-bseq","--background-sequences", action="store", dest="background_sequences", help="Custom background sequence file for all background data. Sequence IDs should match the background metadata id column, or specify another column using <-biseq/--background-sequence-id>")
     d_group.add_argument("-bt","--background-tree", action="store", dest="background_tree", help="Custom background tree file for all background data. Tip names should match the background metadata background_column. *Coming soon*")
@@ -239,7 +238,7 @@ Default: `the_usual`""")
 
     # Checks background data exists and is the right format.
     # Checks same number of records supplied for csv, fasta and (optional) SNP file. 
-    data_arg_parsing.data_group_parsing(args.debug,args.datadir,args.background_metadata,args.background_metadata_delimiter,args.background_snps,args.background_sequences,args.background_tree,args.background_id_column,args.sequence_id_column,config)
+    data_arg_parsing.data_group_parsing(args.debug,args.datadir,args.background_metadata,args.background_snps,args.background_sequences,args.background_tree,args.background_id_column,args.sequence_id_column,config)
 
     # Analysis options, including ref and trim and pad
     analysis_arg_parsing.analysis_group_parsing(args.reference_sequence,args.trim_start,args.trim_end,args.max_queries,config)

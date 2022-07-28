@@ -24,12 +24,12 @@ if config[KEY_BACKGROUND_DATA_ALIGN_ONLY]:
     rule all:
         input:
             os.path.join(config[KEY_BACKGROUND_DATA_OUTDIR],"background_sequences.aln.fasta"),
-            os.path.join(config[KEY_BACKGROUND_DATA_OUTDIR],"background_snps.csv")
+            os.path.join(config[KEY_BACKGROUND_DATA_OUTDIR],"background_mutations.csv")
 else:
     rule all:
         input:
             os.path.join(config[KEY_BACKGROUND_DATA_OUTDIR],"background_sequences.aln.fasta"),
-            os.path.join(config[KEY_BACKGROUND_DATA_OUTDIR],"background_snps.csv"),
+            os.path.join(config[KEY_BACKGROUND_DATA_OUTDIR],"background_mutations.csv"),
             os.path.join(config[KEY_BACKGROUND_DATA_OUTDIR],"background_metadata.csv")
                     
 
@@ -72,7 +72,7 @@ rule gofasta_SNPs:
         fasta = rules.align_to_reference.output.fasta,
         reference = config[KEY_REFERENCE_SEQUENCE]
     output:
-        csv = os.path.join(config[KEY_BACKGROUND_DATA_OUTDIR],"background_snps.csv")
+        csv = os.path.join(config[KEY_BACKGROUND_DATA_OUTDIR],"background_mutations.csv")
     shell:
         """
         gofasta updown list \
