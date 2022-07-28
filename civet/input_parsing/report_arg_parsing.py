@@ -164,13 +164,16 @@ def parse_tree_options(tree_annotations,max_tree_size, config):
 
     if not type(config[KEY_TREE_ANNOTATIONS])==list:
         config[KEY_TREE_ANNOTATIONS] = config[KEY_TREE_ANNOTATIONS].split(',')
-
+        
+    new_annotations = []
     for col in config[KEY_TREE_ANNOTATIONS]:
+        
         if col not in config[KEY_QUERY_CSV_HEADER] and col not in config[KEY_MUTATIONS]:
-            sys.stderr(cyan(f"Error: `{col}`` column not provided for tree annotations."))
-            sys.exit(-1)
+            pass
+        else:
+            new_annotations.append(col)
     
-    config[KEY_TREE_ANNOTATIONS] = " ".join(config[KEY_TREE_ANNOTATIONS])
+    config[KEY_TREE_ANNOTATIONS] = " ".join(new_annotations)
 
 
 def parse_optional_report_content(table_content,mutations, timeline_dates, timeline_group_column, colour_theme, colour_map, config):
