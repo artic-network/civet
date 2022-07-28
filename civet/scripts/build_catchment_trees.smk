@@ -18,6 +18,7 @@ rule iqtree:
         """
         iqtree  -s {input.aln:q} \
                 -m HKY \
+                -czb \
                 -blmin  0.0000000001 \
                 -nt 1 \
                 -redo \
