@@ -7,6 +7,7 @@ import csv
 import pkg_resources
 from collections import Counter
 from Bio import SeqIO
+from civet.utils.config import *
 
 def check_dir_for_file(file_list, extension,argument,key,config,required):
     match = []

@@ -21,7 +21,9 @@ from civet.utils.config import *
     dc_group.add_argument("--secondary-metadata-fields",dest="secondary_metadata_fields",action="store",help="Secondary sequence header fields to create metadata file from. Default: `virus,country,sequence_id,year`")
 """
 def check_background_data_outdir(config):
-    datadir = config[KEY_BACKGROUND_DATA_OUTDIR]
+    expanded_path = os.path.expanduser(config["cwd"])
+    datadir = os.path.join(expanded_path, config[KEY_BACKGROUND_DATA_OUTDIR])
+    config[KEY_BACKGROUND_DATA_OUTDIR] = datadir
     if not os.path.exists(datadir):
         try:
             os.mkdir(datadir)
@@ -30,13 +32,19 @@ def check_background_data_outdir(config):
             sys.exit(-1)
 
 def check_input_sequences(align_only,config):
+
     background_fasta = config["generate_civet_background_data"]
-    config[KEY_UNALIGNED_SEQUENCES] = background_fasta
+
+    expanded_path = os.path.expanduser(config["cwd"])
+    unaligned_sequences = os.path.join(expanded_path, background_fasta)
+    
+    config[KEY_UNALIGNED_SEQUENCES] = unaligned_sequences
     ending = background_fasta.split(".")[-1]
 
     if ending not in ["fa","fasta","fas"]:
         sys.stderr.write(cyan(f"Please input unaligned sequences in fasta format, with file extension reflecting that.\n"))
         sys.exit(-1)
+
     if not align_only:
         with open(background_fasta) as f: 
             header = f.readline()
@@ -61,9 +69,13 @@ def check_input_sequences(align_only,config):
 
 
 def parse_generate_background_args(generate_civet_background_data,background_data_align_only,background_data_outdir,primary_field_delimiter,primary_metadata_fields,secondary_fields,secondary_field_delimiter,secondary_field_location,secondary_metadata_fields,config):
+
     misc.add_arg_to_config("generate_civet_background_data",generate_civet_background_data,config)
     misc.add_arg_to_config(KEY_BACKGROUND_DATA_ALIGN_ONLY,background_data_align_only,config)
+
     misc.add_path_to_config(KEY_BACKGROUND_DATA_OUTDIR,background_data_outdir,config)
+    check_background_data_outdir(config)
+
     misc.add_arg_to_config(KEY_PRIMARY_FIELD_DELIMTER,primary_field_delimiter,config)
     misc.add_arg_to_config(KEY_PRIMARY_METADATA_FIELDS,primary_metadata_fields,config)
     misc.add_arg_to_config(KEY_SECONDARY_FIELDS,secondary_fields,config)
@@ -73,7 +85,7 @@ def parse_generate_background_args(generate_civet_background_data,background_dat
 
     check_input_sequences(config[KEY_BACKGROUND_DATA_ALIGN_ONLY],config)
 
-    check_background_data_outdir(config)
+    
 
 
 

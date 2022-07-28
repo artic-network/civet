@@ -207,6 +207,8 @@ Default: `the_usual`""")
     data_install_checks.check_install(config)
     
     if args.generate_civet_background_data:
+        directory_setup.background_pipeline_tempdir(args.tempdir,args.no_temp,config)
+
         generate_background_parsing.parse_generate_background_args(args.generate_civet_background_data,
                                                                     args.background_data_align_only,
                                                                     args.background_data_outdir,
@@ -222,11 +224,11 @@ Default: `the_usual`""")
             print(red("\n**** CONFIG ****"))
             for k in sorted(config):
                 print(green(f" - {k}: ") + f"{config[k]}")
-            status = snakemake.snakemake(snakefile, printshellcmds=True, forceall=True, force_incomplete=True,
+            status = snakemake.snakemake(snakefile, printshellcmds=True, forceall=True, force_incomplete=True,workdir=config[KEY_BACKGROUND_DATA_TEMPDIR],
                                         config=config, cores=config[KEY_THREADS],lock=False
                                         )
         else:
-            status = snakemake.snakemake(snakefile, printshellcmds=False, forceall=True,force_incomplete=True,
+            status = snakemake.snakemake(snakefile, printshellcmds=False, forceall=True,force_incomplete=True,workdir=config[KEY_BACKGROUND_DATA_TEMPDIR],
                                         config=config, cores=config[KEY_THREADS],lock=False,quiet=True,log_handler=config[KEY_LOG_API]
                                         )
         if status: # translate "success" into shell exit code of 0
