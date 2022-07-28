@@ -28,7 +28,7 @@ def make_query_summary_data(metadata, config):
                 for col in config[KEY_QUERY_TABLE_CONTENT]:
 
                     table_row[col] = row[col]
-                    
+
                 query_summary_data.append(table_row)
     
     return query_summary_data
@@ -94,13 +94,16 @@ def make_catchment_summary_data(metadata,catchments,config):
                 catchment_summary_dict[catchment]['total'] +=1
 
                 if config[KEY_BACKGROUND_DATE_COLUMN] in reader.fieldnames:
-                    d = date.fromisoformat(row[config[KEY_BACKGROUND_DATE_COLUMN]])
+                    try:
+                        d = dt.datetime.strptime(row[config[KEY_BACKGROUND_DATE_COLUMN]], config[KEY_DATE_FORMAT]).date()
+                    
+                        for i in ['earliest_date','latest_date']:
+                            if i not in catchment_summary_dict[catchment]:
+                                catchment_summary_dict[catchment][i] = d
 
-                    for i in ['earliest_date','latest_date']:
-                        if i not in catchment_summary_dict[catchment]:
-                            catchment_summary_dict[catchment][i] = d
-
-                    check_earliest_latest_dates(d,catchment_summary_dict,catchment)
+                        check_earliest_latest_dates(d,catchment_summary_dict,catchment)
+                    except:
+                        pass
 
                 if config["background_location_column"] in reader.fieldnames:
                     location_column = config["background_location_column"]
@@ -158,7 +161,7 @@ def get_query_map(config):
 
 def get_background_map(config):
 
-    bmap_data = map_functions.make_background_map_json(config)
+    bmap_data = map_functions.make_background_map(config)
 
     return bmap_data
 
@@ -213,6 +216,7 @@ def get_global_snipit(data_for_report,config):
 
 
 def define_report_content(metadata,catchments,figure_catchments,config):
+
     report_content = config[KEY_REPORT_CONTENT]
     catchment_id = 0
     data_for_report = {}
@@ -262,9 +266,9 @@ def define_report_content(metadata,catchments,figure_catchments,config):
             data_for_report[catchment]["timeline_data"] = ""
     
     if '6' in report_content:
-        data_for_report["background_map_data"] = get_background_map(config)
+        data_for_report["background_map_data"], data_for_report["background_map_colour_data"], seq_counts = get_background_map(config)
         data_for_report["locations_wanted"] = config[KEY_BACKGROUND_MAP_LOCATION]
-        data_for_report = map_functions.get_location_information(config, data_for_report)
+        data_for_report = map_functions.get_location_information(seq_counts, config, data_for_report)
     else:
         data_for_report["background_map_data"] = ""
         data_for_report["locations_wanted"]  = ""

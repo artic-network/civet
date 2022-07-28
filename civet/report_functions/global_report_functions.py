@@ -96,7 +96,7 @@ def write_anon_names_to_file(config, name_dict):
 
     config[KEY_QUERY_METADATA] = new_metadata
 
-def qc_date_col(column_arg, config, metadata, metadata_name, cl_arg):
+def qc_date_col(column_arg,  date_format, metadata, metadata_name, cl_arg, config):
 
     with open(metadata) as f:
         reader = misc.read_csv_or_tsv(metadata,f)
@@ -113,9 +113,9 @@ def qc_date_col(column_arg, config, metadata, metadata_name, cl_arg):
             for row in reader:
                 count += 1
                 if row[config[column_arg]] != "":
-                    misc.check_date_format(row[config[column_arg]], count, config[column_arg])    
+                    misc.check_date_format(row[config[column_arg]],date_format, count, config[column_arg])    
 
-def parse_date_args(date_column, background_date_column, config):
+def parse_date_args(date_column, background_date_column, date_format, config):
 
     """
     parses the report group arguments:
@@ -125,6 +125,8 @@ def parse_date_args(date_column, background_date_column, config):
 
     misc.add_arg_to_config(KEY_INPUT_DATE_COLUMN, date_column, config)
     misc.add_arg_to_config(KEY_BACKGROUND_DATE_COLUMN, background_date_column, config)
+    misc.add_arg_to_config(KEY_DATE_FORMAT, date_format, config)
+
 
     if KEY_INPUT_METADATA in config:
         if not config[KEY_INPUT_DATE_COLUMN]:
@@ -132,9 +134,13 @@ def parse_date_args(date_column, background_date_column, config):
                 reader = misc.read_csv_or_tsv(config[KEY_INPUT_METADATA],f)
                 if "sample_date" in reader.fieldnames:
                     config[KEY_INPUT_DATE_COLUMN] = "sample_date"
-        
+
+    
     if KEY_INPUT_METADATA in config and config[KEY_INPUT_DATE_COLUMN]: #so this will also scoop in "sample_date" assigned above
-        qc_date_col(KEY_INPUT_DATE_COLUMN, config, config[KEY_INPUT_METADATA], "input", "-idate/--input-date-column")
+        qc_date_col(KEY_INPUT_DATE_COLUMN, config[KEY_DATE_FORMAT],  config[KEY_INPUT_METADATA], "input", "-idate/--input-date-column", config)
+
+    if not config[KEY_INPUT_DATE_COLUMN]:
+        config[KEY_INPUT_DATE_COLUMN] = "sample_date"
 
     if not config[KEY_BACKGROUND_DATE_COLUMN]:
         with open(config[KEY_BACKGROUND_METADATA]) as f:
@@ -145,7 +151,7 @@ def parse_date_args(date_column, background_date_column, config):
                     config[KEY_BACKGROUND_DATE_COLUMN] = config[KEY_INPUT_DATE_COLUMN]
 
     if config[KEY_BACKGROUND_DATE_COLUMN]:
-        qc_date_col(KEY_BACKGROUND_DATE_COLUMN, config, config[KEY_BACKGROUND_METADATA], "background", "-bdate/--background-date-column")
+        qc_date_col(KEY_BACKGROUND_DATE_COLUMN, config[KEY_DATE_FORMAT],  config[KEY_BACKGROUND_METADATA], "background", "-bdate/--background-date-column", config)
 
 
 def parse_location(location_column, config):
@@ -167,3 +173,51 @@ def parse_location(location_column, config):
         else:
             if "country" in headers:
                 config[KEY_BACKGROUND_LOCATION_COLUMN] = "country"
+
+
+def is_hex(code):
+    hex_code = False
+    if code.startswith("#") and len(code)==7:
+        values = code[1:].upper()
+        for value in values:
+            if value in "ABCDEF0123456789":
+                hex_code = True
+            else:
+                hex_code = False
+                break
+                
+    return hex_code
+
+def get_acceptable_colours(config):
+
+    acceptable_colours = []
+
+    with open(config[KEY_HTML_COLOURS]) as f:
+        reader = csv.DictReader(f)
+        for row in reader:
+            acceptable_colours.append(row["name"].lower())
+            # acceptable_colours.append(row["hex"].lower())
+
+    return acceptable_colours
+
+def colour_checking(colour_key,config):
+    acceptable_colours = get_acceptable_colours(config)
+    cmap = config[colour_key]
+    if not type(cmap) == "list":
+        if ',' in cmap:
+            cmap = cmap.split(",")
+            for colour in cmap:
+                if not is_hex(colour) and colour.lower() not in acceptable_colours:
+                    sys.stderr(cyan(f"Invalid colour code: ") + f"{colour}\n")
+                    sys.exit(-1)
+        else:
+            cmap = cmap.split(",")
+            if not is_hex(cmap[0]) and colour.lower() not in acceptable_colours:
+                sys.stderr(cyan(f"Invalid colour code: ") + f"{cmap[0]}\nPlease provide a comma-separated string of HEX codes or see htmlcolorcodes.com/color-names for `-cmap/--colour-map`.\n")
+                sys.exit(-1)
+    config[colour_key] = cmap
+    
+def check_theme(config):
+    if not is_hex(config[KEY_COLOUR_THEME]) and config[KEY_COLOUR_THEME].lower() not in acceptable_colours:
+        sys.stderr(cyan(f"Invalid HEX colour code: ") + f"{config[KEY_COLOUR_THEME]}\nPlease provide a valid HEX code or see htmlcolorcodes.com/color-names for `-ct/--colour-theme`.\n")
+        sys.exit(-1)

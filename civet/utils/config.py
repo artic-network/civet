@@ -127,6 +127,8 @@ KEY_BACKGROUND_MAP_COLUMN="background_map_column"
 KEY_BACKGROUND_MAP_LOCATION="background_map_location"
 KEY_BACKGROUND_MAP_FILE="background_map_file"
 KEY_CENTROID_FILE="centroid_file"
+KEY_BACKGROUND_MAP_COLOURS="background_map_colours"
+KEY_BACKGROUND_MAP_OTHER_COLOURS="background_map_other_colours"
 
 # QUERY MAP KEYS
 KEY_QUERY_MAP_FILE="query_map_file"
@@ -138,6 +140,7 @@ KEY_BACKGROUND_MAP_DATE_RANGE="background_map_date_range"
 KEY_SERIES_COLOUR_FACTOR="series_colour_factor"
 
 # MISC KEYS
+KEY_DATE_FORMAT="date_format"
 KEY_VERBOSE="verbose"
 KEY_THREADS="threads"
 KEY_LOG_API="log_api"

@@ -199,26 +199,25 @@ def parse_from_metadata(to_parse,background_csv):
     else:
         return filters
 
-def check_date_format(date_string,row_number=None,column_name=None):
-    date_format = '%Y-%m-%d'
+def check_date_format(date_string,date_format,row_number=None,column_name=None):
     check_date= ""
-    if date_string != "" and date_string != "NA":
+    if date_string not in ["","NA","tbc"]:
         try:
             check_date = datetime.strptime(date_string, date_format).date()
         except:
             if row_number and column_name:
-                sys.stderr.write(cyan(f"Error: Metadata field `{date_string}` [at column: {column_name}, row: {row_number}] contains unaccepted date format\nPlease use format {date_format}, i.e. `YYYY-MM-DD`\n"))
+                sys.stderr.write(cyan(f"Error: Metadata field `{date_string}` [at column: {column_name}, row: {row_number}] contains unaccepted date format\nPlease use format {date_format},\n"))
             else:
-                sys.stderr.write(cyan(f"Error: Input '{date_string}' is the wrong date format.\nPlease use format {date_format}, i.e. `YYYY-MM-DD`\n"))
+                sys.stderr.write(cyan(f"Error: Input '{date_string}' is the wrong date format.\nPlease use format {date_format}.\n"))
 
             sys.exit(-1)
             
     return check_date
 
-def parse_date_range(background_csv,column_name,to_search,rows_to_search):
+def parse_date_range(background_csv,column_name,date_format,to_search,rows_to_search):
     date_range = to_search.split(":")
-    start_date = datetime.strptime(date_range[0], "%Y-%m-%d").date()
-    end_date = datetime.strptime(date_range[1], "%Y-%m-%d").date()
+    start_date = datetime.strptime(date_range[0], date_format).date()
+    end_date = datetime.strptime(date_range[1], date_format).date()
 
     if rows_to_search == []:
         with open(background_csv, newline="", encoding = "utf-8") as f:
@@ -228,20 +227,20 @@ def parse_date_range(background_csv,column_name,to_search,rows_to_search):
                 c +=1
                 row_date = row[column_name]
                 
-                check_date = check_date_format(row_date,c,column_name)
-
-                if start_date <= check_date <= end_date:
-                    rows_to_search.append((row,c))
+                check_date = check_date_format(row_date,date_format,c,column_name)
+                if check_date:
+                    if start_date <= check_date <= end_date:
+                        rows_to_search.append((row,c))
     else:
         last_rows_to_search = rows_to_search
         new_rows_to_search = []
         for row,c in last_rows_to_search:
             row_date = row[column_name]
 
-            check_date = check_date_format(row_date,c,column_name)
-
-            if start_date <= check_date <= end_date:
-                new_rows_to_search.append((row,c))
+            check_date = check_date_format(row_date,date_format,c,column_name)
+            if check_date:
+                if start_date <= check_date <= end_date:
+                    new_rows_to_search.append((row,c))
 
         rows_to_search = new_rows_to_search
     return rows_to_search
@@ -272,7 +271,7 @@ def parse_general_field(background_csv,column_name,to_search,rows_to_search):
 
     return rows_to_search
 
-def filter_down_metadata(filters,background_csv):
+def filter_down_metadata(filters,background_csv,date_format):
     rows_to_search = []
     print(green("Query search:"))
     for column_name in filters:
@@ -281,9 +280,18 @@ def filter_down_metadata(filters,background_csv):
 
         # assumes its a date range if it has a ':' and startswith 2020-, 2019- or 2021-
         if ':' in to_search:
-            if to_search.startswith("2020-") or to_search.startswith("2019-") or to_search.startswith("2021-"):
+            date_range = False
+            try:
+                date1,date2 = to_search.split(":")
+                date1_dt = datetime.strptime(date1, date_format).date()
+                date2_dt = datetime.strptime(date2, date_format).date()
+                date_range = True
+            except:
+                date_range = False
+            
+            if date_range:
                 print(f"Date range: {to_search}")
-                rows_to_search = parse_date_range(background_csv,column_name,to_search,rows_to_search)
+                rows_to_search = parse_date_range(background_csv,column_name,date_format,to_search,rows_to_search)
         else:
             # parse by exact match 
             print(f"{column_name}: {to_search}")
@@ -301,7 +309,7 @@ def from_metadata_parsing(config):
         # for column in [config["sequence_id_column"],config["input_id_column"],config["input_display_column"]]:
         #     column_names.append(column)
 
-        rows_to_search = filter_down_metadata(filters,config["background_metadata"])
+        rows_to_search = filter_down_metadata(filters,config["background_metadata"],config[KEY_DATE_FORMAT])
         
         query_ids = []
         # query_rows = []
@@ -318,7 +326,7 @@ def from_metadata_parsing(config):
             sys.stderr.write(cyan(f'Error: -fm/--from-metadata found {count} matches, which exceeds the maximum query count.\n') + f"Either provide a more specific query with `-fm/--from-metadata` or overwrite the default maximum query limit with `-ql/--query-limit`.\n")
             sys.exit(-1)
         elif count == 0:
-            sys.stderr.write(cyan(f"Error: No sequences meet the criteria defined with `--from-metadata`.\nPlease check your query is in the correct format (e.g. sample_date=YYYY-MM-DD).\nExiting\n"))
+            sys.stderr.write(cyan(f"Error: No sequences meet the criteria defined with `--from-metadata`.\nPlease check your query is in the correct format.\nExiting\n"))
             sys.exit(-1)
         else:
             print(green(f"Number of sequences matching defined query:") + f" {count}")

@@ -39,10 +39,10 @@
     <style>
       body {
         padding-top: 50px;
-        font-family: "ArialNova-Light","HelveticaNeue-Light", "Helvetica Neue Light", "Helvetica Neue", Helvetica, Arial, "Lucida Grande", sans-serif;
+        font-family: "ArialNova-Light","HelveticaNeue-Light", "Helvetica Light", "HelveticaNeue", "Helvetica", "Arial", "Lucida Grande", sans-serif;
       }
       table text{
-          font-family: "ArialNova-Light","HelveticaNeue-Light", "Helvetica Neue Light", "Helvetica Neue", Helvetica, Arial, "Lucida Grande", sans-serif; 
+          font-family: "ArialNova-Light","HelveticaNeue-Light", "Helvetica Light", "HelveticaNeue", "Helvetica", "Arial", "Lucida Grande", sans-serif; 
       }
       header {
           display: block;
@@ -170,7 +170,7 @@
         stroke: dimgrey
         }
         .node text{
-          font-family: "ArialNova-Light","HelveticaNeue-Light", "Helvetica Neue Light", "Helvetica Neue", Helvetica, Arial, "Lucida Grande", sans-serif; 
+          font-family: "ArialNova-Light","HelveticaNeue-Light", "Helvetica Light", "Helvetica", Helvetica, Arial, "Lucida Grande", sans-serif; 
           font-weight: 300;
           font-size: 0.9em;
         }
@@ -346,149 +346,117 @@
         .content-block, p {
         page-break-inside: avoid;
         }
-      }
-      @media screen and (prefers-color-scheme: dark) {
-        body {
-            background-color: #17141F;
-            color: #F2E7DC;
-            opacity: 0.95;
-          }
-          img {
-            filter: brightness(.8) contrast(1.2);
-          }
-        .component {
-          background-color: #2C2640;
+        *,
+        *::before,
+        *::after {
+          text-shadow: none !important;
+          box-shadow: none !important;
         }
-        .table-striped>tbody>tr:nth-child(odd) {
-          background-color: #2C2640;
-          /* border-top-color: #3B325B; */
-          /* border-color: #2C2640; */
-          opacity: 0.9;
+        a:not(.btn) {
+          text-decoration: underline;
+        }
+        a[href]:after{content:none};
+        abbr[title]::after {
+          content: " (" attr(title) ")";
+        }
+        pre {
+          white-space: pre-wrap !important;
+        }
+        pre,
+        blockquote {
+          border: 1px solid #adb5bd;
+          page-break-inside: avoid;
+        }
+        tr,
+        img {
+          page-break-inside: avoid;
+        }
+        p,
+        h2,
+        h3 {
+          orphans: 3;
+          widows: 3;
+        }
+        h2,
+        h3 {
+          page-break-after: avoid;
+        }
+        .pagebreak { 
+          page-break-before: always; 
+        }
+        @page {
+          size: A4 landscape;
+          size: 287mm 210mm;
+          margin: 0.5cm;
+        }
+        body {
+          min-width: 300mm !important;
+          -webkit-print-color-adjust:exact;
+        }
+        .container {
+          min-width: 300mm !important;
+        }
+        .control {
+          display: none;
+        }
+        .searchbar {
+          display: none;
+        }
+        .badge {
+          border: 1px solid #000;
         }
         .table {
-          border-top: 0px;
-          /* border-color: #3B325B; */
-          background-color: #17141F;
+          color: inherit;
+          background-color: inherit;
+          border-collapse: collapse !important;
+          display: table-row!important;
+        }
+        .table td,
+        .table th {
+          background-color: #fff !important;
+        }
+        td,td {
+            display: table-cell !important
+        }
+        .scroll-container {
+          display: none;
       }
-      .table>tbody>tr>td, .table>tbody>tr>th, .table>tfoot>tr>td, .table>tfoot>tr>th, .table>thead>tr>td, .table>thead>tr>th {
-        border-top: none;
-      }
-      .accordion {
-          background-color: #2C2640;
-          color: #F2E7DC;
-          cursor: pointer;
-          padding: 12px;
-          width: 100%;
-          border: none;
-          text-align: left;
-          outline: none;
-          transition: 0.4s;
+        .table-bordered th,
+        .table-bordered td {
+          border: 1px solid #dee2e6 !important;
         }
-
-        .active, .accordion:hover {
-          background-color: #17141F;
+        .table-dark {
+          color: inherit;
         }
-
-        .accordion:after {
-          content: '\002B';
-          color: #F2E7DC;
-          font-weight: bold;
-          float: right;
-          margin-left: 5px;
+        .table-dark th,
+        .table-dark td,
+        .table-dark thead th,
+        .table-dark tbody + tbody {
+          border-color: #dee2e6;
         }
-
-        .active:after {
-          content: "\2212";
+        .dataTables_scroll {
+          overflow:visible;
         }
-
+        .dataTables_filter {
+          display: none;
+        }
+        .sorting_desc{
+          display: none;
+        }
+        .sorting_asc{
+          display: none;
+        }
+        .scrollX {
+          display: none;
+        }
+        .accordion {
+          display: none;
+        }
         .panel {
-          padding: 0 12px;
-          background-color: #2C2640;
-          max-height: 0;
-          overflow: hidden;
-          transition: max-height 0.2s ease-out;
-        }
-      pre {
-        background-color: #3B325B;
-        color: #F2E7DC;
-        border: none;
-        opacity: 0.8;
-      }
-      .searchbar {
-        background-color: #3B325B;
-        color: #F2E7DC;
-        border-style:none;
-        opacity: 0.8;
-        }
-      .slider {
-        background: #F2E7DC;
-        stroke: #F2E7DC;
-      }
-      .slider::-webkit-slider-thumb {
-        background: #5F9C82;
-        fill: #5F9C82;
-        stroke: #F2E7DC;
-      }
-      .slider::-moz-range-thumb {
-        stroke: #F2E7DC;
-        background: #5F9C82;
-        fill: #5F9C82;
-      } 
-      .node-background{
-          fill:#F2E7DC;
-          stroke:#F2E7DC;
-          opacity: 0.85;
-      }
-      .node circle{
-        stroke-width:0;
-        cursor:pointer;
-        fill:#5F9C82;
-        stroke:#F2E7DC;
-        
-        }
-      .node circle.selected{
-        stroke-width:0;
-        cursor:pointer;
-        fill:#E27E7E;
-        stroke:#F2E7DC;
-        opacity: 1;
-        }
-      .node rect{
-        stroke-width:2;
-        fill:#E27E7E;
-        stroke:#F2E7DC;
-      }
-      .svg-tooltip {
-          background: rgba(69,77,93,.9);
-          color: #F2E7DC;
-    }
-    .branch path{
-      stroke: #F2E7DC;
-      opacity: 0.85;
-      }
-      .branch.hovered path{
-        stroke:#F2E7DC;
-        opacity: 1;
-      }
-        .node.hovered circle{
-          stroke:#F2E7DC;
-        opacity: 1;
-        }
-        .node text{
-          font-family: "ArialNova-Light","HelveticaNeue-Light", "Helvetica Neue Light", "Helvetica Neue", Helvetica, Arial, "Lucida Grande", sans-serif; 
-          font-weight: 300;
-          font-size: 0.9em;
-          color: #F2E7DC;
-          fill: #F2E7DC;        
-        }
-        .scale-bar line {
-          stroke: #F2E7DC;
-        }
-        .scale-bar text{
-          fill: #F2E7DC;
-          color:  #F2E7DC;
+          display: none;
         }
       }
+      
     </style>
 
   </head>
@@ -512,30 +480,6 @@
         });
         });
     </script>
-    <!-- <script>
-      var colorWell;
-      var defaultColor = "#557b86";
-      window.addEventListener("load", startup, false);
-      function startup() {
-        colorWell = document.querySelector("#colorWell");
-        colorWell.value = defaultColor;
-        colorWell.addEventListener("input", updateFirst, false);
-        colorWell.addEventListener("change", updateAll, false);
-        colorWell.select();
-      }
-      function updateFirst(event) {
-        var p = document.querySelector("accordion active");
-        // var toTopButton = document.getElementById("toTopBtn");
-        if (p) {
-          p.style.color = event.target.value;
-        }
-      }
-      function updateAll(event) {
-        document.querySelectorAll("accordion active").forEach(function(p) {
-          p.style.color = event.target.value;
-        });
-      }
-    </script> -->
 
     <!--Figtree.js-->
     <script type="text/javascript"> 
@@ -801,7 +745,7 @@
             <script type="text/javascript">
               $(document).ready( function () {
                   var table = $('#myTable').DataTable({
-                    "scrollY": "300px",
+                    'scrollY': "250px",
                     "paging": false,
                     "border-bottom":false,
                     dom: 'frtip',
@@ -892,6 +836,7 @@
         <%timeseries_data = data_for_report["full_metadata"] %>
         <%date_field = config["input_date_column"] %>
         <%series_colour_factor = config["series_colour_factor"] %>
+        <%date_format = config["date_format"] %>
 
         <% figure_count +=1 %>
         <br>
@@ -912,18 +857,19 @@
                   "x": {
                     "field": "${date_field}", 
                     "bin":true,
-                    "scale": {"type": "nice","interval": "week", "step": 2},
+                    "scale": {"type": "nice","interval": "day", "step": 1},
                     "timeUnit": {
                         "unit": "utcyearmonthdate",
-                        "step": 7},
+                        "step": 1},
                     "title": "Date",
                     "axis": {
                       "grid": false,
-                      "format":"%Y-%m-%d",
-                      "labelFont":"Helvetica Neue",
-                      "labelFontSize":18,
-                      "titleFontSize":18,
-                      "titleFont":"Helvetica Neue"
+                      "format": "${date_format}",
+                      "labelFont":"Helvetica",
+                      "labelFontSize":15,
+                      "titleFontSize":15,
+                      "labelAlign":"center",
+                      "titleFont":"Helvetica"
                     },
                   },
                   "y": 
@@ -931,35 +877,25 @@
                   "title": "Genome count",
                   "axis":{
                   "grid": false,
-                  "labelFont":"Helvetica Neue",
-                  "labelFontSize":18,
-                  "titleFontSize":18,
-                  "titleFont":"Helvetica Neue"}
+                  "offset":10,
+                  "labelFont":"Helvetica",
+                  "labelFontSize":15,
+                  "titleFontSize":15,
+                  "titleFont":"Helvetica"}
                   },
                   "color": {
                         "field": "${series_colour_factor}", 
                         "type": "nominal",
                         "scale": {
-                              "range": [
-                                    "#B6B8C8",
-                                    "#D4B489",
-                                    "#A6626F",
-                                    "#733646",
-                                    "#A47E3E",
-                                    "#DC9598",
-                                    "#83818F",
-                                    "#B3ABD0",
-                                    "#B8B2C4",
-                                    "#A07E62",
-                                    "#F9C0C7"
-                                  ]
+                              "range": ${colorCodes}
                             },
                         "legend": {
+                            "orient":"bottom",
                             "title": "${series_colour_factor.capitalize()}",
                             "labelFontSize":14,
-                            "labelFont":"Helvetica Neue",
+                            "labelFont":"Helvetica",
                             "titleFontSize":16,
-                            "titleFont":"Helvetica Neue",
+                            "titleFont":"Helvetica",
                             "titleFontStyle":"normal"
                             }
                         }
@@ -967,7 +903,7 @@
                         "config": {
                           "view": {"stroke": null},
                           "axis": {"grid": false},
-                          "text": {"font":"Helvetica Neue","fontWeight":0.1}
+                          "text": {"font":"Helvetica","fontWeight":0.1}
                         }
                 };          
           vegaEmbed('#time_series', vlSpec_time, {renderer: "svg"})
@@ -1123,14 +1059,14 @@
                           "field": "date", 
                           "timeUnit":"monthdate",
                           "type": "temporal",
-                          "title": "Date",
                           "axis": {
                             "grid": false,
-                            "labelFont":"Helvetica Neue",
-                            "labelFontSize":18,
+                            "title": "Date",
+                            "labelFont":"Helvetica",
+                            "labelFontSize":15,
                             "tickCount": {"interval": "day", "step": 2}, // put in num days/
-                            "titleFontSize":18,
-                            "titleFont":"Helvetica Neue"
+                            "titleFontSize":15,
+                            "titleFont":"Helvetica"
                           },
                         },
                         "y": 
@@ -1138,7 +1074,7 @@
                         "type": "nominal",
                         "axis": {
                           "title": "",
-                          "font": "Helvetica Neue",
+                          "font": "Helvetica",
                           "labelFontSize":15,
                           "labelLimit": 0,
                           "labelPadding":20
@@ -1148,17 +1084,17 @@
                           "field": "date_type", 
                           "type": "nominal",
                           "legend": {
-                            "labelFont":"Helvetica Neue",
-                            "labelFontSize":18,
+                            "labelFont":"Helvetica",
+                            "labelFontSize":15,
                             "orient": "bottom", 
-                            "symbolSize": 500,
+                            "symbolSize": 300,
                             "title": null}
                         }
                       },
                         "config": {
                           "view": {"stroke": null},
                           "axis": {"grid": false},
-                          "text": {"font":"Helvetica Neue"}
+                          "text": {"font":"Helvetica"}
                         },
                       "layer": [
                         {
@@ -1190,7 +1126,7 @@
                           },
                           "title": "Date"
                           },
-                          "size": {"value": 500},
+                          "size": {"value": 300},
                           "opacity": {"value": 1}
                         }
                         }
@@ -1207,7 +1143,59 @@
         %if '6' in config["report_content"]:
           <% figure_count +=1 %>
           <br>
-        <div id="background_map" style="width:90%"></div>
+          <div class="container" style="width:100%;">
+          <div id="background_map_legend" style="width: 30%; float:right"></div>
+          <script>
+          var vSpec_legend = {
+            "$schema": "https://vega.github.io/schema/vega/v5.json",
+            "background": "white",
+            "padding": 5,
+            "width": 10,
+            "height": 100,
+            
+            "data":[{
+              "name":"colour_dict",
+              "values": ${data_for_report["background_map_colour_data"]}
+            }],
+
+            "marks":[{
+              "type":"rect",
+              "from":{"data":"colour_dict"},
+              "encode":{
+                "update":{
+                  "x":{"value":10},
+                  "y":{"field":"y_val"},
+                  "width":{"value":20},
+                  "height":{"value":20},
+                  "fill":{"field":"colour"}
+                }
+              }
+            },{
+            "name": "text_marks",
+                "type": "text",
+                "from": {"data": "colour_dict"},
+                "encode": {
+                  "enter": {
+                    "fill": {"value": "black"},
+                    "text":{"field":"lineage"}
+                    },
+                "update":{
+                  "x":{"value":40},
+                  "y":{"field":"text_val"},
+                  "fontSize":{"field":"text_size"}
+                },
+                  "font": {"value": "Helvetica"} 
+                  }
+      }
+  ]
+}
+vegaEmbed('#background_map_legend', vSpec_legend, {renderer: "svg"})
+                      .then(result => console.log(result))
+                      .catch(console.warn);
+
+        </script>
+        <br>
+        <div id="background_map" style="width: 70%; float:left""></div>
         <script>
         var vSpec_bmap = {
           "$schema": "https://vega.github.io/schema/vega/v5.json",
@@ -1231,6 +1219,7 @@
 % endif
 
           "signals": [
+                      {"name":"show_labels", "value":false, "bind":{"input":"checkbox"}},
                       { "name": "tx", "update": "width / 2" },
                       { "name": "ty", "update": "height / 2" },
                       {
@@ -1428,8 +1417,8 @@ longitude = data_for_report[location]["centroids"][0]%>
                   "tooltip": {
                     "signal": "{\"location\": datum[\"location\"], \"lineage\": isValid(datum[\"lineage\"]) ? datum[\"lineage\"] : \"\"+datum[\"lineage\"], \"count\": format(datum[\"count\"], \"\")}"
                   },
-                  "cornerRadius": {"value": 5},
-                  "fill": {"scale": "color", "field": "lineage"},
+                  "cornerRadius": {"value": 3},
+                  "fill": {"field": "colour"},
                   "description": {
                     "signal": "\"count: \" + (format(datum[\"count\"], \"\")) + \"; lineage: \" + (isValid(datum[\"lineage\"]) ? datum[\"lineage\"] : \"\"+datum[\"lineage\"])"
                   },
@@ -1453,12 +1442,11 @@ longitude = data_for_report[location]["centroids"][0]%>
               "from": {"data": "data_${location}_3"},
               "encode": {
                 "update": {
-                  "fill": {"value": "black"},
-                  "stroke": {"value": "white"},
+                  "fill": {"scale":"text_colour", "signal":"show_labels"},
                   "strokeWidth": {"value": 0.1},
                   "align": {"value": "center"},
                   "radius": {"scale": "radius_${location}", "field": "count","offset":10},
-                  "font": {"value": "Helvetica Neue"},
+                  "font": {"value": "Helvetica"},
                   "fontSize": {"signal": "text_zoom_${location}"},
                   "description": {
                     "signal":  "\"data: \" + (format(datum[\"data\"], \"\"))"},
@@ -1482,8 +1470,14 @@ longitude = data_for_report[location]["centroids"][0]%>
           ]
           ,
           "scales": [
-%for location in data_for_report['locations_wanted']:
-            {
+             {
+      "name":"text_colour",
+      "type":"threshold",
+      "domain":[true, false],
+      "range":["none", "black"]
+    },
+%for count,location in enumerate(data_for_report['locations_wanted']):            
+			{
               "name": "theta_${location}",
               "type": "linear",
               "domain": {
@@ -1509,37 +1503,11 @@ longitude = data_for_report[location]["centroids"][0]%>
               },
               "range": [{"signal":"inner_arc_zoom_${location}"},{"signal":"arc_zoom_${location}"}],
               "zero": true
-            },
-%endfor
-            {
-              "name": "color",
-              "type": "ordinal",
-              "domain": {
-                "fields": [
-%for count,location in enumerate(data_for_report['locations_wanted']):
-                  {"data": "data_${location}_2", "field": "lineage"},
-                  {"data": "data_${location}_3", "field": "lineage"}
+            }
 %if count < len(data_for_report['locations_wanted'])-1:
 ,
 %endif
 %endfor
-                ],
-                "sort": true
-              },
-              "range": [
-                "#B6B8C8",
-                "#D4B489",
-                "#A6626F",
-                "#733646",
-                "#A47E3E",
-                "#DC9598",
-                "#83818F",
-                "#B3ABD0",
-                "#B8B2C4",
-                "#A07E62",
-                "#F9C0C7"
-              ]
-            }
           ]
         }
 
@@ -1548,7 +1516,8 @@ longitude = data_for_report[location]["centroids"][0]%>
                       .catch(console.warn);
 
       </script>
-      <h3><strong>Figure ${figure_count}</strong> | Background diversity map</h3>
+      </div>
+      <h3><strong>Figure ${figure_count}</strong> | Background diversity map (doughnut size is proportional to number of sequences) </h3>
       <hr>
         %endif
         

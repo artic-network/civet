@@ -31,14 +31,12 @@ def add_col_to_metadata(new_column_name, new_column_dict, metadata, new_metadata
 
                 writer.writerow(new_row)
 
-def check_date_format(to_check, line_count, header):
-
-    date_format = "%Y-%m-%d"
+def check_date_format(to_check, date_format, line_count, header):
     
     try:
         dt.datetime.strptime(to_check, date_format).date()
     except:
-        sys.stderr.write(cyan(f'Date {to_check} on line {line_count} in column {header} in incorrect format. Please use YYYY-MM-DD\n'))
+        sys.stderr.write(cyan(f'Date {to_check} on line {line_count} in column {header} in incorrect format. Please check format {date_format} and date fields\n'))
         sys.exit(-1)
                 
 def add_arg_to_config(key,arg,config):
