@@ -151,7 +151,6 @@ def check_background_snps(config):
     return records
         
 
-
 def data_group_parsing(debug,datadir,background_metadata,background_snps,background_sequences,background_tree,background_id_column,sequence_id_column,config):
     """
     parses the data group arguments 
@@ -216,7 +215,6 @@ def data_group_parsing(debug,datadir,background_metadata,background_snps,backgro
         elif config["sequence_id_column"] not in reader.fieldnames:
             sys.stderr.write(cyan(f"Error: {config['sequence_id_column']} column not found in background metadata file. Please specify which column to match with `-sicol/--sequence-id-column.`\n"))
             sys.exit(-1)
-        
 
     if debug:
         csv_record_count = check_csv_file("-bm/--background-metadata","background csv",config["background_metadata"],config["background_id_column"],config["sequence_id_column"])

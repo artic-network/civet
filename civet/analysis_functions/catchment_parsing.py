@@ -262,6 +262,7 @@ def downsample_if_building_trees(in_csv, out_csv, config):
             header = reader.fieldnames
             # in tree to header
             header.append(KEY_IN_TREE)
+            print(header)
 
             writer = csv.DictWriter(fw, fieldnames=header,lineterminator='\n')
             writer.writeheader()

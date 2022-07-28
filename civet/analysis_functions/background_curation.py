@@ -8,6 +8,7 @@ import sys
 from civet.utils.log_colours import green,cyan,red
 from civet.utils.config import *
 
+
 def input_fasta_qc(input_fasta,output_fasta,output_notes,config):
     """
     Checking input fasta file for:

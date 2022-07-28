@@ -31,50 +31,115 @@ def check_background_data_outdir(config):
             sys.stderr.write(cyan(f"Cannot make background data outdir.\n"))
             sys.exit(-1)
 
-def check_input_sequences(align_only,config):
+def parse_from_header(background_data_sequences,config):
 
-    background_fasta = config["generate_civet_background_data"]
+    with open(background_data_sequences) as f: 
+        header = f.readline()
 
+        primary_fields = header.split(config[KEY_PRIMARY_FIELD_DELIMTER])
+
+        if len(primary_fields) != len(config[KEY_PRIMARY_METADATA_FIELDS].split(",")):
+            sys.stderr.write(cyan(f"Number of primary fields in sequence header does not match number of primary field names. Check delimiter and fields specified.\n")+f"Primary field names: {config[KEY_PRIMARY_METADATA_FIELDS]}\nPrimary field delimiter: {config[KEY_PRIMARY_FIELD_DELIMTER]}\n")
+            sys.exit(-1)
+
+        if config[KEY_SECONDARY_FIELDS]:
+            try:
+                secondary_string = primary_fields[config[KEY_SECONDARY_FIELD_LOCATION]]
+            except:
+                sys.stderr.write(cyan(f"Secondary field location not found in primary fields.\n"))
+                sys.exit(-1)
+
+            secondary_fields = secondary_string.split(config[KEY_SECONDARY_FIELD_DELIMTER])
+            if len(secondary_fields) != len(config[KEY_SECONDARY_METADATA_FIELDS].split(",")):
+                sys.stderr.write(cyan(f"Number of secondary fields in sequence header does not match number of secondary field names. Check delimiter and fields specified.\n")+f"Secondary field names: {config[KEY_SECONDARY_METADATA_FIELDS]}\nSecondary field delimiter: {config[KEY_SECONDARY_FIELD_DELIMTER]}\n")
+                sys.exit(-1)
+
+
+def check_bd_args(generate_background_data,background_data_sequences,background_data_metadata,config):
+    
+    misc.add_arg_to_config(KEY_GENERATE_BACKGROUND_DATA,generate_background_data,config)
+    
+    if not generate_background_data in VALUES_GENERATE_BACKGROUND_DATA:
+        sys.stderr.write(cyan(f"{generate_background_data} not a valid option. Please specify either parse_seq_headers or align_curate\n"))
+        sys.exit(-1)
+
+    if generate_background_data == VALUES_GENERATE_BACKGROUND_DATA[0]:
+        
+        if not background_data_sequences:
+            sys.stderr.write(cyan(f"Please supply a sequence file with --bd-seqs\n"))
+            sys.exit(-1)
+    elif generate_background_data == VALUES_GENERATE_BACKGROUND_DATA[1]:
+        if not background_data_sequences:
+            sys.stderr.write(cyan(f"Please supply a sequence and metadata file with --bd-seqs and --bd-metadata\n"))
+            sys.exit(-1)
+        if not background_data_metadata:
+            sys.stderr.write(cyan(f"Please supply a sequence and metadata file with --bd-seqs and --bd-metadata\n"))
+            sys.exit(-1)
+
+        expanded_path = os.path.expanduser(config["cwd"])
+        metadata = os.path.join(expanded_path, background_data_metadata)
+    
+        config[KEY_BACKGROUND_DATA_METADATA] = metadata
+
+    
     expanded_path = os.path.expanduser(config["cwd"])
-    unaligned_sequences = os.path.join(expanded_path, background_fasta)
+    unaligned_sequences = os.path.join(expanded_path, background_data_sequences)
     
     config[KEY_UNALIGNED_SEQUENCES] = unaligned_sequences
-    ending = background_fasta.split(".")[-1]
+    ending = background_data_sequences.split(".")[-1]
 
     if ending not in ["fa","fasta","fas"]:
         sys.stderr.write(cyan(f"Please input unaligned sequences in fasta format, with file extension reflecting that.\n"))
         sys.exit(-1)
 
-    if not align_only:
-        with open(background_fasta) as f: 
-            header = f.readline()
 
-            primary_fields = header.split(config[KEY_PRIMARY_FIELD_DELIMTER])
+def check_seqs_metadata_match(background_sequences,background_metadata,sequence_id_column,outdir,config):
+    record_dict = SeqIO.index(background_sequences, "fasta")
+    
+    match_dict = {}
+    with open(background_metadata,"r") as f:
+        reader = misc.read_csv_or_tsv(background_metadata, f)
+        if not sequence_id_column in reader.fieldnames:
+            sys.stderr.write(cyan(f"Please specify a sequence id column to match in the metadata with --sicol/--sequence-id-column\n"))
+            sys.exit(-1)
+        for row in reader:
+            match = ""
+            if row[sequence_id_column] not in record_dict:
+                alt_matches = [row[sequence_id_column].replace(" ",""), row[sequence_id_column].replace(" ","_")]
+                for alt_match in alt_matches:
+                    if alt_match in record_dict:
+                        match = alt_match
+                        match_dict[row[sequence_id_column]] = alt_match
 
-            if len(primary_fields) != len(config[KEY_PRIMARY_METADATA_FIELDS].split(",")):
-                sys.stderr.write(cyan(f"Number of primary fields in sequence header does not match number of primary field names. Check delimiter and fields specified.\n")+f"Primary field names: {config[KEY_PRIMARY_METADATA_FIELDS]}\nPrimary field delimiter: {config[KEY_PRIMARY_FIELD_DELIMTER]}\n")
-                sys.exit(-1)
+    if match_dict:
+        config[KEY_SEQUENCE_ID_COLUMN] = f"modified_{sequence_id_column}"
+        metadata_out = os.path.join(outdir, "modified_metadata.csv")
+        with open(metadata_out,"w") as fw:
+            with open(background_metadata,"r") as f:
+                reader = misc.read_csv_or_tsv(background_metadata, f)
+                header = reader.fieldnames
+                header.append(f"modified_{sequence_id_column}")
+                writer = csv.DictWriter(fw, fieldnames=header, lineterminator="\n")
+                writer.writeheader()
+                for row in reader:
+                    if row[sequence_id_column] in match_dict:
+                        new_row = row
+                        new_row[f"modified_{sequence_id_column}"] = match_dict[row[sequence_id_column]]
+                        writer.writerow(new_row)
+                    else:
+                        new_row = row
+                        new_row[f"modified_{sequence_id_column}"] = row[sequence_id_column]
+                        writer.writerow(new_row)
+        return metadata_out
+    else:
+        return background_metadata
 
-            if config[KEY_SECONDARY_FIELDS]:
-                try:
-                    secondary_string = primary_fields[config[KEY_SECONDARY_FIELD_LOCATION]]
-                except:
-                    sys.stderr.write(cyan(f"Secondary field location not found in primary fields.\n"))
-                    sys.exit(-1)
 
-                secondary_fields = secondary_string.split(config[KEY_SECONDARY_FIELD_DELIMTER])
-                if len(secondary_fields) != len(config[KEY_SECONDARY_METADATA_FIELDS].split(",")):
-                    sys.stderr.write(cyan(f"Number of secondary fields in sequence header does not match number of secondary field names. Check delimiter and fields specified.\n")+f"Secondary field names: {config[KEY_SECONDARY_METADATA_FIELDS]}\nSecondary field delimiter: {config[KEY_SECONDARY_FIELD_DELIMTER]}\n")
-                    sys.exit(-1)
-
-
-def parse_generate_background_args(generate_civet_background_data,background_data_align_only,background_data_outdir,primary_field_delimiter,primary_metadata_fields,secondary_fields,secondary_field_delimiter,secondary_field_location,secondary_metadata_fields,config):
-
-    misc.add_arg_to_config("generate_civet_background_data",generate_civet_background_data,config)
-    misc.add_arg_to_config(KEY_BACKGROUND_DATA_ALIGN_ONLY,background_data_align_only,config)
-
+def sort_background_outdir(background_data_outdir,config):
     misc.add_path_to_config(KEY_BACKGROUND_DATA_OUTDIR,background_data_outdir,config)
     check_background_data_outdir(config)
+
+def parse_metadata_from_seq_headers(primary_field_delimiter,primary_metadata_fields,secondary_fields,secondary_field_delimiter,secondary_field_location,secondary_metadata_fields,config):
 
     misc.add_arg_to_config(KEY_PRIMARY_FIELD_DELIMTER,primary_field_delimiter,config)
     misc.add_arg_to_config(KEY_PRIMARY_METADATA_FIELDS,primary_metadata_fields,config)
@@ -83,9 +148,7 @@ def parse_generate_background_args(generate_civet_background_data,background_dat
     misc.add_arg_to_config(KEY_SECONDARY_FIELD_LOCATION,secondary_field_location,config)
     misc.add_arg_to_config(KEY_SECONDARY_METADATA_FIELDS,secondary_metadata_fields,config)
 
-    check_input_sequences(config[KEY_BACKGROUND_DATA_ALIGN_ONLY],config)
-
-    
+    parse_from_header(config[KEY_BACKGROUND_SEQUENCES],config)
 
 
 

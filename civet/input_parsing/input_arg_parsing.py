@@ -179,7 +179,7 @@ def parse_from_metadata(to_parse,background_csv):
     with open(background_csv,"r") as f:
         reader = misc.read_csv_or_tsv(background_csv,f)
         column_names = reader.fieldnames
-        print(column_names)
+
         # get each of the factors for the query
         for factor in to_parse:
             # eg country=Ireland 

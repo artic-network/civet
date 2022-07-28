@@ -114,6 +114,7 @@ rule find_catchment:
         txt = os.path.join(config[KEY_TEMPDIR],"updown_ignore.txt"),
         catchments = os.path.join(config[KEY_TEMPDIR],"catchments.csv")
     run:
+        
         with open(output.txt,"w") as fw:
             for i in config[KEY_IDS]:
                 fw.write(f"{i}\n")

@@ -18,8 +18,9 @@ def account_for_all_ids(config):
         reader = misc.read_csv_or_tsv(config["background_metadata"],f)
         header = reader.fieldnames
         for row in reader:
-            if row[config["background_id_column"]] in config["ids"]:
-                found_in_background_data[row[config["background_id_column"]]] = row
+            background_id = row[config["background_id_column"]]
+            if background_id in config["ids"]:
+                found_in_background_data[background_id] = row
     
     print(green(f"Number of queries matched in background data:") + f" {len(found_in_background_data)}")
     

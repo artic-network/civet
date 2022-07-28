@@ -61,10 +61,12 @@ KEY_DATESTAMP="datestamp"
 KEY_OVERWRITE="overwrite"
 
 # BACKGROUND CURATION KEYS
+KEY_GENERATE_BACKGROUND_DATA="generate_background_data"
 KEY_UNALIGNED_SEQUENCES="unaligned_sequences"
 KEY_BACKGROUND_DATA_OUTDIR="background_data_outdir"
 KEY_BACKGROUND_DATA_TEMPDIR="background_data_tempdir"
-KEY_BACKGROUND_DATA_ALIGN_ONLY="background_data_align_only"
+KEY_BACKGROUND_DATA_METADATA="background_data_metadata"
+KEY_BACKGROUND_DATA_SEQUENCES="background_data_sequences"
 KEY_PRIMARY_FIELD_DELIMTER="primary_field_delimiter"
 KEY_PRIMARY_METADATA_FIELDS="primary_metadata_fields"
 KEY_SECONDARY_FIELDS="secondary_fields"
@@ -72,6 +74,8 @@ KEY_SECONDARY_FIELD_DELIMTER="secondary_field_delimiter"
 KEY_SECONDARY_FIELD_LOCATION="secondary_field_location"
 KEY_SECONDARY_METADATA_FIELDS="secondary_metadata_fields"
 
+# BACKGROUND VALUES
+VALUES_GENERATE_BACKGROUND_DATA = ["parse_seq_headers","align_curate"]
 
 # CATCHMENT KEYS
 KEY_CATCHMENT_COUNT="catchment_count"
