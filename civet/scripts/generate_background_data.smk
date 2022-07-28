@@ -20,7 +20,7 @@ config = {
     }
 """
   
-if config[KEY_BACKGROUND_DATA_ALIGN_ONLY]:
+if config[KEY_GENERATE_BACKGROUND_DATA] == "align_curate":
     rule all:
         input:
             os.path.join(config[KEY_BACKGROUND_DATA_OUTDIR],"background_sequences.aln.fasta"),
