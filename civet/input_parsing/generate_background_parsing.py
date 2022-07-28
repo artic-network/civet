@@ -111,28 +111,29 @@ def check_seqs_metadata_match(background_sequences,background_metadata,sequence_
                         match = alt_match
                         match_dict[row[sequence_id_column]] = alt_match
 
-    if match_dict:
-        config[KEY_SEQUENCE_ID_COLUMN] = f"modified_{sequence_id_column}"
-        metadata_out = os.path.join(outdir, "modified_metadata.csv")
-        with open(metadata_out,"w") as fw:
-            with open(background_metadata,"r") as f:
-                reader = misc.read_csv_or_tsv(background_metadata, f)
-                header = reader.fieldnames
-                header.append(f"modified_{sequence_id_column}")
-                writer = csv.DictWriter(fw, fieldnames=header, lineterminator="\n")
-                writer.writeheader()
-                for row in reader:
-                    if row[sequence_id_column] in match_dict:
-                        new_row = row
-                        new_row[f"modified_{sequence_id_column}"] = match_dict[row[sequence_id_column]]
-                        writer.writerow(new_row)
-                    else:
-                        new_row = row
-                        new_row[f"modified_{sequence_id_column}"] = row[sequence_id_column]
-                        writer.writerow(new_row)
+    config[KEY_SEQUENCE_ID_COLUMN] = f"modified_{sequence_id_column}"
+    metadata_out = os.path.join(outdir, "modified_metadata.csv")
+    with open(metadata_out,"w") as fw:
+        with open(background_metadata,"r") as f:
+            reader = misc.read_csv_or_tsv(background_metadata, f)
+            header = reader.fieldnames
+            header.append(f"modified_{sequence_id_column}")
+            writer = csv.DictWriter(fw, fieldnames=header, lineterminator="\n")
+            writer.writeheader()
+            for row in reader:
+                if row[sequence_id_column] in match_dict:
+                    new_row = row
+                    new_id = match_dict[row[sequence_id_column]].replace("'","").replace(";","").replace("(","").replace(")","")
+                    new_row[f"modified_{sequence_id_column}"] = new_id
+                    writer.writerow(new_row)
+                else:
+                    new_row = row
+                    new_id = row[sequence_id_column].replace("'","").replace(";","").replace("(","").replace(")","")
+                    new_row[f"modified_{sequence_id_column}"] = new_id
+                    writer.writerow(new_row)
+                    
         return metadata_out
-    else:
-        return background_metadata
+
 
 
 def sort_background_outdir(background_data_outdir,config):

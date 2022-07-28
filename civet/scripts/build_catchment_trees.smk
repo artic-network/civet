@@ -1,5 +1,6 @@
 import os
 import csv
+from civet.utils import misc
 
 catchments = config['figure_catchments']
 
@@ -99,6 +100,26 @@ rule prune_hashed_seqs:
 #                              -o {params.outdir:q} \
 #                             --ignore-missing
 #         """
+
+rule make_clean_csv:
+    input:
+        csv = config["csv"]
+    output:
+        csv = os.path.join(config["tempdir"],"catchments","clean_metadata.csv")
+    run:
+        with open(output.csv, "w") as fw:
+            with open(input.csv, "r") as f:
+                reader = misc.read_csv_or_tsv(input.csv, f)
+                header = reader.fieldnames
+                writer = csv.DictWriter(fw,fieldnames=header, lineterminator='\n')
+                writer.writeheader()
+                for row in reader:
+                    new_row=row
+                    for col in header:
+                        if col in config["tree_annotations"]:
+                            new_data = new_row[col].replace("'","").replace(";","").replace("(","").replace(")","")
+                            new_row[col] = new_data
+                    writer.writerow(new_row)
 
 rule annotate:
     input:

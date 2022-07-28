@@ -177,6 +177,7 @@ def get_nexus(catchments,data_for_report,config):
         with open(os.path.join(config["outdir"],"catchments",f"{catchment}.tree"),"r") as f:
             for l in f:
                 l = l.rstrip("\n")
+                
                 nexus+=f"{l}\n"
         data_for_report[catchment]["nexus"] = nexus.rstrip("\n")
 

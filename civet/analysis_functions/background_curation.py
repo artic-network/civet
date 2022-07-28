@@ -20,7 +20,7 @@ def input_fasta_qc(input_fasta,output_fasta,output_notes,config):
     maxambig = config[KEY_MAX_AMBIGUITY]
     passed_qc = 0
     with open(output_notes,"w") as fw2:
-        fw2.write("sequence_header,N_count,proportion_N,seq_length,QC_status\n")
+        fw2.write("sequence_header,original_header,N_count,proportion_N,seq_length,QC_status\n")
         with open(output_fasta,"w") as fw:
             for record in SeqIO.parse(input_fasta,"fasta"):
                 failed_qc = False
@@ -34,11 +34,12 @@ def input_fasta_qc(input_fasta,output_fasta,output_notes,config):
                 if prop_N > maxambig: 
                     failed_qc = True
                 
+                clean_header = str(record.description).replace("'","").replace(";","").replace("(","").replace(")","")
                 if failed_qc:
-                    fw2.write(f"{record.description},{num_N},{prop_N},{length},failed_qc\n")
+                    fw2.write(f"{clean_header},{record.description},{num_N},{prop_N},{length},failed_qc\n")
                 else:
-                    fw2.write(f"{record.description},{num_N},{prop_N},{length},passed_qc\n")
-                    fw.write(f">{record.description}\n{record.seq}\n")
+                    fw2.write(f"{clean_header},{record.description},{num_N},{prop_N},{length},passed_qc\n")
+                    fw.write(f">{clean_header}\n{record.seq}\n")
                     passed_qc +=1
 
     if passed_qc == 0:
