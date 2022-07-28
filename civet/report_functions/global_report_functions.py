@@ -31,7 +31,7 @@ def sequence_name_parsing(report_column, anonymise, config):
     elif config[KEY_INPUT_DISPLAY_COLUMN]:
         if KEY_INPUT_METADATA in config:
             with open(config[KEY_INPUT_METADATA]) as f:
-                reader = csv.DictReader(f)
+                reader = misc.read_csv_or_tsv(config[KEY_INPUT_METADATA],f)
                 if config[KEY_INPUT_DISPLAY_COLUMN] not in reader.fieldnames:
                     sys.stderr.write(cyan(f"Error: {config[KEY_INPUT_DISPLAY_COLUMN]} not found in input metadata file.\n") + "Please provide a column containing alternate sequence names, or use --anonymise if you would like civet to make them for you.\n")
                     sys.exit(-1)
@@ -48,7 +48,7 @@ def sequence_name_parsing(report_column, anonymise, config):
     test_duplicates = []
     if KEY_INPUT_METADATA in config:
         with open(config[KEY_INPUT_METADATA]) as f:
-            reader = csv.DictReader(f)
+            reader = misc.read_csv_or_tsv(config[KEY_INPUT_METADATA],f)
             for row in reader:
                 if row[config[KEY_INPUT_DISPLAY_COLUMN]] not in test_duplicates:
                     test_duplicates.append(row[config[KEY_INPUT_DISPLAY_COLUMN]])
@@ -64,7 +64,7 @@ def create_anon_ids_from_csv(config, metadata): #the names need to be swapped ou
     name_list = []
 
     with open(metadata) as f:
-        reader = csv.DictReader(f)
+        reader = misc.read_csv_or_tsv(metadata,f)
         for row in reader:
             name_list.append(row[config[KEY_INPUT_ID_COLUMN]])
 
@@ -99,7 +99,7 @@ def write_anon_names_to_file(config, name_dict):
 def qc_date_col(column_arg, config, metadata, metadata_name, cl_arg):
 
     with open(metadata) as f:
-        reader = csv.DictReader(f)
+        reader = misc.read_csv_or_tsv(metadata,f)
     
         if config[column_arg]:
             if config[column_arg] not in reader.fieldnames:
@@ -109,7 +109,7 @@ def qc_date_col(column_arg, config, metadata, metadata_name, cl_arg):
     if config[column_arg]:
         count = 0
         with open(metadata) as f:
-            reader = csv.DictReader(f)
+            reader = misc.read_csv_or_tsv(metadata,f)
             for row in reader:
                 count += 1
                 if row[config[column_arg]] != "":
@@ -129,7 +129,7 @@ def parse_date_args(date_column, background_date_column, config):
     if KEY_INPUT_METADATA in config:
         if not config[KEY_INPUT_DATE_COLUMN]:
             with open(config[KEY_INPUT_METADATA]) as f:
-                reader = csv.DictReader(f)
+                reader = misc.read_csv_or_tsv(config[KEY_INPUT_METADATA],f)
                 if "sample_date" in reader.fieldnames:
                     config[KEY_INPUT_DATE_COLUMN] = "sample_date"
         
@@ -138,7 +138,7 @@ def parse_date_args(date_column, background_date_column, config):
 
     if not config[KEY_BACKGROUND_DATE_COLUMN]:
         with open(config[KEY_BACKGROUND_METADATA]) as f:
-                reader = csv.DictReader(f)
+                reader = misc.read_csv_or_tsv(config[KEY_BACKGROUND_METADATA],f)
                 if "sample_date" in reader.fieldnames:
                     config[KEY_BACKGROUND_DATE_COLUMN] = "sample_date"
                 elif config[KEY_INPUT_DATE_COLUMN] and config[KEY_INPUT_DATE_COLUMN] in reader.fieldnames:
@@ -157,7 +157,7 @@ def parse_location(location_column, config):
     misc.add_arg_to_config(KEY_BACKGROUND_LOCATION_COLUMN, location_column, config)
 
     with open(config[KEY_BACKGROUND_METADATA]) as f:
-        reader = csv.DictReader(f)
+        reader = misc.read_csv_or_tsv(config[KEY_BACKGROUND_METADATA],f)
         headers = reader.fieldnames
      
         if config[KEY_BACKGROUND_LOCATION_COLUMN]:

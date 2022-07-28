@@ -7,6 +7,7 @@ import sys
 from civet.utils.log_colours import green,cyan,red
 import os
 from civet.utils.config import *
+from civet.utils import misc
 
 csv.field_size_limit(sys.maxsize)
 
@@ -93,7 +94,7 @@ def add_catchments_to_metadata(background_csv,query_metadata,query_metadata_with
     catchment_records = []
 
     with open(background_csv,"r") as f:
-        reader = csv.DictReader(f)
+        reader = misc.read_csv_or_tsv(background_csv,f)
         for row in reader:
             
             # exclude querys as they're already in the metadata
@@ -123,7 +124,7 @@ def add_catchments_to_metadata(background_csv,query_metadata,query_metadata_with
         writer.writeheader()
 
         with open(query_metadata, "r") as f:
-            reader = csv.DictReader(f)
+            reader = misc.read_csv_or_tsv(query_metadata,f)
             for row in reader:
                 new_row = row
                 new_row[KEY_QUERY_BOOLEAN] = "True"
@@ -238,14 +239,14 @@ def which_catchments_too_large(in_csv,config):
 
     figure_catchments = set()
     with open(in_csv, "r") as f:
-        reader = csv.DictReader(f)
+        reader = misc.read_csv_or_tsv(in_csv,f)
         for row in reader:
             if row[KEY_QUERY_BOOLEAN] == "True":
                 catchment_counter[row[KEY_CATCHMENT]] +=1
 
 
     with open(in_csv, "r") as f:
-        reader = csv.DictReader(f)
+        reader = misc.read_csv_or_tsv(in_csv,f)
         for row in reader:
             catchment  = row[KEY_CATCHMENT]
             if catchment_counter[catchment] <= int(config[KEY_MAX_TREE_SIZE]):
@@ -257,7 +258,7 @@ def which_catchments_too_large(in_csv,config):
 def downsample_if_building_trees(in_csv, out_csv, config):
     with open(out_csv,"w") as fw:
         with open(in_csv,"r") as f:
-            reader = csv.DictReader(f)
+            reader = misc.read_csv_or_tsv(in_csv,f)
             header = reader.fieldnames
             # in tree to header
             header.append(KEY_IN_TREE)
@@ -314,7 +315,7 @@ def downsample_if_building_trees(in_csv, out_csv, config):
 def which_trees_to_run(in_csv):
     catchment_counter= collections.Counter()
     with open(in_csv, "r") as f:
-        reader = csv.DictReader(f)
+        reader = misc.read_csv_or_tsv(in_csv,f)
         for row in reader:
             if row[KEY_IN_TREE] == "True":
                 catchment_counter[row[KEY_CATCHMENT]] +=1

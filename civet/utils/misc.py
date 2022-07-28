@@ -13,7 +13,7 @@ def add_col_to_metadata(new_column_name, new_column_dict, metadata, new_metadata
     with open(new_metadata, 'w') as fw:
         
         with open(metadata,"r") as f:
-            reader = csv.DictReader(f)
+            reader = read_csv_or_tsv(metadata,f)
             header = reader.fieldnames
             header.append(new_column_name)
             config[KEY_QUERY_CSV_HEADER] = header
@@ -57,6 +57,14 @@ def add_path_to_config(key,arg,config):
         path_to_cwd = os.path.abspath(config["cwd"])
         full_path = os.path.join(path_to_cwd,expanded_path)
         config[key]=full_path
+
+def read_csv_or_tsv(filename,f):
+    ending = str(filename).split(".")[-1]
+    if ending =="tsv":
+        reader = csv.DictReader(f, delimiter="\t")
+    else:
+        reader = csv.DictReader(f)
+    return reader 
 
 def header(v):
     print(green("""\n
