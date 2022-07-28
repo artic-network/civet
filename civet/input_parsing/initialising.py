@@ -82,7 +82,7 @@ def get_defaults():
                     #Report options
                     KEY_COLOUR_THEME: "#7178bc",
                     KEY_COLOUR_MAP: "#86b0a6,#565b7b,#e9c46a,#e1998a,#d19c2c,#264653,#4888a3,#c77939,#b56576,#eb7e83,#F46D43,#9e2a2b,#84a98c",
-                    KEY_REPORT_CONTENT:["1,2,3,4,5"],
+                    KEY_REPORT_CONTENT:["1,2,3,4"],
                     KEY_REPORT_PRESET:False,
                     KEY_REPORT_TITLE:f"civet report",
                     KEY_ANONYMISE:False,

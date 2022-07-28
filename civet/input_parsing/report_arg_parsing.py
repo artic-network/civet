@@ -200,7 +200,7 @@ def parse_series_options(series_colour_factor, input_date_column,config):
         global_report_functions.qc_date_col(KEY_INPUT_DATE_COLUMN, config, config[KEY_INPUT_METADATA], "input", "-idate/--input-date-column")
         
         with open(config[KEY_INPUT_METADATA],"r") as f:
-            reader = csv.DictReader(f)
+            reader = misc.read_csv_or_tsv(config[KEY_INPUT_METADATA],f)
             if not config[KEY_SERIES_COLOUR_FACTOR] in reader.fieldnames:
                 sys.stderr.write(cyan(f"Error: {config[KEY_SERIES_COLOUR_FACTOR]} column not found in input csv file.\n"))
                 sys.exit(-1)

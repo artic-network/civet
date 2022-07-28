@@ -70,7 +70,7 @@ def check_csv_file(argument,description,csv_file,background_column,fasta_column)
         try:
             c = 0
             with open(csv_file,"r") as f:
-                reader = csv.DictReader(f)
+                reader = misc.read_csv_or_tsv(csv_file,f)
                 for row in reader:
                     c +=1
             print(green(f"{c} rows in {description} file."))
@@ -83,7 +83,7 @@ def check_csv_file(argument,description,csv_file,background_column,fasta_column)
     print(green(f"{description.replace('b','B')} file:") + f" {csv_file}")
 
     with open(csv_file,"r") as f:
-        reader = csv.DictReader(f)
+        reader = misc.read_csv_or_tsv(csv_file,f)
         if background_column in reader.fieldnames and fasta_column in reader.fieldnames:
             pass
         else:
