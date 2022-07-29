@@ -32,15 +32,15 @@ def parse_and_qc_table_cols(table_content,mutations, config):
 
     if KEY_INPUT_METADATA in config:
         with open(config[KEY_INPUT_METADATA]) as f:
-            reader = csv.DictReader(f)
+            reader = misc.read_csv_or_tsv(config[KEY_INPUT_METADATA],f)
             input_fieldnames = reader.fieldnames
     else:
         input_fieldnames = []
 
     with open(config[KEY_BACKGROUND_METADATA]) as f:
-        reader = csv.DictReader(f)
+        reader = misc.read_csv_or_tsv(config[KEY_BACKGROUND_METADATA],f)
         background_fieldnames = reader.fieldnames
-
+    
     if config[KEY_QUERY_TABLE_CONTENT]:
         if type(config[KEY_QUERY_TABLE_CONTENT]) == str:
             content_list = config[KEY_QUERY_TABLE_CONTENT].split(",")
@@ -67,9 +67,9 @@ def parse_and_qc_table_cols(table_content,mutations, config):
 def sort_default_headers(input_fieldnames, background_fieldnames, config):
 
     
-    basic_default_list = [config[KEY_INPUT_DISPLAY_COLUMN], "lineage", "source", "catchment"]
-    full_default_list = [config[KEY_BACKGROUND_DATE_COLUMN], config[KEY_INPUT_DATE_COLUMN], "country", "adm1", "suggested_adm2_grouping", "adm2"]
-
+    basic_default_list = [config[KEY_INPUT_DISPLAY_COLUMN], "source", "catchment"]
+    full_default_list = [config[KEY_BACKGROUND_DATE_COLUMN], config[KEY_INPUT_DATE_COLUMN], "lineage","country", "adm1", "suggested_adm2_grouping", "adm2"]
+    
     header_list = basic_default_list
 
     for col in full_default_list:

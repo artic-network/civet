@@ -23,8 +23,10 @@ jobs:
         run: pip install -e .
       - name: Check civet3 version
         run: civet --version
+      - name: Check gofasta version
+        run: gofasta --version
       - name: Test with example data
-        run: civet --input-metadata civet/tests/outbreak_test.csv    --input-sequences civet/tests/outbreak_test.fasta    --timeline-dates symptom_onset,collection_date,upload_date --datadir civet/tests/action_test_data/ &> test1.log
+        run: civet --input-metadata civet/tests/outbreak_test.csv    --input-sequences civet/tests/outbreak_test.fasta    --timeline-dates symptom_onset,collection_date,upload_date --datadir civet/tests/action_test_data/ --no-temp --verbose
       - name: Test gisad_id based example
         run: civet -ids EPI_ISL_000001,EPI_ISL_000022,EPI_ISL_000033    --background-id-column gisaid_id --sequence-id-column sequence_name --datadir civet/tests/action_test_data/ &> test2.log
       - name: Test adm2 and date range example

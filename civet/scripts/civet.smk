@@ -52,7 +52,7 @@ rule align_to_reference:
         if config[KEY_QUERY_FASTA]:
             print(green("Aligning supplied sequences to reference."))
             shell("""
-                    minimap2 -a -x asm20 --sam-hit-only --secondary=no --score-N=0 -t  {workflow.cores} {input.reference:q} '{config[query_fasta]}' -o {params.sam:q} &> {log:q} 
+                    minimap2 -a -x asm20 --sam-hit-only --secondary=no --score-N=0  -t  {workflow.cores} {input.reference:q} '{config[query_fasta]}' -o {params.sam:q} &> {log:q} 
                     gofasta sam toMultiAlign \
                         -s {params.sam:q} \
                         -t {workflow.cores} \
@@ -114,6 +114,7 @@ rule find_catchment:
         txt = os.path.join(config[KEY_TEMPDIR],"updown_ignore.txt"),
         catchments = os.path.join(config[KEY_TEMPDIR],"catchments.csv")
     run:
+        
         with open(output.txt,"w") as fw:
             for i in config[KEY_IDS]:
                 fw.write(f"{i}\n")

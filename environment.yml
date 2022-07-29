@@ -11,7 +11,7 @@ dependencies:
   - pip=21.2.1
   - snakemake-minimal<=6.8.0
   - cov-ert::jclusterfunk>=0.0.25
-  - gofasta>=0.0.5
+  - gofasta==0.0.5
   - pip:
     - git+https://github.com/cov-lineages/scorpio.git
     - git+https://github.com/cov-lineages/constellations.git

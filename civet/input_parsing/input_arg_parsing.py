@@ -53,7 +53,7 @@ def csv_qc(input_metadata,input_id_column):
         try:
             c = 0
             with open(input_metadata,"r") as f:
-                reader = csv.DictReader(f)
+                reader = misc.read_csv_or_tsv(input_metadata,f)
                 for row in reader:
                     c +=1
             # print(green(f"{c} rows in input csv file."))
@@ -67,7 +67,7 @@ def csv_qc(input_metadata,input_id_column):
 
     input_ids = []
     with open(input_metadata,"r") as f:
-        reader = csv.DictReader(f)
+        reader = misc.read_csv_or_tsv(input_metadata,f)
         if input_id_column in reader.fieldnames:
             for row in reader:
                 input_ids.append(row[input_id_column])
@@ -176,10 +176,10 @@ def parse_from_metadata(to_parse,background_csv):
     if not type(to_parse)==list:
         to_parse = to_parse.split(" ")
 
-    with open(background_csv, newline="",encoding="utf-8") as f:
-        reader = csv.DictReader(f)
+    with open(background_csv,"r") as f:
+        reader = misc.read_csv_or_tsv(background_csv,f)
         column_names = reader.fieldnames
-        
+
         # get each of the factors for the query
         for factor in to_parse:
             # eg country=Ireland 
@@ -221,7 +221,7 @@ def parse_date_range(background_csv,column_name,date_format,to_search,rows_to_se
 
     if rows_to_search == []:
         with open(background_csv, newline="", encoding = "utf-8") as f:
-            reader = csv.DictReader(f)
+            reader = misc.read_csv_or_tsv(background_csv,f)
             c =0
             for row in reader:
                 c +=1
@@ -248,7 +248,7 @@ def parse_date_range(background_csv,column_name,date_format,to_search,rows_to_se
 def parse_general_field(background_csv,column_name,to_search,rows_to_search):
     if rows_to_search == []:
         with open(background_csv, newline="", encoding="utf-8") as f:
-            reader = csv.DictReader(f)
+            reader = misc.read_csv_or_tsv(background_csv,f)
             c =0
             for row in reader:
                 c +=1

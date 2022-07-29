@@ -121,12 +121,17 @@ def parse_tree_options(tree_annotations,max_tree_size, config):
 
     if not type(config[KEY_TREE_ANNOTATIONS])==list:
         config[KEY_TREE_ANNOTATIONS] = config[KEY_TREE_ANNOTATIONS].split(',')
-
+        
+    new_annotations = []
     for col in config[KEY_TREE_ANNOTATIONS]:
-        if col not in config[KEY_QUERY_CSV_HEADER]:
-            sys.stderr.write(cyan(f"Error: tree annotation `{col}` not found as column in metadata.\n"))
-            sys.exit(-1)
-    config[KEY_TREE_ANNOTATIONS] = " ".join(config[KEY_TREE_ANNOTATIONS])
+        
+        if col not in config[KEY_QUERY_CSV_HEADER] and col not in config[KEY_MUTATIONS]:
+            pass
+        else:
+            new_annotations.append(col)
+    
+    config[KEY_TREE_ANNOTATIONS] = " ".join(new_annotations)
+
 
 
 def parse_optional_report_content(table_content, mutations, timeline_dates, timeline_group_column, colour_theme, colour_map, config):
@@ -153,9 +158,12 @@ def parse_series_options(series_colour_factor, input_date_column,config):
         misc.add_arg_to_config(KEY_SERIES_COLOUR_FACTOR,series_colour_factor,config)
         misc.add_arg_to_config(KEY_INPUT_DATE_COLUMN,input_date_column,config)
         
-        if not config[KEY_SERIES_COLOUR_FACTOR] in config["query_csv_header"]:
-            sys.stderr.write(cyan(f"Error: {config[KEY_SERIES_COLOUR_FACTOR]} column not found in input csv file.\n"))
-            sys.exit(-1)
+        with open(config[KEY_INPUT_METADATA],"r") as f:
+            reader = misc.read_csv_or_tsv(config[KEY_INPUT_METADATA],f)
+            if not config[KEY_SERIES_COLOUR_FACTOR] in reader.fieldnames:
+                sys.stderr.write(cyan(f"Error: {config[KEY_SERIES_COLOUR_FACTOR]} column not found in input csv file.\n"))
+                sys.exit(-1)
+
 
 def parse_map_options(background_map_date_range, background_map_column, background_map_file, centroid_file, background_map_location, query_map_file, longitude_column, latitude_column, found_in_background_data, background_map_colours, background_map_other_colours, config):
 

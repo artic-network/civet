@@ -72,7 +72,7 @@ def check_query_limit(config):
 
 def check_for_background_header(config):
     with open(config["background_metadata"],"r") as f:
-        reader = csv.DictReader(f)
+        reader = misc.read_csv_or_tsv(config["background_metadata"],f)
         header = reader.fieldnames
         if not config["downsample_column"] in header:
             sys.stderr.write(cyan(f"`--ds/--downsample` column specified ({config['downsample_column']}), but is not found in background metadata file. Please indicate a valid metadata column.\n"))

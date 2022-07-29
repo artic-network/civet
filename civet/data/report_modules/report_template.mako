@@ -991,8 +991,8 @@
             <script type="text/javascript">
               buildTree("tree_${data_for_report[catchment]['catchmentID']}", 
                         `${data_for_report[catchment]['nexus']}`,
-                        "tooltip_${data_for_report[catchment]['catchmentID']}",
-                        '${background_data}',
+                        `tooltip_${data_for_report[catchment]['catchmentID']}`,
+                        `${background_data}`,
                         "rangeinput_${data_for_report[catchment]['catchmentID']}",
                         "colourSelect_${data_for_report[catchment]['catchmentID']}",
                         "barSelect_${data_for_report[catchment]['catchmentID']}",
