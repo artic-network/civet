@@ -11,6 +11,9 @@ from datetime import date
 import tempfile
 import sys
 
+from civet.utils.config import *
+
+
 """
 Desired behaviour
 
@@ -122,6 +125,46 @@ def set_up_data_outdir(config):
         config["data_outdir"] = config["outdir"]
     else:
         config["data_outdir"] = config["tempdir"]
+
+    
+
+def set_up_background_pipeline_tempdir(config):
+    if config["no_temp"]:
+        tempdir = config[KEY_BACKGROUND_DATA_OUTDIR]
+        config[KEY_BACKGROUND_DATA_TEMPDIR] = tempdir
+    elif KEY_BACKGROUND_DATA_TEMPDIR in config:
+        to_be_dir = config[KEY_BACKGROUND_DATA_TEMPDIR]
+        try:
+            if not os.path.exists(to_be_dir):
+                os.mkdir(to_be_dir)
+        except:
+            sys.stderr.write(cyan(f'Error: cannot create temp directory {to_be_dir}.\n'))
+            sys.exit(-1)
+        tempdir = tempfile.mkdtemp(dir=to_be_dir)
+        config[KEY_BACKGROUND_DATA_TEMPDIR] = tempdir
+    else:
+        tempdir = tempfile.mkdtemp()
+        config[KEY_BACKGROUND_DATA_TEMPDIR] = tempdir
+        try:
+            if not os.path.exists(tempdir):
+                os.mkdir(tempdir)
+        except:
+            sys.stderr.write(cyan(f'Error: cannot create temp directory {tempdir}.\n'))
+            sys.exit(-1)
+        
+        try:
+            with open(os.path.join(tempdir, "test.txt"),"w") as fw:
+                fw.write("Test")
+        except:
+            sys.stderr.write(cyan(f'Error: cannot write to temp directory {tempdir}.\n'))
+            sys.exit(-1)
+
+
+def background_pipeline_tempdir(tempdir,no_temp,config):
+    misc.add_path_to_config(KEY_BACKGROUND_DATA_TEMPDIR,tempdir,config)
+    misc.add_arg_to_config("no_temp",no_temp,config)
+    
+    set_up_background_pipeline_tempdir(config)
 
 def output_group_parsing(outdir,output_prefix,overwrite,datestamp,output_data,tempdir,no_temp,config):
     

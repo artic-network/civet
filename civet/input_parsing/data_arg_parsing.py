@@ -7,6 +7,8 @@ import csv
 import pkg_resources
 from collections import Counter
 from Bio import SeqIO
+from civet.utils.config import *
+
 
 def check_dir_for_file(file_list, extension,argument,key,config,required):
     match = []
@@ -68,7 +70,7 @@ def check_csv_file(argument,description,csv_file,background_column,fasta_column)
         try:
             c = 0
             with open(csv_file,"r") as f:
-                reader = csv.DictReader(f)
+                reader = misc.read_csv_or_tsv(csv_file,f)
                 for row in reader:
                     c +=1
             print(green(f"{c} rows in {description} file."))
@@ -81,7 +83,7 @@ def check_csv_file(argument,description,csv_file,background_column,fasta_column)
     print(green(f"{description.replace('b','B')} file:") + f" {csv_file}")
 
     with open(csv_file,"r") as f:
-        reader = csv.DictReader(f)
+        reader = misc.read_csv_or_tsv(csv_file,f)
         if background_column in reader.fieldnames and fasta_column in reader.fieldnames:
             pass
         else:
@@ -149,7 +151,6 @@ def check_background_snps(config):
     return records
         
 
-
 def data_group_parsing(debug,datadir,background_metadata,background_snps,background_sequences,background_tree,background_id_column,sequence_id_column,config):
     """
     parses the data group arguments 
@@ -199,7 +200,15 @@ def data_group_parsing(debug,datadir,background_metadata,background_snps,backgro
         config["background_search_file"] = config["background_sequences"]
 
     with open(config["background_metadata"],"r") as f:
-        reader = csv.DictReader(f)
+        ending = config["background_metadata"].split(".")[-1]
+        if ending == "csv":
+            reader = csv.DictReader(f)
+        elif ending == "tsv":
+            reader = csv.DictReader(f,delimiter='\t')
+        else:
+            sys.stderr.write(cyan(f"Error: cannot read background metadata file. Try supplying a csv or tsv."))
+            sys.exit(-1)
+
         if config["background_id_column"] not in reader.fieldnames:
             sys.stderr.write(cyan(f"Error: {config['background_id_column']} column not found in background metadata file. Please specify which column to match with `-bicol/--background-id-column.`\n"))
             sys.exit(-1)

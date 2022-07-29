@@ -85,8 +85,10 @@ def main(sysargs = sys.argv[1:]):
     o_group.add_argument("--no-temp",action="store_true",help="Output all intermediate files. For development/ debugging purposes",dest="no_temp")
 
     dc_group = parser.add_argument_group('Background data curation')
-    dc_group.add_argument("-bd","--generate-civet-background-data",dest="generate_civet_background_data",action="store",help="A sequence file to create background metadata, alignment and SNP file from.")
-    dc_group.add_argument("--background-data-checks",dest="background_data_checks",action="store_true",help="Run checks on custom background data files, not run by default")
+    dc_group.add_argument("-bd","--generate-background-data",dest="generate_background_data",action="store",help="Type of background data curation. Options: parse_seq_headers and align_curate.")
+    dc_group.add_argument("-bd-seqs","--background-data-sequences",dest="background_data_sequences",action="store",help="Sequence file for alignment.")
+    dc_group.add_argument("-bd-metadata","--background-data-metadata",dest="background_data_metadata",action="store",help="Metadata file for curation.")
+    dc_group.add_argument("--background-data-checks",dest="debug",action="store_true",help="Run checks on custom background data files, not run by default")
     dc_group.add_argument("--background-data-outdir",dest="background_data_outdir",action="store",help="Directory to output the civet background data. Default: `civet_data`")
     dc_group.add_argument("--primary-field-delimiter",dest="primary_field_delimiter",action="store",help="Primary sequence header field delimiter to create metadata file from. Default: `|`")
     dc_group.add_argument("--primary-metadata-fields",dest="primary_metadata_fields",action="store",help="Primary sequence header fields to create metadata file from. Default: `sequence_name,gisaid_id,sample_date`")
@@ -207,18 +209,38 @@ Default: `the_usual`""")
     # Checks access to package data and grabs the snakefile
     data_install_checks.check_install(config)
     
-    if args.generate_civet_background_data:
-        generate_background_parsing.parse_generate_background_args(args.generate_civet_background_data,args.background_data_outdir,args.primary_field_delimiter,args.primary_metadata_fields,args.secondary_fields,args.secondary_field_delimiter,args.secondary_field_location,args.secondary_metadata_fields,config)
+    if args.generate_background_data:
+        generate_background_parsing.check_bd_args(args.generate_background_data,args.background_data_sequences,args.background_data_metadata,config)
+        directory_setup.background_pipeline_tempdir(args.tempdir,args.no_temp,config)
+        generate_background_parsing.sort_background_outdir(args.background_data_outdir,config)
+
+        if args.generate_background_data == VALUES_GENERATE_BACKGROUND_DATA[0]:
+            generate_background_parsing.parse_metadata_from_seq_headers(args.primary_field_delimiter,
+                                                                        args.primary_metadata_fields,
+                                                                        args.secondary_fields,
+                                                                        args.secondary_field_delimiter,
+                                                                        args.secondary_field_location,
+                                                                        args.secondary_metadata_fields,
+                                                                        config)
+        else:
+            misc.add_arg_to_config(KEY_SEQUENCE_ID_COLUMN,args.sequence_id_column,config)
+            
+            config[KEY_BACKGROUND_DATA_METADATA] = generate_background_parsing.check_seqs_metadata_match(config[KEY_UNALIGNED_SEQUENCES],
+                                                                            config[KEY_BACKGROUND_DATA_METADATA],
+                                                                            config[KEY_SEQUENCE_ID_COLUMN],
+                                                                            config[KEY_BACKGROUND_DATA_OUTDIR],
+                                                                            config)
+
         snakefile = data_install_checks.get_generator_snakefile(thisdir)
         if config[KEY_VERBOSE]:
             print(red("\n**** CONFIG ****"))
             for k in sorted(config):
                 print(green(f" - {k}: ") + f"{config[k]}")
-            status = snakemake.snakemake(snakefile, printshellcmds=True, forceall=True, force_incomplete=True,
+            status = snakemake.snakemake(snakefile, printshellcmds=True, forceall=True, force_incomplete=True,workdir=config[KEY_BACKGROUND_DATA_TEMPDIR],
                                         config=config, cores=config[KEY_THREADS],lock=False
                                         )
         else:
-            status = snakemake.snakemake(snakefile, printshellcmds=False, forceall=True,force_incomplete=True,
+            status = snakemake.snakemake(snakefile, printshellcmds=False, forceall=True,force_incomplete=True,workdir=config[KEY_BACKGROUND_DATA_TEMPDIR],
                                         config=config, cores=config[KEY_THREADS],lock=False,quiet=True,log_handler=config[KEY_LOG_API]
                                         )
         if status: # translate "success" into shell exit code of 0

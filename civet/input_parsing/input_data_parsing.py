@@ -1,5 +1,7 @@
 #!/usr/bin/env python3
 from civet.utils.log_colours import green,cyan
+from civet.utils import misc
+
 import sys
 import os
 import csv
@@ -13,11 +15,12 @@ from Bio.Seq import Seq
 def account_for_all_ids(config):
     found_in_background_data = {}
     with open(config["background_metadata"],"r") as f:
-        reader = csv.DictReader(f)
+        reader = misc.read_csv_or_tsv(config["background_metadata"],f)
         header = reader.fieldnames
         for row in reader:
-            if row[config["background_id_column"]] in config["ids"]:
-                found_in_background_data[row[config["background_id_column"]]] = row
+            background_id = row[config["background_id_column"]]
+            if background_id in config["ids"]:
+                found_in_background_data[background_id] = row
     
     print(green(f"Number of queries matched in background data:") + f" {len(found_in_background_data)}")
     
@@ -50,7 +53,7 @@ def merge_metadata_records(found_in_background_data,header,config):
 
     if "input_metadata" in config:
         with open(config["input_metadata"],"r") as f:
-            reader = csv.DictReader(f)
+            reader = misc.read_csv_or_tsv(config["input_metadata"],f)
             for row in reader:
                 name = row[config["input_id_column"]]
                 for col in [config["background_id_column"]]:
