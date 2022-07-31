@@ -274,7 +274,7 @@ Default: `the_usual`""")
 
     # Define what's going to go in the report and sort global report options 
     # stored under config = { "report_content": [1, 2, 3, 4], "reports": [1,2,3,4],[1,2]}
-    name_dict = report_arg_parsing.parse_global_report_options(args.report_content,args.report_preset, args.input_display_column, args.anonymise, args.input_date_column, args.background_date_column,args.date_format, args.background_location_column, config)
+    name_dict = report_arg_parsing.parse_global_report_options(args.report_title,args.report_content,args.report_preset, args.global_snipit,args.input_display_column, args.anonymise, args.input_date_column, args.background_date_column,args.date_format, args.background_location_column, config)
     report_arg_parsing.parse_optional_report_content(args.query_table_content,args.mutations, args.timeline_dates, args.timeline_group_column, args.colour_theme, args.colour_map, config)
     report_arg_parsing.parse_map_options(args.background_map_date_range, args.background_map_column, args.background_map_file, args.centroid_file, args.background_map_location, args.query_map_file, args.longitude_column, args.latitude_column, found_in_background_data, args.background_map_colours, args.background_map_other_colours,config)
     report_arg_parsing.parse_tree_options(args.tree_annotations,args.max_tree_size, config)
