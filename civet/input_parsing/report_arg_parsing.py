@@ -84,7 +84,7 @@ def qc_report_content(config):
 
 #then at some point we need to update the treefile with these display names using jclusterfunk
 
-def parse_global_report_options(report_title,report_content,report_preset,report_column, anonymise,date_column, background_date_column,date_format,location_column, config):
+def parse_global_report_options(report_title,report_content,report_preset,global_snipit,report_column, anonymise,date_column, background_date_column,date_format,location_column, config):
     """
     parses the report group arguments 
     --report-content (Default 1,2,3)
@@ -107,6 +107,8 @@ def parse_global_report_options(report_title,report_content,report_preset,report
     name_output = global_report_functions.sequence_name_parsing(report_column, anonymise, config)
     global_report_functions.parse_date_args(date_column, background_date_column, date_format, config)
     global_report_functions.parse_location(location_column, config)
+
+    misc.add_arg_to_config(KEY_GLOBAL_SNIPIT,global_snipit,config)
 
     return name_output
 
