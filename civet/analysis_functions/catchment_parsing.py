@@ -242,15 +242,17 @@ def which_catchments_too_large(in_csv,config):
         reader = misc.read_csv_or_tsv(in_csv,f)
         for row in reader:
             if row[KEY_QUERY_BOOLEAN] == "True":
-                catchment_counter[row[KEY_CATCHMENT]] +=1
+                if row[KEY_CATCHMENT]:
+                    catchment_counter[row[KEY_CATCHMENT]] +=1
 
 
     with open(in_csv, "r") as f:
         reader = misc.read_csv_or_tsv(in_csv,f)
         for row in reader:
             catchment  = row[KEY_CATCHMENT]
-            if catchment_counter[catchment] <= int(config[KEY_MAX_TREE_SIZE]):
-                figure_catchments.add(catchment)
+            if catchment:
+                if catchment_counter[catchment] <= int(config[KEY_MAX_TREE_SIZE]):
+                    figure_catchments.add(catchment)
 
     config[KEY_FIGURE_CATCHMENTS] = list(figure_catchments)
 

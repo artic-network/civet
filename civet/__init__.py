@@ -1,5 +1,5 @@
 _program = "civet"
-__version__ = "3.0"
+__version__ = "3.0.1"
 
 
 __all__ = [

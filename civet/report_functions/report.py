@@ -85,45 +85,45 @@ def make_catchment_summary_data(metadata,catchments,config):
 
         for row in reader:
             catchment = row[KEY_CATCHMENT]
+            if catchment in catchments:
+                if row[KEY_QUERY_BOOLEAN] == "True":
+                    catchment_summary_dict[catchment]["query_count"] +=1
+                elif row[KEY_QUERY_BOOLEAN] == "False":
+                    catchment = row[KEY_CATCHMENT]
 
-            if row[KEY_QUERY_BOOLEAN] == "True":
-                catchment_summary_dict[catchment]["query_count"] +=1
-            elif row[KEY_QUERY_BOOLEAN] == "False":
-                catchment = row[KEY_CATCHMENT]
+                    catchment_summary_dict[catchment]['total'] +=1
 
-                catchment_summary_dict[catchment]['total'] +=1
+                    if config[KEY_BACKGROUND_DATE_COLUMN] in reader.fieldnames:
+                        try:
+                            d = dt.datetime.strptime(row[config[KEY_BACKGROUND_DATE_COLUMN]], config[KEY_DATE_FORMAT]).date()
+                        
+                            for i in ['earliest_date','latest_date']:
+                                if i not in catchment_summary_dict[catchment]:
+                                    catchment_summary_dict[catchment][i] = d
 
-                if config[KEY_BACKGROUND_DATE_COLUMN] in reader.fieldnames:
-                    try:
-                        d = dt.datetime.strptime(row[config[KEY_BACKGROUND_DATE_COLUMN]], config[KEY_DATE_FORMAT]).date()
+                            check_earliest_latest_dates(d,catchment_summary_dict,catchment)
+                        except:
+                            pass
+
+                    if config["background_location_column"] in reader.fieldnames:
+                        location_column = config["background_location_column"]
+                        if location_column not in catchment_summary_dict[catchment]:
+                            catchment_summary_dict[catchment][location_column] = collections.Counter()
+                        if row[location_column] == "":
+                            catchment_summary_dict[catchment][location_column]["Unknown"]+=1
+                        else:
+                            catchment_summary_dict[catchment][location_column][row[location_column]]+=1
                     
-                        for i in ['earliest_date','latest_date']:
-                            if i not in catchment_summary_dict[catchment]:
-                                catchment_summary_dict[catchment][i] = d
+                    if "lineage" in reader.fieldnames:
+                        if "lineage" not in catchment_summary_dict[catchment]:
+                            catchment_summary_dict[catchment]["lineage"] = collections.Counter()
+                        
+                        catchment_summary_dict[catchment]["lineage"][row['lineage']]+=1
 
-                        check_earliest_latest_dates(d,catchment_summary_dict,catchment)
-                    except:
-                        pass
-
-                if config["background_location_column"] in reader.fieldnames:
-                    location_column = config["background_location_column"]
-                    if location_column not in catchment_summary_dict[catchment]:
-                        catchment_summary_dict[catchment][location_column] = collections.Counter()
-                    if row[location_column] == "":
-                        catchment_summary_dict[catchment][location_column]["Unknown"]+=1
-                    else:
-                        catchment_summary_dict[catchment][location_column][row[location_column]]+=1
-                
-                if "lineage" in reader.fieldnames:
-                    if "lineage" not in catchment_summary_dict[catchment]:
-                        catchment_summary_dict[catchment]["lineage"] = collections.Counter()
-                    
-                    catchment_summary_dict[catchment]["lineage"][row['lineage']]+=1
-
-                if "SNPs" in reader.fieldnames:
-                    if "SNPs" not in catchment_summary_dict[catchment]:
-                        catchment_summary_dict[catchment]["SNPs"] = collections.defaultdict(list)
-                    catchment_summary_dict[catchment]["SNPs"].append(row["SNPs"])
+                    if "SNPs" in reader.fieldnames:
+                        if "SNPs" not in catchment_summary_dict[catchment]:
+                            catchment_summary_dict[catchment]["SNPs"] = collections.defaultdict(list)
+                        catchment_summary_dict[catchment]["SNPs"].append(row["SNPs"])
 
     for catchment in catchment_summary_dict:
         total = catchment_summary_dict[catchment]["total"]
@@ -291,6 +291,7 @@ def make_report(metadata,report_to_generate,config):
     #need to call this multiple times if there are multiple reports wanted
 
     catchments = [f"catchment_{i}" for i in range(1,config["catchment_count"]+1)]
+    catchments = [i for i in catchments if i]
     figure_catchments = config[KEY_FIGURE_CATCHMENTS]
     data_for_report = define_report_content(metadata,catchments,figure_catchments,config)
 
