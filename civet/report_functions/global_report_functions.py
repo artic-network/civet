@@ -127,28 +127,37 @@ def parse_date_args(date_column, background_date_column, date_format, config):
     misc.add_arg_to_config(KEY_BACKGROUND_DATE_COLUMN, background_date_column, config)
     misc.add_arg_to_config(KEY_DATE_FORMAT, date_format, config)
 
+    input_header_fields = []
+    background_header_fields = []
 
     if KEY_INPUT_METADATA in config:
         if not config[KEY_INPUT_DATE_COLUMN]:
             with open(config[KEY_INPUT_METADATA]) as f:
                 reader = misc.read_csv_or_tsv(config[KEY_INPUT_METADATA],f)
-                if "sample_date" in reader.fieldnames:
-                    config[KEY_INPUT_DATE_COLUMN] = "sample_date"
+                input_header_fields = reader.fieldnames
+                if VALUE_DEFAULT_DATE in input_header_fields:
+                    config[KEY_INPUT_DATE_COLUMN] = VALUE_DEFAULT_DATE
 
     
-    if KEY_INPUT_METADATA in config and config[KEY_INPUT_DATE_COLUMN]: #so this will also scoop in "sample_date" assigned above
+    if KEY_INPUT_METADATA in config and config[KEY_INPUT_DATE_COLUMN]: #so this will also scoop in VALUE_DEFAULT_DATE assigned above
         qc_date_col(KEY_INPUT_DATE_COLUMN, config[KEY_DATE_FORMAT],  config[KEY_INPUT_METADATA], "input", "-idate/--input-date-column", config)
 
     if not config[KEY_INPUT_DATE_COLUMN]:
-        config[KEY_INPUT_DATE_COLUMN] = "sample_date"
-
+        config[KEY_INPUT_DATE_COLUMN] = VALUE_DEFAULT_DATE
+    
     if not config[KEY_BACKGROUND_DATE_COLUMN]:
         with open(config[KEY_BACKGROUND_METADATA]) as f:
                 reader = misc.read_csv_or_tsv(config[KEY_BACKGROUND_METADATA],f)
-                if "sample_date" in reader.fieldnames:
-                    config[KEY_BACKGROUND_DATE_COLUMN] = "sample_date"
-                elif config[KEY_INPUT_DATE_COLUMN] and config[KEY_INPUT_DATE_COLUMN] in reader.fieldnames:
+                background_header_fields = reader.fieldnames
+                if VALUE_DEFAULT_DATE in background_header_fields:
+                    config[KEY_BACKGROUND_DATE_COLUMN] = VALUE_DEFAULT_DATE
+                elif config[KEY_INPUT_DATE_COLUMN] and config[KEY_INPUT_DATE_COLUMN] in background_header_fields:
                     config[KEY_BACKGROUND_DATE_COLUMN] = config[KEY_INPUT_DATE_COLUMN]
+
+    if "5" in config[KEY_REPORT_CONTENT] or "8" in config[KEY_REPORT_CONTENT]:
+        if config[KEY_INPUT_DATE_COLUMN] not in input_header_fields:
+            sys.stderr.write(cyan(f"Error: `{config[KEY_INPUT_DATE_COLUMN]}` not found in input metadata, please specifiy which column contains date information.\n"))
+            sys.exit(-1)
 
     if config[KEY_BACKGROUND_DATE_COLUMN]:
         qc_date_col(KEY_BACKGROUND_DATE_COLUMN, config[KEY_DATE_FORMAT],  config[KEY_BACKGROUND_METADATA], "background", "-bdate/--background-date-column", config)
