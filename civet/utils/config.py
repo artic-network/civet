@@ -15,6 +15,9 @@ KEY_GLOBAL_SNIPIT="global_snipit"
 KEY_FOCAL_ALIGNMENT="focal_alignment"
 KEY_REFERENCE_NAME="reference_name"
 
+#VALUES
+VALUE_DEFAULT_DATE="date"
+
 # INPUT SEQ OPTION KEYS
 KEY_INPUT_SEQUENCES="input_sequences"
 KEY_NUM_SEQS="num_seqs"
