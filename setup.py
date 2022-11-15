@@ -22,6 +22,7 @@ setup(name='civet',
       install_requires=[
             "biopython>=1.70",
             "mako>=1.1",
+            "tabulate==0.8.9",
             "snipit"
         ],
       description='Cluster Investivation & Virus Epidemiology Tool',
