@@ -38,6 +38,7 @@ rule all:
         os.path.join(config[KEY_OUTDIR],"master_metadata.csv"),
         os.path.join(config[KEY_OUTDIR],config[KEY_OUTPUT_REPORTS][0])
 
+
 rule align_to_reference:
     input:
         reference = config[KEY_REFERENCE_SEQUENCE]
@@ -48,17 +49,13 @@ rule align_to_reference:
     output:
         fasta = os.path.join(config[KEY_TEMPDIR],"query.aln.fasta")
     log: os.path.join(config[KEY_TEMPDIR], "logs/minimap2_sam.log")
-    run:
-        if config[KEY_QUERY_FASTA]:
-            print(green("Aligning supplied sequences to reference."))
-            shell("""
-                    echo '{config[query_fasta]}'
-                    echo {params.sam:q}""")
-            shell("""
-                    minimap2 -a -x asm20 --sam-hit-only --secondary=no --score-N=0  -t  {workflow.cores} {input.reference:q} '{config[query_fasta]}' -o {params.sam:q} &> {log:q} 
-                    """)
-            shell("""
-                        gofasta sam toMultiAlign \
+    shell:
+        """
+        minimap2 -a -x asm20 --sam-hit-only --secondary=no --score-N=0  \
+        -t  {workflow.cores} {input.reference:q} \
+        '{config[query_fasta]}' \
+        -o {params.sam:q}
+        gofasta sam toMultiAlign \
                         -s {params.sam:q} \
                         -t {workflow.cores} \
                         --reference {input.reference:q} \
@@ -66,9 +63,39 @@ rule align_to_reference:
                         --trimend {params.trim_end} \
                         --trim \
                         --pad > '{output.fasta}'
-                    """)
-        else:
-            shell("touch {output.fasta:q}")
+        """
+
+# rule align_to_reference:
+#     input:
+#         reference = config[KEY_REFERENCE_SEQUENCE]
+#     params:
+#         trim_start = config[KEY_TRIM_START],
+#         trim_end = config[KEY_TRIM_END],
+#         sam = os.path.join(config[KEY_TEMPDIR],"mapped.sam")
+#     output:
+#         fasta = os.path.join(config[KEY_TEMPDIR],"query.aln.fasta")
+#     log: os.path.join(config[KEY_TEMPDIR], "logs/minimap2_sam.log")
+#     run:
+#         if config[KEY_QUERY_FASTA]:
+#             print(green("Aligning supplied sequences to reference."))
+#             shell("""
+#                     echo '{config[query_fasta]}'
+#                     echo {params.sam:q}""")
+#             shell("""
+#                     minimap2 -a -x asm20 --sam-hit-only --secondary=no --score-N=0  -t  {workflow.cores} {input.reference:q} '{config[query_fasta]}' -o {params.sam:q} &> {log:q} 
+#                     """)
+#             shell("""
+#                         gofasta sam toMultiAlign \
+#                         -s {params.sam:q} \
+#                         -t {workflow.cores} \
+#                         --reference {input.reference:q} \
+#                         --trimstart {params.trim_start} \
+#                         --trimend {params.trim_end} \
+#                         --trim \
+#                         --pad > '{output.fasta}'
+#                     """)
+#         else:
+#             shell("touch {output.fasta:q}")
 
 rule seq_brownie:
     input:

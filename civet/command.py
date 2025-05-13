@@ -232,17 +232,8 @@ Default: `the_usual`""")
                                                                             config)
 
         snakefile = data_install_checks.get_generator_snakefile(thisdir)
-        if config[KEY_VERBOSE]:
-            print(red("\n**** CONFIG ****"))
-            for k in sorted(config):
-                print(green(f" - {k}: ") + f"{config[k]}")
-            status = snakemake.snakemake(snakefile, printshellcmds=True, forceall=True, force_incomplete=True,workdir=config[KEY_BACKGROUND_DATA_TEMPDIR],
-                                        config=config, cores=config[KEY_THREADS],lock=False
-                                        )
-        else:
-            status = snakemake.snakemake(snakefile, printshellcmds=False, forceall=True,force_incomplete=True,workdir=config[KEY_BACKGROUND_DATA_TEMPDIR],
-                                        config=config, cores=config[KEY_THREADS],lock=False,quiet=True,log_handler=config[KEY_LOG_API]
-                                        )
+        status = misc.run_snakemake(config,snakefile,config)
+        
         if status: # translate "success" into shell exit code of 0
             return 0   
 
@@ -291,18 +282,7 @@ Default: `the_usual`""")
 
     # ready to run? either verbose snakemake or quiet mode
 
-    if config[KEY_VERBOSE]:
-        print(red("\n**** CONFIG ****"))
-        for k in sorted(config):
-            print(green(f" - {k}: ") + f"{config[k]}")
-        status = snakemake.snakemake(snakefile, printshellcmds=True, forceall=True, force_incomplete=True,
-                                    workdir=config[KEY_TEMPDIR],config=config, cores=config[KEY_THREADS],lock=False
-                                    )
-    else:
-        status = snakemake.snakemake(snakefile, printshellcmds=False, forceall=True,force_incomplete=True,workdir=config[KEY_TEMPDIR],
-                                    config=config, cores=config[KEY_THREADS],lock=False,quiet=True,log_handler=config[KEY_LOG_API]
-                                    )
-
+    status = misc.run_snakemake(config,snakefile,config)
     if status: # translate "success" into shell exit code of 0
        return 0
 
