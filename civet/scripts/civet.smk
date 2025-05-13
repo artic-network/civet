@@ -52,8 +52,13 @@ rule align_to_reference:
         if config[KEY_QUERY_FASTA]:
             print(green("Aligning supplied sequences to reference."))
             shell("""
+                    echo '{config[query_fasta]}'
+                    echo {params.sam:q}""")
+            shell("""
                     minimap2 -a -x asm20 --sam-hit-only --secondary=no --score-N=0  -t  {workflow.cores} {input.reference:q} '{config[query_fasta]}' -o {params.sam:q} &> {log:q} 
-                    gofasta sam toMultiAlign \
+                    """)
+            shell("""
+                        gofasta sam toMultiAlign \
                         -s {params.sam:q} \
                         -t {workflow.cores} \
                         --reference {input.reference:q} \
