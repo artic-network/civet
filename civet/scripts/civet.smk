@@ -121,7 +121,7 @@ rule find_catchment:
         catchments = os.path.join(config[KEY_TEMPDIR],"catchments.csv")
     run:
         
-        shell("cp {config[KEY_IDS]} {output.txt:q}")
+        shell(f"cp {config[KEY_IDS]} '{output.txt}'")
         shell("""gofasta updown topranking \
         -q {input.fasta:q} \
         -t '{config[background_search_file]}' \
