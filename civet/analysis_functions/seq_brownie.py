@@ -36,9 +36,9 @@ def seq_brownie(query_fasta,output_fasta,output_csv,config):
             hash_map_for_metadata[record_id] = hash_str
             
     if config[KEY_QUERY_FASTA]:
-        misc.add_col_to_metadata(KEY_HASH, hash_map_for_metadata, config[KEY_QUERY_METADATA], output.csv, config["input_id_column"], config)
+        misc.add_col_to_metadata(KEY_HASH, hash_map_for_metadata, config[KEY_QUERY_METADATA], output_csv, config["input_id_column"], config)
     elif config[KEY_MATCHED_FASTA]:
-        misc.add_col_to_metadata(KEY_HASH, hash_map_for_metadata, config[KEY_QUERY_METADATA], output.csv, config["sequence_id_column"], config)
+        misc.add_col_to_metadata(KEY_HASH, hash_map_for_metadata, config[KEY_QUERY_METADATA], output_csv, config["sequence_id_column"], config)
 
     config[KEY_QUERY_METADATA] = output_csv
     print(green("Query sequences collapsed from ") + f"{records}" +green(" to ") + f"{len(seq_map)}" + green(" unique sequences."))
