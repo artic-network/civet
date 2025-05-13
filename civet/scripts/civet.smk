@@ -9,7 +9,7 @@ from Bio import SeqIO
 import csv
 
 from civet.utils.config import *
-
+from civet.analysis_functions.seq_brownie import seq_brownie
 
 """
 To do: 
@@ -104,34 +104,8 @@ rule seq_brownie:
         fasta = os.path.join(config[KEY_TEMPDIR],"hashed.aln.fasta"),
         csv = os.path.join(config[KEY_TEMPDIR],"metadata.seq_brownie.master.csv")
     run:
-        records = 0
-        
-        seq_map = {}
-        hash_map = collections.defaultdict(list)
-        hash_map_for_metadata = {}
+        seq_brownie(input.query_fasta,output.fasta,output.csv,config)
 
-        if config[KEY_MATCHED_FASTA]:
-            records = catchment_parsing.add_to_hash(config[KEY_MATCHED_FASTA],seq_map,hash_map,records)
-
-        if config[KEY_QUERY_FASTA]:
-            records = catchment_parsing.add_to_hash(input.query_fasta,seq_map,hash_map,records)
-        
-        with open(output.fasta,"w") as fseqs:
-            for key in seq_map:
-                fseqs.write(f">{key}\n{seq_map[key]}\n")
-
-        for hash_str in hash_map:
-            for record_id in hash_map[hash_str]:
-                hash_map_for_metadata[record_id] = hash_str
-                
-        if config[KEY_QUERY_FASTA]:
-            misc.add_col_to_metadata(KEY_HASH, hash_map_for_metadata, config[KEY_QUERY_METADATA], output.csv, config["input_id_column"], config)
-        elif config[KEY_MATCHED_FASTA]:
-            misc.add_col_to_metadata(KEY_HASH, hash_map_for_metadata, config[KEY_QUERY_METADATA], output.csv, config["sequence_id_column"], config)
-
-        config[KEY_QUERY_METADATA] = output.csv
-        print(green("Query sequences collapsed from ") + f"{records}" +green(" to ") + f"{len(seq_map)}" + green(" unique sequences."))
-            
 
 """
 check_if_int("snp_distance_up",config) 
