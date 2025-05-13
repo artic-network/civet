@@ -47,12 +47,14 @@ rule align_to_reference:
         sam = os.path.join(config[KEY_TEMPDIR],"mapped.sam")
     output:
         fasta = os.path.join(config[KEY_TEMPDIR],"query.aln.fasta")
-    log: os.path.join(config[KEY_TEMPDIR], "logs/minimap2_sam.log")
     run:
         if config[KEY_QUERY_FASTA]:
             print(green("Aligning supplied sequences to reference."))
             shell("""
-                    minimap2 -a -x asm20 --sam-hit-only --secondary=no --score-N=0  -t  {workflow.cores} {input.reference:q} '{config[query_fasta]}' -o {params.sam:q} &> {log:q} 
+                    echo {input.reference:q}
+                    echo '{config[query_fasta]}'
+                    echo {params.sam:q}
+                    minimap2 -a -x asm20 --sam-hit-only --secondary=no --score-N=0  -t  {workflow.cores} {input.reference:q} '{config[query_fasta]}' -o {params.sam:q} 
                     gofasta sam toMultiAlign \
                         -s {params.sam:q} \
                         -t {workflow.cores} \
