@@ -100,8 +100,6 @@ def input_query_parsing(input_metadata,input_id_column,ids,from_metadata,config)
     elif KEY_INPUT_METADATA in config:
         config[KEY_IDS] = csv_qc(config[KEY_INPUT_METADATA],config[KEY_INPUT_ID_COLUMN])
 
-    config[KEY_IDS] = []
-
     if config[KEY_FROM_METADATA] and KEY_IDS in config:
         sys.stderr.write(cyan('Error: civet accepts either -fm/--from-metadata (which generates a query from the background data) or an input query (supplied via `-ids/--id-string`, `-i/--input-metadata` or `-f/--input-sequences`).\n'))
         sys.exit(-1)
