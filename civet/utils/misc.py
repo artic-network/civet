@@ -6,10 +6,9 @@ import datetime as dt
 
 import snakemake
 
-
-import piranha.utils.custom_logger as custom_logger
-from piranha.utils.log_colours import green,cyan,red
-from piranha.utils.config import *
+import civet.utils.custom_logger as custom_logger
+from civet.utils.log_colours import green,cyan,red
+from civet.utils.config import *
 
 def run_snakemake(snake_config,snakefile,config):
     if config[KEY_VERBOSE]:
