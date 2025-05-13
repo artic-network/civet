@@ -263,10 +263,6 @@ Default: `the_usual`""")
     # runs supplied fasta qc
     query_metadata, passed_qc_fasta, found_in_background_data = input_data_parsing.query_check_against_background_merge_input(config)
 
-    with open(os.path.join(config[KEY_TEMPDIR],"id_list.csv"),"w") as fw:
-        for i in config[KEY_IDS]:
-            fw.write(f"{i}\n")
-    config[KEY_IDS] = os.path.join(config[KEY_TEMPDIR],"id_list.csv")
 
     # Define what's going to go in the report and sort global report options 
     # stored under config = { "report_content": [1, 2, 3, 4], "reports": [1,2,3,4],[1,2]}
@@ -278,6 +274,10 @@ Default: `the_usual`""")
 
     # sets up the output dir, temp dir, and data output desination
     directory_setup.output_group_parsing(args.outdir, args.output_prefix, args.overwrite, args.datestamp, args.output_data, args.tempdir, args.no_temp, config)
+    with open(os.path.join(config[KEY_TEMPDIR],"id_list.csv"),"w") as fw:
+        for i in config[KEY_IDS]:
+            fw.write(f"{i}\n")
+    config[KEY_IDS] = os.path.join(config[KEY_TEMPDIR],"id_list.csv")
 
     # write the merged metadata, the extracted passed qc supplied fasta and the extracted matched fasta from the background data
     input_data_parsing.write_parsed_query_files(query_metadata,passed_qc_fasta,found_in_background_data, config)
