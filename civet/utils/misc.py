@@ -4,7 +4,7 @@ import csv
 import sys
 import datetime as dt
 
-from civet.utils.log_colours import green,cyan
+from civet.utils.log_colours import red,green,cyan
 from civet.utils.config import *
 
 def run_snakemake(snake_config,snakefile,config):
@@ -22,7 +22,7 @@ def run_snakemake(snake_config,snakefile,config):
                                     quiet=True,log_handler=logger.log_handler
                                     )
     return status
-    
+
 def add_col_to_metadata(new_column_name, new_column_dict, metadata, new_metadata, match_column, config): 
     #dictionary currently is key=sequence name and value=new col value
     print(green("Adding column to master metadata:"), new_column_name)
