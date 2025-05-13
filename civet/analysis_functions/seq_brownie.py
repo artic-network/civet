@@ -13,6 +13,8 @@ from civet.utils.config import *
 
 
 def seq_brownie(query_fasta,output_fasta,output_csv,config):
+    print(config[KEY_MATCHED_FASTA])
+    print("trying to run code")
     records = 0
     
     seq_map = {}
