@@ -65,7 +65,7 @@ rule write_taxa_hash:
     output:
         taxa = os.path.join(config["tempdir"],"catchments","{catchment}.taxa.csv")
     run:
-        with open(output.hash_taxa, "w") as fw:
+        with open(output.taxa, "w") as fw:
             with open(input.csv,"r") as f:
                 reader = csv.DictReader(f)
                 for row in reader:
