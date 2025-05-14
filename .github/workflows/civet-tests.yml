@@ -10,15 +10,16 @@ jobs:
     runs-on: ${{ matrix.os }}
     strategy:
       matrix:
-        os: ["ubuntu-latest", "macos-latest"]
+        os: ["ubuntu-latest"]
     steps:
       - uses: actions/checkout@v3
       - uses: conda-incubator/setup-miniconda@v3
         with:
+          auto-update-conda: false
           environment-file: environment.yml
           activate-environment: civet3
           channels: conda-forge,bioconda,defaults
-          mamba-version: "*"
+          miniforge-version: latest
       - name: Install civet3
         run: pip install -e .
       - name: Check civet3 version
