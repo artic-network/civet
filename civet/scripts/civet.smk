@@ -115,24 +115,29 @@ check_if_int("snp_distance_up",config)
 rule find_catchment:
     input:
         fasta = rules.seq_brownie.output.fasta
+    params:
+        background = config["background_search_file"],
+        ref = config["reference_sequence"],
+        up = config["snp_distance_up"],
+        down = config["snp_distance_down"],
+        side = config["snp_distance_side"],
+        ids = config["ids"]
     log: os.path.join(config[KEY_TEMPDIR],"logs","updown_top_ranking.txt")
     output:
-        txt = os.path.join(config[KEY_TEMPDIR],"updown_ignore.txt"),
         catchments = os.path.join(config[KEY_TEMPDIR],"catchments.csv")
-    run:
-        
-        shell(f"cp {config[KEY_IDS]} '{output.txt}'")
-        shell("""gofasta updown topranking \
+    shell:
+        """
+        gofasta updown topranking \
         -q {input.fasta:q} \
-        -t '{config[background_search_file]}' \
+        -t '{params.background}' \
         -o {output.catchments:q} \
-        --reference '{config[reference_sequence]}' \
+        --reference '{params.ref}' \
         --dist-push \
-        --dist-up {config[snp_distance_up]} \
-        --dist-down {config[snp_distance_down]} \
-        --dist-side {config[snp_distance_side]} \
-        --ignore {output.txt:q} &> {log:q}
-        """)
+        --dist-up {params.up} \
+        --dist-down {params.down} \
+        --dist-side {params.side} \
+        --ignore {params.ids} &> {log:q}
+        """
 
 rule merge_catchments:
     input:
