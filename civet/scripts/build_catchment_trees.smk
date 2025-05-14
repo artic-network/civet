@@ -79,11 +79,11 @@ rule prune_hashed_seqs:
         tree = os.path.join(config["tempdir"],"catchments","{catchment}.hashed_prune.tree")
     shell:
         """
-        jclusterfunk prune  -i {input.tree:q} 
-                            -o {output.tree:q} 
-                            --taxon-file {input.taxa:q} 
-                            --ignore-missing 
-                            -c hash 
+        jclusterfunk prune  -i {input.tree:q} \
+                            -o {output.tree:q} \
+                            --taxon-file {input.taxa:q} \
+                            --ignore-missing \
+                            -c hash \
                             -f newick 
         """
 
