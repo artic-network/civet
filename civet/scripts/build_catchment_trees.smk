@@ -59,27 +59,33 @@ rule expand_hash:
                             -o {output.tree}
         """
 
-rule prune_hashed_seqs:
+rule write_taxa_hash:
     input:
-        tree = rules.expand_hash.output.tree,
+        csv = config["csv"]
     output:
-        hash_taxa = os.path.join(config["tempdir"],"catchments","{catchment}.taxa.csv"),
-        tree = os.path.join(config["tempdir"],"catchments","{catchment}.hashed_prune.tree")
+        taxa = os.path.join(config["tempdir"],"catchments","{catchment}.taxa.csv")
     run:
-
         with open(output.hash_taxa, "w") as fw:
-
-            with open(config["csv"],"r") as f:
+            with open(input.csv,"r") as f:
                 reader = csv.DictReader(f)
                 for row in reader:
                     fw.write(f"{row['hash']}\n")
 
-        shell("jclusterfunk prune  -i {input.tree:q} "
-                           " -o {output.tree:q} "
-                           " --taxon-file {output.hash_taxa:q} "
-                           " --ignore-missing "
-                           " -c hash "
-                           " -f newick ")
+rule prune_hashed_seqs:
+    input:
+        tree = rules.expand_hash.output.tree,
+        taxa = rules.write_taxa_hash.output.taxa
+    output:
+        tree = os.path.join(config["tempdir"],"catchments","{catchment}.hashed_prune.tree")
+    shell:
+        """
+        jclusterfunk prune  -i {input.tree:q} 
+                            -o {output.tree:q} 
+                            --taxon-file {input.taxa:q} 
+                            --ignore-missing 
+                            -c hash 
+                            -f newick 
+        """
 
 # rule clump:
 #     input:
