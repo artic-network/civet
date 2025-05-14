@@ -63,18 +63,20 @@ rule prune_hashed_seqs:
     input:
         tree = rules.expand_hash.output.tree,
     output:
+        hash_taxa = os.path.join(config["tempdir"],"catchments","{catchment}.taxa.csv"),
         tree = os.path.join(config["tempdir"],"catchments","{catchment}.hashed_prune.tree")
     run:
-        hash_strings = []
-        with open(config["csv"],"r") as f:
-            reader = csv.DictReader(f)
-            for row in reader:
-                hash_strings.append(row["hash"])
-        hash_strings = ' '.join(list(set(hash_strings)))
+
+        with open(output.hash_taxa, "w") as fw:
+
+            with open(config["csv"],"r") as f:
+                reader = csv.DictReader(f)
+                for row in reader:
+                    fw.write(f"{row['hash']}\n")
 
         shell("jclusterfunk prune  -i {input.tree:q} "
                            " -o {output.tree:q} "
-                           f" -t '{hash_strings}' "
+                           " --taxon-file {output.hash_taxa:q} "
                            " --ignore-missing "
                            " -c hash "
                            " -f newick ")
