@@ -49,21 +49,25 @@ rule align_to_reference:
     output:
         fasta = os.path.join(config[KEY_TEMPDIR],"query.aln.fasta")
     log: os.path.join(config[KEY_TEMPDIR], "logs/minimap2_sam.log")
-    shell:
-        """
-        minimap2 -a -x asm20 --sam-hit-only --secondary=no --score-N=0  \
-        -t  {workflow.cores} {input.reference:q} \
-        '{config[query_fasta]}' \
-        -o {params.sam:q}
-        gofasta sam toMultiAlign \
-                        -s {params.sam:q} \
-                        -t {workflow.cores} \
-                        --reference {input.reference:q} \
-                        --trimstart {params.trim_start} \
-                        --trimend {params.trim_end} \
-                        --trim \
-                        --pad > '{output.fasta}'
-        """
+    run:
+        if config["KEY_INPUT_FASTA"]!="False":
+            shell("""
+                minimap2 -a -x asm20 --sam-hit-only --secondary=no --score-N=0  \
+                -t  {workflow.cores} {input.reference:q} \
+                '{config[query_fasta]}' \
+                -o {params.sam:q}
+                gofasta sam toMultiAlign \
+                                -s {params.sam:q} \
+                                -t {workflow.cores} \
+                                --reference {input.reference:q} \
+                                --trimstart {params.trim_start} \
+                                --trimend {params.trim_end} \
+                                --trim \
+                                --pad > '{output.fasta}'
+                """)
+        else:
+            shell("touch {output.fasta:q}")
+
 
 # rule align_to_reference:
 #     input:
@@ -125,22 +129,19 @@ rule find_catchment:
     log: os.path.join(config[KEY_TEMPDIR],"logs","updown_top_ranking.txt")
     output:
         catchments = os.path.join(config[KEY_TEMPDIR],"catchments.csv")
-    run:
-        if config[KEY_QUERY_FASTA] != "False":
-            print(green("Aligning supplied sequences to reference."))
-            shell("""
-                    minimap2 -a -x asm20 --sam-hit-only --secondary=no --score-N=0  -t  {workflow.cores} {input.reference:q} '{config[query_fasta]}' -o {params.sam:q} &> {log:q} 
-                    gofasta sam toMultiAlign \
-                        -s {params.sam:q} \
-                        -t {workflow.cores} \
-                        --reference {input.reference:q} \
-                        --trimstart {params.trim_start} \
-                        --trimend {params.trim_end} \
-                        --trim \
-                        --pad > '{output.fasta}'
-                    """)
-        else:
-            shell("touch {output.fasta:q}")
+    shell:
+        """
+        gofasta updown topranking \
+        -q {input.fasta:q} \
+        -t '{params.background}' \
+        -o {output.catchments:q} \
+        --reference '{params.ref}' \
+        --dist-push \
+        --dist-up {params.up} \
+        --dist-down {params.down} \
+        --dist-side {params.side} \
+        --ignore {params.ids} &> {log:q}
+        """
 
 rule merge_catchments:
     input:
