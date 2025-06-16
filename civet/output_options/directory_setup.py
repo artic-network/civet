@@ -158,6 +158,8 @@ def set_up_background_pipeline_tempdir(config):
         except:
             sys.stderr.write(cyan(f'Error: cannot write to temp directory {tempdir}.\n'))
             sys.exit(-1)
+            
+        config[KEY_TEMPDIR] = config[KEY_BACKGROUND_DATA_TEMPDIR]
 
 
 def background_pipeline_tempdir(tempdir,no_temp,config):
