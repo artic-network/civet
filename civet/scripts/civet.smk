@@ -50,7 +50,7 @@ rule align_to_reference:
         fasta = os.path.join(config[KEY_TEMPDIR],"query.aln.fasta")
     log: os.path.join(config[KEY_TEMPDIR], "logs/minimap2_sam.log")
     run:
-        if config["KEY_INPUT_FASTA"]!="False":
+        if config["KEY_QUERY_FASTA"]!="False":
             shell("""
                 minimap2 -a -x asm20 --sam-hit-only --secondary=no --score-N=0  \
                 -t  {workflow.cores} {input.reference:q} \
