@@ -9,7 +9,7 @@ from Bio import SeqIO
 import csv
 
 from civet.utils.config import *
-
+from civet.analysis_functions.seq_brownie import seq_brownie
 
 """
 To do: 
@@ -38,6 +38,7 @@ rule all:
         os.path.join(config[KEY_OUTDIR],"master_metadata.csv"),
         os.path.join(config[KEY_OUTDIR],config[KEY_OUTPUT_REPORTS][0])
 
+
 rule align_to_reference:
     input:
         reference = config[KEY_REFERENCE_SEQUENCE]
@@ -47,15 +48,14 @@ rule align_to_reference:
         sam = os.path.join(config[KEY_TEMPDIR],"mapped.sam")
     output:
         fasta = os.path.join(config[KEY_TEMPDIR],"query.aln.fasta")
-    run:
-        if config[KEY_QUERY_FASTA]:
-            print(green("Aligning supplied sequences to reference."))
-            shell("""
-                    echo {input.reference:q}
-                    echo '{config[query_fasta]}'
-                    echo {params.sam:q}
-                    minimap2 -a -x asm20 --sam-hit-only --secondary=no --score-N=0  -t  {workflow.cores} {input.reference:q} '{config[query_fasta]}' -o {params.sam:q} 
-                    gofasta sam toMultiAlign \
+    log: os.path.join(config[KEY_TEMPDIR], "logs/minimap2_sam.log")
+    shell:
+        """
+        minimap2 -a -x asm20 --sam-hit-only --secondary=no --score-N=0  \
+        -t  {workflow.cores} {input.reference:q} \
+        '{config[query_fasta]}' \
+        -o {params.sam:q}
+        gofasta sam toMultiAlign \
                         -s {params.sam:q} \
                         -t {workflow.cores} \
                         --reference {input.reference:q} \
@@ -63,9 +63,39 @@ rule align_to_reference:
                         --trimend {params.trim_end} \
                         --trim \
                         --pad > '{output.fasta}'
-                    """)
-        else:
-            shell("touch {output.fasta:q}")
+        """
+
+# rule align_to_reference:
+#     input:
+#         reference = config[KEY_REFERENCE_SEQUENCE]
+#     params:
+#         trim_start = config[KEY_TRIM_START],
+#         trim_end = config[KEY_TRIM_END],
+#         sam = os.path.join(config[KEY_TEMPDIR],"mapped.sam")
+#     output:
+#         fasta = os.path.join(config[KEY_TEMPDIR],"query.aln.fasta")
+#     log: os.path.join(config[KEY_TEMPDIR], "logs/minimap2_sam.log")
+#     run:
+#         if config[KEY_QUERY_FASTA]:
+#             print(green("Aligning supplied sequences to reference."))
+#             shell("""
+#                     echo '{config[query_fasta]}'
+#                     echo {params.sam:q}""")
+#             shell("""
+#                     minimap2 -a -x asm20 --sam-hit-only --secondary=no --score-N=0  -t  {workflow.cores} {input.reference:q} '{config[query_fasta]}' -o {params.sam:q} &> {log:q} 
+#                     """)
+#             shell("""
+#                         gofasta sam toMultiAlign \
+#                         -s {params.sam:q} \
+#                         -t {workflow.cores} \
+#                         --reference {input.reference:q} \
+#                         --trimstart {params.trim_start} \
+#                         --trimend {params.trim_end} \
+#                         --trim \
+#                         --pad > '{output.fasta}'
+#                     """)
+#         else:
+#             shell("touch {output.fasta:q}")
 
 rule seq_brownie:
     input:
@@ -74,34 +104,8 @@ rule seq_brownie:
         fasta = os.path.join(config[KEY_TEMPDIR],"hashed.aln.fasta"),
         csv = os.path.join(config[KEY_TEMPDIR],"metadata.seq_brownie.master.csv")
     run:
-        records = 0
-        
-        seq_map = {}
-        hash_map = collections.defaultdict(list)
-        hash_map_for_metadata = {}
+        seq_brownie(input.query_fasta,output.fasta,output.csv,config)
 
-        if config[KEY_MATCHED_FASTA]:
-            records = catchment_parsing.add_to_hash(config[KEY_MATCHED_FASTA],seq_map,hash_map,records)
-
-        if config[KEY_QUERY_FASTA]:
-            records = catchment_parsing.add_to_hash(input.query_fasta,seq_map,hash_map,records)
-        
-        with open(output.fasta,"w") as fseqs:
-            for key in seq_map:
-                fseqs.write(f">{key}\n{seq_map[key]}\n")
-
-        for hash_str in hash_map:
-            for record_id in hash_map[hash_str]:
-                hash_map_for_metadata[record_id] = hash_str
-                
-        if config[KEY_QUERY_FASTA]:
-            misc.add_col_to_metadata(KEY_HASH, hash_map_for_metadata, config[KEY_QUERY_METADATA], output.csv, config["input_id_column"], config)
-        elif config[KEY_MATCHED_FASTA]:
-            misc.add_col_to_metadata(KEY_HASH, hash_map_for_metadata, config[KEY_QUERY_METADATA], output.csv, config["sequence_id_column"], config)
-
-        config[KEY_QUERY_METADATA] = output.csv
-        print(green("Query sequences collapsed from ") + f"{records}" +green(" to ") + f"{len(seq_map)}" + green(" unique sequences."))
-            
 
 """
 check_if_int("snp_distance_up",config) 
@@ -111,26 +115,29 @@ check_if_int("snp_distance_up",config)
 rule find_catchment:
     input:
         fasta = rules.seq_brownie.output.fasta
+    params:
+        background = config["background_search_file"],
+        ref = config["reference_sequence"],
+        up = config["snp_distance_up"],
+        down = config["snp_distance_down"],
+        side = config["snp_distance_side"],
+        ids = config["ids"]
     log: os.path.join(config[KEY_TEMPDIR],"logs","updown_top_ranking.txt")
     output:
-        txt = os.path.join(config[KEY_TEMPDIR],"updown_ignore.txt"),
         catchments = os.path.join(config[KEY_TEMPDIR],"catchments.csv")
-    run:
-        
-        with open(output.txt,"w") as fw:
-            for i in config[KEY_IDS]:
-                fw.write(f"{i}\n")
-        shell("""gofasta updown topranking \
+    shell:
+        """
+        gofasta updown topranking \
         -q {input.fasta:q} \
-        -t '{config[background_search_file]}' \
+        -t '{params.background}' \
         -o {output.catchments:q} \
-        --reference '{config[reference_sequence]}' \
+        --reference '{params.ref}' \
         --dist-push \
-        --dist-up {config[snp_distance_up]} \
-        --dist-down {config[snp_distance_down]} \
-        --dist-side {config[snp_distance_side]} \
-        --ignore {output.txt:q} &> {log:q}
-        """)
+        --dist-up {params.up} \
+        --dist-down {params.down} \
+        --dist-side {params.side} \
+        --ignore {params.ids} &> {log:q}
+        """
 
 rule merge_catchments:
     input:

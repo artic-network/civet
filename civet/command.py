@@ -232,17 +232,8 @@ Default: `the_usual`""")
                                                                             config)
 
         snakefile = data_install_checks.get_generator_snakefile(thisdir)
-        if config[KEY_VERBOSE]:
-            print(red("\n**** CONFIG ****"))
-            for k in sorted(config):
-                print(green(f" - {k}: ") + f"{config[k]}")
-            status = snakemake.snakemake(snakefile, printshellcmds=True, forceall=True, force_incomplete=True,workdir=config[KEY_BACKGROUND_DATA_TEMPDIR],
-                                        config=config, cores=config[KEY_THREADS],lock=False
-                                        )
-        else:
-            status = snakemake.snakemake(snakefile, printshellcmds=False, forceall=True,force_incomplete=True,workdir=config[KEY_BACKGROUND_DATA_TEMPDIR],
-                                        config=config, cores=config[KEY_THREADS],lock=False,quiet=True,log_handler=config[KEY_LOG_API]
-                                        )
+        status = misc.run_snakemake(config,snakefile,config)
+        
         if status: # translate "success" into shell exit code of 0
             return 0   
 
@@ -272,6 +263,7 @@ Default: `the_usual`""")
     # runs supplied fasta qc
     query_metadata, passed_qc_fasta, found_in_background_data = input_data_parsing.query_check_against_background_merge_input(config)
 
+
     # Define what's going to go in the report and sort global report options 
     # stored under config = { "report_content": [1, 2, 3, 4], "reports": [1,2,3,4],[1,2]}
     name_dict = report_arg_parsing.parse_global_report_options(args.report_title,args.report_content,args.report_preset, args.global_snipit,args.input_display_column, args.anonymise, args.input_date_column, args.background_date_column,args.date_format, args.background_location_column, config)
@@ -282,6 +274,10 @@ Default: `the_usual`""")
 
     # sets up the output dir, temp dir, and data output desination
     directory_setup.output_group_parsing(args.outdir, args.output_prefix, args.overwrite, args.datestamp, args.output_data, args.tempdir, args.no_temp, config)
+    with open(os.path.join(config[KEY_TEMPDIR],"id_list.csv"),"w") as fw:
+        for i in config[KEY_IDS]:
+            fw.write(f"{i}\n")
+    config[KEY_IDS] = os.path.join(config[KEY_TEMPDIR],"id_list.csv")
 
     # write the merged metadata, the extracted passed qc supplied fasta and the extracted matched fasta from the background data
     input_data_parsing.write_parsed_query_files(query_metadata,passed_qc_fasta,found_in_background_data, config)
@@ -291,18 +287,7 @@ Default: `the_usual`""")
 
     # ready to run? either verbose snakemake or quiet mode
 
-    if config[KEY_VERBOSE]:
-        print(red("\n**** CONFIG ****"))
-        for k in sorted(config):
-            print(green(f" - {k}: ") + f"{config[k]}")
-        status = snakemake.snakemake(snakefile, printshellcmds=True, forceall=True, force_incomplete=True,
-                                    workdir=config[KEY_TEMPDIR],config=config, cores=config[KEY_THREADS],lock=False
-                                    )
-    else:
-        status = snakemake.snakemake(snakefile, printshellcmds=False, forceall=True,force_incomplete=True,workdir=config[KEY_TEMPDIR],
-                                    config=config, cores=config[KEY_THREADS],lock=False,quiet=True,log_handler=config[KEY_LOG_API]
-                                    )
-
+    status = misc.run_snakemake(config,snakefile,config)
     if status: # translate "success" into shell exit code of 0
        return 0
 

@@ -4,8 +4,27 @@ import csv
 import sys
 import datetime as dt
 
-from civet.utils.log_colours import green,cyan
+import snakemake
+
+import civet.utils.custom_logger as custom_logger
+from civet.utils.log_colours import green,cyan,red
 from civet.utils.config import *
+
+def run_snakemake(snake_config,snakefile,config):
+    if config[KEY_VERBOSE]:
+        print(red("\n**** CONFIG ****"))
+        for k in sorted(config):
+            print(green(f" - {k}: ") + f"{config[k]}")
+        status = snakemake.snakemake(snakefile, printshellcmds=True, forceall=True, force_incomplete=True,
+                                    workdir=config[KEY_TEMPDIR], config=snake_config, cores=config[KEY_THREADS],lock=False
+                                    )
+    else:
+        logger = custom_logger.Logger()
+        status = snakemake.snakemake(snakefile, printshellcmds=False, forceall=True, force_incomplete=True,
+                                    workdir=config[KEY_TEMPDIR], config=snake_config, cores=config[KEY_THREADS],lock=False,
+                                    quiet=True,log_handler=logger.log_handler
+                                    )
+    return status
 
 def add_col_to_metadata(new_column_name, new_column_dict, metadata, new_metadata, match_column, config): 
     #dictionary currently is key=sequence name and value=new col value
