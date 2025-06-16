@@ -126,7 +126,7 @@ rule find_catchment:
     output:
         catchments = os.path.join(config[KEY_TEMPDIR],"catchments.csv")
     run:
-        if config[KEY_QUERY_FASTA]:
+        if config[KEY_QUERY_FASTA] != "False":
             print(green("Aligning supplied sequences to reference."))
             shell("""
                     minimap2 -a -x asm20 --sam-hit-only --secondary=no --score-N=0  -t  {workflow.cores} {input.reference:q} '{config[query_fasta]}' -o {params.sam:q} &> {log:q} 
