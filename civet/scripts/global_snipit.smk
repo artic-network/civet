@@ -11,7 +11,7 @@ from civet.utils.config import *
 rule all:
     input:
         os.path.join(config["tempdir"], "snipit", "global_snipit_labels.txt"),
-	os.path.join(config["tempdir"],"snipit", "global_snipit.svg")
+        os.path.join(config["tempdir"],"snipit", "global_snipit.svg")
 
 rule gather_focal_seqs: 
     input: 
@@ -37,7 +37,6 @@ rule get_all_sequence_names:
         alignment = ALIGN
     output:
         seq_names = os.path.join(config["tempdir"], "snipit", "global_snipit_labels.txt")
-	
     params: 
         ref_name = config[KEY_REFERENCE_NAME]
     run:
@@ -65,7 +64,7 @@ rule get_all_sequence_names:
 rule snipit_all:
     input:
         aln = ALIGN,
-	names = rules.get_all_sequence_names.output.seq_names
+        names = rules.get_all_sequence_names.output.seq_names
     params:
         out_path = os.path.join(config["tempdir"],"snipit", "global_snipit")
     output:

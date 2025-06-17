@@ -272,8 +272,8 @@ rule snipit:
 rule global_snipit:
     input:
         fasta = rules.align_to_reference.output.fasta,
-	yaml = rules.merge_catchments.output.yaml,
-	prompt = rules.snipit.output.txt,
+        yaml = rules.merge_catchments.output.yaml,
+        prompt = rules.snipit.output.txt,
         snakefile = os.path.join(workflow.current_basedir,"global_snipit.smk")
     output:
         txt = os.path.join(config[KEY_TEMPDIR],"global_snipit","prompt.txt")
@@ -285,7 +285,7 @@ rule global_snipit:
                     "--forceall "
                     "{config[log_string]} "
                     "--directory {config[tempdir]:q} "
-		    "--configfile {input.yaml:q} "
+                    "--configfile {input.yaml:q} "
                     "--config fasta={input.fasta:q} "
                     "--cores {workflow.cores} && touch {output.txt:q}")
         else:
@@ -298,7 +298,7 @@ rule render_report:
         yaml = rules.merge_catchments.output.yaml,
         snipit = rules.snipit.output.txt,
         trees = rules.tree_building.output.txt,
-	global_snipit = rules.global_snipit.output.txt
+        global_snipit = rules.global_snipit.output.txt
     output:
         html = os.path.join(config[KEY_OUTDIR],config[KEY_OUTPUT_REPORTS][0])
     run:
