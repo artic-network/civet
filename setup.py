@@ -20,9 +20,9 @@ setup(name='civet',
             ],
       package_data={"civet":["data/*","data/report_modules/*","data/map_data/*","tests/action_test_data/*.fa"]},
       install_requires=[
-            "biopython>=1.70",
+            "biopython",
             "mako>=1.1",
-            "tabulate==0.8.9",
+            "tabulate",
             "snipit"
         ],
       description='Cluster Investivation & Virus Epidemiology Tool',
