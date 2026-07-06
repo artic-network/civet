@@ -154,6 +154,7 @@ KEY_DATE="date"
 KEY_AUTHORS="authors"
 
 KEY_REFERENCE_SEQUENCE="reference_sequence"
+KEY_OUTGROUP_FASTA="outgroup_fasta"
 
 RESOURCE_KEY_FILENAME="filename"
 RESOURCE_KEY_DIRECTORY="directory"
@@ -169,10 +170,10 @@ dependency_list = ["gofasta","minimap2","snakemake","iqtree","jclusterfunk","sco
 module_list = ["mako","Bio"]
 
 resources = [
-        {RESOURCE_KEY:"reference_sequence",
+        {RESOURCE_KEY:KEY_REFERENCE_SEQUENCE,
         RESOURCE_KEY_DIRECTORY:"data",
         RESOURCE_KEY_FILENAME:"reference.fasta"},
-        {RESOURCE_KEY:"outgroup_fasta",
+        {RESOURCE_KEY:KEY_OUTGROUP_FASTA,
         RESOURCE_KEY_DIRECTORY:"data",
         RESOURCE_KEY_FILENAME:"outgroup.fasta"},
         {RESOURCE_KEY:"report_template",

@@ -8,6 +8,10 @@ from civet.utils.config import *
 
 def package_data_check(filename,directory,key,config):
     try:
+        # If the user has supplied a value for this config key (via CLI or config file),
+        # do not overwrite it with the packaged resource path.
+        if key in config and config[key]:
+            return
         package_datafile = os.path.join(directory,filename)
         data = pkg_resources.resource_filename('civet', package_datafile)
         config[key] = data

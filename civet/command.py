@@ -23,6 +23,11 @@ from civet.utils.config import *
 import os
 import sys
 import argparse
+import warnings
+
+# Silence repeated pkg_resources deprecation warnings coming from dependencies (stopit/pkg_resources)
+warnings.filterwarnings("ignore", message=".*pkg_resources is deprecated.*", category=UserWarning)
+
 import snakemake
 
 cwd = os.getcwd()
@@ -163,6 +168,8 @@ Default: `the_usual`""")
     misc_group.add_argument("--date-format", action="store",dest="date_format",help="Option to parse differently formatted date strings. Default: YYYY-MM-DD")
     misc_group.add_argument("--civet-mode", action="store", dest='civet_mode', help="If CLIMB then import UK specific modules. Default=`GLOBAL`")
     misc_group.add_argument("-r","--reference-sequence",action="store",dest="reference_sequence",help="Custom reference genome to map and pad against. Must match the reference the background sequence alignment was generated from.")
+    misc_group.add_argument("--outgroup-sequence", action="store", dest="outgroup_fasta",
+                            help="Custom outgroup fasta to use instead of packaged outgroup.fasta")
     misc_group.add_argument("--art",action="store_true",help="Print art")
     misc_group.add_argument("--acknowledgements",action="store_true",help="Print thanks")
     misc_group.add_argument('-t', '--threads', action='store',dest="threads",type=int,help="Number of threads")
@@ -264,6 +271,9 @@ Default: `the_usual`""")
     input_arg_parsing.input_fasta_parsing(args.input_sequences,args.max_ambiguity,args.min_length,config)
 
     input_arg_parsing.from_metadata_parsing(config)
+
+    # Allow user to override packaged outgroup fasta
+    misc.add_file_to_config(KEY_OUTGROUP_FASTA, args.outgroup_fasta, config)
 
     snakefile = data_install_checks.get_snakefile(thisdir)
 

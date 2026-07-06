@@ -230,7 +230,7 @@ def write_catchment_fasta(catchment_metadata,fasta,catchment_dir,config):
 
         with open(os.path.join(catchment_dir,f"{catchment}.fasta"),"w") as fw:
             records = seq_dict[catchment]
-            for record in SeqIO.parse(config["outgroup_fasta"],"fasta"):
+            for record in SeqIO.parse(config[KEY_OUTGROUP_FASTA],"fasta"):
                 records.append(record)
             SeqIO.write(records,fw,"fasta")
 

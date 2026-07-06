@@ -32,6 +32,10 @@ def get_defaults():
                     KEY_TRIM_START:265,   # where to pad to using datafunk
                     KEY_TRIM_END:29674,
 
+                    # reference / outgroup
+                    KEY_REFERENCE_SEQUENCE: False,
+                    KEY_OUTGROUP_FASTA: False,
+
                     # background variables
                     
                     CIVET_DATADIR: os.getenv('CIVET_DATADIR'),
@@ -299,7 +303,7 @@ def load_yaml(f):
     return input_config
 
 def return_path_keys():
-    return [KEY_INPUT_METADATA,KEY_INPUT_SEQUENCES,KEY_BACKGROUND_METADATA,KEY_BACKGROUND_SEQUENCES,KEY_BACKGROUND_TREE,KEY_BACKGROUND_SNPS,CIVET_DATADIR,KEY_OUTDIR,KEY_TEMPDIR]
+    return [KEY_INPUT_METADATA,KEY_INPUT_SEQUENCES,KEY_BACKGROUND_METADATA,KEY_BACKGROUND_SEQUENCES,KEY_BACKGROUND_TREE,KEY_BACKGROUND_SNPS,CIVET_DATADIR,KEY_OUTDIR,KEY_TEMPDIR,KEY_REFERENCE_SEQUENCE,KEY_OUTGROUP_FASTA]
 
 def setup_absolute_paths(path_to_file,value):
     return os.path.join(path_to_file,value)
